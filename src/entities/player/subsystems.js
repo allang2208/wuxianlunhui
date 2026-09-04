@@ -29,6 +29,7 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { GunFeel } from '../../effects/gunfeel.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 import { applyOutgoingDamageModifiers } from '../../combat/outgoing-damage-modifiers.js';
+import { applyLegendaryShieldWard } from '../../combat/legendary-shield-ward.js';
 import { getElement } from '../../utils/dom-utils.js';
 import { TimerManager } from '../../utils/timer-manager.js';
 import { CONFIG } from '../../config/config.js';
@@ -102,23 +103,23 @@ onLevelUp(level) {
                 });
             },
 
-takeDamage(damage, source, damageType = 'physical', isMelee = false) {
-                // 结果只属于本次受击，不能沿用上一次弹反状态。
+            _isIncomingHitBlocked(source = null, isMelee = false) {
+                return this._isDead || this.dodgeInvincible || this._moonshadowTimer > 0
+                    || (isMelee && source && !canMeleeShareSurface(source, this));
+            },
+
+takeDamage(damage, source, damageType = 'physical', isMelee = false, hitContext = null) {
+                // 结果只属于本次受击；松盾或无敌等提前返回也不能沿用上次弹反。
                 if (this.shieldSystem) this.shieldSystem._lastParried = false;
-                // 近战最终保险：跨 ground/stairs/wall_walk 平面的直伤、弹反和附带状态全部拒绝。
-                if (isMelee && source && !canMeleeShareSurface(source, this)) return 0;
-                // 闪避无敌期间不受伤害
-                if (this.dodgeInvincible) return;
-                // 月影庇护：无敌时间内不受伤害
-                if (this._moonshadowTimer > 0) return;
-                // 已死亡不处理
-                if (this._isDead) return;
+                // 与命中管道、持续伤害共用门禁；调试无敌仍在盾牌处理后判断。
+                if (this._isIncomingHitBlocked(source, isMelee)) return 0;
                 // 伤害值安全校验，防止 undefined/NaN 导致 HP 异常
                 let finalDamage = Number(damage);
                 if (!Number.isFinite(finalDamage) || finalDamage < 0) {
                     console.warn('[Player.takeDamage] 非法伤害值:', damage);
                     finalDamage = 0;
                 }
+                if (finalDamage <= 0) return 0;
                 const d = this.data;
                 const critRate = (source && source.data && source.data.crit) || 0;
                 const critRes = (d && d.critRes) || 0;
@@ -134,31 +135,129 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false) {
                 const isCrit = typeof source?._forcedHitCritical === 'boolean'
                     ? source._forcedHitCritical
                     : Math.random() * 100 < finalCritRate;
-                // 应用暴击伤害加成
-                // 次级格挡：装备宽十字护手时，受到近战攻击有50%概率减少50%伤害
-                if (isMelee && this.equipments && this.weaponMode) {
-                    const currentWpn = this.equipments[this.weaponMode];
-                    if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.secondaryBlock) {
-                        if (Math.random() < 0.5) {
-                            finalDamage = Math.floor(finalDamage * 0.5);
-                        }
-                    }
-                }
                 if (isCrit && source && source.skills && source.skills.criticalStrike) {
                     const csEffect = source.skills.criticalStrike.getEffect(source.skills.criticalStrike.level);
                     finalDamage = Math.floor(finalDamage * (1 + csEffect.damageBonus));
                 }
-                // 盾防御系统处理（主神空间也允许弹反测试，因此放在无敌判定之前）
+                const debugInvincible = SceneManager._mainHubInvincible;
+                const directShieldHit = !!source
+                    && source !== this
+                    && source._faction === 'enemy'
+                    && (isMelee === true || hitContext?.isProjectile === true)
+                    && hitContext?.isDot !== true
+                    && hitContext?.isEnvironment !== true
+                    && hitContext?.isSelfDamage !== true;
+                let activeShieldBlocked = false;
+                let activeShieldResult = null;
+                // 主动格挡优先；主神空间无敌仍允许弹反测试，因此保留在无敌判定之前。
                 if (this.shieldSystem && this.shieldSystem.active && this.shieldSystem.defending) {
-                    const result = this.shieldSystem.onDamageTaken(finalDamage, source, isMelee);
+                    const shieldHitContext = debugInvincible
+                        ? { ...(hitContext || {}), disableLegendaryShieldEffects: true }
+                        : hitContext;
+                    const result = this.shieldSystem.onDamageTaken(
+                        finalDamage,
+                        source,
+                        isMelee,
+                        damageType,
+                        shieldHitContext
+                    );
+                    activeShieldResult = result;
                     finalDamage = result.damage;
+                    activeShieldBlocked = result.blocked === true;
                     if (result.parried) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 20, '🛡️ 弹反！', '#c0a060'));
                         return 0;
                     }
+                    if (result.nullified) {
+                        EffectManager.add(new FloatingTextEffect(
+                            this.x,
+                            this.y - this.size - 20,
+                            '◉ 事件视界：吞没',
+                            '#9c79e8'
+                        ));
+                        return 0;
+                    }
+                    if (result.nullField) {
+                        EffectManager.add(new FloatingTextEffect(
+                            this.x,
+                            this.y - this.size - 20,
+                            '◉ 事件视界减伤',
+                            '#8e72cf'
+                        ));
+                    }
+                } else if (!debugInvincible) {
+                    // 非主动防御时，各自动格挡来源独立判定；同一击只采用减伤最高者。
+                    const autoBlocks = [];
+                    if (isMelee && this.equipments && this.weaponMode) {
+                        const currentWpn = this.equipments[this.weaponMode];
+                        if (currentWpn?._craftEffects?.secondaryBlock && Math.random() < 0.5) {
+                            autoBlocks.push({
+                                source: 'mainhand',
+                                reductionPercent: 0.5,
+                                remainingDamageRatio: 0.5,
+                            });
+                        }
+                    }
+                    const armorBlockCfg = this._armorSetActive === 'oracle'
+                        ? { chance: 0.60, remainingDamageRatio: 0.10 }
+                        : (this._armorSetActive === 'tiangang'
+                            ? { chance: 0.50, remainingDamageRatio: 0.10 }
+                            : (this._armorSetActive === 'zhenyue'
+                                ? { chance: 0.40, remainingDamageRatio: 0.15 }
+                                : (this._armorSetActive === 'heavy'
+                                    ? { chance: 0.30, remainingDamageRatio: 0.20 }
+                                    : null)));
+                    if (armorBlockCfg && Math.random() < armorBlockCfg.chance) {
+                        autoBlocks.push({
+                            source: 'armor',
+                            reductionPercent: 1 - armorBlockCfg.remainingDamageRatio,
+                            remainingDamageRatio: armorBlockCfg.remainingDamageRatio,
+                        });
+                    }
+                    if (directShieldHit) {
+                        const passiveShield = this.shieldSystem?.rollPassiveBlock?.(isMelee, hitContext);
+                        if (passiveShield) autoBlocks.push(passiveShield);
+                    }
+                    const strongest = autoBlocks.reduce((best, candidate) =>
+                        !best || candidate.remainingDamageRatio < best.remainingDamageRatio
+                            ? candidate : best, null);
+                    if (strongest) {
+                        finalDamage = Math.max(1, Math.floor(
+                            finalDamage * strongest.remainingDamageRatio
+                        ));
+                        if (strongest.source === 'shield') {
+                            this.shieldSystem.commitPassiveBlock(strongest);
+                        }
+                        EffectManager.createDamageText(
+                            this.x,
+                            this.y - this.size - 15,
+                            '格挡!',
+                            strongest.source === 'shield' ? '#8fc6d8' : '#9ab8c8'
+                        );
+                    }
                 }
                 // 无敌开关（左下「无敌」按钮）：全场景生效（含地牢）
-                if (SceneManager._mainHubInvincible) return;
+                if (debugInvincible) return;
+                // 旧余势在主动/自动格挡之后消费；当前普通格挡产生的新余势最后才尝试赋予，
+                // 不会回溯减免刚刚产生它的同一击。
+                const guardResult = this.shieldSystem?.consumeAfterBlockGuard?.(
+                    finalDamage,
+                    directShieldHit
+                );
+                if (guardResult) {
+                    finalDamage = guardResult.damage;
+                    if (guardResult.triggered) {
+                        EffectManager.add(new FloatingTextEffect(
+                            this.x,
+                            this.y - this.size - 18,
+                            '🛡️ 余势减伤',
+                            '#87b9c7'
+                        ));
+                    }
+                }
+                if (activeShieldBlocked && directShieldHit) {
+                    this.shieldSystem?.armAfterBlockGuard?.();
+                }
                 // 应用无人机易伤：受到的所有伤害增加
                 if (this._droneVulnerabilityStacks > 0) {
                     let droneBonus = 0.10 * this._droneVulnerabilityStacks;
@@ -179,6 +278,27 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false) {
                     const cap = Math.max(1, Math.floor(this.data.maxHp * surviveCap));
                     if (finalDamage > cap) finalDamage = cap;
                 }
+                const oathWardResult = applyLegendaryShieldWard(
+                    this,
+                    finalDamage,
+                    source,
+                    isMelee,
+                    hitContext
+                );
+                finalDamage = oathWardResult.damage;
+                if (oathWardResult.triggered) {
+                    EffectManager.add(new FloatingTextEffect(
+                        this.x,
+                        this.y - this.size - 18,
+                        `终誓庇护 -${oathWardResult.prevented}`,
+                        '#ffe3a0'
+                    ));
+                }
+                const debtResult = this.shieldSystem?.convertFinalDamageToCausalDebt?.(
+                    finalDamage,
+                    activeShieldResult?.causalDebt
+                );
+                if (debtResult) finalDamage = debtResult.damage;
                 d.hp -= finalDamage;
                 if (Number.isNaN(d.hp)) {
                     console.error('[Player.takeDamage] HP 异常，已重置为 0', { finalDamage, previousHp: d.hp });
@@ -224,7 +344,7 @@ removeDroneVulnerability() {
             },
 
 onDeath() {
-                this.shieldSystem?.exitDefense();
+                this.shieldSystem?.resetTransientState?.({ discardDebt: true });
                 this._isDead = true;
                 this._deathTimer = 3000; // 3秒后重生
                 // 蟠桃续命跟随全场景献祭状态；只有重新献祭/覆盖为蟠桃才刷新使用次数。

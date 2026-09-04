@@ -13,6 +13,7 @@ import {
     MAGIC_TIER_STYLE,
 } from '../config/magic-categories.js';
 import { getDroneValues, getPushStrikeValues, getWhirlwindRadius } from '../config/skill-formulas.js';
+import { getShieldDefenseValues } from '../config/shield-config.js';
 
 function buildSkillDetailModel(skill, displaySkill) {
     const tags = skill.tags || [];
@@ -20,7 +21,11 @@ function buildSkillDetailModel(skill, displaySkill) {
     let operation = active ? '拖入快捷栏后按绑定键释放' : '满足装备条件后自动生效';
     let role = tags.find(tag => ['magic', 'melee', 'ranged', 'weapon'].includes(tag.type))?.name || '通用';
     let restriction = active ? '动作互斥、资源与冷却满足时可用' : '被动效果按当前装备与状态结算';
-    if (skill.id === 'pushStrike') {
+    if (skill.id === 'shieldDefense') {
+        operation = '按住右键举盾，松开右键收盾';
+        role = '格挡减伤 / 时机弹反';
+        restriction = '当前副手装备盾；近战出手/施法/受控时不能举盾；手枪可盾下开火但不能瞄准';
+    } else if (skill.id === 'pushStrike') {
         operation = '按快捷键发动；可中断当前换弹';
         role = '贴身保命 / 近战钝击';
         restriction = '仅步枪、机枪、能量机枪与霰弹枪等双手长枪';
@@ -1026,14 +1031,24 @@ export const SkillManager = {
             }
             html += `</div>`;
         } else if (skill.id === 'shieldDefense') {
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">装备盾牌防御力加成</span><span class="sd-stat-val pos">+${(effect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">防御减伤加成</span><span class="sd-stat-val pos">+${(effect.damageReductionBonus * 100).toFixed(0)}%</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前副手持盾时总物防加成</span><span class="sd-stat-val pos">+${(effect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">格挡承伤比例扣减</span><span class="sd-stat-val pos">${(effect.damageReductionBonus * 100).toFixed(0)}个百分点</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">弹反眩晕加成</span><span class="sd-stat-val pos">+${effect.parryStunBonus.toFixed(2)}秒</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">反制规则</span><span class="sd-stat-val pos">远程弹反不眩晕；近战弹反触发反制硬直</span></div>`;
-            html += `<p class="sd-note">承伤比例决定本次格挡后保留多少伤害；额外减伤是在该比例上的技能修正，两者不是同一数值。</p>`;
+            const shield = Game.player?.shieldSystem?.getShieldData();
+            if (shield) {
+                const values = getShieldDefenseValues(shield, effect);
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">当前盾格挡承伤</span><span class="sd-stat-val">${(values.remainingDamageRatio * 100).toFixed(0)}%</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">弹反时窗 / 方向范围</span><span class="sd-stat-val">${values.parryWindow / 1000}秒 / 左右各${values.parryHalfAngle}°</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">格挡体力 / 破防眩晕</span><span class="sd-stat-val">${values.staminaCost} / ${values.stunOnExhaustion / 1000}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">近战弹反总眩晕</span><span class="sd-stat-val">${values.parryStun / 1000}秒</span></div>`;
+            } else {
+                html += `<p class="sd-note">当前武器组副手未装备盾牌，持盾加成与格挡均未生效。</p>`;
+            }
+            html += `<p class="sd-note">普通格挡保留全方向减伤；弹反按鼠标世界方向判断。格挡承伤比例 = max(5%, 盾牌基础承伤比例 − 技能扣减)，在物防/魔防结算后相乘。举盾移速减半且不回体力，成功弹反免伤且不耗体力；远程只抵消本次命中，不反射弹体。</p>`;
             if (nextEffect) {
-                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级防御力加成</span><span class="sd-stat-val pos">+${(nextEffect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级减伤加成</span><span class="sd-stat-val pos">+${(nextEffect.damageReductionBonus * 100).toFixed(0)}%</span></div>`;
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级当前副手持盾时总物防加成</span><span class="sd-stat-val pos">+${(nextEffect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级格挡承伤比例扣减</span><span class="sd-stat-val pos">${(nextEffect.damageReductionBonus * 100).toFixed(0)}个百分点</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级弹反眩晕加成</span><span class="sd-stat-val pos">+${nextEffect.parryStunBonus.toFixed(2)}秒</span></div>`;
             }
         } else if (skill.id === 'fireball') {
@@ -1451,10 +1466,11 @@ export const SkillManager = {
             html += `<p>• 灼锋焰甲击杀一个目标增加 8 点经验</p>`;
             html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">初级魔法：拖入快捷栏后按 Q/E 释放，为自己添加灼锋焰甲 Buff——非魔法攻击命中附带魔法伤害+火花，灼烧光环每 0.5 秒灼烧周围敌人，武器持续上浮火焰粒子</p>`;
         } else if (skill.id === 'shieldDefense') {
-            html += `<p>• 防御敌人近战攻击加 2 点经验</p>`;
-            html += `<p>• 防御敌人远程攻击加 5 点经验</p>`;
-            html += `<p>• 成功弹反敌人加 10 点经验</p>`;
-            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">被动技能：装备盾牌时自动生效</p>`;
+            const rewards = skill.expRewards || {};
+            html += `<p>• 成功格挡近战攻击加 ${rewards.meleeBlock ?? 0} 点经验</p>`;
+            html += `<p>• 成功格挡远程攻击加 ${rewards.rangedBlock ?? 0} 点经验</p>`;
+            html += `<p>• 成功弹反加 ${rewards.parry ?? 0} 点经验（不叠加格挡经验）</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">当前副手持盾时获得物防加成；右键举盾才启用格挡与弹反。体力不足的破防命中不增加修炼经验。</p>`;
         }
         html += `</div>`;
         body.innerHTML = html;

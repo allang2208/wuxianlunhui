@@ -1,0 +1,40 @@
+{
+  "task": "uncommon-shield-craft-mod-icons",
+  "date": "2026-09-02",
+  "generator": "OpenAI image_gen",
+  "status": "approved_installed_static_runtime_unverified",
+  "styleReference": "assets/icons/craft-cold-steel/alloy_grip.png",
+  "sourceAtlases": {
+    "forged_duelist_buckler": "sources/forged-duelist-buckler-craft-icons-sheet-v01.png",
+    "oak_garrison_shield": "sources/oak-garrison-shield-craft-icons-sheet-v01.png"
+  },
+  "postprocess": "crop-icon-atlases.ps1: 3x3 equal crop, edge-connected neutral light background to alpha, 128px derivative",
+  "preview": "shield-craft-icons-preview.png",
+  "icons": [
+    { "id": "forged_tempered_arc_plate", "shield": "weapon56", "slot": "face", "row": 1, "column": 1 },
+    { "id": "forged_layered_impact_face", "shield": "weapon56", "slot": "face", "row": 1, "column": 2 },
+    { "id": "forged_shock_spokes", "shield": "weapon56", "slot": "face", "row": 1, "column": 3 },
+    { "id": "forged_flared_deflection_boss", "shield": "weapon56", "slot": "boss", "row": 2, "column": 1 },
+    { "id": "forged_solid_impact_boss", "shield": "weapon56", "slot": "boss", "row": 2, "column": 2 },
+    { "id": "forged_offset_counterweight", "shield": "weapon56", "slot": "boss", "row": 2, "column": 3 },
+    { "id": "forged_cork_palm_grip", "shield": "weapon56", "slot": "grip", "row": 3, "column": 1 },
+    { "id": "forged_hooked_guard_strap", "shield": "weapon56", "slot": "grip", "row": 3, "column": 2 },
+    { "id": "forged_angled_catch_strap", "shield": "weapon56", "slot": "grip", "row": 3, "column": 3 },
+    { "id": "oak_cross_laminated_core", "shield": "weapon57", "slot": "core", "row": 1, "column": 1 },
+    { "id": "oak_thick_rawhide_facing", "shield": "weapon57", "slot": "core", "row": 1, "column": 2 },
+    { "id": "oak_felt_shock_liner", "shield": "weapon57", "slot": "core", "row": 1, "column": 3 },
+    { "id": "oak_curled_spring_rim", "shield": "weapon57", "slot": "rim", "row": 2, "column": 1 },
+    { "id": "oak_reinforced_striking_rim", "shield": "weapon57", "slot": "rim", "row": 2, "column": 2 },
+    { "id": "oak_balanced_steel_foot", "shield": "weapon57", "slot": "rim", "row": 2, "column": 3 },
+    { "id": "oak_linen_arm_pad", "shield": "weapon57", "slot": "straps", "row": 3, "column": 1 },
+    { "id": "oak_cross_elbow_brace", "shield": "weapon57", "slot": "straps", "row": 3, "column": 2 },
+    { "id": "oak_layered_catch_strap", "shield": "weapon57", "slot": "straps", "row": 3, "column": 3 }
+  ],
+  "files": {
+    "formalCraftRuntimePattern": "assets/icons/craft-shields/<id>.png"
+  },
+  "archiveContract": {
+    "kept": ["source atlases", "prompts", "crop script", "manifest", "final preview"],
+    "rebuildableNotArchived": ["icons-hires slices", "icons-128 checks"]
+  }
+}

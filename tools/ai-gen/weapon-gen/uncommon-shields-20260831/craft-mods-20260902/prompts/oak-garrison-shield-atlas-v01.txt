@@ -1,0 +1,28 @@
+Create a polished 3x3 atlas of nine separate game crafting modification icons for the Oak Garrison Shield from the reference image.
+
+Use image 1 only for the shield's material identity: sturdy oak planks, dark iron reinforcement, uncommon-quality garrison equipment, restrained warm wood and cool steel. Use image 2 as the exact UI icon style reference: square cold-steel crafting icon frame, dark charcoal circular inset, beveled silver-steel rim, four small corner bolts, restrained blue edge light, transparent outer corners.
+
+Canvas and layout:
+- Exactly 3 equal columns by 3 equal rows, perfectly aligned, no missing or extra cells.
+- Every cell is a self-contained square icon with the same frame and scale.
+- Leave clean crop-safe separation between cells.
+- Transparent background outside the nine framed icons.
+- No text, letters, numbers, labels, arrows, badges, logos, or watermark.
+
+Show exactly ONE isolated physical shield component centered in each cell; never show a complete shield, character, hand, weapon, workshop, or detached secondary parts.
+
+Cell contents, left to right:
+Top row:
+1. one cross-laminated oak core panel sample, alternating visible grain directions with dark iron pins;
+2. one thick rawhide shield-face cover, stretched and riveted as a single fitted component;
+3. one quilted felt shock-absorbing liner, dense layered padding as a single shaped insert.
+Middle row:
+4. one curled spring-iron rim segment, clearly elastic rolled profile;
+5. one wide reinforced striking-edge segment, thick dark steel edging as a single component;
+6. one balanced steel shield foot or sabot, a weighted protective bottom fitting.
+Bottom row:
+7. one linen-padded forearm cushion with integrated backing plate;
+8. one crossed elbow-brace strap assembly, two leather straps joined as a single component;
+9. one layered projectile-catching forearm strap assembly, broad overlapping leather-and-fiber layers.
+
+Art direction: premium isometric inventory icon, painterly realistic oak, leather, cloth, rawhide and forged iron, crisp silhouettes, high contrast at 128px, consistent overhead three-quarter camera, diffuse studio lighting, no cast shadow beyond the inner circular plate.

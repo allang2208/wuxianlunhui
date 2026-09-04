@@ -1265,3 +1265,53 @@ CRAFT_DEFAULT_SLOTS.weapon55 = [
   { id: 'core', name: '映射核心', x: 0.86, y: 0.26, lineTarget: { x: 0.7, y: 0.48 } },
   { id: 'grip', name: '回廊握柄', x: 0.84, y: 0.72, lineTarget: { x: 0.43, y: 0.66 } },
 ];
+CRAFT_DEFAULT_SLOTS.weapon56 = [
+  { id: 'face', name: '盾面', x: 0.10, y: 0.22, lineTarget: { x: 0.48, y: 0.32 } },
+  { id: 'boss', name: '盾脐', x: 0.10, y: 0.67, lineTarget: { x: 0.63, y: 0.52 } },
+  { id: 'grip', name: '握柄（背面）', targetSide: 'back', x: 0.90, y: 0.72, lineTarget: { x: 0.65, y: 0.52 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon57 = [
+  { id: 'core', name: '盾芯覆面', x: 0.10, y: 0.22, lineTarget: { x: 0.50, y: 0.36 } },
+  { id: 'rim', name: '包边', x: 0.10, y: 0.72, lineTarget: { x: 0.50, y: 0.78 } },
+  { id: 'straps', name: '背部承带', targetSide: 'back', x: 0.90, y: 0.52, lineTarget: { x: 0.38, y: 0.46 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon58 = [
+  { id: 'face', name: '折光盾面', x: 0.10, y: 0.22, lineTarget: { x: 0.50, y: 0.30 } },
+  { id: 'boss_rim', name: '盾脐与平衡环', x: 0.10, y: 0.68, lineTarget: { x: 0.50, y: 0.45 } },
+  { id: 'grip', name: '握柄与腕带（背面）', targetSide: 'back', x: 0.90, y: 0.60, lineTarget: { x: 0.50, y: 0.43 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon59 = [
+  { id: 'face', name: '堡垒盾面', x: 0.10, y: 0.22, lineTarget: { x: 0.50, y: 0.28 } },
+  { id: 'rim_spine', name: '包边与盾脊', x: 0.10, y: 0.72, lineTarget: { x: 0.54, y: 0.72 } },
+  { id: 'harness', name: '臂架与承带（背面）', targetSide: 'back', x: 0.90, y: 0.48, lineTarget: { x: 0.61, y: 0.44 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon60 = [
+  { id: 'face', name: '誓返盾面', x: 0.10, y: 0.22, lineTarget: { x: 0.50, y: 0.30 } },
+  { id: 'rim_spine', name: '荆环与誓脊', x: 0.10, y: 0.72, lineTarget: { x: 0.50, y: 0.74 } },
+  { id: 'harness', name: '握把与背带（背面）', targetSide: 'back', x: 0.90, y: 0.50, lineTarget: { x: 0.50, y: 0.54 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon61 = [
+  { id: 'face', name: '蚀星镜面', x: 0.10, y: 0.22, lineTarget: { x: 0.50, y: 0.31 } },
+  { id: 'rim', name: '星轨外环', x: 0.10, y: 0.72, lineTarget: { x: 0.50, y: 0.68 } },
+  { id: 'harness', name: '握把与背带（背面）', targetSide: 'back', x: 0.90, y: 0.52, lineTarget: { x: 0.48, y: 0.54 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon62 = [
+  { id: 'face', name: '回天盾面', x: 0.10, y: 0.22, lineTarget: { x: 0.50, y: 0.30 } },
+  { id: 'rim_spine', name: '回天环与天柱脊', x: 0.10, y: 0.72, lineTarget: { x: 0.50, y: 0.72 } },
+  { id: 'harness', name: '液压握把与承带（背面）', targetSide: 'back', x: 0.90, y: 0.50, lineTarget: { x: 0.60, y: 0.515 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon63 = [
+  { id: 'face', name: '归墟镜瓣', x: 0.10, y: 0.22, lineTarget: { x: 0.50, y: 0.32 } },
+  { id: 'rim', name: '事件视界环', x: 0.10, y: 0.72, lineTarget: { x: 0.50, y: 0.68 } },
+  { id: 'harness', name: '反质量握把与观测棘轮（背面）', targetSide: 'back', x: 0.90, y: 0.34, lineTarget: { x: 0.60, y: 0.34 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon64 = [
+  { id: 'face', name: '逆命劫轮盾面', x: 0.10, y: 0.20, lineTarget: { x: 0.50, y: 0.31 } },
+  { id: 'rings', name: '三重命轮与偿债环', x: 0.10, y: 0.72, lineTarget: { x: 0.50, y: 0.68 } },
+  { id: 'harness', name: '沙漏握把与臂带（背面）', targetSide: 'back', x: 0.90, y: 0.48, lineTarget: { x: 0.59, y: 0.50 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon65 = [
+  { id: 'gate_face', name: '圣城门面与陶金甲', x: 0.10, y: 0.20, lineTarget: { x: 0.50, y: 0.38 } },
+  { id: 'ward_core', name: '誓约棱镜与庇护核心', x: 0.10, y: 0.72, lineTarget: { x: 0.50, y: 0.72 } },
+  { id: 'harness', name: '快释握把与行军承带（背面）', targetSide: 'back', x: 0.90, y: 0.48, lineTarget: { x: 0.59, y: 0.52 } },
+];

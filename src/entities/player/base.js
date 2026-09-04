@@ -5,6 +5,7 @@ import { computeMaxExp } from '../../config/exp-system.js';
 import { CONFIG } from '../../config/config.js';
 import { DungeonBuffSystem } from '../../world/dungeon-event-system.js';
 import { applyTributeEffects } from '../../config/tribute-effects.js';
+import { getShieldDefenseValues } from '../../config/shield-config.js';
 
 const baseMixin = {
     calculateCombatStats() {
@@ -207,7 +208,9 @@ const baseMixin = {
                 totals[k] += (bs[k] || 0) + (pe[k] || 0) * el;
             }
             if (it.defense) {
-                totals.defense += Math.floor((it.defense.base || 0) + (it.defense.perEnhance || 0) * el);
+                totals.defense += it.weaponType === 'shield'
+                    ? getShieldDefenseValues(it).defense
+                    : Math.floor((it.defense.base || 0) + (it.defense.perEnhance || 0) * el);
             }
         }
         return totals;

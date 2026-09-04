@@ -1,0 +1,114 @@
+{
+  "task": "rare-shields-design",
+  "date": "2026-09-02",
+  "generator": "OpenAI image_gen",
+  "status": "approved_installed_static_runtime_unverified",
+  "styleReferences": [
+    "tools/ai-gen/weapon-gen/uncommon-shields-20260831/prepared/forged-duelist-buckler-icon.png",
+    "tools/ai-gen/weapon-gen/uncommon-shields-20260831/prepared/oak-garrison-shield-icon.png",
+    "assets/icons/craft-cold-steel/alloy_grip.png"
+  ],
+  "shields": [
+    {
+      "id": "moonsilver_deflection_shield",
+      "weaponId": "weapon58",
+      "name": "月银折光盾",
+      "rarity": "rare",
+      "level": 10,
+      "price": 400,
+      "defense": {
+        "base": 24,
+        "perEnhance": 2.5,
+        "damageReduction": 0.45,
+        "staminaCost": 14,
+        "parryWindow": 1120,
+        "parryAngle": 120,
+        "parryStun": 1350,
+        "parryKnockback": 100,
+        "stunOnExhaustion": 1500
+      },
+      "visualCandidate": {
+        "visibleHeight": 60,
+        "bodyHeightRatio": 0.42,
+        "originX": 0.50,
+        "originY": 0.43,
+        "visibleHeightRatio": 0.900390625,
+        "runtimeFace": "front",
+        "gripReference": "back",
+        "needsFinalRemeasure": false
+      },
+      "sourceFront": "concept/sources/moonsilver-deflection-shield-front-v01.png",
+      "sourceBack": "concept/sources/moonsilver-deflection-shield-equip-v01.png",
+      "formalIcon": "assets/icons/shields/moonsilver-deflection-shield.png",
+      "formalEquip": "assets/weapons/moonsilver-deflection-shield-equip.png",
+      "runtimeEquip": "assets/weapons/runtime/weapons/moonsilver-deflection-shield-equip.png"
+    },
+    {
+      "id": "blackiron_citadel_shield",
+      "weaponId": "weapon59",
+      "name": "玄铁城垒盾",
+      "rarity": "rare",
+      "level": 10,
+      "price": 400,
+      "defense": {
+        "base": 34,
+        "perEnhance": 3.5,
+        "damageReduction": 0.36,
+        "staminaCost": 25,
+        "parryWindow": 760,
+        "parryAngle": 120,
+        "parryStun": 1150,
+        "parryKnockback": 155,
+        "stunOnExhaustion": 1500
+      },
+      "visualCandidate": {
+        "visibleHeight": 90,
+        "bodyHeightRatio": 0.63,
+        "originX": 0.61,
+        "originY": 0.44,
+        "visibleHeightRatio": 0.900390625,
+        "runtimeFace": "front",
+        "gripReference": "back",
+        "needsFinalRemeasure": false
+      },
+      "sourceFront": "concept/sources/blackiron-citadel-shield-front-v01.png",
+      "sourceBack": "concept/sources/blackiron-citadel-shield-equip-v01.png",
+      "formalIcon": "assets/icons/shields/blackiron-citadel-shield.png",
+      "formalEquip": "assets/weapons/blackiron-citadel-shield-equip.png",
+      "runtimeEquip": "assets/weapons/runtime/weapons/blackiron-citadel-shield-equip.png"
+    }
+  ],
+  "craftAtlases": {
+    "moonsilver_deflection_shield": "craft-mods/sources/moonsilver-craft-icons-sheet-v01.png",
+    "blackiron_citadel_shield": "craft-mods/sources/blackiron-craft-icons-sheet-v01.png"
+  },
+  "craftIcons": [
+    { "id": "moonsilver_prismatic_face", "weaponId": "weapon58", "slot": "face", "row": 1, "column": 1 },
+    { "id": "moonsilver_layered_reflector", "weaponId": "weapon58", "slot": "face", "row": 1, "column": 2 },
+    { "id": "moonsilver_resonant_flutes", "weaponId": "weapon58", "slot": "face", "row": 1, "column": 3 },
+    { "id": "moonsilver_quick_release_boss", "weaponId": "weapon58", "slot": "boss_rim", "row": 2, "column": 1 },
+    { "id": "moonsilver_dense_counter_boss", "weaponId": "weapon58", "slot": "boss_rim", "row": 2, "column": 2 },
+    { "id": "moonsilver_crescent_balance_ring", "weaponId": "weapon58", "slot": "boss_rim", "row": 2, "column": 3 },
+    { "id": "moonsilver_spring_palm_grip", "weaponId": "weapon58", "slot": "grip", "row": 3, "column": 1 },
+    { "id": "moonsilver_duelist_guard_loop", "weaponId": "weapon58", "slot": "grip", "row": 3, "column": 2 },
+    { "id": "moonsilver_intercept_harness", "weaponId": "weapon58", "slot": "grip", "row": 3, "column": 3 },
+    { "id": "blackiron_ribbed_bastion_plate", "weaponId": "weapon59", "slot": "face", "row": 1, "column": 1 },
+    { "id": "blackiron_wool_impact_liner", "weaponId": "weapon59", "slot": "face", "row": 1, "column": 2 },
+    { "id": "blackiron_suspended_shock_frame", "weaponId": "weapon59", "slot": "face", "row": 1, "column": 3 },
+    { "id": "blackiron_flex_hinged_rim", "weaponId": "weapon59", "slot": "rim_spine", "row": 2, "column": 1 },
+    { "id": "blackiron_ram_spine", "weaponId": "weapon59", "slot": "rim_spine", "row": 2, "column": 2 },
+    { "id": "blackiron_weighted_sabot", "weaponId": "weapon59", "slot": "rim_spine", "row": 2, "column": 3 },
+    { "id": "blackiron_capstan_arm_brace", "weaponId": "weapon59", "slot": "harness", "row": 3, "column": 1 },
+    { "id": "blackiron_locking_elbow_harness", "weaponId": "weapon59", "slot": "harness", "row": 3, "column": 2 },
+    { "id": "blackiron_layered_bolt_catcher", "weaponId": "weapon59", "slot": "harness", "row": 3, "column": 3 }
+  ],
+  "derivatives": {
+    "conceptPreview": "rare-shields-concept-preview.png",
+    "craftPreview": "rare-shields-craft-icons-preview.png",
+    "formalCraftRuntimePattern": "assets/icons/craft-shields/<id>.png"
+  },
+  "archiveContract": {
+    "kept": ["concept sources", "craft source atlases", "prompts", "prepare-assets.ps1", "manifest", "final previews"],
+    "rebuildableNotArchived": ["concept prepared views", "craft icons-hires slices", "craft icons-128 checks"]
+  }
+}

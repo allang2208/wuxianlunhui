@@ -8047,5 +8047,677 @@
                 { "id": "corridor_instant_skirmish_grip", "name": "瞬映游击握", "icon": "assets/icons/craft-legendary-pistols/corridor-instant-skirmish-grip.png", "desc": "【握柄二选一】攻击间隔 -50ms、回响倍率 -0.07、弹容量 -3、移动速度 +6%；强化高速切换目标的游击节奏。", "specialModification": true, "ticketCost": 5, "effects": { "attackIntervalDelta": -50, "corridorEchoMultiplierDelta": -0.07, "magazineDelta": -3, "moveSpeedPercent": 0.06 } }
             ]
         }
-    }
+    },
+    "weapon56": {
+        "slots": [
+            { "id": "face", "name": "盾面", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.48, "y": 0.32 } },
+            { "id": "boss", "name": "盾脐", "x": 0.10, "y": 0.67, "lineTarget": { "x": 0.63, "y": 0.52 } },
+            { "id": "grip", "name": "握柄（背面）", "targetSide": "back", "x": 0.90, "y": 0.72, "lineTarget": { "x": 0.65, "y": 0.52 } }
+        ],
+        "options": {
+            "face": [
+                {
+                    "id": "forged_tempered_arc_plate",
+                    "name": "淬火弧面",
+                    "icon": "assets/icons/craft-shields/forged_tempered_arc_plate.png",
+                    "desc": "盾牌物防+4；格挡体力+1。加厚淬火弧面提高直接防护，连续举挡更费力。",
+                    "effects": { "shieldDefenseFlat": 4, "shieldStaminaCostDelta": 1 }
+                },
+                {
+                    "id": "forged_layered_impact_face",
+                    "name": "叠层缓冲盾面",
+                    "icon": "assets/icons/craft-shields/forged_layered_impact_face.png",
+                    "desc": "主动格挡减伤+4个百分点；弹反窗口-50ms。层压吸能结构更能吃住重击，但快速拨击略迟。",
+                    "effects": { "shieldBlockReductionBonus": 0.04, "shieldParryWindowDelta": -50 }
+                },
+                {
+                    "id": "forged_shock_spokes",
+                    "name": "分力导震筋",
+                    "icon": "assets/icons/craft-shields/forged_shock_spokes.png",
+                    "desc": "普通主动格挡后，1.8秒内下一次直击减伤18%；触发或过期后冷却3秒；盾牌物防-1。",
+                    "effects": { "shieldAfterBlockGuard": { "reductionPercent": 0.18, "durationMs": 1800, "cooldownMs": 3000, "charges": 1 }, "shieldDefenseFlat": -1 }
+                }
+            ],
+            "boss": [
+                {
+                    "id": "forged_flared_deflection_boss",
+                    "name": "外翻拨击盾脐",
+                    "icon": "assets/icons/craft-shields/forged_flared_deflection_boss.png",
+                    "desc": "弹反窗口+100ms；弹反眩晕-100ms。更容易接住时机，但控制时间稍短。",
+                    "effects": { "shieldParryWindowDelta": 100, "shieldParryStunDelta": -100 }
+                },
+                {
+                    "id": "forged_solid_impact_boss",
+                    "name": "实心冲击盾脐",
+                    "icon": "assets/icons/craft-shields/forged_solid_impact_boss.png",
+                    "desc": "弹反后眩晕+250ms；格挡体力+1。增重盾脐强化近战反制。",
+                    "effects": { "shieldParryStunDelta": 250, "shieldStaminaCostDelta": 1 }
+                },
+                {
+                    "id": "forged_offset_counterweight",
+                    "name": "偏置配重环",
+                    "icon": "assets/icons/craft-shields/forged_offset_counterweight.png",
+                    "desc": "防御移速倍率+0.10；盾牌物防-2。改善收放与侧移，削减正面钢材覆盖。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.10, "shieldDefenseFlat": -2 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "forged_cork_palm_grip",
+                    "name": "贴掌软木握柄",
+                    "icon": "assets/icons/craft-shields/forged_cork_palm_grip.png",
+                    "desc": "格挡体力-3。软木与皮革分散掌心压力，强化连续防御。",
+                    "effects": { "shieldStaminaCostDelta": -3 }
+                },
+                {
+                    "id": "forged_hooked_guard_strap",
+                    "name": "钩挂护拳带",
+                    "icon": "assets/icons/craft-shields/forged_hooked_guard_strap.png",
+                    "desc": "非防御状态遭受近战直击时，18%几率被动格挡35%伤害；冷却1.2秒。",
+                    "effects": { "shieldPassiveMeleeBlock": { "chance": 0.18, "reductionPercent": 0.35, "cooldownMs": 1200 } }
+                },
+                {
+                    "id": "forged_angled_catch_strap",
+                    "name": "斜拉截弹腕带",
+                    "icon": "assets/icons/craft-shields/forged_angled_catch_strap.png",
+                    "desc": "非防御状态遭受投射物直击时，22%几率被动格挡40%伤害；冷却0.9秒。",
+                    "effects": { "shieldPassiveProjectileBlock": { "chance": 0.22, "reductionPercent": 0.40, "cooldownMs": 900 } }
+                }
+            ]
+        }
+    },
+    "weapon57": {
+        "slots": [
+            { "id": "core", "name": "盾芯覆面", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.50, "y": 0.36 } },
+            { "id": "rim", "name": "包边", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.50, "y": 0.78 } },
+            { "id": "straps", "name": "背部承带", "targetSide": "back", "x": 0.90, "y": 0.52, "lineTarget": { "x": 0.38, "y": 0.46 } }
+        ],
+        "options": {
+            "core": [
+                {
+                    "id": "oak_cross_laminated_core",
+                    "name": "交错层压橡木芯",
+                    "icon": "assets/icons/craft-shields/oak_cross_laminated_core.png",
+                    "desc": "盾牌物防+6；格挡体力+2。交错木纹与铁钉抵抗劈裂，重量显著提高。",
+                    "effects": { "shieldDefenseFlat": 6, "shieldStaminaCostDelta": 2 }
+                },
+                {
+                    "id": "oak_thick_rawhide_facing",
+                    "name": "加厚生皮覆面",
+                    "icon": "assets/icons/craft-shields/oak_thick_rawhide_facing.png",
+                    "desc": "主动格挡减伤+5个百分点；弹反窗口-70ms。厚生皮吸收冲击，盾面回正略迟。",
+                    "effects": { "shieldBlockReductionBonus": 0.05, "shieldParryWindowDelta": -70 }
+                },
+                {
+                    "id": "oak_felt_shock_liner",
+                    "name": "毛毡吸震夹层",
+                    "icon": "assets/icons/craft-shields/oak_felt_shock_liner.png",
+                    "desc": "普通主动格挡后，2秒内下一次直击减伤22%；触发或过期后冷却3.2秒；防御移速倍率-0.03。",
+                    "effects": { "shieldAfterBlockGuard": { "reductionPercent": 0.22, "durationMs": 2000, "cooldownMs": 3200, "charges": 1 }, "shieldDefenseMoveSpeedDelta": -0.03 }
+                }
+            ],
+            "rim": [
+                {
+                    "id": "oak_curled_spring_rim",
+                    "name": "回卷弹性铁边",
+                    "icon": "assets/icons/craft-shields/oak_curled_spring_rim.png",
+                    "desc": "弹反窗口+90ms；盾牌物防-2。轻薄回卷边利于导开兵刃。",
+                    "effects": { "shieldParryWindowDelta": 90, "shieldDefenseFlat": -2 }
+                },
+                {
+                    "id": "oak_reinforced_striking_rim",
+                    "name": "加宽冲击包钢",
+                    "icon": "assets/icons/craft-shields/oak_reinforced_striking_rim.png",
+                    "desc": "弹反后眩晕+300ms；弹反窗口-60ms。重包钢强化准确弹反后的硬直。",
+                    "effects": { "shieldParryStunDelta": 300, "shieldParryWindowDelta": -60 }
+                },
+                {
+                    "id": "oak_balanced_steel_foot",
+                    "name": "平衡钢制盾靴",
+                    "icon": "assets/icons/craft-shields/oak_balanced_steel_foot.png",
+                    "desc": "防御移速倍率+0.08；主动格挡减伤-2个百分点。以少量正面承伤换取侧移。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.08, "shieldBlockReductionBonus": -0.02 }
+                }
+            ],
+            "straps": [
+                {
+                    "id": "oak_linen_arm_pad",
+                    "name": "棉麻缓冲臂垫",
+                    "icon": "assets/icons/craft-shields/oak_linen_arm_pad.png",
+                    "desc": "格挡体力-4；盾牌物防-1。衬垫分散前臂冲击，但替代一部分硬质背板。",
+                    "effects": { "shieldStaminaCostDelta": -4, "shieldDefenseFlat": -1 }
+                },
+                {
+                    "id": "oak_cross_elbow_brace",
+                    "name": "交叉肘固带",
+                    "icon": "assets/icons/craft-shields/oak_cross_elbow_brace.png",
+                    "desc": "非防御状态遭受近战直击时，25%几率被动格挡40%伤害；冷却1.2秒。",
+                    "effects": { "shieldPassiveMeleeBlock": { "chance": 0.25, "reductionPercent": 0.40, "cooldownMs": 1200 } }
+                },
+                {
+                    "id": "oak_layered_catch_strap",
+                    "name": "叠层截弹承带",
+                    "icon": "assets/icons/craft-shields/oak_layered_catch_strap.png",
+                    "desc": "非防御状态遭受投射物直击时，30%几率被动格挡45%伤害；冷却0.9秒。",
+                    "effects": { "shieldPassiveProjectileBlock": { "chance": 0.30, "reductionPercent": 0.45, "cooldownMs": 900 } }
+                }
+            ]
+        }
+    },
+    "weapon58": {
+        "slots": [
+            { "id": "face", "name": "折光盾面", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.50, "y": 0.30 } },
+            { "id": "boss_rim", "name": "盾脐与平衡环", "x": 0.10, "y": 0.68, "lineTarget": { "x": 0.50, "y": 0.45 } },
+            { "id": "grip", "name": "握柄与腕带（背面）", "targetSide": "back", "x": 0.90, "y": 0.60, "lineTarget": { "x": 0.50, "y": 0.43 } }
+        ],
+        "options": {
+            "face": [
+                {
+                    "id": "moonsilver_prismatic_face",
+                    "name": "棱晶锻银盾面",
+                    "icon": "assets/icons/craft-shields/moonsilver_prismatic_face.png",
+                    "desc": "盾牌物防+5；格挡体力+1。加厚月银棱面提高直接防护，连续回正稍费力。",
+                    "effects": { "shieldDefenseFlat": 5, "shieldStaminaCostDelta": 1 }
+                },
+                {
+                    "id": "moonsilver_layered_reflector",
+                    "name": "叠层反射板",
+                    "icon": "assets/icons/craft-shields/moonsilver_layered_reflector.png",
+                    "desc": "主动格挡减伤+5个百分点；弹反窗口-60ms。多层银板和暗衬吸能，响应略迟。",
+                    "effects": { "shieldBlockReductionBonus": 0.05, "shieldParryWindowDelta": -60 }
+                },
+                {
+                    "id": "moonsilver_resonant_flutes",
+                    "name": "共振卸力槽",
+                    "icon": "assets/icons/craft-shields/moonsilver_resonant_flutes.png",
+                    "desc": "普通主动格挡后，2秒内下一次直击减伤23%；触发或过期后冷却2.8秒；盾牌物防-1。",
+                    "effects": { "shieldAfterBlockGuard": { "reductionPercent": 0.23, "durationMs": 2000, "cooldownMs": 2800, "charges": 1 }, "shieldDefenseFlat": -1 }
+                }
+            ],
+            "boss_rim": [
+                {
+                    "id": "moonsilver_quick_release_boss",
+                    "name": "轻释导流盾脐",
+                    "icon": "assets/icons/craft-shields/moonsilver_quick_release_boss.png",
+                    "desc": "弹反窗口+120ms；弹反眩晕-120ms。浅盾脐更容易导开兵刃。",
+                    "effects": { "shieldParryWindowDelta": 120, "shieldParryStunDelta": -120 }
+                },
+                {
+                    "id": "moonsilver_dense_counter_boss",
+                    "name": "密芯反击盾脐",
+                    "icon": "assets/icons/craft-shields/moonsilver_dense_counter_boss.png",
+                    "desc": "弹反后眩晕+300ms；格挡体力+1。密实盾脐增强准确弹反后的硬直。",
+                    "effects": { "shieldParryStunDelta": 300, "shieldStaminaCostDelta": 1 }
+                },
+                {
+                    "id": "moonsilver_crescent_balance_ring",
+                    "name": "新月平衡环",
+                    "icon": "assets/icons/craft-shields/moonsilver_crescent_balance_ring.png",
+                    "desc": "防御移速倍率+0.12；主动格挡减伤-2个百分点。提升侧移和回正，牺牲正面连续覆盖。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.12, "shieldBlockReductionBonus": -0.02 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "moonsilver_spring_palm_grip",
+                    "name": "弹簧贴掌握柄",
+                    "icon": "assets/icons/craft-shields/moonsilver_spring_palm_grip.png",
+                    "desc": "格挡体力-4；盾牌物防-1。弹簧座吸收掌心负担，但减少硬质背板支撑。",
+                    "effects": { "shieldStaminaCostDelta": -4, "shieldDefenseFlat": -1 }
+                },
+                {
+                    "id": "moonsilver_duelist_guard_loop",
+                    "name": "决斗护腕环",
+                    "icon": "assets/icons/craft-shields/moonsilver_duelist_guard_loop.png",
+                    "desc": "非防御状态遭受近战直击时，24%几率被动格挡42%伤害；冷却1.1秒。",
+                    "effects": { "shieldPassiveMeleeBlock": { "chance": 0.24, "reductionPercent": 0.42, "cooldownMs": 1100 } }
+                },
+                {
+                    "id": "moonsilver_intercept_harness",
+                    "name": "截矢偏转腕带",
+                    "icon": "assets/icons/craft-shields/moonsilver_intercept_harness.png",
+                    "desc": "非防御状态遭受投射物直击时，30%几率被动格挡50%伤害；冷却0.8秒。",
+                    "effects": { "shieldPassiveProjectileBlock": { "chance": 0.30, "reductionPercent": 0.50, "cooldownMs": 800 } }
+                }
+            ]
+        }
+    },
+    "weapon59": {
+        "slots": [
+            { "id": "face", "name": "堡垒盾面", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.50, "y": 0.28 } },
+            { "id": "rim_spine", "name": "包边与盾脊", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.54, "y": 0.72 } },
+            { "id": "harness", "name": "臂架与承带（背面）", "targetSide": "back", "x": 0.90, "y": 0.48, "lineTarget": { "x": 0.61, "y": 0.44 } }
+        ],
+        "options": {
+            "face": [
+                {
+                    "id": "blackiron_ribbed_bastion_plate",
+                    "name": "纵脊堡垒钢板",
+                    "icon": "assets/icons/craft-shields/blackiron_ribbed_bastion_plate.png",
+                    "desc": "盾牌物防+7；格挡体力+2。厚玄铁面和纵脊抵抗劈砍，重量继续增加。",
+                    "effects": { "shieldDefenseFlat": 7, "shieldStaminaCostDelta": 2 }
+                },
+                {
+                    "id": "blackiron_wool_impact_liner",
+                    "name": "厚羊毛冲击衬",
+                    "icon": "assets/icons/craft-shields/blackiron_wool_impact_liner.png",
+                    "desc": "主动格挡减伤+6个百分点；弹反窗口-80ms。厚衬吸收重击，精确时机受限。",
+                    "effects": { "shieldBlockReductionBonus": 0.06, "shieldParryWindowDelta": -80 }
+                },
+                {
+                    "id": "blackiron_suspended_shock_frame",
+                    "name": "悬置吸震框",
+                    "icon": "assets/icons/craft-shields/blackiron_suspended_shock_frame.png",
+                    "desc": "普通主动格挡后，2.2秒内下一次直击减伤27%；触发或过期后冷却3.2秒；防御移速倍率-0.03。",
+                    "effects": { "shieldAfterBlockGuard": { "reductionPercent": 0.27, "durationMs": 2200, "cooldownMs": 3200, "charges": 1 }, "shieldDefenseMoveSpeedDelta": -0.03 }
+                }
+            ],
+            "rim_spine": [
+                {
+                    "id": "blackiron_flex_hinged_rim",
+                    "name": "活节卸刃包边",
+                    "icon": "assets/icons/craft-shields/blackiron_flex_hinged_rim.png",
+                    "desc": "弹反窗口+100ms；盾牌物防-2。活节包边更易改变来袭兵刃方向。",
+                    "effects": { "shieldParryWindowDelta": 100, "shieldDefenseFlat": -2 }
+                },
+                {
+                    "id": "blackiron_ram_spine",
+                    "name": "撞城冲击盾脊",
+                    "icon": "assets/icons/craft-shields/blackiron_ram_spine.png",
+                    "desc": "弹反后眩晕+375ms；弹反窗口-70ms；格挡体力+2。强化准确弹反后的冲击控制。",
+                    "effects": { "shieldParryStunDelta": 375, "shieldParryWindowDelta": -70, "shieldStaminaCostDelta": 2 }
+                },
+                {
+                    "id": "blackiron_weighted_sabot",
+                    "name": "行军配重盾靴",
+                    "icon": "assets/icons/craft-shields/blackiron_weighted_sabot.png",
+                    "desc": "防御移速倍率+0.08；主动格挡减伤-2个百分点。稳定下缘和侧移重心。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.08, "shieldBlockReductionBonus": -0.02 }
+                }
+            ],
+            "harness": [
+                {
+                    "id": "blackiron_capstan_arm_brace",
+                    "name": "绞盘减负臂架",
+                    "icon": "assets/icons/craft-shields/blackiron_capstan_arm_brace.png",
+                    "desc": "格挡体力-5；盾牌物防-1。分担持续举持，牺牲一层背板。",
+                    "effects": { "shieldStaminaCostDelta": -5, "shieldDefenseFlat": -1 }
+                },
+                {
+                    "id": "blackiron_locking_elbow_harness",
+                    "name": "锁肘承力带",
+                    "icon": "assets/icons/craft-shields/blackiron_locking_elbow_harness.png",
+                    "desc": "非防御状态遭受近战直击时，30%几率被动格挡50%伤害；冷却1.1秒。",
+                    "effects": { "shieldPassiveMeleeBlock": { "chance": 0.30, "reductionPercent": 0.50, "cooldownMs": 1100 } }
+                },
+                {
+                    "id": "blackiron_layered_bolt_catcher",
+                    "name": "叠层截矢承带",
+                    "icon": "assets/icons/craft-shields/blackiron_layered_bolt_catcher.png",
+                    "desc": "非防御状态遭受投射物直击时，28%几率被动格挡48%伤害；冷却0.85秒。",
+                    "effects": { "shieldPassiveProjectileBlock": { "chance": 0.28, "reductionPercent": 0.48, "cooldownMs": 850 } }
+                }
+            ]
+        }
+    },
+    "weapon60": {
+        "slots": [
+            { "id": "face", "name": "誓返盾面", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.50, "y": 0.30 } },
+            { "id": "rim_spine", "name": "荆环与誓脊", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.50, "y": 0.74 } },
+            { "id": "harness", "name": "握把与背带（背面）", "targetSide": "back", "x": 0.90, "y": 0.50, "lineTarget": { "x": 0.50, "y": 0.54 } }
+        ],
+        "options": {
+            "face": [
+                {
+                    "id": "oathforged_rebuke_plate",
+                    "name": "誓铸斥击板",
+                    "icon": "assets/icons/craft-shields/oathforged_rebuke_plate.png",
+                    "desc": "盾牌物防+7；格挡体力+2。加厚誓铸盾面承受重击，连续举持负担更高。",
+                    "effects": { "shieldDefenseFlat": 7, "shieldStaminaCostDelta": 2 }
+                },
+                {
+                    "id": "oathforged_return_lamella",
+                    "name": "回誓弹层",
+                    "icon": "assets/icons/craft-shields/oathforged_return_lamella.png",
+                    "desc": "主动格挡减伤+5个百分点；弹反窗口-80ms。回弹层增强稳守，但压缩精确返击时机。",
+                    "effects": { "shieldBlockReductionBonus": 0.05, "shieldParryWindowDelta": -80 }
+                },
+                {
+                    "id": "oathforged_blood_debt_channels",
+                    "name": "血债导流槽",
+                    "icon": "assets/icons/craft-shields/oathforged_blood_debt_channels.png",
+                    "desc": "弹反返伤比例+12个百分点；盾牌物防-3。导流槽把冲击转成更猛烈的誓约返击。",
+                    "effects": { "shieldParryReflectRatioDelta": 0.12, "shieldDefenseFlat": -3 }
+                }
+            ],
+            "rim_spine": [
+                {
+                    "id": "oathforged_open_thorn_rim",
+                    "name": "开刃荆环",
+                    "icon": "assets/icons/craft-shields/oathforged_open_thorn_rim.png",
+                    "desc": "弹反窗口+150ms；弹反眩晕-180ms。开口荆环更易接住兵刃，控制冲击略弱。",
+                    "effects": { "shieldParryWindowDelta": 150, "shieldParryStunDelta": -180 }
+                },
+                {
+                    "id": "oathforged_judgment_spine",
+                    "name": "裁决脊梁",
+                    "icon": "assets/icons/craft-shields/oathforged_judgment_spine.png",
+                    "desc": "弹反眩晕+380ms；格挡体力+2。重型纵脊强化准确弹反后的压制。",
+                    "effects": { "shieldParryStunDelta": 380, "shieldStaminaCostDelta": 2 }
+                },
+                {
+                    "id": "oathforged_debt_seal_weight",
+                    "name": "债印配重",
+                    "icon": "assets/icons/craft-shields/oathforged_debt_seal_weight.png",
+                    "desc": "返击上限+4%玩家最大生命；主动格挡减伤-2个百分点。配重允许承载更高返击。",
+                    "effects": { "shieldParryReflectCapRatioDelta": 0.04, "shieldBlockReductionBonus": -0.02 }
+                }
+            ],
+            "harness": [
+                {
+                    "id": "oathforged_counterforce_grip",
+                    "name": "逆力握把",
+                    "icon": "assets/icons/craft-shields/oathforged_counterforce_grip.png",
+                    "desc": "格挡体力-5；盾牌物防-2。逆力握把分担冲击，但削减背板支撑。",
+                    "effects": { "shieldStaminaCostDelta": -5, "shieldDefenseFlat": -2 }
+                },
+                {
+                    "id": "oathforged_pivot_harness",
+                    "name": "枢轴背带",
+                    "icon": "assets/icons/craft-shields/oathforged_pivot_harness.png",
+                    "desc": "防御移速倍率+0.11；主动格挡减伤-3个百分点。枢轴背带提升举盾侧移。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.11, "shieldBlockReductionBonus": -0.03 }
+                },
+                {
+                    "id": "oathforged_recoil_ratchet",
+                    "name": "回震棘轮",
+                    "icon": "assets/icons/craft-shields/oathforged_recoil_ratchet.png",
+                    "desc": "弹反返伤冷却-300ms；格挡体力+2。棘轮快速重置誓约回路，举持负担增加。",
+                    "effects": { "shieldParryReflectCooldownDelta": -300, "shieldStaminaCostDelta": 2 }
+                }
+            ]
+        }
+    },
+    "weapon61": {
+        "slots": [
+            { "id": "face", "name": "蚀星镜面", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.50, "y": 0.31 } },
+            { "id": "rim", "name": "星轨外环", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.50, "y": 0.68 } },
+            { "id": "harness", "name": "握把与背带（背面）", "targetSide": "back", "x": 0.90, "y": 0.52, "lineTarget": { "x": 0.48, "y": 0.54 } }
+        ],
+        "options": {
+            "face": [
+                {
+                    "id": "starveil_arcane_glass",
+                    "name": "星幕奥术玻璃",
+                    "icon": "assets/icons/craft-shields/starveil_arcane_glass.png",
+                    "desc": "盾牌物防+6；格挡体力+2。厚层奥术玻璃兼顾实体防护，举持更费力。",
+                    "effects": { "shieldDefenseFlat": 6, "shieldStaminaCostDelta": 2 }
+                },
+                {
+                    "id": "starveil_prism_sink_layer",
+                    "name": "棱镜沉降层",
+                    "icon": "assets/icons/craft-shields/starveil_prism_sink_layer.png",
+                    "desc": "魔法与电击格挡减伤+8个百分点；常价格挡减伤-3个百分点。专注吞没术式。",
+                    "effects": { "shieldMagicBlockReductionBonus": 0.08, "shieldBlockReductionBonus": -0.03 }
+                },
+                {
+                    "id": "starveil_overload_lattice",
+                    "name": "过载星格",
+                    "icon": "assets/icons/craft-shields/starveil_overload_lattice.png",
+                    "desc": "秘法反噬基础伤害+36，吸收系数+10个百分点；反噬冷却+400ms。",
+                    "effects": { "shieldArcaneRetortBaseDamageDelta": 36, "shieldArcaneRetortPreventedRatioDelta": 0.10, "shieldArcaneRetortCooldownDelta": 400 }
+                }
+            ],
+            "rim": [
+                {
+                    "id": "starveil_quickphase_ring",
+                    "name": "快相环",
+                    "icon": "assets/icons/craft-shields/starveil_quickphase_ring.png",
+                    "desc": "弹反窗口+150ms；弹反眩晕-180ms。快相外环更易捕获来袭术式。",
+                    "effects": { "shieldParryWindowDelta": 150, "shieldParryStunDelta": -180 }
+                },
+                {
+                    "id": "starveil_resistance_etcher",
+                    "name": "蚀抗刻环",
+                    "icon": "assets/icons/craft-shields/starveil_resistance_etcher.png",
+                    "desc": "魔抗削减+10个百分点；持续时间-1200ms。蚀刻更深，但消散更快。",
+                    "effects": { "shieldArcaneRetortMdefShredDelta": 0.10, "shieldArcaneRetortDurationDelta": -1200 }
+                },
+                {
+                    "id": "starveil_long_eclipse_inscription",
+                    "name": "长蚀铭文",
+                    "icon": "assets/icons/craft-shields/starveil_long_eclipse_inscription.png",
+                    "desc": "魔抗削减持续+2500ms；秘法反噬基础伤害-18。延长蚀刻，牺牲瞬时爆发。",
+                    "effects": { "shieldArcaneRetortDurationDelta": 2500, "shieldArcaneRetortBaseDamageDelta": -18 }
+                }
+            ],
+            "harness": [
+                {
+                    "id": "starveil_aether_cushion_grip",
+                    "name": "以太缓冲握把",
+                    "icon": "assets/icons/craft-shields/starveil_aether_cushion_grip.png",
+                    "desc": "格挡体力-4；盾牌物防-2。以太缓冲减轻掌臂负担，硬质背板减少。",
+                    "effects": { "shieldStaminaCostDelta": -4, "shieldDefenseFlat": -2 }
+                },
+                {
+                    "id": "starveil_orbit_balance_harness",
+                    "name": "轨道平衡背带",
+                    "icon": "assets/icons/craft-shields/starveil_orbit_balance_harness.png",
+                    "desc": "防御移速倍率+0.10；常价格挡减伤-3个百分点。轨道配重提升举盾移动。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.10, "shieldBlockReductionBonus": -0.03 }
+                },
+                {
+                    "id": "starveil_reflux_capacitor",
+                    "name": "回流电容",
+                    "icon": "assets/icons/craft-shields/starveil_reflux_capacitor.png",
+                    "desc": "秘法反噬冷却-600ms；魔法与电击格挡减伤-4个百分点。快速回流牺牲术式吸收。",
+                    "effects": { "shieldArcaneRetortCooldownDelta": -600, "shieldMagicBlockReductionBonus": -0.04 }
+                }
+            ]
+        }
+    },
+    "weapon62": {
+        "slots": [
+            { "id": "face", "name": "回天盾面", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.50, "y": 0.30 } },
+            { "id": "rim_spine", "name": "回天环与天柱脊", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.50, "y": 0.72 } },
+            { "id": "harness", "name": "液压握把与承带（背面）", "targetSide": "back", "x": 0.90, "y": 0.50, "lineTarget": { "x": 0.60, "y": 0.515 } }
+        ],
+        "options": {
+            "face": [
+                {
+                    "id": "heavenpillar_layered_bulwark_plate",
+                    "name": "神铸叠层板",
+                    "icon": "assets/icons/craft-shields/heavenpillar_layered_bulwark_plate.png",
+                    "desc": "盾牌物防+8；格挡体力+3。神铸叠层正面强化正面承压，但每次稳住重击都更费体力。",
+                    "effects": { "shieldDefenseFlat": 8, "shieldStaminaCostDelta": 3 }
+                },
+                {
+                    "id": "heavenpillar_dissipation_lamella",
+                    "name": "镇世卸力鳞",
+                    "icon": "assets/icons/craft-shields/heavenpillar_dissipation_lamella.png",
+                    "desc": "主动格挡减伤+6个百分点；弹反窗口-110ms。卸力鳞偏向稳守，压缩精确回天时机。",
+                    "effects": { "shieldBlockReductionBonus": 0.06, "shieldParryWindowDelta": -110 }
+                },
+                {
+                    "id": "heavenpillar_fast_return_rune",
+                    "name": "速聚回天纹",
+                    "icon": "assets/icons/craft-shields/heavenpillar_fast_return_rune.png",
+                    "desc": "回天需求3→2层；每层追加弹反窗120→90ms；每层返还体力5→4。更快成势，但单次储能下降。",
+                    "effects": { "shieldReturnGuardRequiredStacksDelta": -1, "shieldReturnGuardWindowPerStackDelta": -30, "shieldReturnGuardStaminaRefundPerStackDelta": -1 }
+                }
+            ],
+            "rim_spine": [
+                {
+                    "id": "heavenpillar_long_return_ring",
+                    "name": "长昼回天环",
+                    "icon": "assets/icons/craft-shields/heavenpillar_long_return_ring.png",
+                    "desc": "回天预备持续+1800ms；机构冷却+1000ms。预备窗口更宽，完整复位更慢。",
+                    "effects": { "shieldReturnGuardReadyDurationDelta": 1800, "shieldReturnGuardCooldownDelta": 1000 }
+                },
+                {
+                    "id": "heavenpillar_reverse_time_ring",
+                    "name": "逆时刻环",
+                    "icon": "assets/icons/craft-shields/heavenpillar_reverse_time_ring.png",
+                    "desc": "每层追加弹反窗+50ms；每层返还体力-2。逆时刻环扩大接招窗口，减少回息收益。",
+                    "effects": { "shieldReturnGuardWindowPerStackDelta": 50, "shieldReturnGuardStaminaRefundPerStackDelta": -2 }
+                },
+                {
+                    "id": "heavenpillar_mountain_ram_spine",
+                    "name": "镇岳撞脊",
+                    "icon": "assets/icons/craft-shields/heavenpillar_mountain_ram_spine.png",
+                    "desc": "近战弹反眩晕+450ms；主动格挡减伤-3个百分点。撞脊强化回天后的压制，普通守势略松。",
+                    "effects": { "shieldParryStunDelta": 450, "shieldBlockReductionBonus": -0.03 }
+                }
+            ],
+            "harness": [
+                {
+                    "id": "heavenpillar_hydraulic_breath_grip",
+                    "name": "回息液压握",
+                    "icon": "assets/icons/craft-shields/heavenpillar_hydraulic_breath_grip.png",
+                    "desc": "每层回天返还体力+3；盾牌物防-4。液压握把把承势回送到持盾臂，牺牲背板强度。",
+                    "effects": { "shieldReturnGuardStaminaRefundPerStackDelta": 3, "shieldDefenseFlat": -4 }
+                },
+                {
+                    "id": "heavenpillar_marching_suspension",
+                    "name": "行军悬挂带",
+                    "icon": "assets/icons/craft-shields/heavenpillar_marching_suspension.png",
+                    "desc": "防御移速倍率+0.13；主动格挡减伤-4个百分点。悬挂带适合移动守势，正面承压下降。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.13, "shieldBlockReductionBonus": -0.04 }
+                },
+                {
+                    "id": "heavenpillar_reset_winch",
+                    "name": "复位绞盘",
+                    "icon": "assets/icons/craft-shields/heavenpillar_reset_winch.png",
+                    "desc": "回天机构冷却-1800ms；格挡体力+3。绞盘加速复位，持续举持负担增加。",
+                    "effects": { "shieldReturnGuardCooldownDelta": -1800, "shieldStaminaCostDelta": 3 }
+                }
+            ]
+        }
+    },
+    "weapon63": {
+        "slots": [
+            { "id": "face", "name": "归墟镜瓣", "x": 0.10, "y": 0.22, "lineTarget": { "x": 0.50, "y": 0.32 } },
+            { "id": "rim", "name": "事件视界环", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.50, "y": 0.68 } },
+            { "id": "harness", "name": "反质量握把与观测棘轮（背面）", "targetSide": "back", "x": 0.90, "y": 0.34, "lineTarget": { "x": 0.60, "y": 0.34 } }
+        ],
+        "options": {
+            "face": [
+                {
+                    "id": "abyssmirror_singularity_armor_petal",
+                    "name": "奇点重甲瓣",
+                    "icon": "assets/icons/craft-shields/abyssmirror_singularity_armor_petal.png",
+                    "desc": "盾牌物防+7；事件视界触发体力+3。重甲镜瓣强化实体承压，但吞没首发需要更多体力。",
+                    "effects": { "shieldDefenseFlat": 7, "shieldNullFieldTriggerStaminaDelta": 3 }
+                },
+                {
+                    "id": "abyssmirror_star_devouring_membrane",
+                    "name": "吞星棱镜膜",
+                    "icon": "assets/icons/craft-shields/abyssmirror_star_devouring_membrane.png",
+                    "desc": "魔法与电击格挡减伤+8个百分点；常价格挡减伤-4个百分点。镜膜专注吞没术式。",
+                    "effects": { "shieldMagicBlockReductionBonus": 0.08, "shieldBlockReductionBonus": -0.04 }
+                },
+                {
+                    "id": "abyssmirror_absolute_zero_coating",
+                    "name": "绝对零界涂层",
+                    "icon": "assets/icons/craft-shields/abyssmirror_absolute_zero_coating.png",
+                    "desc": "视界内后续投射物承伤10%→5%；持续时间-80ms。短促地压低视界内残余伤害。",
+                    "effects": { "shieldNullFieldRemainingDamageRatioDelta": -0.05, "shieldNullFieldDurationDelta": -80 }
+                }
+            ],
+            "rim": [
+                {
+                    "id": "abyssmirror_expanded_horizon_ring",
+                    "name": "延展视界环",
+                    "icon": "assets/icons/craft-shields/abyssmirror_expanded_horizon_ring.png",
+                    "desc": "事件视界持续+180ms；冷却+1000ms。视界覆盖更长连射，复位更慢。",
+                    "effects": { "shieldNullFieldDurationDelta": 180, "shieldNullFieldCooldownDelta": 1000 }
+                },
+                {
+                    "id": "abyssmirror_fast_collapse_ring",
+                    "name": "快塌缩星环",
+                    "icon": "assets/icons/craft-shields/abyssmirror_fast_collapse_ring.png",
+                    "desc": "事件视界冷却-800ms；触发体力+5。星环更快结束复位，但首发吞没负担增加。",
+                    "effects": { "shieldNullFieldCooldownDelta": -800, "shieldNullFieldTriggerStaminaDelta": 5 }
+                },
+                {
+                    "id": "abyssmirror_deep_well_reservoir",
+                    "name": "深井蓄能环",
+                    "icon": "assets/icons/craft-shields/abyssmirror_deep_well_reservoir.png",
+                    "desc": "事件视界触发体力-7；视界内承伤10%→15%。深井先行供能，场内压制略弱。",
+                    "effects": { "shieldNullFieldTriggerStaminaDelta": -7, "shieldNullFieldRemainingDamageRatioDelta": 0.05 }
+                }
+            ],
+            "harness": [
+                {
+                    "id": "abyssmirror_phase_support_strap",
+                    "name": "相位承带",
+                    "icon": "assets/icons/craft-shields/abyssmirror_phase_support_strap.png",
+                    "desc": "防御移速倍率+0.12；常价格挡减伤-4个百分点。相位承带减轻移动惯性，正面稳固下降。",
+                    "effects": { "shieldDefenseMoveSpeedDelta": 0.12, "shieldBlockReductionBonus": -0.04 }
+                },
+                {
+                    "id": "abyssmirror_antimass_grip",
+                    "name": "反质量握柄",
+                    "icon": "assets/icons/craft-shields/abyssmirror_antimass_grip.png",
+                    "desc": "普通主动格挡体力-4；盾牌物防-3。反质量握柄减轻连续举持，牺牲实体背板。",
+                    "effects": { "shieldStaminaCostDelta": -4, "shieldDefenseFlat": -3 }
+                },
+                {
+                    "id": "abyssmirror_observation_reset_ratchet",
+                    "name": "观测复位棘轮",
+                    "icon": "assets/icons/craft-shields/abyssmirror_observation_reset_ratchet.png",
+                    "desc": "成功弹反返还事件视界冷却900ms；近战弹反眩晕-250ms。观测棘轮以控制时长换取机构复位。",
+                    "effects": { "shieldNullFieldParryCooldownRefundDelta": 900, "shieldParryStunDelta": -250 }
+                }
+            ]
+        }
+    },
+    "weapon64": {
+            "slots": [
+                { "id": "face", "name": "逆命劫轮盾面", "x": 0.10, "y": 0.20, "lineTarget": { "x": 0.50, "y": 0.31 } },
+                { "id": "rings", "name": "三重命轮与偿债环", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.50, "y": 0.68 } },
+                { "id": "harness", "name": "沙漏握把与臂带（背面）", "targetSide": "back", "x": 0.90, "y": 0.48, "lineTarget": { "x": 0.59, "y": 0.50 } }
+            ],
+            "options": {
+                "face": [
+                    { "id": "doomwheel_temporal_bulwark_plate", "name": "劫时重板", "icon": "assets/icons/craft-shields/doomwheel_temporal_bulwark_plate.png", "desc": "盾牌物防+10；普通主动格挡体力24→27。重板提高正面硬度，连续承压更吃体力。", "effects": { "shieldDefenseFlat": 10, "shieldStaminaCostDelta": 3 } },
+                    { "id": "doomwheel_debt_absorption_membrane", "name": "纳债膜", "icon": "assets/icons/craft-shields/doomwheel_debt_absorption_membrane.png", "desc": "劫债延迟比例65%→75%；宽限1.2→0.9秒。把更多当次承伤推后，但更早开始偿还。", "effects": { "shieldCausalDebtSplitRatioDelta": 0.10, "shieldCausalDebtGraceDelta": -300 } },
+                    { "id": "doomwheel_safe_release_lamella", "name": "安全卸债鳞", "icon": "assets/icons/craft-shields/doomwheel_safe_release_lamella.png", "desc": "普通主动格挡减伤70%→75%；弹反抹债70%→55%。提高常态守势，以较弱的逆命清账换取稳定。", "effects": { "shieldBlockReductionBonus": 0.05, "shieldCausalDebtEraseRatioDelta": -0.15 } }
+                ],
+                "rings": [
+                    { "id": "doomwheel_mercy_timing_ring", "name": "赦债命轮", "icon": "assets/icons/craft-shields/doomwheel_mercy_timing_ring.png", "desc": "弹反抹债70%→85%；劫债偿还4.5→3.5秒。命轮赦免更多债务，未弹反时还债更急。", "effects": { "shieldCausalDebtEraseRatioDelta": 0.15, "shieldCausalDebtRepayDurationDelta": -1000 } },
+                    { "id": "doomwheel_long_grace_ring", "name": "延命刻环", "icon": "assets/icons/craft-shields/doomwheel_long_grace_ring.png", "desc": "劫债宽限1.2→2.1秒；容量28%→23%最大生命。争取反击时间，但更早触发溢出承伤。", "effects": { "shieldCausalDebtGraceDelta": 900, "shieldCausalDebtCapRatioDelta": -0.05 } },
+                    { "id": "doomwheel_accelerated_repayment_ring", "name": "急偿轮", "icon": "assets/icons/craft-shields/doomwheel_accelerated_repayment_ring.png", "desc": "弹反窗口780→960ms；劫债偿还4.5→2.9秒。更易抓住清债弹反，失败后的还债压力更集中。", "effects": { "shieldParryWindowDelta": 180, "shieldCausalDebtRepayDurationDelta": -1600 } }
+                ],
+                "harness": [
+                    { "id": "doomwheel_hourglass_counterweight_grip", "name": "沙漏配重握", "icon": "assets/icons/craft-shields/doomwheel_hourglass_counterweight_grip.png", "desc": "防御移速倍率0.50→0.62；劫债延迟比例65%→57%。配重便于走位，少一部分伤害能进入命轮。", "effects": { "shieldDefenseMoveSpeedDelta": 0.12, "shieldCausalDebtSplitRatioDelta": -0.08 } },
+                    { "id": "doomwheel_reinforced_forearm_strap", "name": "强化臂带", "icon": "assets/icons/craft-shields/doomwheel_reinforced_forearm_strap.png", "desc": "普通主动格挡体力24→19；盾牌物防46→41。强化承带适合连续格挡，牺牲静态防御。", "effects": { "shieldStaminaCostDelta": -5, "shieldDefenseFlat": -5 } },
+                    { "id": "doomwheel_emergency_settlement_ratchet", "name": "紧急结算棘轮", "icon": "assets/icons/craft-shields/doomwheel_emergency_settlement_ratchet.png", "desc": "弹反窗口780→940ms；近战弹反眩晕1.75→1.45秒。更易完成清债，降低反击后的控制收益。", "effects": { "shieldParryWindowDelta": 160, "shieldParryStunDelta": -300 } }
+                ]
+            }
+        },
+        "weapon65": {
+            "slots": [
+                { "id": "gate_face", "name": "圣城门面与陶金甲", "x": 0.10, "y": 0.20, "lineTarget": { "x": 0.50, "y": 0.38 } },
+                { "id": "ward_core", "name": "誓约棱镜与庇护核心", "x": 0.10, "y": 0.72, "lineTarget": { "x": 0.50, "y": 0.72 } },
+                { "id": "harness", "name": "快释握把与行军承带（背面）", "targetSide": "back", "x": 0.90, "y": 0.48, "lineTarget": { "x": 0.59, "y": 0.52 } }
+            ],
+            "options": {
+                "gate_face": [
+                    { "id": "oathgate_bastion_ceramite_plate", "name": "城垒陶金板", "icon": "assets/icons/craft-shields/oathgate_bastion_ceramite_plate.png", "desc": "盾牌物防+9；普通主动格挡体力21→24。城垒板强化实体守门，连续蓄能负担增加。", "effects": { "shieldDefenseFlat": 9, "shieldStaminaCostDelta": 3 } },
+                    { "id": "oathgate_dissipation_tile", "name": "誓光卸力瓦", "icon": "assets/icons/craft-shields/oathgate_dissipation_tile.png", "desc": "普通主动格挡减伤66%→72%；储备转化45%→37%。先保护持盾者，减少团队域的后续储备。", "effects": { "shieldBlockReductionBonus": 0.06, "shieldOathReserveConversionDelta": -0.08 } },
+                    { "id": "oathgate_reserve_capacitor_crystal", "name": "储备电容晶", "icon": "assets/icons/craft-shields/oathgate_reserve_capacitor_crystal.png", "desc": "誓约储备上限24%→30%最大生命；未继续格挡消散等待2.8→2.2秒。容量更大，守势衔接要求更紧。", "effects": { "shieldOathReserveCapRatioDelta": 0.06, "shieldOathReserveDecayDelta": -600 } }
+                ],
+                "ward_core": [
+                    { "id": "oathgate_wide_sanctum_lens", "name": "广域圣所镜", "icon": "assets/icons/craft-shields/oathgate_wide_sanctum_lens.png", "desc": "庇护半径240→300；域内减伤35%→28%。覆盖更多友军，但每次拦截强度下降。", "effects": { "shieldOathWardRadiusDelta": 60, "shieldOathWardReductionDelta": -0.07 } },
+                    { "id": "oathgate_enduring_oath_prism", "name": "长誓棱镜", "icon": "assets/icons/craft-shields/oathgate_enduring_oath_prism.png", "desc": "庇护持续4.0→5.5秒；域内减伤35%→30%。延长阵地保护，降低瞬时拦截比例。", "effects": { "shieldOathWardDurationDelta": 1500, "shieldOathWardReductionDelta": -0.05 } },
+                    { "id": "oathgate_high_flux_mercy_core", "name": "高流慈悲芯", "icon": "assets/icons/craft-shields/oathgate_high_flux_mercy_core.png", "desc": "域内减伤35%→45%；庇护持续4.0→2.8秒。快速消耗储备抵挡爆发，牺牲阵地时间。", "effects": { "shieldOathWardReductionDelta": 0.10, "shieldOathWardDurationDelta": -1200 } }
+                ],
+                "harness": [
+                    { "id": "oathgate_quick_release_latch", "name": "快释誓闩", "icon": "assets/icons/craft-shields/oathgate_quick_release_latch.png", "desc": "弹反后圣化收盾窗口3.0→4.2秒；普通主动格挡体力21→24。更从容选择展开位置，蓄能更耗体力。", "effects": { "shieldOathSanctifyDurationDelta": 1200, "shieldStaminaCostDelta": 3 } },
+                    { "id": "oathgate_marching_buttress_strap", "name": "行军扶壁带", "icon": "assets/icons/craft-shields/oathgate_marching_buttress_strap.png", "desc": "防御移速倍率0.50→0.62；普通主动格挡减伤66%→62%。方便带队推进，正面守门能力下降。", "effects": { "shieldDefenseMoveSpeedDelta": 0.12, "shieldBlockReductionBonus": -0.04 } },
+                    { "id": "oathgate_reserve_pump_grip", "name": "誓能泵握", "icon": "assets/icons/craft-shields/oathgate_reserve_pump_grip.png", "desc": "储备转化45%→57%；盾牌物防42→37。更快充满团队庇护，牺牲静态防御。", "effects": { "shieldOathReserveConversionDelta": 0.12, "shieldDefenseFlat": -5 } }
+                ]
+            }
+        }
 }

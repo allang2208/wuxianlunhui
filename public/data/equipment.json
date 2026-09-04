@@ -372,6 +372,15 @@
             "weaponAsset": {
                 "image": "assets/weapons/woodshied-equip.png"
             },
+            "shieldVisual": {
+                "originX": 0.564453125,
+                "originY": 0.4853515625,
+                "defenseOriginX": 0.564453125,
+                "defenseOriginY": 0.47216796875,
+                "visibleHeightRatio": 0.7421875,
+                "bodyHeightRatio": 0.42,
+                "defensePerspectiveScaleX": 0.74
+            },
             "stats": [
                 {
                     "name": "物理防御",
@@ -390,8 +399,10 @@
                 "damageReduction": 0.5,
                 "staminaCost": 20,
                 "parryWindow": 1000,
+                "parryAngle": 120,
                 "parryStun": 1000,
-                "parryKnockback": 100
+                "parryKnockback": 100,
+                "stunOnExhaustion": 1500
             }
         },
         "g18_pistol": {
@@ -6473,6 +6484,560 @@
                 "maxShots": 24,
                 "recoveryMs": 450,
                 "maxAngle": 18
+            }
+        },
+        "forged_duelist_buckler": {
+            "weaponId": "weapon56",
+            "name": "锻钢拳盾",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/forged-duelist-buckler.png",
+            "equipImage": "assets/weapons/forged-duelist-buckler-equip.png",
+            "dropImage": "assets/icons/shields/forged-duelist-buckler.png",
+            "slotImage": "assets/icons/shields/forged-duelist-buckler.png",
+            "category": "weapon_shield",
+            "rarity": "uncommon",
+            "level": 5,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/forged-duelist-buckler-equip.png"
+            },
+            "shieldVisual": {
+                "originX": 0.6539589442815249,
+                "originY": 0.5169050715214565,
+                "defenseOriginX": 0.6539589442815249,
+                "defenseOriginY": 0.494140625,
+                "visibleHeightRatio": 0.985695708712614,
+                "bodyHeightRatio": 0.34,
+                "defensePerspectiveScaleX": 0.74
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "18"
+                },
+                {
+                    "name": "防御减伤",
+                    "value": "50%"
+                }
+            ],
+            "desc": "一面贴掌握持的锻钢小盾。卷边和隆起的盾脐能拨开兵刃，轻巧的握柄便于连续应对进攻。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 18,
+                "perEnhance": 1.8,
+                "damageReduction": 0.5,
+                "staminaCost": 16,
+                "parryWindow": 1000,
+                "parryAngle": 120,
+                "parryStun": 1200,
+                "parryKnockback": 90,
+                "stunOnExhaustion": 1500
+            }
+        },
+        "oak_garrison_shield": {
+            "weaponId": "weapon57",
+            "name": "橡木卫戍盾",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/oak-garrison-shield.png",
+            "equipImage": "assets/weapons/oak-garrison-shield-equip.png",
+            "dropImage": "assets/icons/shields/oak-garrison-shield.png",
+            "slotImage": "assets/icons/shields/oak-garrison-shield.png",
+            "category": "weapon_shield",
+            "rarity": "uncommon",
+            "level": 5,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/oak-garrison-shield-equip.png"
+            },
+            "shieldVisual": {
+                "originX": 0.279296875,
+                "originY": 0.22916666666666666,
+                "defenseOriginX": 0.42,
+                "defenseOriginY": 0.4931640625,
+                "visibleHeightRatio": 0.983072916666667,
+                "bodyHeightRatio": 0.57,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "26"
+                },
+                {
+                    "name": "防御减伤",
+                    "value": "58%"
+                }
+            ],
+            "desc": "驻防士兵使用的木芯长盾。铁边束住交叠木板，宽大的覆面能够承受重击，但举持和回正并不轻松。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 26,
+                "perEnhance": 2.6,
+                "damageReduction": 0.42,
+                "staminaCost": 22,
+                "parryWindow": 850,
+                "parryAngle": 120,
+                "parryStun": 1000,
+                "parryKnockback": 120,
+                "stunOnExhaustion": 1500
+            }
+        },
+        "moonsilver_deflection_shield": {
+            "weaponId": "weapon58",
+            "name": "月银折光盾",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/moonsilver-deflection-shield.png",
+            "equipImage": "assets/weapons/moonsilver-deflection-shield-equip.png",
+            "dropImage": "assets/icons/shields/moonsilver-deflection-shield.png",
+            "slotImage": "assets/icons/shields/moonsilver-deflection-shield.png",
+            "category": "weapon_shield",
+            "rarity": "rare",
+            "level": 10,
+            "price": 400,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/moonsilver-deflection-shield-equip.png"
+            },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/moonsilver-deflection-shield-guard.png",
+                "originX": 0.59,
+                "originY": 0.43,
+                "defenseOriginX": 0.59,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.90625,
+                "bodyHeightRatio": 0.42,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "24"
+                },
+                {
+                    "name": "防御减伤",
+                    "value": "55%"
+                }
+            ],
+            "desc": "月银棱面将冲击引向盾缘，贴掌弹簧握柄让持有者迅速回正。它不以厚重取胜，而以准确偏转保护决斗者。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 24,
+                "perEnhance": 2.5,
+                "damageReduction": 0.45,
+                "staminaCost": 14,
+                "parryWindow": 1120,
+                "parryAngle": 120,
+                "parryStun": 1350,
+                "parryKnockback": 100,
+                "stunOnExhaustion": 1500
+            }
+        },
+        "blackiron_citadel_shield": {
+            "weaponId": "weapon59",
+            "name": "玄铁城垒盾",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/blackiron-citadel-shield.png",
+            "equipImage": "assets/weapons/blackiron-citadel-shield-equip.png",
+            "dropImage": "assets/icons/shields/blackiron-citadel-shield.png",
+            "slotImage": "assets/icons/shields/blackiron-citadel-shield.png",
+            "category": "weapon_shield",
+            "rarity": "rare",
+            "level": 10,
+            "price": 400,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/blackiron-citadel-shield-equip.png"
+            },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/blackiron-citadel-shield-guard.png",
+                "originX": 0.59,
+                "originY": 0.44,
+                "defenseOriginX": 0.59,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.90625,
+                "bodyHeightRatio": 0.63,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "34"
+                },
+                {
+                    "name": "防御减伤",
+                    "value": "64%"
+                }
+            ],
+            "desc": "玄铁纵脊把塔盾撑成一面移动城门，厚衬和双承带将重击压向整条前臂。它适合守住狭口，而不适合频繁试探。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 34,
+                "perEnhance": 3.5,
+                "damageReduction": 0.36,
+                "staminaCost": 25,
+                "parryWindow": 760,
+                "parryAngle": 120,
+                "parryStun": 1150,
+                "parryKnockback": 155,
+                "stunOnExhaustion": 1500
+            }
+        },
+        "thorn_oath_reprisal_shield": {
+            "weaponId": "weapon60",
+            "name": "荆棘誓返盾",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/thorn-oath-reprisal-shield.png",
+            "equipImage": "assets/weapons/thorn-oath-reprisal-shield-equip.png",
+            "dropImage": "assets/icons/shields/thorn-oath-reprisal-shield.png",
+            "slotImage": "assets/icons/shields/thorn-oath-reprisal-shield.png",
+            "category": "weapon_shield",
+            "rarity": "epic",
+            "level": 15,
+            "price": 800,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/thorn-oath-reprisal-shield-equip.png"
+            },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/thorn-oath-reprisal-shield-guard.png",
+                "originX": 0.59,
+                "originY": 0.5,
+                "defenseOriginX": 0.59,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.90625,
+                "bodyHeightRatio": 0.66,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                { "name": "物理防御", "value": "32" },
+                { "name": "防御减伤", "value": "60%" },
+                { "name": "近战弹反返伤", "value": "30%" }
+            ],
+            "desc": "黑钢盾面以誓约荆棘分流重击。成功弹反敌方直接近战攻击时，会按本次盾前承伤返还物理伤害，并受玩家最大生命上限保护。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 32,
+                "perEnhance": 3.2,
+                "damageReduction": 0.4,
+                "staminaCost": 19,
+                "parryWindow": 970,
+                "parryAngle": 120,
+                "parryStun": 1450,
+                "parryKnockback": 130,
+                "stunOnExhaustion": 1500,
+                "parryReflection": {
+                    "ratio": 0.3,
+                    "maxHpCapRatio": 0.1,
+                    "cooldownMs": 1000
+                }
+            }
+        },
+        "star_eater_arcane_mirror_shield": {
+            "weaponId": "weapon61",
+            "name": "蚀星法镜盾",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/star-eater-arcane-mirror-shield.png",
+            "equipImage": "assets/weapons/star-eater-arcane-mirror-shield-equip.png",
+            "dropImage": "assets/icons/shields/star-eater-arcane-mirror-shield.png",
+            "slotImage": "assets/icons/shields/star-eater-arcane-mirror-shield.png",
+            "category": "weapon_shield",
+            "rarity": "epic",
+            "level": 15,
+            "price": 800,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/star-eater-arcane-mirror-shield-equip.png"
+            },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/star-eater-arcane-mirror-shield-guard.png",
+                "originX": 0.59,
+                "originY": 0.5,
+                "defenseOriginX": 0.59,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.90625,
+                "bodyHeightRatio": 0.58,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                { "name": "物理防御", "value": "28" },
+                { "name": "防御减伤", "value": "52%" },
+                { "name": "魔法格挡减伤", "value": "72%" },
+                { "name": "秘法反噬", "value": "48+魔攻×0.55+承伤×0.45" }
+            ],
+            "desc": "黑曜法镜吞没术式余辉。弹反直接魔法或电击命中时，它会向施法者返还一次有上限的魔法反噬，并在伤害后蚀刻目标魔抗。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 28,
+                "perEnhance": 2.8,
+                "damageReduction": 0.48,
+                "magicBlockRemainingDamageRatio": 0.28,
+                "staminaCost": 17,
+                "parryWindow": 1080,
+                "parryAngle": 120,
+                "parryStun": 1050,
+                "parryKnockback": 85,
+                "stunOnExhaustion": 1500,
+                "arcaneRetort": {
+                    "baseDamage": 48,
+                    "matkRatio": 0.55,
+                    "preventedDamageRatio": 0.45,
+                    "capBaseDamage": 80,
+                    "capMatkRatio": 1.5,
+                    "mdefShredRatio": 0.18,
+                    "mdefShredDurationMs": 5000,
+                    "cooldownMs": 2200
+                }
+            }
+        },
+        "heaven_pillar_returning_bulwark": {
+            "weaponId": "weapon62",
+            "name": "天柱回天壁",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/heaven-pillar-returning-bulwark.png",
+            "equipImage": "assets/weapons/heaven-pillar-returning-bulwark-equip.png",
+            "dropImage": "assets/icons/shields/heaven-pillar-returning-bulwark.png",
+            "slotImage": "assets/icons/shields/heaven-pillar-returning-bulwark.png",
+            "category": "weapon_shield",
+            "rarity": "mythic",
+            "level": 18,
+            "price": 1600,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/heaven-pillar-returning-bulwark-equip.png"
+            },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/heaven-pillar-returning-bulwark-guard.png",
+                "originX": 0.6,
+                "originY": 0.515,
+                "defenseOriginX": 0.6,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.828125,
+                "bodyHeightRatio": 0.72,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                { "name": "物理防御", "value": "38" },
+                { "name": "防御减伤", "value": "65%" },
+                { "name": "承势·回天", "value": "3层承势→下一次防御弹反窗+360ms" }
+            ],
+            "desc": "天柱主脊把来势收进三重回天环。一次举盾中完成3次敌方直接普通格挡并主动收盾，可在3.2秒内强化下一次防御；强化弹反成功返还15点体力。强制中断会丢失承势。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 38,
+                "perEnhance": 3.8,
+                "damageReduction": 0.35,
+                "staminaCost": 22,
+                "parryWindow": 860,
+                "parryAngle": 120,
+                "parryStun": 1500,
+                "parryKnockback": 160,
+                "stunOnExhaustion": 1500,
+                "returnGuard": {
+                    "requiredStacks": 3,
+                    "stackDurationMs": 5000,
+                    "parryWindowPerStackMs": 120,
+                    "staminaRefundPerStack": 5,
+                    "readyDurationMs": 3200,
+                    "cooldownMs": 5500
+                }
+            }
+        },
+        "abyss_return_star_devouring_mirror": {
+            "weaponId": "weapon63",
+            "name": "归墟吞星镜",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/abyss-return-star-devouring-mirror.png",
+            "equipImage": "assets/weapons/abyss-return-star-devouring-mirror-equip.png",
+            "dropImage": "assets/icons/shields/abyss-return-star-devouring-mirror.png",
+            "slotImage": "assets/icons/shields/abyss-return-star-devouring-mirror.png",
+            "category": "weapon_shield",
+            "rarity": "mythic",
+            "level": 18,
+            "price": 1600,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/abyss-return-star-devouring-mirror-equip.png"
+            },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/abyss-return-star-devouring-mirror-guard.png",
+                "originX": 0.6,
+                "originY": 0.34,
+                "defenseOriginX": 0.6,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.828125,
+                "bodyHeightRatio": 0.6,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                { "name": "物理防御", "value": "30" },
+                { "name": "防御减伤", "value": "54%" },
+                { "name": "魔法格挡减伤", "value": "75%" },
+                { "name": "事件视界", "value": "吞没首发投射物；240ms内后续投射物仅承伤10%" }
+            ],
+            "desc": "归墟镜核在主动防御时捕获未被弹反的敌方直接投射物。机构就绪且体力不少于18时，首发伤害归零并张开240毫秒事件视界；场内后续投射物仅造成10%伤害，随后冷却3.2秒。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 30,
+                "perEnhance": 3,
+                "damageReduction": 0.46,
+                "magicBlockRemainingDamageRatio": 0.25,
+                "staminaCost": 17,
+                "parryWindow": 1100,
+                "parryAngle": 120,
+                "parryStun": 1050,
+                "parryKnockback": 90,
+                "stunOnExhaustion": 1500,
+                "nullField": {
+                    "triggerStamina": 18,
+                    "durationMs": 240,
+                    "remainingDamageRatio": 0.1,
+                    "cooldownMs": 3200,
+                    "parryCooldownRefundMs": 0
+                }
+            }
+        },
+        "reverse_fate_doomwheel_shield": {
+            "weaponId": "weapon64",
+            "name": "逆命劫轮盾",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/reverse-fate-doomwheel-shield.png",
+            "equipImage": "assets/weapons/reverse-fate-doomwheel-shield-equip.png",
+            "dropImage": "assets/icons/shields/reverse-fate-doomwheel-shield.png",
+            "slotImage": "assets/icons/shields/reverse-fate-doomwheel-shield.png",
+            "category": "weapon_shield",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": { "image": "assets/weapons/reverse-fate-doomwheel-shield-equip.png" },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/reverse-fate-doomwheel-shield-guard.png",
+                "originX": 0.585,
+                "originY": 0.5,
+                "defenseOriginX": 0.6,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.828125,
+                "bodyHeightRatio": 0.74,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                { "name": "物理防御", "value": "46" },
+                { "name": "防御减伤", "value": "70%" },
+                { "name": "逆命劫债", "value": "65%承伤延迟；弹反抹除70%" }
+            ],
+            "desc": "三重劫轮把成功普通格挡后的65%最终承伤延迟为劫债，1.2秒后在4.5秒内偿还；债务总额不超过最大生命28%，溢出立即承受。债务存在时成功弹反可抹除70%，其余继续偿还。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 46,
+                "perEnhance": 4.6,
+                "damageReduction": 0.3,
+                "staminaCost": 24,
+                "parryWindow": 780,
+                "parryAngle": 120,
+                "parryStun": 1750,
+                "parryKnockback": 175,
+                "stunOnExhaustion": 1800,
+                "causalDebt": {
+                    "splitRatio": 0.65,
+                    "maxHpCapRatio": 0.28,
+                    "graceMs": 1200,
+                    "repayDurationMs": 4500,
+                    "eraseOnParryRatio": 0.7
+                }
+            }
+        },
+        "last_oath_sanctum_gate_shield": {
+            "weaponId": "weapon65",
+            "name": "圣城终誓门",
+            "type": "盾",
+            "icon": "🛡",
+            "iconImage": "assets/icons/shields/last-oath-sanctum-gate-shield.png",
+            "equipImage": "assets/weapons/last-oath-sanctum-gate-shield-equip.png",
+            "dropImage": "assets/icons/shields/last-oath-sanctum-gate-shield.png",
+            "slotImage": "assets/icons/shields/last-oath-sanctum-gate-shield.png",
+            "category": "weapon_shield",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "offhand",
+            "weaponType": "shield",
+            "weaponTypeTag": "副手武器",
+            "isTwoHanded": false,
+            "weaponAsset": { "image": "assets/weapons/last-oath-sanctum-gate-shield-equip.png" },
+            "shieldVisual": {
+                "guardImage": "assets/weapons/guards/last-oath-sanctum-gate-shield-guard.png",
+                "originX": 0.59,
+                "originY": 0.52,
+                "defenseOriginX": 0.59,
+                "defenseOriginY": 0.5,
+                "visibleHeightRatio": 0.828125,
+                "bodyHeightRatio": 0.72,
+                "defensePerspectiveScaleX": 1
+            },
+            "stats": [
+                { "name": "物理防御", "value": "42" },
+                { "name": "物理防御减伤", "value": "66%" },
+                { "name": "魔法/电击减伤", "value": "72%" },
+                { "name": "终誓庇护", "value": "格挡蓄能→35%团队共享减伤" }
+            ],
+            "desc": "普通主动格挡会把实际阻止伤害的45%存为誓约储备，上限为最大生命24%，2.8秒未继续格挡则消散。带储备成功弹反后，3秒内主动收盾可在当前位置展开4秒庇护域，为240范围内友方抵消35%合格直击，抵消量从共享储备1:1扣除。",
+            "equipSlot": "offhand",
+            "defense": {
+                "base": 42,
+                "perEnhance": 4.2,
+                "damageReduction": 0.34,
+                "magicBlockRemainingDamageRatio": 0.28,
+                "staminaCost": 21,
+                "parryWindow": 950,
+                "parryAngle": 120,
+                "parryStun": 1350,
+                "parryKnockback": 130,
+                "stunOnExhaustion": 1650,
+                "oathReserve": {
+                    "conversionRatio": 0.45,
+                    "maxHpCapRatio": 0.24,
+                    "decayAfterMs": 2800,
+                    "sanctifyDurationMs": 3000,
+                    "wardDurationMs": 4000,
+                    "wardRadius": 240,
+                    "wardReductionRatio": 0.35
+                }
             }
         }
     }

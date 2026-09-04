@@ -13,6 +13,7 @@ import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-ef
 import { RARITY_LABELS, RARITY_COLORS } from '../config/rarity.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { FusionSystem } from './fusion-system.js';
+import { getShieldDefenseValues } from '../config/shield-config.js';
 
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
@@ -80,6 +81,9 @@ export const EquipTooltipManager = {
                 }
             }
         }
+        if (fullItem.weaponType === 'shield') {
+            fullItem.enhanceLevel = item.enhanceLevel ?? fullItem.enhanceLevel ?? 0;
+        }
         // 稀有度颜色绑定（定义集中在 config/rarity.js）
         const rarityKey = fullItem.rarity || 'common';
         const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
@@ -102,6 +106,9 @@ export const EquipTooltipManager = {
                 const statName = s.name || s.label;
                 if (!statName) return '';
                 let value = s.value;
+                if (fullItem.weaponType === 'shield' && statName === '物理防御') {
+                    value = getShieldDefenseValues(fullItem).defense;
+                }
                 // 所有武器攻击力显示计算后的数值
                 if (statName === '物理攻击' && Game.player && Game.player.getCurrentWeaponAtk) {
                     const computed = Game.player.getCurrentWeaponAtk(fullItem);
@@ -136,20 +143,36 @@ export const EquipTooltipManager = {
         if (isWeapon) {
             if (fullItem.weaponType === 'shield') {
                 extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🛡 防御参数</span></div>`;
-                const defenseData = item.defense || fullItem.defense || (codexItem ? codexItem.defense : null);
+                const defenseData = fullItem.defense;
+                let shieldSpecialRows = '';
                 if (defenseData) {
-                    const el = (item.enhanceLevel || fullItem.enhanceLevel || 0);
-                    const baseDef = defenseData.base || 0;
-                    const perEnhance = defenseData.perEnhance || 0;
-                    const totalDef = baseDef + el * perEnhance;
-                    const defFormula = `${totalDef}（基础 ${baseDef} + 强化等级 × ${perEnhance}）`;
+                    const skill = Game.player?.skills?.shieldDefense;
+                    const values = getShieldDefenseValues(fullItem, skill?.getEffect?.(skill.level));
+                    const defFormula = `${values.defense}（向下取整：${values.base} + 强化等级 × ${values.perEnhance}）`;
                     extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">防御力公式</span><span class="tt-stat-val">${defFormula}</span></div>`;
-                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">防御减少伤害</span><span class="tt-stat-val">${(defenseData.damageReduction * 100).toFixed(0)}%</span></div>`;
-                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">防御受击体力</span><span class="tt-stat-val">${defenseData.staminaCost || '-'}</span></div>`;
-                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">弹反眩晕时间</span><span class="tt-stat-val">${(defenseData.parryStun / 1000).toFixed(1)}秒</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">基础格挡承伤</span><span class="tt-stat-val">${(values.baseDamageRatio * 100).toFixed(0)}%</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">当前技能下格挡承伤</span><span class="tt-stat-val">${(values.remainingDamageRatio * 100).toFixed(0)}%</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">格挡受击体力 / 破防眩晕</span><span class="tt-stat-val">${values.staminaCost} / ${values.stunOnExhaustion / 1000}秒</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">防御移动速度</span><span class="tt-stat-val">${Math.round(values.defenseMoveSpeedMultiplier * 100)}%</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">弹反窗口</span><span class="tt-stat-val">${values.parryWindow / 1000}秒</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">弹反方向范围</span><span class="tt-stat-val">左右各${values.parryHalfAngle}°（合计${values.parryHalfAngle * 2}°）</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">近战弹反眩晕</span><span class="tt-stat-val">${values.parryStun / 1000}秒</span></div>`;
+                    if (defenseData.magicBlockRemainingDamageRatio != null) {
+                        extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">当前魔法/电击格挡承伤</span><span class="tt-stat-val">${(values.magicRemainingDamageRatio * 100).toFixed(0)}%</span></div>`;
+                    }
+                    if (values.parryReflection) {
+                        shieldSpecialRows += `<div class="tt-extra-row"><span class="tt-stat-name">誓约返击</span><span class="tt-stat-val">盾前承伤×${(values.parryReflection.damageRatio * 100).toFixed(0)}%，上限${(values.parryReflection.maxHpCapRatio * 100).toFixed(0)}%最大生命</span></div>`;
+                        shieldSpecialRows += `<div class="tt-extra-row"><span class="tt-stat-name">返击冷却</span><span class="tt-stat-val">${(values.parryReflection.cooldownMs / 1000).toFixed(2)}秒</span></div>`;
+                    }
+                    if (values.arcaneRetort) {
+                        shieldSpecialRows += `<div class="tt-extra-row"><span class="tt-stat-name">秘法反噬</span><span class="tt-stat-val">${values.arcaneRetort.baseDamage}+魔攻×${values.arcaneRetort.matkRatio.toFixed(2)}+盾前承伤×${values.arcaneRetort.preventedDamageRatio.toFixed(2)}</span></div>`;
+                        shieldSpecialRows += `<div class="tt-extra-row"><span class="tt-stat-name">反噬上限</span><span class="tt-stat-val">${values.arcaneRetort.capBaseDamage}+魔攻×${values.arcaneRetort.capMatkRatio.toFixed(2)}</span></div>`;
+                        shieldSpecialRows += `<div class="tt-extra-row"><span class="tt-stat-name">魔抗蚀刻</span><span class="tt-stat-val">-${(values.arcaneRetort.magicResistanceShred * 100).toFixed(0)}%，持续${(values.arcaneRetort.shredDurationMs / 1000).toFixed(1)}秒，冷却${(values.arcaneRetort.cooldownMs / 1000).toFixed(2)}秒</span></div>`;
+                    }
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">生效条件</span><span class="tt-stat-val">当前副手持盾；按住右键格挡，弹反不耗体力</span></div>`;
                 }
                 extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">✨ 防具特效</span></div>`;
-                extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">特效</span><span class="tt-stat-val">暂无</span></div>`;
+                extraHtml += shieldSpecialRows || `<div class="tt-extra-row"><span class="tt-stat-name">特效</span><span class="tt-stat-val">暂无</span></div>`;
             } else {
                 extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🎯 攻击参数</span></div>`;
             // 攻击力计算公式（含强化等级）

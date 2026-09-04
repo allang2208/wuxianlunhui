@@ -50,12 +50,16 @@ export function aggregateCraftEffects(itemMods, weaponConfig) {
  * @param {object} equippedItem 刚写入 _craftEffects 的物品
  */
 export function applyModEffectsToPlayer(player, equippedItem) {
-    if (!player || !equippedItem || !player._initAmmoForSlot) return;
-    const slots = ['weapon', 'offhand', 'weapon2', 'ring2'];
-    for (const slot of slots) {
-        const item = player.equipments[slot];
-        if (item && item.weaponId === equippedItem.weaponId) {
-            player._initAmmoForSlot(slot);
+    if (!player || !equippedItem) return;
+    if (player._initAmmoForSlot) {
+        const slots = ['weapon', 'offhand', 'weapon2', 'ring2'];
+        for (const slot of slots) {
+            const item = player.equipments[slot];
+            if (item && item.weaponId === equippedItem.weaponId) {
+                player._initAmmoForSlot(slot);
+            }
         }
     }
+    player.shieldSystem?.onCraftEffectsChanged?.(equippedItem);
+    player.calculateCombatStats?.();
 }

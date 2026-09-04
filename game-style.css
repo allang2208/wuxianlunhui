@@ -1063,6 +1063,7 @@
         .craft-weapon-display img { height: 100%; width: auto; max-width: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: rotate(0deg); }
 
         .craft-mod-container { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 15; display: none; }
+        .craft-lines-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 1; pointer-events: none; }
         .craft-mod-grid { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         .craft-mod-cell { position: absolute; width: 48px; height: 48px; background: linear-gradient(to bottom, #3d342b, #2a2520); border: 1px solid #5a4d3f; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: var(--bp-cursor-pointer, pointer); transition: all 0.2s; z-index: 3; pointer-events: auto; }
         .craft-mod-cell:hover { border-color: #d4c5a9; background: linear-gradient(to bottom, #4a3f35, #3d342b); transform: scale(1.1); box-shadow: 0 0 10px rgba(212,197,169,0.3); }

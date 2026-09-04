@@ -1,0 +1,4845 @@
+{
+  "candidates": [
+    {
+      "weaponId": "weapon2",
+      "weaponName": "骑士长剑",
+      "profile": "sword_vertical",
+      "grade": "A",
+      "confidence": 0.949,
+      "imagePath": "assets/weapons/knights_sword_ingame_v2.png",
+      "analysisImage": "assets/weapons/runtime/weapons/knights_sword_ingame_v2.png",
+      "metrics": {
+        "sourceSize": [
+          485,
+          512
+        ],
+        "alphaBounds": [
+          181,
+          21,
+          304,
+          496
+        ],
+        "alphaAspect": 0.261,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0011,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "blade",
+          "name": "剑刃",
+          "x": 0.085,
+          "y": 0.292,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.292
+          }
+        },
+        {
+          "id": "guard",
+          "name": "护手",
+          "x": 0.085,
+          "y": 0.5911,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.5911
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6961,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.6694
+          }
+        },
+        {
+          "id": "blade_body_1",
+          "name": "剑身",
+          "x": 0.915,
+          "y": 0.3972,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.3972
+          }
+        },
+        {
+          "id": "blade_body_2",
+          "name": "剑身",
+          "x": 0.915,
+          "y": 0.5022,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.486
+          }
+        },
+        {
+          "id": "pommel",
+          "name": "配重",
+          "x": 0.915,
+          "y": 0.7419,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.7419
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon4",
+      "weaponName": "符文长剑",
+      "profile": "sword_vertical",
+      "grade": "A",
+      "confidence": 0.949,
+      "imagePath": "assets/weapons/rune_sword_ingame_v2.png",
+      "analysisImage": "assets/weapons/runtime/weapons/rune_sword_ingame_v2.png",
+      "metrics": {
+        "sourceSize": [
+          489,
+          512
+        ],
+        "alphaBounds": [
+          169,
+          11,
+          320,
+          504
+        ],
+        "alphaAspect": 0.308,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0012,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "blade",
+          "name": "剑刃",
+          "x": 0.085,
+          "y": 0.2845,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.2845
+          }
+        },
+        {
+          "id": "guard",
+          "name": "护手",
+          "x": 0.085,
+          "y": 0.5927,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.5927
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6977,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.6727
+          }
+        },
+        {
+          "id": "blade_body_1",
+          "name": "剑身",
+          "x": 0.915,
+          "y": 0.3934,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.3934
+          }
+        },
+        {
+          "id": "blade_body_2",
+          "name": "剑身",
+          "x": 0.915,
+          "y": 0.4984,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.4849
+          }
+        },
+        {
+          "id": "pommel",
+          "name": "配重",
+          "x": 0.915,
+          "y": 0.7468,
+          "lineTarget": {
+            "x": 0.499,
+            "y": 0.7468
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon5",
+      "weaponName": "夜与火之剑",
+      "profile": "sword_vertical",
+      "grade": "A",
+      "confidence": 0.949,
+      "imagePath": "assets/weapons/night_flame_sword_ingame_v2.png",
+      "analysisImage": "assets/weapons/runtime/weapons/night_flame_sword_ingame_v2.png",
+      "metrics": {
+        "sourceSize": [
+          488,
+          512
+        ],
+        "alphaBounds": [
+          175,
+          11,
+          312,
+          487
+        ],
+        "alphaAspect": 0.289,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0011,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "blade",
+          "name": "剑刃",
+          "x": 0.085,
+          "y": 0.2817,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.2817
+          }
+        },
+        {
+          "id": "guard",
+          "name": "护手",
+          "x": 0.085,
+          "y": 0.5801,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.5801
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6851,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.6579
+          }
+        },
+        {
+          "id": "blade_body_1",
+          "name": "剑身",
+          "x": 0.915,
+          "y": 0.3874,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.3874
+          }
+        },
+        {
+          "id": "blade_body_2",
+          "name": "剑身",
+          "x": 0.915,
+          "y": 0.4924,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.4756
+          }
+        },
+        {
+          "id": "pommel",
+          "name": "配重",
+          "x": 0.915,
+          "y": 0.7299,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.7299
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon6",
+      "weaponName": "PKM",
+      "profile": "lmg_box",
+      "grade": "A",
+      "confidence": 0.942,
+      "imagePath": "assets/icons/pkm_side_clean.png",
+      "analysisImage": "assets/weapons/runtime/icons/pkm_side_clean.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          22,
+          238,
+          482,
+          319
+        ],
+        "alphaAspect": 5.622,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0065,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5066,
+          "lineTarget": {
+            "x": 0.916,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6116,
+          "lineTarget": {
+            "x": 0.6914,
+            "y": 0.5155
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.5,
+          "lineTarget": {
+            "x": 0.5645,
+            "y": 0.5
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8216,
+          "lineTarget": {
+            "x": 0.4473,
+            "y": 0.5432
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7166,
+          "lineTarget": {
+            "x": 0.6172,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.71,
+          "lineTarget": {
+            "x": 0.3535,
+            "y": 0.5387
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.605,
+          "lineTarget": {
+            "x": 0.1328,
+            "y": 0.5255
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon7",
+      "weaponName": "AKM",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.942,
+      "imagePath": "assets/weapons/akm-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/akm-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          221,
+          487,
+          329
+        ],
+        "alphaAspect": 4.266,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0073,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5066,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6116,
+          "lineTarget": {
+            "x": 0.7344,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4878,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4878
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8216,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.5421
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7166,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.51
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6978,
+          "lineTarget": {
+            "x": 0.3906,
+            "y": 0.5343
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5928,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.5166
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon8",
+      "weaponName": "QBZ-191",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.93,
+      "imagePath": "assets/icons/191icon.png",
+      "analysisImage": "assets/weapons/runtime/icons/191icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          148,
+          486,
+          306
+        ],
+        "alphaAspect": 2.918,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.017,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4391,
+          "lineTarget": {
+            "x": 0.918,
+            "y": 0.4391
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5441,
+          "lineTarget": {
+            "x": 0.7324,
+            "y": 0.4469
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4192,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4192
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.7541,
+          "lineTarget": {
+            "x": 0.4961,
+            "y": 0.4989
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.6491,
+          "lineTarget": {
+            "x": 0.623,
+            "y": 0.4469
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6292,
+          "lineTarget": {
+            "x": 0.416,
+            "y": 0.4779
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5242,
+          "lineTarget": {
+            "x": 0.1445,
+            "y": 0.4535
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon9",
+      "weaponName": "G18",
+      "profile": "pistol_standard",
+      "grade": "A",
+      "confidence": 0.931,
+      "imagePath": "assets/icons/G18icon.png",
+      "analysisImage": "assets/weapons/runtime/icons/G18icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          35,
+          102,
+          464,
+          436
+        ],
+        "alphaAspect": 1.284,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0166,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4447,
+          "lineTarget": {
+            "x": 0.873,
+            "y": 0.4447
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.085,
+          "y": 0.5043,
+          "lineTarget": {
+            "x": 0.7129,
+            "y": 0.4469
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.3993,
+          "lineTarget": {
+            "x": 0.5547,
+            "y": 0.3993
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.7597,
+          "lineTarget": {
+            "x": 0.4004,
+            "y": 0.5708
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.5497,
+          "lineTarget": {
+            "x": 0.6289,
+            "y": 0.4845
+          }
+        },
+        {
+          "id": "trigger",
+          "name": "扳机",
+          "x": 0.915,
+          "y": 0.6547,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.5288
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon10",
+      "weaponName": "沙漠之鹰",
+      "profile": "pistol_standard",
+      "grade": "A",
+      "confidence": 0.928,
+      "imagePath": "assets/icons/DesertEagle_icon.png",
+      "analysisImage": "assets/weapons/runtime/icons/DesertEagle_icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          39,
+          143,
+          466,
+          397
+        ],
+        "alphaAspect": 1.678,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0192,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4646,
+          "lineTarget": {
+            "x": 0.877,
+            "y": 0.4646
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5696,
+          "lineTarget": {
+            "x": 0.7188,
+            "y": 0.4701
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4281,
+          "lineTarget": {
+            "x": 0.5605,
+            "y": 0.4281
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.085,
+          "y": 0.5332,
+          "lineTarget": {
+            "x": 0.4688,
+            "y": 0.5332
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.6746,
+          "lineTarget": {
+            "x": 0.6348,
+            "y": 0.4723
+          }
+        },
+        {
+          "id": "trigger",
+          "name": "扳机",
+          "x": 0.915,
+          "y": 0.7796,
+          "lineTarget": {
+            "x": 0.5098,
+            "y": 0.5299
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon11",
+      "weaponName": "QJB-201",
+      "profile": "lmg_box",
+      "grade": "A",
+      "confidence": 0.938,
+      "imagePath": "assets/icons/201-icon.png",
+      "analysisImage": "assets/weapons/runtime/icons/201-icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          222,
+          482,
+          332
+        ],
+        "alphaAspect": 4.144,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0102,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4956,
+          "lineTarget": {
+            "x": 0.9082,
+            "y": 0.4956
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6006,
+          "lineTarget": {
+            "x": 0.6895,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4889,
+          "lineTarget": {
+            "x": 0.5645,
+            "y": 0.4889
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8106,
+          "lineTarget": {
+            "x": 0.4492,
+            "y": 0.5476
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7056,
+          "lineTarget": {
+            "x": 0.6191,
+            "y": 0.5144
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6989,
+          "lineTarget": {
+            "x": 0.3633,
+            "y": 0.5321
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5939,
+          "lineTarget": {
+            "x": 0.1348,
+            "y": 0.5166
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon12",
+      "weaponName": "Super90",
+      "profile": "shotgun_pump",
+      "grade": "A",
+      "confidence": 0.948,
+      "imagePath": "assets/icons/M4s90_icon.png",
+      "analysisImage": "assets/weapons/runtime/icons/M4s90_icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          241,
+          487,
+          317
+        ],
+        "alphaAspect": 6.026,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0016,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5166,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5166
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6216,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5166
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.5044,
+          "lineTarget": {
+            "x": 0.5625,
+            "y": 0.5044
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7266,
+          "lineTarget": {
+            "x": 0.6172,
+            "y": 0.521
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8316,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.521
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.7144,
+          "lineTarget": {
+            "x": 0.4082,
+            "y": 0.5365
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.6094,
+          "lineTarget": {
+            "x": 0.1563,
+            "y": 0.5221
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon13",
+      "weaponName": "SAIGA-12K",
+      "profile": "shotgun_pump",
+      "grade": "A",
+      "confidence": 0.924,
+      "imagePath": "assets/icons/S12k-icon.png",
+      "analysisImage": "assets/weapons/runtime/icons/S12k-icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          193,
+          486,
+          360
+        ],
+        "alphaAspect": 2.756,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0222,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.479,
+          "lineTarget": {
+            "x": 0.9219,
+            "y": 0.479
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.584,
+          "lineTarget": {
+            "x": 0.6836,
+            "y": 0.4956
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4745,
+          "lineTarget": {
+            "x": 0.5605,
+            "y": 0.4745
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.689,
+          "lineTarget": {
+            "x": 0.6309,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.794,
+          "lineTarget": {
+            "x": 0.5547,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6845,
+          "lineTarget": {
+            "x": 0.3594,
+            "y": 0.552
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5795,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.5155
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon15",
+      "weaponName": "能量轻机枪",
+      "profile": "lmg_box",
+      "grade": "A",
+      "confidence": 0.949,
+      "imagePath": "assets/icons/devotion-icon.png",
+      "analysisImage": "assets/weapons/runtime/icons/devotion-icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          208,
+          484,
+          346
+        ],
+        "alphaAspect": 3.324,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0013,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5066,
+          "lineTarget": {
+            "x": 0.9141,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6116,
+          "lineTarget": {
+            "x": 0.6934,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4801,
+          "lineTarget": {
+            "x": 0.5664,
+            "y": 0.4801
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8216,
+          "lineTarget": {
+            "x": 0.4492,
+            "y": 0.5542
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7166,
+          "lineTarget": {
+            "x": 0.6211,
+            "y": 0.5188
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6901,
+          "lineTarget": {
+            "x": 0.3594,
+            "y": 0.5509
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5851,
+          "lineTarget": {
+            "x": 0.1348,
+            "y": 0.5155
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon18",
+      "weaponName": "P4040",
+      "profile": "pistol_standard",
+      "grade": "A",
+      "confidence": 0.933,
+      "imagePath": "assets/weapons/P4040-icon.png",
+      "analysisImage": "assets/weapons/runtime/weapons/P4040-icon.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          32,
+          116,
+          465,
+          420
+        ],
+        "alphaAspect": 1.423,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0144,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4557,
+          "lineTarget": {
+            "x": 0.875,
+            "y": 0.4557
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.085,
+          "y": 0.5142,
+          "lineTarget": {
+            "x": 0.7129,
+            "y": 0.459
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4092,
+          "lineTarget": {
+            "x": 0.5527,
+            "y": 0.4092
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.7707,
+          "lineTarget": {
+            "x": 0.5176,
+            "y": 0.5443
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.5607,
+          "lineTarget": {
+            "x": 0.6289,
+            "y": 0.4867
+          }
+        },
+        {
+          "id": "trigger",
+          "name": "板机",
+          "x": 0.915,
+          "y": 0.6657,
+          "lineTarget": {
+            "x": 0.502,
+            "y": 0.5299
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon19",
+      "weaponName": "Beretta 93R",
+      "profile": "pistol_standard",
+      "grade": "A",
+      "confidence": 0.918,
+      "imagePath": "assets/weapons/beretta93r.png",
+      "analysisImage": "assets/weapons/runtime/weapons/beretta93r.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          37,
+          103,
+          465,
+          433
+        ],
+        "alphaAspect": 1.296,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0279,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4369,
+          "lineTarget": {
+            "x": 0.8828,
+            "y": 0.4369
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.085,
+          "y": 0.5054,
+          "lineTarget": {
+            "x": 0.7168,
+            "y": 0.4436
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4004,
+          "lineTarget": {
+            "x": 0.5566,
+            "y": 0.4004
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.7519,
+          "lineTarget": {
+            "x": 0.4648,
+            "y": 0.5277
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.5419,
+          "lineTarget": {
+            "x": 0.6152,
+            "y": 0.4823
+          }
+        },
+        {
+          "id": "trigger",
+          "name": "板机",
+          "x": 0.915,
+          "y": 0.6469,
+          "lineTarget": {
+            "x": 0.5078,
+            "y": 0.5266
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon20",
+      "weaponName": "学徒长杖",
+      "profile": "staff_vertical",
+      "grade": "A",
+      "confidence": 0.949,
+      "imagePath": "assets/weapons/学徒法杖.png",
+      "analysisImage": "assets/weapons/runtime/weapons/学徒法杖.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          236,
+          57,
+          276,
+          456
+        ],
+        "alphaAspect": 0.102,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0006,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "head_crystal",
+          "name": "杖头",
+          "x": 0.085,
+          "y": 0.324,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.324
+          }
+        },
+        {
+          "id": "crown",
+          "name": "杖冠",
+          "x": 0.085,
+          "y": 0.429,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.3683
+          }
+        },
+        {
+          "id": "shaft_rune",
+          "name": "杖身",
+          "x": 0.085,
+          "y": 0.534,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.5089
+          }
+        },
+        {
+          "id": "grip_lining",
+          "name": "握柄",
+          "x": 0.915,
+          "y": 0.5974,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.5974
+          }
+        },
+        {
+          "id": "tail_charm",
+          "name": "尾坠",
+          "x": 0.915,
+          "y": 0.7024,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.6815
+          }
+        },
+        {
+          "id": "mana_line",
+          "name": "导魔",
+          "x": 0.915,
+          "y": 0.448,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.448
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon21",
+      "weaponName": "M416",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.929,
+      "imagePath": "assets/weapons/m416-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/m416-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          211,
+          486,
+          344
+        ],
+        "alphaAspect": 3.455,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0187,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4878,
+          "lineTarget": {
+            "x": 0.918,
+            "y": 0.4878
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5928,
+          "lineTarget": {
+            "x": 0.7324,
+            "y": 0.4978
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4823,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4823
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8028,
+          "lineTarget": {
+            "x": 0.4883,
+            "y": 0.5509
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.6978,
+          "lineTarget": {
+            "x": 0.627,
+            "y": 0.4978
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6923,
+          "lineTarget": {
+            "x": 0.4199,
+            "y": 0.552
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5873,
+          "lineTarget": {
+            "x": 0.1523,
+            "y": 0.5155
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon22",
+      "weaponName": ".357麦格农左轮",
+      "profile": "pistol_revolver",
+      "grade": "A",
+      "confidence": 0.935,
+      "imagePath": "assets/weapons/revolver357-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/revolver357-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          39,
+          103,
+          472,
+          431
+        ],
+        "alphaAspect": 1.319,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.013,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4159,
+          "lineTarget": {
+            "x": 0.8887,
+            "y": 0.4159
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.085,
+          "y": 0.5087,
+          "lineTarget": {
+            "x": 0.7188,
+            "y": 0.4613
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4037,
+          "lineTarget": {
+            "x": 0.584,
+            "y": 0.4037
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.085,
+          "y": 0.6137,
+          "lineTarget": {
+            "x": 0.5664,
+            "y": 0.4978
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.5209,
+          "lineTarget": {
+            "x": 0.584,
+            "y": 0.4978
+          }
+        },
+        {
+          "id": "trigger",
+          "name": "扳机",
+          "x": 0.915,
+          "y": 0.6259,
+          "lineTarget": {
+            "x": 0.4902,
+            "y": 0.5454
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon23",
+      "weaponName": "STG-44",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.917,
+      "imagePath": "assets/weapons/stg44-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/stg44-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          207,
+          485,
+          346
+        ],
+        "alphaAspect": 3.307,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0283,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.4823,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.4823
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5873,
+          "lineTarget": {
+            "x": 0.7305,
+            "y": 0.4867
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4801,
+          "lineTarget": {
+            "x": 0.5684,
+            "y": 0.4801
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.7973,
+          "lineTarget": {
+            "x": 0.4961,
+            "y": 0.5509
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.6923,
+          "lineTarget": {
+            "x": 0.6113,
+            "y": 0.49
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6901,
+          "lineTarget": {
+            "x": 0.4063,
+            "y": 0.5255
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5851,
+          "lineTarget": {
+            "x": 0.1484,
+            "y": 0.5133
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon24",
+      "weaponName": "QBZ-95",
+      "profile": "rifle_bullpup",
+      "grade": "A",
+      "confidence": 0.943,
+      "imagePath": "assets/weapons/qbz95-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/qbz95-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          22,
+          191,
+          486,
+          361
+        ],
+        "alphaAspect": 2.719,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0063,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5,
+          "lineTarget": {
+            "x": 0.918,
+            "y": 0.5
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.605,
+          "lineTarget": {
+            "x": 0.7324,
+            "y": 0.5033
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4701,
+          "lineTarget": {
+            "x": 0.5684,
+            "y": 0.4701
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.085,
+          "y": 0.6801,
+          "lineTarget": {
+            "x": 0.3145,
+            "y": 0.5487
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.71,
+          "lineTarget": {
+            "x": 0.623,
+            "y": 0.5155
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.915,
+          "y": 0.815,
+          "lineTarget": {
+            "x": 0.4648,
+            "y": 0.5531
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托/尾垫",
+          "x": 0.085,
+          "y": 0.5751,
+          "lineTarget": {
+            "x": 0.1426,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon25",
+      "weaponName": "边境突击步枪",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.942,
+      "imagePath": "assets/weapons/frontier-rifle-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/frontier-rifle-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          205,
+          487,
+          351
+        ],
+        "alphaAspect": 3.156,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0071,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5011,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5011
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6061,
+          "lineTarget": {
+            "x": 0.7344,
+            "y": 0.5077
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.479,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.479
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8161,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.5531
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7111,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.5199
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.689,
+          "lineTarget": {
+            "x": 0.3809,
+            "y": 0.5487
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.584,
+          "lineTarget": {
+            "x": 0.1563,
+            "y": 0.5177
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon26",
+      "weaponName": "复仇之神",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.946,
+      "imagePath": "assets/weapons/vengeance-rifle-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/vengeance-rifle-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          25,
+          213,
+          487,
+          339
+        ],
+        "alphaAspect": 3.646,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0035,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5077,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5077
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6127,
+          "lineTarget": {
+            "x": 0.7344,
+            "y": 0.5077
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4834,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.4834
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8227,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.5476
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7177,
+          "lineTarget": {
+            "x": 0.627,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6934,
+          "lineTarget": {
+            "x": 0.4141,
+            "y": 0.5443
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5884,
+          "lineTarget": {
+            "x": 0.1602,
+            "y": 0.5221
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon27",
+      "weaponName": "星潮协议",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.942,
+      "imagePath": "assets/weapons/astral-tide-rifle-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/astral-tide-rifle-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          202,
+          484,
+          352
+        ],
+        "alphaAspect": 3.053,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0071,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5066,
+          "lineTarget": {
+            "x": 0.9141,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管/线圈",
+          "x": 0.915,
+          "y": 0.6116,
+          "lineTarget": {
+            "x": 0.7305,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4768,
+          "lineTarget": {
+            "x": 0.5684,
+            "y": 0.4768
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8216,
+          "lineTarget": {
+            "x": 0.4961,
+            "y": 0.5531
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7166,
+          "lineTarget": {
+            "x": 0.6211,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6868,
+          "lineTarget": {
+            "x": 0.4355,
+            "y": 0.5509
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5818,
+          "lineTarget": {
+            "x": 0.1445,
+            "y": 0.5111
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon28",
+      "weaponName": "零点仲裁",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.946,
+      "imagePath": "assets/weapons/zero-point-arbitrator-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/zero-point-arbitrator-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          197,
+          486,
+          352
+        ],
+        "alphaAspect": 2.968,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0036,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5033,
+          "lineTarget": {
+            "x": 0.918,
+            "y": 0.5033
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管/棱镜",
+          "x": 0.915,
+          "y": 0.6083,
+          "lineTarget": {
+            "x": 0.7324,
+            "y": 0.5033
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4723,
+          "lineTarget": {
+            "x": 0.5684,
+            "y": 0.4723
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8183,
+          "lineTarget": {
+            "x": 0.4941,
+            "y": 0.5531
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7133,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.5155
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6823,
+          "lineTarget": {
+            "x": 0.4199,
+            "y": 0.5509
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5773,
+          "lineTarget": {
+            "x": 0.1582,
+            "y": 0.5144
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon29",
+      "weaponName": "日冕裁律",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.945,
+      "imagePath": "assets/weapons/corona-cadence-rifle-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/corona-cadence-rifle-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          202,
+          487,
+          350
+        ],
+        "alphaAspect": 3.114,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0044,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5055,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5055
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管/日冕环",
+          "x": 0.915,
+          "y": 0.6105,
+          "lineTarget": {
+            "x": 0.7344,
+            "y": 0.5055
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4768,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.4768
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8205,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.552
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7155,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.51
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6868,
+          "lineTarget": {
+            "x": 0.4063,
+            "y": 0.5465
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5818,
+          "lineTarget": {
+            "x": 0.1563,
+            "y": 0.5155
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon30",
+      "weaponName": "终末回声",
+      "profile": "rifle_standard",
+      "grade": "A",
+      "confidence": 0.947,
+      "imagePath": "assets/weapons/terminal-echo-rifle-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/terminal-echo-rifle-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          207,
+          487,
+          343
+        ],
+        "alphaAspect": 3.394,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.003,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5055,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5055
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管/收束线圈",
+          "x": 0.915,
+          "y": 0.6105,
+          "lineTarget": {
+            "x": 0.7344,
+            "y": 0.5055
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.479,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.479
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8205,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.5476
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7155,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.5166
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.689,
+          "lineTarget": {
+            "x": 0.4082,
+            "y": 0.541
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.584,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.5144
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon31",
+      "weaponName": "RPD",
+      "profile": "lmg_box",
+      "grade": "A",
+      "confidence": 0.941,
+      "imagePath": "assets/weapons/rpd-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/rpd-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          25,
+          220,
+          486,
+          337
+        ],
+        "alphaAspect": 3.915,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0079,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5111,
+          "lineTarget": {
+            "x": 0.916,
+            "y": 0.5111
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6161,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5111
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4889,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4889
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8261,
+          "lineTarget": {
+            "x": 0.4531,
+            "y": 0.5509
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7211,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.521
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6989,
+          "lineTarget": {
+            "x": 0.3457,
+            "y": 0.5232
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5939,
+          "lineTarget": {
+            "x": 0.1387,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon32",
+      "weaponName": "M249 SAW",
+      "profile": "lmg_box",
+      "grade": "A",
+      "confidence": 0.948,
+      "imagePath": "assets/weapons/m249-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/m249-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          26,
+          213,
+          485,
+          345
+        ],
+        "alphaAspect": 3.459,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0013,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5089,
+          "lineTarget": {
+            "x": 0.916,
+            "y": 0.5089
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6139,
+          "lineTarget": {
+            "x": 0.6953,
+            "y": 0.5089
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4845,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4845
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8239,
+          "lineTarget": {
+            "x": 0.4551,
+            "y": 0.5542
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7189,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.521
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6945,
+          "lineTarget": {
+            "x": 0.3652,
+            "y": 0.5498
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5895,
+          "lineTarget": {
+            "x": 0.1406,
+            "y": 0.5177
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon33",
+      "weaponName": "Ultimax 100 Mk8",
+      "profile": "lmg_box",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/ultimax100-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/ultimax100-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          221,
+          486,
+          335
+        ],
+        "alphaAspect": 4.035,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0028,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5066,
+          "lineTarget": {
+            "x": 0.918,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6116,
+          "lineTarget": {
+            "x": 0.6953,
+            "y": 0.5077
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4889,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4889
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8216,
+          "lineTarget": {
+            "x": 0.4512,
+            "y": 0.5498
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7166,
+          "lineTarget": {
+            "x": 0.623,
+            "y": 0.521
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6989,
+          "lineTarget": {
+            "x": 0.3613,
+            "y": 0.5454
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5939,
+          "lineTarget": {
+            "x": 0.1348,
+            "y": 0.5177
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon34",
+      "weaponName": "MG42",
+      "profile": "lmg_box",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/mg42-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/mg42-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          26,
+          241,
+          487,
+          316
+        ],
+        "alphaAspect": 6.079,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0018,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.5155,
+          "lineTarget": {
+            "x": 0.9141,
+            "y": 0.5155
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.6205,
+          "lineTarget": {
+            "x": 0.6992,
+            "y": 0.5155
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.5011,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.5011
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8305,
+          "lineTarget": {
+            "x": 0.4551,
+            "y": 0.541
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7255,
+          "lineTarget": {
+            "x": 0.627,
+            "y": 0.5221
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.7111,
+          "lineTarget": {
+            "x": 0.3652,
+            "y": 0.5387
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.6061,
+          "lineTarget": {
+            "x": 0.1406,
+            "y": 0.5199
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon35",
+      "weaponName": "熔核轻机枪",
+      "profile": "lmg_box",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/fusion-core-lmg-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/fusion-core-lmg-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          24,
+          205,
+          487,
+          353
+        ],
+        "alphaAspect": 3.114,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0009,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.6127,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5089
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5077,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5077
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4801,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.4801
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8227,
+          "lineTarget": {
+            "x": 0.4531,
+            "y": 0.5587
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7177,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.521
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6901,
+          "lineTarget": {
+            "x": 0.3633,
+            "y": 0.5531
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5851,
+          "lineTarget": {
+            "x": 0.1367,
+            "y": 0.5177
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon36",
+      "weaponName": "奇点织机",
+      "profile": "lmg_box",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/singularity-loom-lmg-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/singularity-loom-lmg-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          25,
+          224,
+          486,
+          333
+        ],
+        "alphaAspect": 4.2,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0025,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.6172,
+          "lineTarget": {
+            "x": 0.918,
+            "y": 0.5133
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5122,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5122
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4911,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4911
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8272,
+          "lineTarget": {
+            "x": 0.4531,
+            "y": 0.5487
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7222,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.521
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.7011,
+          "lineTarget": {
+            "x": 0.375,
+            "y": 0.5432
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5961,
+          "lineTarget": {
+            "x": 0.1387,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon37",
+      "weaponName": "天穹测绘者",
+      "profile": "lmg_box",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/celestial-cartographer-lmg-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/celestial-cartographer-lmg-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          219,
+          488,
+          341
+        ],
+        "alphaAspect": 3.789,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0034,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.6172,
+          "lineTarget": {
+            "x": 0.9219,
+            "y": 0.5133
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5122,
+          "lineTarget": {
+            "x": 0.6992,
+            "y": 0.5122
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4889,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.4889
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8272,
+          "lineTarget": {
+            "x": 0.4531,
+            "y": 0.5531
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7222,
+          "lineTarget": {
+            "x": 0.627,
+            "y": 0.5221
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6989,
+          "lineTarget": {
+            "x": 0.3633,
+            "y": 0.5398
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5939,
+          "lineTarget": {
+            "x": 0.1348,
+            "y": 0.5199
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon38",
+      "weaponName": "冥约颂炮",
+      "profile": "lmg_box",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/grave-covenant-cantor-lmg-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          212,
+          487,
+          343
+        ],
+        "alphaAspect": 3.523,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.004,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口",
+          "x": 0.915,
+          "y": 0.6127,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5089
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管",
+          "x": 0.915,
+          "y": 0.5077,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5077
+          }
+        },
+        {
+          "id": "sight",
+          "name": "瞄具",
+          "x": 0.085,
+          "y": 0.4834,
+          "lineTarget": {
+            "x": 0.5703,
+            "y": 0.4834
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹夹",
+          "x": 0.915,
+          "y": 0.8227,
+          "lineTarget": {
+            "x": 0.4531,
+            "y": 0.5531
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "子弹",
+          "x": 0.915,
+          "y": 0.7177,
+          "lineTarget": {
+            "x": 0.625,
+            "y": 0.5188
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握把",
+          "x": 0.085,
+          "y": 0.6934,
+          "lineTarget": {
+            "x": 0.3535,
+            "y": 0.5465
+          }
+        },
+        {
+          "id": "stock",
+          "name": "后托",
+          "x": 0.085,
+          "y": 0.5884,
+          "lineTarget": {
+            "x": 0.1426,
+            "y": 0.5232
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon39",
+      "weaponName": "S686",
+      "profile": "shotgun_break",
+      "grade": "A",
+      "confidence": 0.943,
+      "imagePath": "assets/weapons/s686-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/s686-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          233,
+          488,
+          321
+        ],
+        "alphaAspect": 5.236,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.006,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "barrel",
+          "name": "枪管/扳机",
+          "x": 0.085,
+          "y": 0.51,
+          "lineTarget": {
+            "x": 0.6797,
+            "y": 0.51
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "猎装弹",
+          "x": 0.915,
+          "y": 0.6172,
+          "lineTarget": {
+            "x": 0.5352,
+            "y": 0.5133
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "退壳器",
+          "x": 0.915,
+          "y": 0.5122,
+          "lineTarget": {
+            "x": 0.4531,
+            "y": 0.5122
+          }
+        },
+        {
+          "id": "stock",
+          "name": "枪托",
+          "x": 0.085,
+          "y": 0.615,
+          "lineTarget": {
+            "x": 0.1445,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon40",
+      "weaponName": "M870 短管型",
+      "profile": "shotgun_pump",
+      "grade": "A",
+      "confidence": 0.938,
+      "imagePath": "assets/weapons/m870-breacher-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/m870-breacher-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          26,
+          221,
+          487,
+          334
+        ],
+        "alphaAspect": 4.053,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0104,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "破门顶帽",
+          "x": 0.915,
+          "y": 0.5111,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5111
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "短枪管",
+          "x": 0.085,
+          "y": 0.51,
+          "lineTarget": {
+            "x": 0.6992,
+            "y": 0.51
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹托",
+          "x": 0.915,
+          "y": 0.6161,
+          "lineTarget": {
+            "x": 0.5723,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "grip",
+          "name": "泵动护木",
+          "x": 0.915,
+          "y": 0.7211,
+          "lineTarget": {
+            "x": 0.4102,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "stock",
+          "name": "握把/吊带",
+          "x": 0.085,
+          "y": 0.615,
+          "lineTarget": {
+            "x": 0.1582,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon41",
+      "weaponName": "KSG-12",
+      "profile": "shotgun_bullpup",
+      "grade": "A",
+      "confidence": 0.941,
+      "imagePath": "assets/weapons/ksg12-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/ksg12-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          195,
+          486,
+          363
+        ],
+        "alphaAspect": 2.746,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0075,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "barrel",
+          "name": "泵动组件",
+          "x": 0.915,
+          "y": 0.5055,
+          "lineTarget": {
+            "x": 0.7324,
+            "y": 0.5055
+          }
+        },
+        {
+          "id": "sight",
+          "name": "导轨瞄具",
+          "x": 0.085,
+          "y": 0.4734,
+          "lineTarget": {
+            "x": 0.543,
+            "y": 0.4734
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "双管仓",
+          "x": 0.085,
+          "y": 0.5784,
+          "lineTarget": {
+            "x": 0.3262,
+            "y": 0.5277
+          }
+        },
+        {
+          "id": "grip",
+          "name": "缓冲组件",
+          "x": 0.915,
+          "y": 0.6105,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.5542
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon42",
+      "weaponName": "SPAS-12",
+      "profile": "shotgun_pump",
+      "grade": "A",
+      "confidence": 0.942,
+      "imagePath": "assets/weapons/spas12-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/spas12-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          231,
+          487,
+          327
+        ],
+        "alphaAspect": 4.794,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0068,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "枪口罩",
+          "x": 0.915,
+          "y": 0.5144,
+          "lineTarget": {
+            "x": 0.916,
+            "y": 0.5144
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "循环模式",
+          "x": 0.085,
+          "y": 0.5133,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5133
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "镇暴弹",
+          "x": 0.915,
+          "y": 0.6194,
+          "lineTarget": {
+            "x": 0.6152,
+            "y": 0.5199
+          }
+        },
+        {
+          "id": "grip",
+          "name": "调节器",
+          "x": 0.915,
+          "y": 0.7244,
+          "lineTarget": {
+            "x": 0.3945,
+            "y": 0.5299
+          }
+        },
+        {
+          "id": "stock",
+          "name": "钩形枪托",
+          "x": 0.085,
+          "y": 0.6183,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.521
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon43",
+      "weaponName": "AA-12",
+      "profile": "shotgun_pump",
+      "grade": "A",
+      "confidence": 0.942,
+      "imagePath": "assets/weapons/aa12-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/aa12-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          195,
+          486,
+          363
+        ],
+        "alphaAspect": 2.746,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0067,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "制退器",
+          "x": 0.915,
+          "y": 0.4967,
+          "lineTarget": {
+            "x": 0.918,
+            "y": 0.4967
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪机组件",
+          "x": 0.085,
+          "y": 0.5055,
+          "lineTarget": {
+            "x": 0.6953,
+            "y": 0.5055
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "箭形弹",
+          "x": 0.915,
+          "y": 0.6017,
+          "lineTarget": {
+            "x": 0.6152,
+            "y": 0.5111
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹鼓",
+          "x": 0.915,
+          "y": 0.7067,
+          "lineTarget": {
+            "x": 0.5684,
+            "y": 0.5144
+          }
+        },
+        {
+          "id": "stock",
+          "name": "缓冲枪托",
+          "x": 0.085,
+          "y": 0.6105,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.5177
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon44",
+      "weaponName": "Winchester 1887",
+      "profile": "shotgun_break",
+      "grade": "A",
+      "confidence": 0.93,
+      "imagePath": "assets/weapons/winchester1887-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/winchester1887-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          227,
+          487,
+          328
+        ],
+        "alphaAspect": 4.559,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0176,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "muzzle",
+          "name": "喉缩",
+          "x": 0.915,
+          "y": 0.4856,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.4856
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "枪管组",
+          "x": 0.085,
+          "y": 0.5055,
+          "lineTarget": {
+            "x": 0.6797,
+            "y": 0.5055
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "猎装弹",
+          "x": 0.915,
+          "y": 0.5906,
+          "lineTarget": {
+            "x": 0.5352,
+            "y": 0.5066
+          }
+        },
+        {
+          "id": "grip",
+          "name": "杠杆组",
+          "x": 0.915,
+          "y": 0.6956,
+          "lineTarget": {
+            "x": 0.3652,
+            "y": 0.541
+          }
+        },
+        {
+          "id": "stock",
+          "name": "马鞍枪托",
+          "x": 0.085,
+          "y": 0.6105,
+          "lineTarget": {
+            "x": 0.1445,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon45",
+      "weaponName": "末日钟摆",
+      "profile": "shotgun_pump",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/terminus-pendulum-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/terminus-pendulum-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          226,
+          487,
+          328
+        ],
+        "alphaAspect": 4.515,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0026,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "barrel",
+          "name": "共鸣机芯",
+          "x": 0.085,
+          "y": 0.5111,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5111
+          }
+        },
+        {
+          "id": "muzzle",
+          "name": "双联喉缩",
+          "x": 0.915,
+          "y": 0.5122,
+          "lineTarget": {
+            "x": 0.9199,
+            "y": 0.5122
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "终钟弹",
+          "x": 0.915,
+          "y": 0.6172,
+          "lineTarget": {
+            "x": 0.6152,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "grip",
+          "name": "擒纵组件",
+          "x": 0.915,
+          "y": 0.7222,
+          "lineTarget": {
+            "x": 0.4004,
+            "y": 0.5376
+          }
+        },
+        {
+          "id": "stock",
+          "name": "钟摆枪托",
+          "x": 0.085,
+          "y": 0.6161,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon46",
+      "weaponName": "虚空葬潮",
+      "profile": "shotgun_pump",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/void-funeral-tide-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/void-funeral-tide-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          231,
+          487,
+          323
+        ],
+        "alphaAspect": 5,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0074,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "sight",
+          "name": "折射镜",
+          "x": 0.085,
+          "y": 0.4967,
+          "lineTarget": {
+            "x": 0.5605,
+            "y": 0.4967
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "棱镜线圈",
+          "x": 0.915,
+          "y": 0.5122,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5122
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "晶簇弹",
+          "x": 0.915,
+          "y": 0.6172,
+          "lineTarget": {
+            "x": 0.6152,
+            "y": 0.5177
+          }
+        },
+        {
+          "id": "grip",
+          "name": "相位泵组",
+          "x": 0.915,
+          "y": 0.7222,
+          "lineTarget": {
+            "x": 0.3828,
+            "y": 0.5288
+          }
+        },
+        {
+          "id": "stock",
+          "name": "深涡核心",
+          "x": 0.085,
+          "y": 0.6017,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.5188
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon47",
+      "weaponName": "黑日圣裁",
+      "profile": "shotgun_pump",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/black-sun-verdict-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/black-sun-verdict-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          223,
+          485,
+          334
+        ],
+        "alphaAspect": 4.134,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.003,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "sight",
+          "name": "新月镜",
+          "x": 0.085,
+          "y": 0.4934,
+          "lineTarget": {
+            "x": 0.5586,
+            "y": 0.4934
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "日冕腔",
+          "x": 0.915,
+          "y": 0.5111,
+          "lineTarget": {
+            "x": 0.6953,
+            "y": 0.5111
+          }
+        },
+        {
+          "id": "muzzle",
+          "name": "黑日环",
+          "x": 0.915,
+          "y": 0.6161,
+          "lineTarget": {
+            "x": 0.916,
+            "y": 0.5122
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "蚀核弹",
+          "x": 0.915,
+          "y": 0.7211,
+          "lineTarget": {
+            "x": 0.6133,
+            "y": 0.5188
+          }
+        },
+        {
+          "id": "grip",
+          "name": "双相机",
+          "x": 0.085,
+          "y": 0.5984,
+          "lineTarget": {
+            "x": 0.3984,
+            "y": 0.5398
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon48",
+      "weaponName": "王猎终局",
+      "profile": "shotgun_pump",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/royal-hunt-finale-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/royal-hunt-finale-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          23,
+          233,
+          487,
+          323
+        ],
+        "alphaAspect": 5.11,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0083,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "grip",
+          "name": "速记机",
+          "x": 0.915,
+          "y": 0.7189,
+          "lineTarget": {
+            "x": 0.4023,
+            "y": 0.5332
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "终局膛",
+          "x": 0.915,
+          "y": 0.5089,
+          "lineTarget": {
+            "x": 0.6973,
+            "y": 0.5089
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "红冠弹",
+          "x": 0.915,
+          "y": 0.6139,
+          "lineTarget": {
+            "x": 0.6152,
+            "y": 0.5111
+          }
+        },
+        {
+          "id": "stock",
+          "name": "荆棘托",
+          "x": 0.085,
+          "y": 0.6039,
+          "lineTarget": {
+            "x": 0.1543,
+            "y": 0.5199
+          }
+        },
+        {
+          "id": "sight",
+          "name": "寻迹镜",
+          "x": 0.085,
+          "y": 0.4989,
+          "lineTarget": {
+            "x": 0.5605,
+            "y": 0.4989
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon49",
+      "weaponName": "M1911A1",
+      "profile": "pistol_standard",
+      "grade": "A",
+      "confidence": 0.889,
+      "imagePath": "assets/weapons/m1911a1-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/m1911a1-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          34,
+          139,
+          467,
+          400
+        ],
+        "alphaAspect": 1.656,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0527,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "bullet",
+          "name": ".45口径弹药",
+          "x": 0.915,
+          "y": 0.4602,
+          "lineTarget": {
+            "x": 0.6328,
+            "y": 0.4602
+          }
+        },
+        {
+          "id": "trigger",
+          "name": "击发组件",
+          "x": 0.915,
+          "y": 0.5652,
+          "lineTarget": {
+            "x": 0.502,
+            "y": 0.5221
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹匣",
+          "x": 0.085,
+          "y": 0.5232,
+          "lineTarget": {
+            "x": 0.4648,
+            "y": 0.5232
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon50",
+      "weaponName": "USP .45",
+      "profile": "pistol_standard",
+      "grade": "A",
+      "confidence": 0.909,
+      "imagePath": "assets/weapons/usp45-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/usp45-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          33,
+          119,
+          465,
+          421
+        ],
+        "alphaAspect": 1.429,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0355,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "barrel",
+          "name": ".45战术枪管",
+          "x": 0.085,
+          "y": 0.4546,
+          "lineTarget": {
+            "x": 0.7148,
+            "y": 0.4546
+          }
+        },
+        {
+          "id": "trigger",
+          "name": "LEM火控",
+          "x": 0.915,
+          "y": 0.5299,
+          "lineTarget": {
+            "x": 0.5039,
+            "y": 0.5299
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹匣井",
+          "x": 0.915,
+          "y": 0.6349,
+          "lineTarget": {
+            "x": 0.4609,
+            "y": 0.5299
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon51",
+      "weaponName": "FN Five-seveN",
+      "profile": "pistol_standard",
+      "grade": "A",
+      "confidence": 0.887,
+      "imagePath": "assets/weapons/five-seven-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/five-seven-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          34,
+          116,
+          465,
+          425
+        ],
+        "alphaAspect": 1.394,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0549,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "bullet",
+          "name": "5.7毫米弹药",
+          "x": 0.915,
+          "y": 0.4867,
+          "lineTarget": {
+            "x": 0.5938,
+            "y": 0.4867
+          }
+        },
+        {
+          "id": "barrel",
+          "name": "套筒组件",
+          "x": 0.085,
+          "y": 0.4469,
+          "lineTarget": {
+            "x": 0.7227,
+            "y": 0.4469
+          }
+        },
+        {
+          "id": "magazine",
+          "name": "弹匣",
+          "x": 0.915,
+          "y": 0.5917,
+          "lineTarget": {
+            "x": 0.4453,
+            "y": 0.5243
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon52",
+      "weaponName": "恒星圣谕",
+      "profile": "pistol_standard",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/eternal-edict-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/eternal-edict-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          32,
+          160,
+          468,
+          378
+        ],
+        "alphaAspect": 1.995,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0199,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "chamber",
+          "name": "圣膛",
+          "x": 0.085,
+          "y": 0.4878,
+          "lineTarget": {
+            "x": 0.5742,
+            "y": 0.4878
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "裁决弹",
+          "x": 0.915,
+          "y": 0.4956,
+          "lineTarget": {
+            "x": 0.6328,
+            "y": 0.4956
+          }
+        },
+        {
+          "id": "grip",
+          "name": "誓约握柄",
+          "x": 0.915,
+          "y": 0.6006,
+          "lineTarget": {
+            "x": 0.3555,
+            "y": 0.5454
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon53",
+      "weaponName": "猎隼裁令",
+      "profile": "pistol_standard",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/falcon-edict-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/falcon-edict-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          38,
+          141,
+          475,
+          372
+        ],
+        "alphaAspect": 1.888,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0193,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "trigger",
+          "name": "决斗机括",
+          "x": 0.915,
+          "y": 0.5807,
+          "lineTarget": {
+            "x": 0.4844,
+            "y": 0.5122
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "猎隼弹",
+          "x": 0.915,
+          "y": 0.4757,
+          "lineTarget": {
+            "x": 0.6465,
+            "y": 0.4757
+          }
+        },
+        {
+          "id": "grip",
+          "name": "节律握柄",
+          "x": 0.085,
+          "y": 0.5487,
+          "lineTarget": {
+            "x": 0.4063,
+            "y": 0.5487
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon54",
+      "weaponName": "赤冕清算",
+      "profile": "pistol_standard",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/crimson-crown-settlement-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/crimson-crown-settlement-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          35,
+          144,
+          466,
+          391
+        ],
+        "alphaAspect": 1.742,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0171,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "lock",
+          "name": "血债机括",
+          "x": 0.085,
+          "y": 0.5022,
+          "lineTarget": {
+            "x": 0.5313,
+            "y": 0.5022
+          }
+        },
+        {
+          "id": "bullet",
+          "name": "清算弹",
+          "x": 0.915,
+          "y": 0.4911,
+          "lineTarget": {
+            "x": 0.6328,
+            "y": 0.4911
+          }
+        },
+        {
+          "id": "grip",
+          "name": "王座握柄",
+          "x": 0.915,
+          "y": 0.5961,
+          "lineTarget": {
+            "x": 0.3965,
+            "y": 0.5454
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon55",
+      "weaponName": "万象回廊",
+      "profile": "pistol_standard",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/myriad-corridor-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/myriad-corridor-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          34,
+          124,
+          464,
+          421
+        ],
+        "alphaAspect": 1.446,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0362,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "prism",
+          "name": "回廊棱镜",
+          "x": 0.085,
+          "y": 0.469,
+          "lineTarget": {
+            "x": 0.6465,
+            "y": 0.469
+          }
+        },
+        {
+          "id": "core",
+          "name": "映射核心",
+          "x": 0.915,
+          "y": 0.4801,
+          "lineTarget": {
+            "x": 0.5527,
+            "y": 0.4801
+          }
+        },
+        {
+          "id": "grip",
+          "name": "回廊握柄",
+          "x": 0.915,
+          "y": 0.5851,
+          "lineTarget": {
+            "x": 0.3945,
+            "y": 0.5398
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon56",
+      "weaponName": "锻钢拳盾",
+      "profile": "shield_round",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/forged-duelist-buckler-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/forged-duelist-buckler-equip.png",
+      "metrics": {
+        "sourceSize": [
+          341,
+          512
+        ],
+        "alphaBounds": [
+          5,
+          6,
+          336,
+          500
+        ],
+        "alphaAspect": 0.671,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0006,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "盾面",
+          "x": 0.085,
+          "y": 0.3305,
+          "lineTarget": {
+            "x": 0.4985,
+            "y": 0.3305
+          }
+        },
+        {
+          "id": "boss",
+          "name": "盾脐",
+          "x": 0.085,
+          "y": 0.5116,
+          "lineTarget": {
+            "x": 0.6276,
+            "y": 0.5116
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握柄（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.495,
+          "lineTarget": {
+            "x": 0.5777,
+            "y": 0.495
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon57",
+      "weaponName": "橡木卫戍盾",
+      "profile": "shield_round",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/oak-garrison-shield-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/oak-garrison-shield-equip.png",
+      "metrics": {
+        "sourceSize": [
+          341,
+          512
+        ],
+        "alphaBounds": [
+          80,
+          6,
+          252,
+          497
+        ],
+        "alphaAspect": 0.352,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0003,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "core",
+          "name": "盾芯覆面",
+          "x": 0.085,
+          "y": 0.3787,
+          "lineTarget": {
+            "x": 0.4868,
+            "y": 0.3787
+          }
+        },
+        {
+          "id": "rim",
+          "name": "包边",
+          "x": 0.085,
+          "y": 0.721,
+          "lineTarget": {
+            "x": 0.4868,
+            "y": 0.721
+          }
+        },
+        {
+          "id": "straps",
+          "name": "背部承带",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.4601,
+          "lineTarget": {
+            "x": 0.4457,
+            "y": 0.4601
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon58",
+      "weaponName": "月银折光盾",
+      "profile": "shield_round",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/moonsilver-deflection-shield-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/moonsilver-deflection-shield-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          44,
+          30,
+          468,
+          477
+        ],
+        "alphaAspect": 0.949,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0004,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "折光盾面",
+          "x": 0.085,
+          "y": 0.3982,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.3982
+          }
+        },
+        {
+          "id": "boss_rim",
+          "name": "盾脐与平衡环",
+          "x": 0.085,
+          "y": 0.5032,
+          "lineTarget": {
+            "x": 0.5,
+            "y": 0.4723
+          }
+        },
+        {
+          "id": "grip",
+          "name": "握柄与腕带（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.4967,
+          "lineTarget": {
+            "x": 0.5664,
+            "y": 0.4967
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon59",
+      "weaponName": "玄铁城垒盾",
+      "profile": "shield_tower",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/blackiron-citadel-shield-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/blackiron-citadel-shield-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          116,
+          30,
+          391,
+          474
+        ],
+        "alphaAspect": 0.62,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.001,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "堡垒盾面",
+          "x": 0.085,
+          "y": 0.3871,
+          "lineTarget": {
+            "x": 0.4941,
+            "y": 0.3871
+          }
+        },
+        {
+          "id": "rim_spine",
+          "name": "包边与盾脊",
+          "x": 0.085,
+          "y": 0.604,
+          "lineTarget": {
+            "x": 0.5156,
+            "y": 0.604
+          }
+        },
+        {
+          "id": "harness",
+          "name": "臂架与承带（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.4657,
+          "lineTarget": {
+            "x": 0.5547,
+            "y": 0.4657
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon60",
+      "weaponName": "荆棘誓返盾",
+      "profile": "shield_tower",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/thorn-oath-reprisal-shield-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/thorn-oath-reprisal-shield-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          129,
+          36,
+          382,
+          474
+        ],
+        "alphaAspect": 0.579,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.001,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "誓返盾面",
+          "x": 0.085,
+          "y": 0.3926,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.3926
+          }
+        },
+        {
+          "id": "rim_spine",
+          "name": "荆环与誓脊",
+          "x": 0.085,
+          "y": 0.6051,
+          "lineTarget": {
+            "x": 0.5195,
+            "y": 0.6051
+          }
+        },
+        {
+          "id": "harness",
+          "name": "握把与背带（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.4701,
+          "lineTarget": {
+            "x": 0.5527,
+            "y": 0.4701
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon61",
+      "weaponName": "蚀星法镜盾",
+      "profile": "shield_round",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/star-eater-arcane-mirror-shield-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/star-eater-arcane-mirror-shield-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          123,
+          38,
+          387,
+          472
+        ],
+        "alphaAspect": 0.609,
+        "unknownAnchors": 1,
+        "averageSnapDistance": 0.0008,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "蚀星镜面",
+          "x": 0.085,
+          "y": 0.4026,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.4026
+          }
+        },
+        {
+          "id": "rim",
+          "name": "星轨外环",
+          "x": 0.085,
+          "y": 0.6339,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.6339
+          }
+        },
+        {
+          "id": "harness",
+          "name": "握把与背带（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.6184,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.6184
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon62",
+      "weaponName": "天柱回天壁",
+      "profile": "shield_tower",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/heaven-pillar-returning-bulwark-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/heaven-pillar-returning-bulwark-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          167,
+          53,
+          344,
+          458
+        ],
+        "alphaAspect": 0.438,
+        "unknownAnchors": 0,
+        "averageSnapDistance": 0.0011,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "回天盾面",
+          "x": 0.085,
+          "y": 0.4004,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.4004
+          }
+        },
+        {
+          "id": "rim_spine",
+          "name": "回天环与天柱脊",
+          "x": 0.085,
+          "y": 0.5985,
+          "lineTarget": {
+            "x": 0.5137,
+            "y": 0.5985
+          }
+        },
+        {
+          "id": "harness",
+          "name": "液压握把与承带（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.4723,
+          "lineTarget": {
+            "x": 0.5371,
+            "y": 0.4723
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon63",
+      "weaponName": "归墟吞星镜",
+      "profile": "shield_round",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/abyss-return-star-devouring-mirror-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/abyss-return-star-devouring-mirror-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          116,
+          54,
+          394,
+          458
+        ],
+        "alphaAspect": 0.689,
+        "unknownAnchors": 1,
+        "averageSnapDistance": 0.0002,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "归墟镜瓣",
+          "x": 0.085,
+          "y": 0.4104,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.4104
+          }
+        },
+        {
+          "id": "rim",
+          "name": "事件视界环",
+          "x": 0.085,
+          "y": 0.6251,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.6251
+          }
+        },
+        {
+          "id": "harness",
+          "name": "反质量握把与观测棘轮（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.6118,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.6118
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon64",
+      "weaponName": "逆命劫轮盾",
+      "profile": "shield_tower",
+      "grade": "B",
+      "confidence": 0.84,
+      "imagePath": "assets/weapons/reverse-fate-doomwheel-shield-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/reverse-fate-doomwheel-shield-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          143,
+          52,
+          368,
+          457
+        ],
+        "alphaAspect": 0.557,
+        "unknownAnchors": 1,
+        "averageSnapDistance": 0.0012,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "face",
+          "name": "逆命劫轮盾面",
+          "x": 0.085,
+          "y": 0.3993,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.3993
+          }
+        },
+        {
+          "id": "rings",
+          "name": "三重命轮与偿债环",
+          "x": 0.085,
+          "y": 0.5043,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.4978
+          }
+        },
+        {
+          "id": "harness",
+          "name": "沙漏握把与臂带（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.4712,
+          "lineTarget": {
+            "x": 0.5469,
+            "y": 0.4712
+          }
+        }
+      ]
+    },
+    {
+      "weaponId": "weapon65",
+      "weaponName": "圣城终誓门",
+      "profile": "shield_tower",
+      "grade": "B",
+      "confidence": 0.809,
+      "imagePath": "assets/weapons/last-oath-sanctum-gate-shield-equip.png",
+      "analysisImage": "assets/weapons/runtime/weapons/last-oath-sanctum-gate-shield-equip.png",
+      "metrics": {
+        "sourceSize": [
+          512,
+          512
+        ],
+        "alphaBounds": [
+          116,
+          53,
+          394,
+          459
+        ],
+        "alphaAspect": 0.686,
+        "unknownAnchors": 2,
+        "averageSnapDistance": 0.0007,
+        "crossings": 0
+      },
+      "slots": [
+        {
+          "id": "gate_face",
+          "name": "圣城门面与陶金甲",
+          "x": 0.085,
+          "y": 0.3871,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.3871
+          }
+        },
+        {
+          "id": "ward_core",
+          "name": "誓约棱镜与庇护核心",
+          "x": 0.085,
+          "y": 0.5,
+          "lineTarget": {
+            "x": 0.498,
+            "y": 0.5
+          }
+        },
+        {
+          "id": "harness",
+          "name": "快释握把与行军承带（背面）",
+          "targetSide": "back",
+          "x": 0.915,
+          "y": 0.4734,
+          "lineTarget": {
+            "x": 0.5586,
+            "y": 0.4734
+          }
+        }
+      ]
+    }
+  ],
+  "skipped": []
+}

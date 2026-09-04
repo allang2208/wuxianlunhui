@@ -1,0 +1,86 @@
+{
+  "task": "epic-shields-2026-09-02",
+  "generatedAt": "2026-09-02",
+  "backend": "OpenAI image_gen",
+  "status": "runtimeIntegrationActive",
+  "runtimeIntegrated": true,
+  "designDocument": "docs/designs/epic-shields-2026-09-02.md",
+  "assets": [
+    {
+      "path": "concept/thorn-oath-reprisal-shield-concept.png",
+      "shieldId": "thorn_oath_reprisal_shield",
+      "slot": "weapon60",
+      "kind": "front-back concept",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "bytes": 2476389
+    },
+    {
+      "path": "concept/star-eater-arcane-mirror-shield-concept.png",
+      "shieldId": "star_eater_arcane_mirror_shield",
+      "slot": "weapon61",
+      "kind": "front-back concept",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "bytes": 2352498
+    },
+    {
+      "path": "icons/thorn-oath-craft-icons-sheet.png",
+      "shieldId": "thorn_oath_reprisal_shield",
+      "kind": "3x3 craft icon candidate sheet",
+      "width": 1254,
+      "height": 1254,
+      "mode": "ARGB",
+      "bytes": 3525738,
+      "rowOrder": ["face", "rim_or_spine", "back"]
+    },
+    {
+      "path": "icons/star-eater-craft-icons-sheet.png",
+      "shieldId": "star_eater_arcane_mirror_shield",
+      "kind": "3x3 craft icon candidate sheet",
+      "width": 1254,
+      "height": 1254,
+      "mode": "ARGB",
+      "bytes": 3485612,
+      "rowOrder": ["face", "rim", "back"]
+    },
+    {
+      "path": "formal/sources/thorn-oath-reprisal-shield-front-imagegen.png",
+      "shieldId": "thorn_oath_reprisal_shield",
+      "kind": "formal transparent exterior front source",
+      "width": 1254,
+      "height": 1254,
+      "mode": "ARGB",
+      "bytes": 1544870
+    },
+    {
+      "path": "formal/sources/star-eater-arcane-mirror-shield-front-imagegen.png",
+      "shieldId": "star_eater_arcane_mirror_shield",
+      "kind": "formal transparent exterior front source",
+      "width": 1254,
+      "height": 1254,
+      "mode": "ARGB",
+      "bytes": 1480931
+    }
+  ],
+  "derivedAssets": {
+    "formalCraftIcons": 18,
+    "craftIconSize": 128,
+    "inventoryIcons": 2,
+    "inventoryIconSize": 128,
+    "phaserRuntimeFronts": 2,
+    "phaserRuntimeSize": 512
+  },
+  "notes": [
+    "Concept sheets remain provenance and rear-grip references; they are not runtime textures.",
+    "The 3x3 sheets were sliced cell-by-cell into 18 named 128px runtime icons.",
+    "Every player animation state uses the exterior front texture; rear grip and harness art is reference-only.",
+    "Static integration is complete. Runtime visual and combat acceptance remains user testing."
+  ],
+  "archiveContract": {
+    "kept": ["concept references", "formal transparent sources", "craft icon sheets", "prompts", "prepare-assets.ps1", "manifest"],
+    "rebuildableNotArchived": ["formal prepared views", "icons-hires slices", "icons-128 checks"]
+  }
+}

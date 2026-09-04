@@ -473,6 +473,10 @@ export const GameUIManager = {
         });
     },
     async load() {
+        if (this.player?.shieldSystem?.hasCausalDebt?.()) {
+            alert('逆命劫债尚未结清，不能直接读档清除；请先完成偿还或通过换盾立即结算');
+            return;
+        }
         const save = localStorage.getItem('infiniteLoop_save');
         if (!save) { alert('没有找到存档'); return; }
         let data;
@@ -615,6 +619,10 @@ export const GameUIManager = {
         alert(`读档成功: ${this.player.data?.name || '未知'} Lv.${this.player.data?.level || 1}`);
     },
     save() {
+        if (this.player?.shieldSystem?.hasCausalDebt?.()) {
+            alert('逆命劫债尚未结清，不能保存并绕过偿还；请先完成偿还或通过换盾立即结算');
+            return;
+        }
         if (!this.player) return;
         const sceneManager = globalThis.SceneManager;
         const currentWorldId = sceneManager?.getCurrentWorldId?.() || sceneManager?.currentScene;

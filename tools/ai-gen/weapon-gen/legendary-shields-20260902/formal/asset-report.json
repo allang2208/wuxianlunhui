@@ -1,0 +1,22 @@
+﻿[
+    {
+        "slug":  "reverse-fate-doomwheel-shield",
+        "alphaBounds":  [
+                            321,
+                            88,
+                            382,
+                            848
+                        ],
+        "visibleHeightRatio":  0.828125
+    },
+    {
+        "slug":  "last-oath-sanctum-gate-shield",
+        "alphaBounds":  [
+                            273,
+                            88,
+                            477,
+                            848
+                        ],
+        "visibleHeightRatio":  0.828125
+    }
+]

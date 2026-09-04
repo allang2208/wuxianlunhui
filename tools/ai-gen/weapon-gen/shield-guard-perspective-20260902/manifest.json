@@ -1,0 +1,41 @@
+{
+  "task": "shield-guard-perspective-weapon58-61-20260902",
+  "tool": "built-in image_gen",
+  "useCase": "precise-object-edit",
+  "status": "runtime-wired-static-only",
+  "angleReference": "assets/weapons/woodshied-equip.png",
+  "camera": "upright three-quarter guard view; wielder on image-left; near left rim thick; far right rim narrow; exterior face visible",
+  "commonConstraints": "one complete isolated shield; preserve target identity, material, colors, silhouette and component topology; genuine alpha; no character, hand, text, watermark, floor, cast shadow, aura, extra or missing parts, or cropping",
+  "assets": [
+    {
+      "weaponId": "weapon58",
+      "identitySource": "assets/weapons/moonsilver-deflection-shield-equip.png",
+      "rawImageGenOutput": "raw/moonsilver-deflection-shield-guard-raw.png",
+      "finalSource": "assets/weapons/guards/moonsilver-deflection-shield-guard.png",
+      "identityLock": "silver kite-round outline, central boss, radial plate segments, rivets and blue reflections"
+    },
+    {
+      "weaponId": "weapon59",
+      "identitySource": "assets/weapons/blackiron-citadel-shield-equip.png",
+      "rawImageGenOutput": "raw/blackiron-citadel-shield-guard-raw.png",
+      "finalSource": "assets/weapons/guards/blackiron-citadel-shield-guard.png",
+      "identityLock": "black hammered panels, silver central spine and braces, bronze rivets, side straps and pointed tower silhouette"
+    },
+    {
+      "weaponId": "weapon60",
+      "identitySource": "assets/weapons/thorn-oath-reprisal-shield-equip.png",
+      "rawImageGenOutput": "raw/thorn-oath-reprisal-shield-guard-raw.png",
+      "finalSource": "assets/weapons/guards/thorn-oath-reprisal-shield-guard.png",
+      "identityLock": "black steel, bronze-gold border, central spine, branching thorn relief and restrained red inlays"
+    },
+    {
+      "weaponId": "weapon61",
+      "identitySource": "assets/weapons/star-eater-arcane-mirror-shield-equip.png",
+      "rawImageGenOutput": "raw/star-eater-arcane-mirror-shield-guard-raw.png",
+      "finalSource": "assets/weapons/guards/star-eater-arcane-mirror-shield-guard.png",
+      "identityLock": "black obsidian panels, silver frame, violet seams, eight spokes, central star boss and four rim gems"
+    }
+  ],
+  "postprocess": "process.py removes only edge-connected baked checkerboard, packs a 1024 square source and derives a 512 square runtime copy",
+  "runtimeVerification": "not run"
+}

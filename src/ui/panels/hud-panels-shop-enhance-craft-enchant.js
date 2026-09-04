@@ -169,6 +169,12 @@ export function createHudPanelsShopEnhanceCraftEnchant() {
     craftEditBtn.id = 'craftEditBtn';
     craftEditBtn.onclick = function() { CraftSystem.enterEditMode(); };
     craftEditBtn.textContent = '🎚 调整布局';
+    const craftAutoBtn = document.createElement('button');
+    craftAutoBtn.className = 'craft-edit-btn craft-auto-layout-btn';
+    craftAutoBtn.id = 'craftAutoBtn';
+    craftAutoBtn.onclick = function() { CraftSystem.applyAutoLayoutCandidate(); };
+    craftAutoBtn.textContent = '⚙ 自动排布';
+    craftAutoBtn.title = '载入按枪型与武器轮廓生成的候选布局；确认前不会写盘';
     const craftSaveBtn = document.createElement('button');
     craftSaveBtn.className = 'craft-edit-btn';
     craftSaveBtn.id = 'craftSaveBtn';
@@ -193,6 +199,7 @@ export function createHudPanelsShopEnhanceCraftEnchant() {
     craftEditHint.id = 'craftEditHint';
     craftEditHint.textContent = '点击"调整布局"开始编辑';
     craftEditBar.appendChild(craftEditBtn);
+    craftEditBar.appendChild(craftAutoBtn);
     craftEditBar.appendChild(craftSaveBtn);
     craftEditBar.appendChild(craftCancelBtn);
     craftEditBar.appendChild(craftResetBtn);

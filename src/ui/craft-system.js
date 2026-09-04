@@ -10,6 +10,7 @@ import { EquipManager } from './equip-manager.js';
 import { SystemUI } from './system-ui.js';
 import craftConfigData from '../../data/craft-config.json';
 import { CRAFT_DEFAULT_SLOTS } from '../config/craft-default-slots.js';
+import { CRAFT_AUTO_LAYOUTS } from '../config/craft-auto-layouts.js';
 import { aggregateCraftEffects, applyModEffectsToPlayer } from './craft/craft-effects.js';
 import { resolveWeaponImageSrc } from './craft/weapon-image.js';
 import { WarehouseSystem } from './warehouse-system.js';
@@ -171,6 +172,7 @@ const CraftSystem = {
     _updateEditBar() {
         const editBar = getElement('craftEditBar');
         const editBtn = getElement('craftEditBtn');
+        const autoBtn = getElement('craftAutoBtn');
         const saveBtn = getElement('craftSaveBtn');
         const cancelBtn = getElement('craftCancelBtn');
         const resetBtn = getElement('craftResetBtn');
@@ -178,11 +180,13 @@ const CraftSystem = {
         if (!editBar) return;
 
         const hasWeapon = this._equippedItem && isCraftableWeapon(this._equippedItem);
+        const candidate = hasWeapon ? CRAFT_AUTO_LAYOUTS[this._equippedItem.weaponId] : null;
         editBar.style.display = 'flex';
 
         if (this._isEditing) {
             editBar.classList.add('editing');
             editBtn.style.display = 'none';
+            if (autoBtn) autoBtn.style.display = 'none';
             saveBtn.style.display = 'inline-block';
             cancelBtn.style.display = 'inline-block';
             if (resetBtn) resetBtn.style.display = 'inline-block';
@@ -190,6 +194,7 @@ const CraftSystem = {
         } else {
             editBar.classList.remove('editing');
             editBtn.style.display = hasWeapon ? 'inline-block' : 'none';
+            if (autoBtn) autoBtn.style.display = candidate ? 'inline-block' : 'none';
             saveBtn.style.display = 'none';
             cancelBtn.style.display = 'none';
             if (resetBtn) resetBtn.style.display = 'none';
@@ -212,6 +217,34 @@ const CraftSystem = {
         document.addEventListener('touchmove', this._editMoveHandler, { passive: false });
         document.addEventListener('mouseup', this._editEndHandler);
         document.addEventListener('touchend', this._editEndHandler);
+    },
+
+    /**
+     * 载入离线生成的自动排布候选。候选只进入临时编辑态，必须点击“保存布局”才会持久化。
+     */
+    applyAutoLayoutCandidate() {
+        if (!this._equippedItem || !isCraftableWeapon(this._equippedItem)) return;
+        const weaponId = this._equippedItem.weaponId;
+        const config = this._getCraftConfig(weaponId);
+        const candidate = CRAFT_AUTO_LAYOUTS[weaponId];
+        const editHint = getElement('craftEditHint');
+        if (!config || !candidate) return;
+
+        const currentIds = (config.slots || []).map(slot => slot.id).join('|');
+        const candidateIds = (candidate.slots || []).map(slot => slot.id).join('|');
+        if (!candidateIds || currentIds !== candidateIds) {
+            if (editHint) editHint.textContent = '自动排布候选已过期：请重新运行布局生成器';
+            return;
+        }
+
+        if (!this._isEditing) this.enterEditMode();
+        this._editTempSlots = JSON.parse(JSON.stringify(candidate.slots));
+        this._editGuides = null;
+        this._renderMods();
+        if (editHint) {
+            const confidence = Math.round((candidate.confidence || 0) * 100);
+            editHint.textContent = `已载入 ${candidate.grade} 级候选（${confidence}% · ${candidate.profile}）；可继续微调，确认后再保存`;
+        }
     },
 
     exitEditMode() {
@@ -591,7 +624,9 @@ const CraftSystem = {
 
         const containerRect = modContainer.getBoundingClientRect();
         const w = containerRect.width || 340;
-        const h = containerRect.height || 400;
+        const h = containerRect.height || 600;
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.setAttribute('preserveAspectRatio', 'none');
 
         // 编辑模式下使用临时数据，否则使用正式配置
         const slots = this._isEditing && this._editTempSlots ? this._editTempSlots : config.slots;
@@ -603,27 +638,43 @@ const CraftSystem = {
             const slotY = slot.y * h;
             const targetX = slot.lineTarget.x * w;
             const targetY = slot.lineTarget.y * h;
+            const isBackTarget = slot.targetSide === 'back';
 
-            // 绘制线条（格子端固定，target端可调整）
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', slotX);
-            line.setAttribute('y1', slotY);
-            line.setAttribute('x2', targetX);
-            line.setAttribute('y2', targetY);
-            line.setAttribute('stroke', 'rgba(212, 197, 169, 0.6)');
-            line.setAttribute('stroke-width', '2');
-            line.setAttribute('stroke-dasharray', '4,3');
+            // 两段式引线：先沿格子侧水平出线，再连接武器锚点；比直线更易读且减少穿过枪身。
+            const elbowX = slot.x < 0.5
+                ? Math.min(targetX - 12, slotX + Math.max(18, (targetX - slotX) * 0.58))
+                : Math.max(targetX + 12, slotX - Math.max(18, (slotX - targetX) * 0.58));
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            line.setAttribute('class', `craft-connector-line${isBackTarget ? ' is-back' : ''}`);
+            line.setAttribute('points', `${slotX},${slotY} ${elbowX},${slotY} ${targetX},${targetY}`);
             svg.appendChild(line);
+
+            // 所有端点都保留结构标记；背面组件使用蓝灰短虚线和文字，避免把投影握点误认成正面零件。
+            const targetMarker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            targetMarker.setAttribute('class', `craft-connector-target${isBackTarget ? ' is-back' : ''}`);
+            targetMarker.setAttribute('cx', targetX);
+            targetMarker.setAttribute('cy', targetY);
+            targetMarker.setAttribute('r', isBackTarget ? '4' : '3');
+            svg.appendChild(targetMarker);
+
+            if (isBackTarget) {
+                const labelOnRight = targetX < w * 0.78;
+                const targetLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                targetLabel.setAttribute('class', 'craft-connector-label');
+                targetLabel.setAttribute('x', targetX + (labelOnRight ? 9 : -9));
+                targetLabel.setAttribute('y', targetY - 8);
+                targetLabel.setAttribute('text-anchor', labelOnRight ? 'start' : 'end');
+                targetLabel.textContent = '背面';
+                svg.appendChild(targetLabel);
+            }
 
             // 编辑模式：在target端添加可拖拽的圆点
             if (this._isEditing) {
                 const targetDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                targetDot.setAttribute('class', 'craft-edit-anchor');
                 targetDot.setAttribute('cx', targetX);
                 targetDot.setAttribute('cy', targetY);
                 targetDot.setAttribute('r', '6');
-                targetDot.setAttribute('fill', '#d4c5a9');
-                targetDot.setAttribute('stroke', '#7a6a5a');
-                targetDot.setAttribute('stroke-width', '2');
                 targetDot.setAttribute('cursor', 'move');
                 targetDot.style.pointerEvents = 'auto';
                 targetDot.dataset.slotIndex = i;
@@ -635,6 +686,9 @@ const CraftSystem = {
             // 创建格子
             const cell = document.createElement('div');
             cell.className = 'craft-mod-cell';
+            cell.dataset.targetSide = isBackTarget ? 'back' : 'front';
+            cell.title = slot.name;
+            cell.setAttribute('aria-label', slot.name);
             if (this._isEditing) {
                 cell.classList.add('editing');
                 cell.style.cursor = 'move';
@@ -697,21 +751,17 @@ const CraftSystem = {
             if (this._editGuides.v !== null && this._editGuides.v !== undefined) {
                 const gx = this._editGuides.v * w;
                 const gl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gl.setAttribute('class', 'craft-alignment-guide');
                 gl.setAttribute('x1', gx); gl.setAttribute('y1', 0);
                 gl.setAttribute('x2', gx); gl.setAttribute('y2', h);
-                gl.setAttribute('stroke', '#4a9eff');
-                gl.setAttribute('stroke-width', '1.5');
-                gl.setAttribute('stroke-dasharray', '6,4');
                 svg.appendChild(gl);
             }
             if (this._editGuides.h !== null && this._editGuides.h !== undefined) {
                 const gy = this._editGuides.h * h;
                 const gl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gl.setAttribute('class', 'craft-alignment-guide');
                 gl.setAttribute('x1', 0); gl.setAttribute('y1', gy);
                 gl.setAttribute('x2', w); gl.setAttribute('y2', gy);
-                gl.setAttribute('stroke', '#4a9eff');
-                gl.setAttribute('stroke-width', '1.5');
-                gl.setAttribute('stroke-dasharray', '6,4');
                 svg.appendChild(gl);
             }
         }
@@ -744,7 +794,7 @@ const CraftSystem = {
         const modContainer = getElement('craftModContainer');
         const rect = modContainer.getBoundingClientRect();
         const w = rect.width || 340;
-        const h = rect.height || 400;
+        const h = rect.height || 600;
 
         const slot = this._editTempSlots[this._editSlotIndex];
         if (this._editDragType === 'cell') {

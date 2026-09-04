@@ -17,6 +17,7 @@ import { getTributeFriendlyAtkMul, getTributeFriendlyMaxHpMul } from '../config/
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { applyOutgoingDamageModifiers } from '../combat/outgoing-damage-modifiers.js';
 import { Collider } from '../physics/collider.js';
+import { applyLegendaryShieldWard } from '../combat/legendary-shield-ward.js';
 
 const ATTR_KEYS = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
 
@@ -419,7 +420,7 @@ export class Companion {
      * 否则照常掉血。敌人当前不主动攻击队友，此方法供未来仇恨/范围伤害链路复用。
      * @returns {{damage:number, parried:boolean}}
      */
-    takeDamage(damage, attacker, damageType = 'physical', isMelee = true) {
+    takeDamage(damage, attacker, damageType = 'physical', isMelee = true, hitContext = null) {
         // 必须在暴击、盾反、击退和修炼奖励之前关门，避免跨层攻击产生任何副作用。
         if (isMelee && attacker && !canMeleeShareSurface(attacker, this)) {
             return { damage: 0, parried: false, critical: false, blockedBySurface: true };
@@ -473,11 +474,20 @@ export class Companion {
                     grantCompanionSkillExp(this, 'shieldDefense', rw.parry || 10);
                 }
             }
-            const dealt = outgoingAdjusted * remainingRatio;
+            const dealt = applyLegendaryShieldWard(
+                this,
+                outgoingAdjusted * remainingRatio,
+                attacker,
+                isMelee,
+                hitContext
+            ).damage;
             d.hp = Math.max(0, d.hp - dealt);
             if (dealt > 0) this.hitFlash = this.hitFlashDuration;
             return { damage: dealt, parried: true, critical };
         }
+        outgoingAdjusted = applyLegendaryShieldWard(
+            this, outgoingAdjusted, attacker, isMelee, hitContext
+        ).damage;
         d.hp = Math.max(0, d.hp - outgoingAdjusted);
         if (outgoingAdjusted > 0) this.hitFlash = this.hitFlashDuration;
         return { damage: outgoingAdjusted, parried: false, critical };
