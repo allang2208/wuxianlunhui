@@ -1,0 +1,58 @@
+{
+  "task": "frozen-lord-mothers-20260904",
+  "generatedAt": "2026-09-04",
+  "generator": "OpenAI imagegen",
+  "futurePlanOnly": true,
+  "runtimeIntegrationActive": false,
+  "userApproved": false,
+  "promptRecord": "prompts.md",
+  "designRecord": "design/frozen-lord-combat-and-state-machines.md",
+  "styleContract": {
+    "background": "pure white",
+    "view": "full-body 3/4 side view facing screen-right",
+    "rendering": "low-saturation cold-region realistic PBR game creature concept",
+    "negative": "no text, no UI, no border, no scenery, no extra character"
+  },
+  "candidates": [
+    {
+      "key": "rimeMoonHuntKing",
+      "name": "凛月狩王",
+      "sourceElite": "iceCrownLynx",
+      "sourceMother": "../_frozen_elite_mothers_20260902/mother/01-ice-crown-lynx-v01.png",
+      "output": "mother/01-rime-moon-hunt-king-v01.png",
+      "selected": false
+    },
+    {
+      "key": "glacierBastionKing",
+      "name": "冰川壁垒王",
+      "sourceElite": "glacierbackWarOx",
+      "sourceMother": "../_frozen_elite_mothers_20260902/mother/02-glacierback-war-ox-v01.png",
+      "output": "mother/02-glacier-bastion-king-v01.png",
+      "selected": false
+    },
+    {
+      "key": "abyssRiftSovereign",
+      "name": "寒渊裂界王",
+      "sourceElite": "abyssCrystalRavager",
+      "sourceMother": "../_frozen_elite_mothers_20260902/mother/03-abyss-crystal-ravager-v02-six-spines.png",
+      "output": "mother/03-abyss-rift-sovereign-v01.png",
+      "selected": false
+    },
+    {
+      "key": "frostboundHighWarlord",
+      "name": "霜缚大统领",
+      "sourceElite": "frostboundCenturion",
+      "sourceMother": "../_frozen_elite_mothers_20260902/mother/04-frostbound-centurion-v01.png",
+      "output": "mother/04-frostbound-high-warlord-v01.png",
+      "selected": false
+    },
+    {
+      "key": "polarNightAstralHierophant",
+      "name": "极夜司天祭主",
+      "sourceElite": "polarNightHighPriest",
+      "sourceMother": "../_frozen_elite_mothers_20260902/mother/05-polar-night-high-priest-v04-project-three-quarter-candidate.png",
+      "output": "mother/05-polar-night-astral-hierophant-v01.png",
+      "selected": false
+    }
+  ]
+}
