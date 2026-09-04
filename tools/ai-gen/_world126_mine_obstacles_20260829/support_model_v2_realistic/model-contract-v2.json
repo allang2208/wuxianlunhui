@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "assetId": "mine_obstacle_collapsed_support_v2",
+  "sourceAssetId": "mine_obstacle_collapsed_support",
+  "stage": "versioned realistic model calibration; no runtime promotion",
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 30.0,
+    "modelRootRotationZDegrees": 44.8,
+    "orthoScale": 6.4,
+    "groundContactBottomRatio": 0.875
+  },
+  "structure": {
+    "verticalPosts": 2,
+    "topCrossbeams": 1,
+    "diagonalBraces": 1,
+    "connectedRockMasses": 4,
+    "upgrades": [
+      "seven-to-nine-section hand-hewn beam meshes",
+      "subdivision-4 smoothly deformed natural rocks",
+      "eight visible iron-band rivets",
+      "modeled shallow crossbeam split",
+      "procedural anisotropic wood, pitted iron and damp slate materials"
+    ]
+  },
+  "footprint": [
+    2.7,
+    1.55
+  ],
+  "blend": "tools/ai-gen/_world126_mine_obstacles_20260829/support_model_v2_realistic/mine_obstacle_collapsed_support_v2_realistic.blend",
+  "preview": "tools/ai-gen/_world126_mine_obstacles_20260829/support_model_v2_realistic/mine_obstacle_collapsed_support_v2_model_preview.png",
+  "texturedInit": "tools/ai-gen/_world126_mine_obstacles_20260829/support_model_v2_realistic/mine_obstacle_collapsed_support_v2_textured_init.png",
+  "bodyDepth": "tools/ai-gen/_world126_mine_obstacles_20260829/support_model_v2_realistic/mine_obstacle_collapsed_support_v2_body_depth.png"
+}
