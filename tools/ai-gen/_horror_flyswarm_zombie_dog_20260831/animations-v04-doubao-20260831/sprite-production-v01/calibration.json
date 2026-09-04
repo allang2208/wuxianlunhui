@@ -1,0 +1,156 @@
+{
+  "previousConfig": {
+    "id": "zombieDog",
+    "name": "Zombie Dog",
+    "hp": 100,
+    "maxHp": 100,
+    "size": 12,
+    "collisionRadius": 40,
+    "speed": 250,
+    "level": 2,
+    "color": "#d4cfc0",
+    "highlightColor": "rgba(212, 207, 192, 0.3)",
+    "str": 10,
+    "dex": 20,
+    "con": 10,
+    "int": 2,
+    "wis": 2,
+    "luck": 4,
+    "rank": "normal",
+    "attackRange": 92,
+    "attackDistance": 92,
+    "basicMelee": {
+      "approachReach": 92,
+      "impactReach": 82,
+      "width": 24,
+      "timeline": {
+        "durationMs": 700,
+        "frameCount": 17,
+        "contactFrame": 8,
+        "activeFrames": [
+          7,
+          9
+        ]
+      }
+    },
+    "aiInterval": 1500,
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 100,
+      "loseTimeout": 3000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1500,
+      "dynamicRange": 100,
+      "width": 18,
+      "knockback": 5,
+      "crippleDuration": 3000
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "僵尸",
+    "families": [
+      "僵尸",
+      "动物"
+    ],
+    "description": "被亡灵复活的犬类骨骼，行动迅速，利齿中带有致残毒素。",
+    "skills": [
+      {
+        "name": "致残撕咬",
+        "desc": "92px内进入扑咬，接触帧按82px前向判定；命中后使目标致残，移动速度降低50%，持续3秒"
+      }
+    ],
+    "attackType": "骨爪撕咬",
+    "render": {
+      "spriteSize": 151,
+      "collisionWidth": 80,
+      "collisionHeight": 79,
+      "footOffsetY": 45.42,
+      "projectileHitbox": {
+        "width": 81,
+        "height": 83,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1000
+    },
+    "textures": {
+      "idle": "assets/enemies/zombie_dog/v2/idle.png",
+      "walk": "assets/enemies/zombie_dog/v2/walking.png",
+      "run": "assets/enemies/zombie_dog/v2/running.png",
+      "attack": "assets/enemies/zombie_dog/v2/attacking.png",
+      "death": "assets/enemies/zombie_dog/v2/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 2,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "footY": 410,
+          "frameRate": 3,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 5,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 19,
+          "footY": 410,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "run": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 22,
+          "footY": 410,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 17,
+          "footY": 410,
+          "duration": 700,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 18,
+          "footY": 410,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "oldIdleAlphaBox": [
+    88,
+    150,
+    449,
+    409
+  ],
+  "previousReferenceCell": 512,
+  "referenceCell": 256,
+  "preparedBodyHeight": 129.5,
+  "profile": "crowd",
+  "targetMiB": 32,
+  "admissionMiB": 64,
+  "maxTextureSide": 4096,
+  "policy": "One fixed source pixel scale shared by four approved videos; source motion preserved; no per-frame resizing."
+}

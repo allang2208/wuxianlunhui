@@ -1,0 +1,70 @@
+{
+  "idle": {
+    "candidates": [
+      {
+        "start": 24,
+        "endExclusive": 108,
+        "period": 84,
+        "score": 0.01979360543191433
+      },
+      {
+        "start": 22,
+        "endExclusive": 106,
+        "period": 84,
+        "score": 0.020205294713377953
+      },
+      {
+        "start": 24,
+        "endExclusive": 106,
+        "period": 82,
+        "score": 0.02068314515054226
+      },
+      {
+        "start": 24,
+        "endExclusive": 104,
+        "period": 80,
+        "score": 0.022405801340937614
+      },
+      {
+        "start": 26,
+        "endExclusive": 102,
+        "period": 76,
+        "score": 0.022488296031951904
+      }
+    ]
+  },
+  "running": {
+    "candidates": [
+      {
+        "start": 39,
+        "endExclusive": 53,
+        "period": 14,
+        "score": 0.04726928472518921
+      },
+      {
+        "start": 38,
+        "endExclusive": 53,
+        "period": 15,
+        "score": 0.04904532432556152
+      },
+      {
+        "start": 60,
+        "endExclusive": 74,
+        "period": 14,
+        "score": 0.05188338831067085
+      },
+      {
+        "start": 60,
+        "endExclusive": 75,
+        "period": 15,
+        "score": 0.0520133338868618
+      },
+      {
+        "start": 45,
+        "endExclusive": 59,
+        "period": 14,
+        "score": 0.05301796644926071
+      }
+    ]
+  }
+}

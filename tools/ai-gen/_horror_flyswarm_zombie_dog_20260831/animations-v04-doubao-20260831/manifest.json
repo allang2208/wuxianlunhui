@@ -1,0 +1,85 @@
+{
+  "created": "2026-08-31",
+  "enemy": "zombieDog",
+  "generationStatus": "four-candidates-generated-awaiting-user-review",
+  "previewDocument": "preview.md",
+  "previewReport": "previews/preview-report.json",
+  "sourceReview": "Four 24-point contact sheets viewed. Original backgrounds, shadows and Doubao marks retained. Running start/stop remains in whole-source previews; natural loop selection and runtime acceptance remain pending.",
+  "automationClientClosed": true,
+  "motherStatus": "user-approved",
+  "approval": "User accepted v04 and explicitly requested Doubao idle, running, attack and death animations.",
+  "motherSource": "../mother/zombie-dog-mother-v04-wolf-camera-white.png",
+  "attachment": "C:/Users/allan/AppData/Local/Temp/codex-clipboard-333d80d2-027b-4783-8cfa-db1ec287a464.png",
+  "reference": "references/zombie-dog-v04-video-safe-2048x1152.png",
+  "referencePreparation": {
+    "operation": "white canvas padding only, original image pixels pasted unchanged",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "canvasSize": [
+      2048,
+      1152
+    ],
+    "pasteOffset": [
+      256,
+      64
+    ],
+    "resized": false,
+    "cutout": false,
+    "redrawn": false
+  },
+  "provider": "doubao-desktop",
+  "requestedModel": "Seedance 2.0 Mini",
+  "requestedDurationSeconds": 5,
+  "requestedRatio": "16:9",
+  "paidQuotaAuthorized": false,
+  "runtimeIntegrationActive": false,
+  "spriteSheetsProduced": false,
+  "actions": {
+    "idle": {
+      "prompt": "prompts/zombie-dog-idle-doubao-v01.txt",
+      "video": "videos/zombie-dog-idle-doubao-v01.mp4",
+      "motion": "loop",
+      "status": "generated-candidate-awaiting-user-review",
+      "preflightPromptChars": 618,
+      "preflightPromptSha256": "262d47a28337d42733f832845ce76053a1e51c33b0b801b1052ef296c0edb35e",
+      "gif": "previews/zombie-dog-idle-doubao-v01.gif",
+      "contact": "previews/zombie-dog-idle-doubao-v01-contact.png",
+      "provenance": "videos/zombie-dog-idle-doubao-v01.mp4.json"
+    },
+    "running": {
+      "prompt": "prompts/zombie-dog-running-doubao-v01.txt",
+      "video": "videos/zombie-dog-running-doubao-v01.mp4",
+      "motion": "cyclic gait; source loop selection remains pending",
+      "status": "generated-candidate-awaiting-user-review",
+      "preflightPromptChars": 693,
+      "preflightPromptSha256": "62ef7f9c857f0c3910a3e7628f9f7c31c47095e526efc3c8a9237529f52292d5",
+      "gif": "previews/zombie-dog-running-doubao-v01.gif",
+      "contact": "previews/zombie-dog-running-doubao-v01-contact.png",
+      "provenance": "videos/zombie-dog-running-doubao-v01.mp4.json"
+    },
+    "attack": {
+      "prompt": "prompts/zombie-dog-attack-doubao-v01.txt",
+      "video": "videos/zombie-dog-attack-doubao-v01.mp4",
+      "motion": "one bite with recovery",
+      "status": "generated-candidate-awaiting-user-review",
+      "preflightPromptChars": 575,
+      "preflightPromptSha256": "e3c1dde9f71844756f8c98f749c3e39171cacb479407b636a0b48a718ad19236",
+      "gif": "previews/zombie-dog-attack-doubao-v01.gif",
+      "contact": "previews/zombie-dog-attack-doubao-v01-contact.png",
+      "provenance": "videos/zombie-dog-attack-doubao-v01.mp4.json"
+    },
+    "dying": {
+      "prompt": "prompts/zombie-dog-dying-doubao-v01.txt",
+      "video": "videos/zombie-dog-dying-doubao-v01.mp4",
+      "motion": "one-way collapse and corpse hold",
+      "status": "generated-candidate-awaiting-user-review",
+      "preflightPromptChars": 579,
+      "preflightPromptSha256": "7b76b70670506beda4c903eda9189260712bdc3ae90bfb0424d92d27e0853f66",
+      "gif": "previews/zombie-dog-dying-doubao-v01.gif",
+      "contact": "previews/zombie-dog-dying-doubao-v01-contact.png",
+      "provenance": "videos/zombie-dog-dying-doubao-v01.mp4.json"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+Create a new zombie dog mother image by rebuilding the creature for the SAME GAME CAMERA as the monster references. Do not tweak or rotate the previous dog image.
+
+REFERENCE PRIORITIES:
+Image 1: coffin-bearing undead monster, the primary reference for the game asset camera, depth and grounded material rendering.
+Image 2: Medusa, the secondary reference for the right-facing THREE-QUARTER FRONT game orientation and gently elevated camera.
+Image 3: the old zombie dog, only a loose reference for the species and undead identity: pointed ears, long canine muzzle, lean brown-grey decayed hide. Its SIDE PROFILE CAMERA IS WRONG and must NOT be copied. Its overly long legs and dense web-like wounds must not dictate the reconstruction.
+
+PRIMARY REQUIREMENT:
+One anatomically credible undead Doberman-like dog, rebuilt as a slightly elevated three-quarter FRONT-RIGHT RPG unit, naturally standing on a level invisible ground plane. Translate the camera of images 1 and 2 onto this quadruped. We need to see the dog's CHEST FRONT between its front legs and the end of its muzzle, as well as one broad flank. The nose faces diagonally toward the viewer's lower-right, not straight horizontally right. Hindquarters recede toward upper-left with modest natural foreshortening. This should read as the same game's viewing direction as the reference monsters, not as an animal side-elevation chart.
+
+CAMERA AND PERSPECTIVE:
+Gentle view from above as in the reference monsters, NOT a steep top-down view. Show a modest amount of forehead and shoulder top. Forelegs remain upright under the chest. Paws should form a credible quadruped footprint on ONE plane, with front and rear positions following the diagonal body direction; allow normal occlusion and small offsets instead of artificially pulling all four limbs apart. Chest, skull, pelvis and paws must agree on the SAME camera direction. No separate head turn atop a side-on body. No screen-space stretching, skewing or tilting an old bitmap.
+
+DOG FORM:
+Exactly one head, two upright ears, four canine legs and one lowered slender tail. Natural adult canine limb proportions with correct front elbows and rear hocks; solid paws, no stilts, no human legs. Level relaxed spine in 3D, balanced neutral alert idle stance, not a crouch, not prowling, not bow-legged. Long but plausible muzzle held in line with the neck, slightly parted jaw with a few canine teeth, dull amber-red eyes without glow. Emaciated undead silhouette but enough shoulder and haunch volume for credible animation.
+
+MATERIAL / REDESIGN:
+Match the grounded realistic PBR game-asset finish of Image 1, with desaturated grey-brown short fur remnants and dry decayed hide, sparse dark maroon damage and selected pale exposed ribs. Organize the detail into readable forms: hide, fur and bone clearly distinguished. Keep the dog recognizable at sprite scale. No all-over honeycomb or melted carved-wood texture, no dozens of circular holes, no dangling organs or strands, no wet gore, no decorative spikes, armor or collar. Remain unmistakably undead, not a healthy pet or wolf recolor.
+
+OUTPUT:
+A single complete mother-frame character, not a sheet or lineup. White #FFFFFF background, no floor/horizon, no ground shadow, no scenery, props, text, logo or border. Neutral diffuse lighting matching the clean reference render. Full ears, nose, tail and all feet within generous empty safety margins. Use a 3:2 landscape frame; dog around 65-70 percent of frame width. High-detail crisp 3D game render.
+Priority order: correct shared camera and unified quadruped orientation first, natural anatomy second, undead material identity third.

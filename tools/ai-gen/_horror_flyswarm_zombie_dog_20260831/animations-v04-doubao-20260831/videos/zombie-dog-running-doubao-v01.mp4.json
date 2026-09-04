@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\animations-v04-doubao-20260831\\references\\zombie-dog-v04-video-safe-2048x1152.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\animations-v04-doubao-20260831\\prompts\\zombie-dog-running-doubao-v01.txt",
+  "promptChars": 693,
+  "promptSha256": "62ef7f9c857f0c3910a3e7628f9f7c31c47095e526efc3c8a9237529f52292d5",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-31T00:59:50.266Z",
+  "sourceUrlScheme": "https"
+}

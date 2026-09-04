@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T02:40:33.094755+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\round02\\videos\\contact.mp4",
+    "bytes": 850101,
+    "sha256": "dd7c1fb7ae07b707a664a98d17abe3846268e2263caa21235814bb17d3768ff5"
+  },
+  "promptId": "bb61d5fb-41d2-4487-b6a6-810ba8e44f2f",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 831223,
+  "mode": "i2v_firstframe",
+  "actionMode": "free",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact dark carrion flies from the first frame, in the same elevated orthographic game view. Each chitin body is rigid, with the same abdomen length, thickness, red-brown eyes and leg count throughout. Preserve the size hierarchy in the image: the large front-center and front-left flies remain large, and the small rear flies remain small. Each fly has one pair of transparent veined wings. Fixed camera, lighting, framing and swarm center. Pure uniform white background, generous empty margins. Crisp game-animation rendering with a short shutter exposure. Continuous agitated infestation for all five seconds. Small near-neighbor groups of three or four flies weave briefly past one another in shallow arcs, staying close to the stationary cloud center. The insects' wings flap continuously in different phases, their abdomen shapes and individual sizes stay constant. Keep the airy gaps and layered depth while the group pulses subtly in density. This is sustained contact activity, with the same level of motion at the end as in the middle. There is no return-to-idle section or end pause. No victim, giant insect, vortex, camera move, zoom, smoke, trails or fog.",
+  "effectivePrompt": "The exact dark carrion flies from the first frame, in the same elevated orthographic game view. Each chitin body is rigid, with the same abdomen length, thickness, red-brown eyes and leg count throughout. Preserve the size hierarchy in the image: the large front-center and front-left flies remain large, and the small rear flies remain small. Each fly has one pair of transparent veined wings. Fixed camera, lighting, framing and swarm center. Pure uniform white background, generous empty margins. Crisp game-animation rendering with a short shutter exposure. Continuous agitated infestation for all five seconds. Small near-neighbor groups of three or four flies weave briefly past one another in shallow arcs, staying close to the stationary cloud center. The insects' wings flap continuously in different phases, their abdomen shapes and individual sizes stay constant. Keep the airy gaps and layered depth while the group pulses subtly in density. This is sustained contact activity, with the same level of motion at the end as in the middle. There is no return-to-idle section or end pause. No victim, giant insect, vortex, camera move, zoom, smoke, trails or fog.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact dark carrion flies from the first frame, in the same elevated orthographic game view. Each chitin body is rigid, with the same abdomen length, thickness, red-brown eyes and leg count throughout. Preserve the size hierarchy in the image: the large front-center and front-left flies remain large, and the small rear flies remain small. Each fly has one pair of transparent veined wings. Fixed camera, lighting, framing and swarm center. Pure uniform white background, generous empty margins. Crisp game-animation rendering with a short shutter exposure. Continuous agitated infestation for all five seconds. Small near-neighbor groups of three or four flies weave briefly past one another in shallow arcs, staying close to the stationary cloud center. The insects' wings flap continuously in different phases, their abdomen shapes and individual sizes stay constant. Keep the airy gaps and layered depth while the group pulses subtly in density. This is sustained contact activity, with the same level of motion at the end as in the middle. There is no return-to-idle section or end pause. No victim, giant insect, vortex, camera move, zoom, smoke, trails or fog. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Follow the authored temporal order exactly and keep every transition visually readable.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "a8db84e198894f360774217c449c4b1fe2f0ebd0d6032784e3a2c60513f88049",
+  "effectivePromptSha256": "a8db84e198894f360774217c449c4b1fe2f0ebd0d6032784e3a2c60513f88049",
+  "finalPromptSha256": "d3fc51ec64d48e940c70620278087a8f9d71b63e8f5881bacd7394baf20f15a7",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\round02\\prompts\\contact.txt",
+      "bytes": 1172,
+      "sha256": "2d73532a8ce09be08f4f05ae8664de87851d0f6264565ba380ca3c6681c99558"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\round02\\references\\first-frame.png",
+      "bytes": 484065,
+      "sha256": "8aaeedab99f141acc76a7c78c970e04eb9357ace517899a2fdb5b26909eeed57"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\round02\\videos\\contact_contact.png",
+    "bytes": 559216,
+    "sha256": "f735cbd5a18ebc40e95ab30d3cfd54d4e3073cd9ad383e0c95f6b57b3bd570ed"
+  },
+  "elapsedSeconds": 425.641
+}

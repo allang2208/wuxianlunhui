@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T02:14:22.188225+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\videos\\dying.mp4",
+    "bytes": 896759,
+    "sha256": "6ce9fa88f176ed56c127afd904f659e7de3649f2800a73cff83469fdb72fc1e5"
+  },
+  "promptId": "660ab4ef-2921-4190-be5c-2b777b809545",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 831204,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One continuous shot of the same realistic carrion-fly swarm from the supplied first frame, same elevated three-quarter camera, constant body size, anatomy, lighting and materials. The same separate flies remain recognizable.\nAction, one-way death: start with a brief wing flutter in the reference hovering formation. Wingbeats falter asynchronously, each fly curls its legs inward and tips sideways. The insects drop a short distance downward together under gravity, about one fly-body length, then settle in a loose small inert pile directly beneath the original group center. Small final twitches stop by the last third of the clip. Hold the fallen dead flies completely still to the end. Keep the bodies distinct, no insect disappears, grows, spawns or revives. The descent and final pile must remain fully within the frame and preserve individual body sizes. Do not spread outward or fall out of view.\nFixed orthographic camera, no pan or zoom. Uniform pure white empty background matching the reference, no visible floor plane, cast shadows, horizon or scenery. No explosions, smoke, magical particles, blood, trails, ghosts or fade-out. Silent visual-only game animation.",
+  "effectivePrompt": "One continuous shot of the same realistic carrion-fly swarm from the supplied first frame, same elevated three-quarter camera, constant body size, anatomy, lighting and materials. The same separate flies remain recognizable.\nAction, one-way death: start with a brief wing flutter in the reference hovering formation. Wingbeats falter asynchronously, each fly curls its legs inward and tips sideways. The insects drop a short distance downward together under gravity, about one fly-body length, then settle in a loose small inert pile directly beneath the original group center. Small final twitches stop by the last third of the clip. Hold the fallen dead flies completely still to the end. Keep the bodies distinct, no insect disappears, grows, spawns or revives. The descent and final pile must remain fully within the frame and preserve individual body sizes. Do not spread outward or fall out of view.\nFixed orthographic camera, no pan or zoom. Uniform pure white empty background matching the reference, no visible floor plane, cast shadows, horizon or scenery. No explosions, smoke, magical particles, blood, trails, ghosts or fade-out. Silent visual-only game animation.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] One continuous shot of the same realistic carrion-fly swarm from the supplied first frame, same elevated three-quarter camera, constant body size, anatomy, lighting and materials. The same separate flies remain recognizable.\nAction, one-way death: start with a brief wing flutter in the reference hovering formation. Wingbeats falter asynchronously, each fly curls its legs inward and tips sideways. The insects drop a short distance downward together under gravity, about one fly-body length, then settle in a loose small inert pile directly beneath the original group center. Small final twitches stop by the last third of the clip. Hold the fallen dead flies completely still to the end. Keep the bodies distinct, no insect disappears, grows, spawns or revives. The descent and final pile must remain fully within the frame and preserve individual body sizes. Do not spread outward or fall out of view.\nFixed orthographic camera, no pan or zoom. Uniform pure white empty background matching the reference, no visible floor plane, cast shadows, horizon or scenery. No explosions, smoke, magical particles, blood, trails, ghosts or fade-out. Silent visual-only game animation. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "59f0cf8c80c61a6e88c06fec4eee461c771981f477f558a2ef5f22a7809ffe8c",
+  "effectivePromptSha256": "59f0cf8c80c61a6e88c06fec4eee461c771981f477f558a2ef5f22a7809ffe8c",
+  "finalPromptSha256": "b3f02b2a107f5baf35eb7bc74a01fe5144de475cb6a188706f46e27630c32c19",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\prompts\\dying.txt",
+      "bytes": 1179,
+      "sha256": "d956db12832ee87372bc5e30d6e8fa9becc8f8195d59b814b00a94021fd86710"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\references\\flyswarm-v02-h3-first-frame.png",
+      "bytes": 484065,
+      "sha256": "8aaeedab99f141acc76a7c78c970e04eb9357ace517899a2fdb5b26909eeed57"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\videos\\dying_contact.png",
+    "bytes": 462201,
+    "sha256": "b368bbd2f7871454bab40b2a82525d52b3eb129d24ba315bd0f011e1bfdd35ca"
+  },
+  "elapsedSeconds": 425.823
+}

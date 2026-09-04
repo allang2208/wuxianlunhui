@@ -1,0 +1,177 @@
+{
+  "status": "retired_user_selected_original_animation",
+  "motherProvider": "image_gen",
+  "motherSource": "C:\\Users\\allan\\.codex\\generated_images\\01a052d0-236e-7bc3-80af-b53597574b8a\\exec-7eec01ff-16a4-4a24-a3bf-323050e5bb2b.png",
+  "speciesReference": "../mother/flyswarm-mother-v01-white.png",
+  "mother": "mother/flyswarm-mother-v02-white.png",
+  "motherPrompt": "prompts/mother-v02.txt",
+  "reference": "references/flyswarm-v02-h3-first-frame.png",
+  "preparation": {
+    "originalSize": [
+      1672,
+      941
+    ],
+    "fittedSize": [
+      920,
+      518
+    ],
+    "canvasSize": [
+      1024,
+      576
+    ],
+    "offset": [
+      52,
+      29
+    ],
+    "method": "uniform contain plus white padding; no stretching or per-insect transform"
+  },
+  "provider": "MiniMax H3",
+  "intendedActions": {
+    "idle": {
+      "mode": "loop",
+      "seed": 831201
+    },
+    "flying": {
+      "mode": "loop",
+      "seed": 831202
+    },
+    "contact": {
+      "mode": "loop",
+      "seed": 831203,
+      "semantics": "continuous contact damage, not discrete melee"
+    },
+    "dying": {
+      "mode": "one-way",
+      "seed": 831204
+    }
+  },
+  "parameters": {
+    "size": "1024x576",
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "visualProfile": "character-asset",
+    "audioMode": "visual-only"
+  },
+  "runtimeChanges": false,
+  "storageNote": "NAS scratch was unavailable; candidates remain isolated under tools/ai-gen, outside runtime assets.",
+  "outputs": {
+    "idle": {
+      "status": "video_candidate_pending_user_review",
+      "sourceVideo": "videos/idle.mp4",
+      "provenance": "videos/idle.mp4.json",
+      "previewGif": "previews/idle.gif",
+      "decodedFrames": 124,
+      "sourceFps": 24.0,
+      "sourceSize": [
+        1024,
+        576
+      ],
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifSize": [
+        768,
+        432
+      ],
+      "gifDurationMs": 5170,
+      "gifLoops": true,
+      "previewFrameIndexes": [
+        0,
+        31,
+        62,
+        93,
+        123
+      ],
+      "retiming": "none; GIF timing rounded cumulatively to 10ms",
+      "runtimeAcceptance": false
+    },
+    "flying": {
+      "status": "video_candidate_pending_user_review",
+      "sourceVideo": "videos/flying.mp4",
+      "provenance": "videos/flying.mp4.json",
+      "previewGif": "previews/flying.gif",
+      "decodedFrames": 124,
+      "sourceFps": 24.0,
+      "sourceSize": [
+        1024,
+        576
+      ],
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifSize": [
+        768,
+        432
+      ],
+      "gifDurationMs": 5170,
+      "gifLoops": true,
+      "previewFrameIndexes": [
+        0,
+        31,
+        62,
+        93,
+        123
+      ],
+      "retiming": "none; GIF timing rounded cumulatively to 10ms",
+      "runtimeAcceptance": false
+    },
+    "contact": {
+      "status": "video_candidate_pending_user_review",
+      "sourceVideo": "videos/contact.mp4",
+      "provenance": "videos/contact.mp4.json",
+      "previewGif": "previews/contact.gif",
+      "decodedFrames": 124,
+      "sourceFps": 24.0,
+      "sourceSize": [
+        1024,
+        576
+      ],
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifSize": [
+        768,
+        432
+      ],
+      "gifDurationMs": 5170,
+      "gifLoops": true,
+      "previewFrameIndexes": [
+        0,
+        31,
+        62,
+        93,
+        123
+      ],
+      "retiming": "none; GIF timing rounded cumulatively to 10ms",
+      "runtimeAcceptance": false
+    },
+    "dying": {
+      "status": "video_candidate_pending_user_review",
+      "sourceVideo": "videos/dying.mp4",
+      "provenance": "videos/dying.mp4.json",
+      "previewGif": "previews/dying.gif",
+      "decodedFrames": 124,
+      "sourceFps": 24.0,
+      "sourceSize": [
+        1024,
+        576
+      ],
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifSize": [
+        768,
+        432
+      ],
+      "gifDurationMs": 5170,
+      "gifLoops": false,
+      "previewFrameIndexes": [
+        0,
+        31,
+        62,
+        93,
+        123
+      ],
+      "retiming": "none; GIF timing rounded cumulatively to 10ms",
+      "runtimeAcceptance": false
+    }
+  },
+  "qualityNotes": "candidate-notes.md",
+  "productionReady": false,
+  "generationStatus": "four_h3_trials_and_gifs_delivered",
+  "assetAvailability": "Media and candidate-only scripts moved to ignored recoverable archive; paths are historical, not active inputs.",
+  "cleanupManifest": "tools/ai-gen/_flyswarm_original_rife_20260831/reports/cleanup.json"
+}

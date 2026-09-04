@@ -1,0 +1,26 @@
+{
+  "idle": {
+    "path": "tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\animations-v04-doubao-20260831\\sprite-production-v01\\previews\\runtime-speed\\zombie-dog-idle-runtime.gif",
+    "gifDurationMs": 3500,
+    "runtimeDurationMs": 3500,
+    "sampling": "50fps runtime-clock sample; max 10ms duration rounding"
+  },
+  "running": {
+    "path": "tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\animations-v04-doubao-20260831\\sprite-production-v01\\previews\\runtime-speed\\zombie-dog-running-runtime.gif",
+    "gifDurationMs": 580,
+    "runtimeDurationMs": 583.3333333333334,
+    "sampling": "50fps runtime-clock sample; max 10ms duration rounding"
+  },
+  "attack": {
+    "path": "tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\animations-v04-doubao-20260831\\sprite-production-v01\\previews\\runtime-speed\\zombie-dog-attack-runtime.gif",
+    "gifDurationMs": 1000,
+    "runtimeDurationMs": 1000,
+    "sampling": "50fps runtime-clock sample; max 10ms duration rounding"
+  },
+  "dying": {
+    "path": "tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\animations-v04-doubao-20260831\\sprite-production-v01\\previews\\runtime-speed\\zombie-dog-dying-runtime.gif",
+    "gifDurationMs": 3700,
+    "runtimeDurationMs": 3708.3333333333335,
+    "sampling": "50fps runtime-clock sample; max 10ms duration rounding"
+  }
+}

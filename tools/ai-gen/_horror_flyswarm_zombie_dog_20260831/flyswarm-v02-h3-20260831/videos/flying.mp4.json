@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T01:59:24.172776+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\videos\\flying.mp4",
+    "bytes": 1386843,
+    "sha256": "223dba183cb5eb80bc1ee7e11476142b3e9d355f75a5ea9255d8ca833b18c701"
+  },
+  "promptId": "5c3497d8-c465-40de-b0c4-313697cd78f7",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 831202,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One continuous shot of the same realistic carrion-fly swarm in the supplied first frame. Preserve the separate dark graphite segmented bodies, restrained burgundy eyes, thin six-legged anatomy, veined smoky-gray wings and the same consistent adult insect sizes. Fixed orthographic camera at the reference elevated three-quarter angle; constant light and scale.\nAction: purposeful forward flight toward screen-right performed in place, as a treadmill animation for a moving game unit. The insects angle subtly toward screen-right, beat their wings rapidly and make quick asynchronous small corrections. The same compact cohesive cloud remains centered on screen, with mild leading-edge compression and trailing-edge flutter. Individuals gently pass just above or behind near neighbors without colliding, fusing, changing species or vanishing. Continuous energetic wing motion for the whole clip. Subtle collective breathing of the formation, not whole-swarm translation or rotation. The final arrangement returns naturally to the initial formation, suitable for a flight cycle.\nUniform pure white background, no visible ground, cast shadow or horizon. All members remain inside the original safe area. No camera motion, size changes, motion streaks, afterimages, smoke, sparks or colored aura. Silent visual-only game animation.",
+  "effectivePrompt": "One continuous shot of the same realistic carrion-fly swarm in the supplied first frame. Preserve the separate dark graphite segmented bodies, restrained burgundy eyes, thin six-legged anatomy, veined smoky-gray wings and the same consistent adult insect sizes. Fixed orthographic camera at the reference elevated three-quarter angle; constant light and scale.\nAction: purposeful forward flight toward screen-right performed in place, as a treadmill animation for a moving game unit. The insects angle subtly toward screen-right, beat their wings rapidly and make quick asynchronous small corrections. The same compact cohesive cloud remains centered on screen, with mild leading-edge compression and trailing-edge flutter. Individuals gently pass just above or behind near neighbors without colliding, fusing, changing species or vanishing. Continuous energetic wing motion for the whole clip. Subtle collective breathing of the formation, not whole-swarm translation or rotation. The final arrangement returns naturally to the initial formation, suitable for a flight cycle.\nUniform pure white background, no visible ground, cast shadow or horizon. All members remain inside the original safe area. No camera motion, size changes, motion streaks, afterimages, smoke, sparks or colored aura. Silent visual-only game animation.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] One continuous shot of the same realistic carrion-fly swarm in the supplied first frame. Preserve the separate dark graphite segmented bodies, restrained burgundy eyes, thin six-legged anatomy, veined smoky-gray wings and the same consistent adult insect sizes. Fixed orthographic camera at the reference elevated three-quarter angle; constant light and scale.\nAction: purposeful forward flight toward screen-right performed in place, as a treadmill animation for a moving game unit. The insects angle subtly toward screen-right, beat their wings rapidly and make quick asynchronous small corrections. The same compact cohesive cloud remains centered on screen, with mild leading-edge compression and trailing-edge flutter. Individuals gently pass just above or behind near neighbors without colliding, fusing, changing species or vanishing. Continuous energetic wing motion for the whole clip. Subtle collective breathing of the formation, not whole-swarm translation or rotation. The final arrangement returns naturally to the initial formation, suitable for a flight cycle.\nUniform pure white background, no visible ground, cast shadow or horizon. All members remain inside the original safe area. No camera motion, size changes, motion streaks, afterimages, smoke, sparks or colored aura. Silent visual-only game animation. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "bd0a459d2a16f4987f88fc38a30133d3c2253fed83b800d5d02531caaacb85c7",
+  "effectivePromptSha256": "bd0a459d2a16f4987f88fc38a30133d3c2253fed83b800d5d02531caaacb85c7",
+  "finalPromptSha256": "bf13d086c16941b10d6b1213bdd14cf12306ade5c969da09b991a67253e8b58d",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\prompts\\flying.txt",
+      "bytes": 1329,
+      "sha256": "1791e78a105d1a44019e7ff35644dffe2d7d18744c3722d613f8a58ab4414a2d"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\references\\flyswarm-v02-h3-first-frame.png",
+      "bytes": 484065,
+      "sha256": "8aaeedab99f141acc76a7c78c970e04eb9357ace517899a2fdb5b26909eeed57"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\references\\flyswarm-v02-h3-first-frame.png",
+      "bytes": 484065,
+      "sha256": "8aaeedab99f141acc76a7c78c970e04eb9357ace517899a2fdb5b26909eeed57"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\videos\\flying_contact.png",
+    "bytes": 740806,
+    "sha256": "2e71f9c3e712a5ad8887605a51f5e128f036668934bedcd1c7073dd98d1d28cc"
+  },
+  "elapsedSeconds": 455.693
+}

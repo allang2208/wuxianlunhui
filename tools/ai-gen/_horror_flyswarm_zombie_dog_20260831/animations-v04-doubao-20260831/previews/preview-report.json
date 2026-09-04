@@ -1,0 +1,74 @@
+{
+  "idle": {
+    "video": "videos/zombie-dog-idle-doubao-v01.mp4",
+    "gif": "previews/zombie-dog-idle-doubao-v01.gif",
+    "contact": "previews/zombie-dog-idle-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewDurationSeconds": 5.04,
+    "previewRange": "entire source, no trimming, no retiming",
+    "previewFrames": 121,
+    "gifPlayback": "repeats entire source for viewing; seamless cycle not yet selected",
+    "status": "generated-candidate-awaiting-user-review",
+    "runtimeIntegrated": false
+  },
+  "running": {
+    "video": "videos/zombie-dog-running-doubao-v01.mp4",
+    "gif": "previews/zombie-dog-running-doubao-v01.gif",
+    "contact": "previews/zombie-dog-running-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewDurationSeconds": 5.04,
+    "previewRange": "entire source, no trimming, no retiming",
+    "previewFrames": 121,
+    "gifPlayback": "repeats entire source for viewing; seamless cycle not yet selected",
+    "status": "generated-candidate-awaiting-user-review",
+    "runtimeIntegrated": false
+  },
+  "attack": {
+    "video": "videos/zombie-dog-attack-doubao-v01.mp4",
+    "gif": "previews/zombie-dog-attack-doubao-v01.gif",
+    "contact": "previews/zombie-dog-attack-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewDurationSeconds": 5.04,
+    "previewRange": "entire source, no trimming, no retiming",
+    "previewFrames": 121,
+    "gifPlayback": "once, holds final frame",
+    "status": "generated-candidate-awaiting-user-review",
+    "runtimeIntegrated": false
+  },
+  "dying": {
+    "video": "videos/zombie-dog-dying-doubao-v01.mp4",
+    "gif": "previews/zombie-dog-dying-doubao-v01.gif",
+    "contact": "previews/zombie-dog-dying-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewDurationSeconds": 5.04,
+    "previewRange": "entire source, no trimming, no retiming",
+    "previewFrames": 121,
+    "gifPlayback": "once, holds final frame",
+    "status": "generated-candidate-awaiting-user-review",
+    "runtimeIntegrated": false
+  }
+}

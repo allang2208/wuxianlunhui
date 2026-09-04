@@ -1,0 +1,100 @@
+{
+  "status": "retired_user_selected_original_animation",
+  "round": 2,
+  "provider": "MiniMax H3",
+  "motherChanged": false,
+  "firstFrame": "references/first-frame.png",
+  "firstFrameSource": "../references/flyswarm-v02-h3-first-frame.png",
+  "deathEndFrame": {
+    "provider": "image_gen",
+    "authoredSource": "C:\\Users\\allan\\.codex\\generated_images\\01a052d0-236e-7bc3-80af-b53597574b8a\\exec-a3b95eab-9b85-4b90-a81f-888bc578cf54.png",
+    "authoredCopy": "references/death-end-authored.png",
+    "h3Reference": "references/death-end-frame.png",
+    "prompt": "prompts/death-end-image.txt",
+    "originalSize": [
+      1672,
+      941
+    ],
+    "fittedSize": [
+      1023,
+      576
+    ],
+    "canvasSize": [
+      1024,
+      576
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "preparation": "uniform whole-canvas contain; no per-insect scaling or geometry correction"
+  },
+  "actions": {
+    "idle": {
+      "mode": "free",
+      "seed": 831221,
+      "status": "not_submitted"
+    },
+    "flying": {
+      "mode": "free",
+      "seed": 831222,
+      "status": "not_submitted"
+    },
+    "contact": {
+      "mode": "free",
+      "seed": 831223,
+      "status": "collected_not_used"
+    },
+    "dying": {
+      "mode": "one-way",
+      "seed": 831224,
+      "explicitEndFrame": true,
+      "status": "submitted_before_stop_not_collected"
+    }
+  },
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "frames": 124,
+    "fps": 24,
+    "steps": 20,
+    "visualProfile": "character-asset",
+    "audioMode": "visual-only"
+  },
+  "loopPolicy": "Idle/flying/contact are continuous source clips without forced return or end freeze; a usable loop has not yet been selected or accepted.",
+  "productionReady": false,
+  "runtimeChanges": false,
+  "outputs": {
+    "contact": {
+      "status": "candidate_archived_not_used",
+      "sourceVideo": "videos/contact.mp4",
+      "provenance": "videos/contact.mp4.json",
+      "previewGif": "previews/contact.gif",
+      "decodedFrames": 124,
+      "sourceFps": 24.0,
+      "sourceSize": [
+        1024,
+        576
+      ],
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifSize": [
+        768,
+        432
+      ],
+      "gifDurationMs": 5170,
+      "gifLoops": true,
+      "previewFrameIndexes": [
+        0,
+        31,
+        62,
+        93,
+        123
+      ],
+      "retiming": "none; GIF timing rounded cumulatively to 10ms",
+      "runtimeAcceptance": false
+    }
+  },
+  "stopReason": "User requested retaining the original FlySwarm sheet, interpolation, and 20 percent world-size increase. No H3 candidate is used.",
+  "assetAvailability": "Media and candidate-only scripts moved to ignored recoverable archive; paths are historical, not active inputs.",
+  "cleanupManifest": "tools/ai-gen/_flyswarm_original_rife_20260831/reports/cleanup.json"
+}

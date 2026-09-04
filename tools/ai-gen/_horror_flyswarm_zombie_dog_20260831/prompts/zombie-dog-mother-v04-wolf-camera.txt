@@ -1,0 +1,22 @@
+Use case: stylized-concept.
+Asset type: a single zombie dog mother image for the existing World-122 horror dungeon; a realistic pre-rendered quadruped game sprite on a pure white background.
+
+PRIMARY REQUEST: Rebuild the zombie dog by using the supplied BLACK WOLF and RED WOLF quadruped images as the DIRECT camera and pose references. The user rejected prior dog images because their camera did not match these wolves. Work from these wolf references, not from any earlier dog or humanoid image.
+
+INPUT ROLES:
+Image 1: actual BLACK WOLF runtime idle sprite. This is the PRIMARY geometric guide. Preserve its camera elevation, right-facing body direction, degree of visible back/top planes, foreshortening, silhouette proportions, and arrangement of four planted feet. Treat this as an in-place creature redesign of the black wolf into an undead dog, NOT as an opportunity to rotate the camera.
+Image 2: actual RED WOLF KING runtime idle frame. Supporting canine anatomy, neutral stance, game rendering and camera-consistency reference. Do not copy its red fur or bulky mane.
+
+CAMERA / POSE LOCK:
+Match the first wolf's slightly elevated oblique side view, looking toward the right, with modest chest depth and back width exactly as suggested by the actual reference. Keep the head and torso facing the same direction as the black wolf. The body is shown predominantly from the side with a restrained view of the top surfaces and front; do not turn the dog toward the viewer or into a front-facing portrait. Do not use a steep isometric/bird's-eye view. Do not flatten it into a zoological pure broadside diagram either. Preserve the first image's screen-space relation between hips, shoulders, head and planted paws; four anatomically connected legs, credible near/far leg separation, normal canine limb lengths, no exaggerated low foreground paws. All four feet must rest on one implied ground plane. Neutral stable idle pose, no lunge, leap, running stride or dramatic crouch.
+
+ZOMBIE DOG REDESIGN:
+A lean, gaunt undead hunting hound with pointed ears, elongated canine muzzle and thin tapering tail. Keep the reference's balanced quadruped skeleton and stance, but replace the wolf's thick fluffy fur/mane with patchy short dark brown and ash-gray fur, desiccated hide, sunken flanks, readable rib structure, sparse dry scarred patches and a few restrained exposed bone areas. Retain real muscle/joint volumes instead of turning the entire body into an open skeleton. Mouth very slightly parted with canine teeth visible; small cloudy pale eyes without light bloom. This must read immediately as a zombie DOG, not a healthy wolf, werewolf, wooden statue, reptile or generic monster. No hanging flesh strings or detached debris. No accessories.
+
+RENDER:
+Detailed realistic PBR-style creature render matching the existing wolves, crisp readable head and paw anatomy, coherent fine fur and rough dry skin, soft upper-left studio illumination and readable shading. All parts equally in focus, no depth-of-field blur, no motion blur, no ghosting, no painted smoky edges, no colored outlines or magical effects.
+
+COMPOSITION:
+ONE full-body creature only, centered on an absolutely pure white background. A landscape 3:2 canvas, high resolution. Approximately 75-80 percent canvas width, comfortable white margins around ears, snout, tail and paws. Uniformly fit the creature without stretching. No floor texture, no horizon, no cast shadow, no checkerboard, no labels, no text, no framing, no extra reference animals or comparison layout.
+
+Priority: match the black wolf's camera and standing geometry first, zombie-dog surface identity second, detail third. Do not import the camera from any previous zombie-dog candidate.

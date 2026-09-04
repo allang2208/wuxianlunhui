@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T02:07:08.158247+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\videos\\contact.mp4",
+    "bytes": 1399697,
+    "sha256": "cce45b671aafeeb962766db18b414a6314df3cb5bd48d8189616d8782c17f348"
+  },
+  "promptId": "1af6d29a-06cf-45fc-a5a9-81bc6c1dd798",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 831203,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One continuous shot of the exact realistic carrion-fly swarm from the first frame, same elevated three-quarter orthographic view, same individual fly anatomy, material, lighting and scale. This enemy harms by continuous contact, so the action is an agitated feeding swarm, not a bite or a physical lunge.\nAction: the airborne group tightens gently around its own stationary center, then continuously boils with rapid wingbeats and small independent darting movements. Nearby flies change places in short curved paths within the cloud, keeping their bodies distinct and their size constant. The cloud is at most 10 percent denser than the initial shape; maintain visible gaps and readable foreground insects. A sustained agitated contact/infestation motion with no opponent, victim or prop. Return naturally to the original neutral formation at the end without a freeze or crossfade. No insects are created, lost or joined together.\nThe entire swarm stays centered and fully inside the frame. Fixed camera, pure uniform white background, no ground, shadows or horizon. No large travelling attack, cyclone, vortex, opaque black ball, trails, ghost duplicates, fog, magic or glow. Silent visual-only game animation.",
+  "effectivePrompt": "One continuous shot of the exact realistic carrion-fly swarm from the first frame, same elevated three-quarter orthographic view, same individual fly anatomy, material, lighting and scale. This enemy harms by continuous contact, so the action is an agitated feeding swarm, not a bite or a physical lunge.\nAction: the airborne group tightens gently around its own stationary center, then continuously boils with rapid wingbeats and small independent darting movements. Nearby flies change places in short curved paths within the cloud, keeping their bodies distinct and their size constant. The cloud is at most 10 percent denser than the initial shape; maintain visible gaps and readable foreground insects. A sustained agitated contact/infestation motion with no opponent, victim or prop. Return naturally to the original neutral formation at the end without a freeze or crossfade. No insects are created, lost or joined together.\nThe entire swarm stays centered and fully inside the frame. Fixed camera, pure uniform white background, no ground, shadows or horizon. No large travelling attack, cyclone, vortex, opaque black ball, trails, ghost duplicates, fog, magic or glow. Silent visual-only game animation.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] One continuous shot of the exact realistic carrion-fly swarm from the first frame, same elevated three-quarter orthographic view, same individual fly anatomy, material, lighting and scale. This enemy harms by continuous contact, so the action is an agitated feeding swarm, not a bite or a physical lunge.\nAction: the airborne group tightens gently around its own stationary center, then continuously boils with rapid wingbeats and small independent darting movements. Nearby flies change places in short curved paths within the cloud, keeping their bodies distinct and their size constant. The cloud is at most 10 percent denser than the initial shape; maintain visible gaps and readable foreground insects. A sustained agitated contact/infestation motion with no opponent, victim or prop. Return naturally to the original neutral formation at the end without a freeze or crossfade. No insects are created, lost or joined together.\nThe entire swarm stays centered and fully inside the frame. Fixed camera, pure uniform white background, no ground, shadows or horizon. No large travelling attack, cyclone, vortex, opaque black ball, trails, ghost duplicates, fog, magic or glow. Silent visual-only game animation. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "8b34e7cc7b2165379305c0407ba5e778327452d22d6a98b1b2223bbd1e545397",
+  "effectivePromptSha256": "8b34e7cc7b2165379305c0407ba5e778327452d22d6a98b1b2223bbd1e545397",
+  "finalPromptSha256": "e217678ab5aebd724b0d7594e69211b238bc35dc1d2ce9cd17a65a0c2000875b",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\prompts\\contact.txt",
+      "bytes": 1214,
+      "sha256": "6b2bdaf8013f7f6f4dc47523bcc52772bd5ef7dace49b2b248ad6a4a7128596b"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\references\\flyswarm-v02-h3-first-frame.png",
+      "bytes": 484065,
+      "sha256": "8aaeedab99f141acc76a7c78c970e04eb9357ace517899a2fdb5b26909eeed57"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\references\\flyswarm-v02-h3-first-frame.png",
+      "bytes": 484065,
+      "sha256": "8aaeedab99f141acc76a7c78c970e04eb9357ace517899a2fdb5b26909eeed57"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_flyswarm_zombie_dog_20260831\\flyswarm-v02-h3-20260831\\videos\\contact_contact.png",
+    "bytes": 744270,
+    "sha256": "7f8125f2542815ca97e4e9ae9e307bef3701938ab020fbd8e06985351af44109"
+  },
+  "elapsedSeconds": 455.853
+}

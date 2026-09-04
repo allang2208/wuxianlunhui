@@ -1,0 +1,104 @@
+{
+  "created": "2026-08-31",
+  "scope": "Horror dungeon FlySwarm mother research and approved ZombieDog v04 mother with authorized four-action Doubao video production",
+  "status": "dog-mother-approved-four-doubao-animation-candidates-produced",
+  "dogAnimationProduction": "animations-v04-doubao-20260831/manifest.json",
+  "generator": "built-in image_gen.imagegen",
+  "model": "not exposed by tool",
+  "background": "white mother frames, not transparent runtime sprites",
+  "runtimeIntegrationActive": false,
+  "native3DModelProduced": false,
+  "animationProduced": true,
+  "animationProvider": "doubao-desktop",
+  "currentDogCandidate": "mother/zombie-dog-mother-v04-wolf-camera-white.png",
+  "userRejectedDogCandidates": [
+    "mother/zombie-dog-mother-v01-white.png",
+    "mother/zombie-dog-mother-v02-elevated-white.png",
+    "mother/zombie-dog-mother-v03-monster-camera-white.png"
+  ],
+  "swarmStatus": "original_game_animation_retained_and_interpolated; H3 trials retired",
+  "research": "swarm-research-and-camera-notes.md",
+  "assets": [
+    {
+      "enemyKey": "zombieDog",
+      "candidate": "mother/zombie-dog-mother-v04-wolf-camera-white.png",
+      "prompt": "prompts/zombie-dog-mother-v04-wolf-camera.txt",
+      "references": [
+        "references/black-wolf-runtime-idle.png",
+        "references/red-wolf-runtime-idle-frame-00.png"
+      ],
+      "referenceRoles": [
+        "primary quadruped camera, body orientation and planted-foot geometry",
+        "supporting quadruped camera, anatomy and rendering reference"
+      ],
+      "referenceSources": [
+        "assets/enemies/black_wolf_idle.png",
+        "assets/enemies/red_wolf_king/idle.png"
+      ],
+      "referenceExtraction": "BlackWolf runtime image copied unchanged; RedWolfKing idle frame 0 extracted at x=0,y=0 with native 474x272 dimensions using System.Drawing, no resizing or alteration of the source sheet",
+      "cameraPromptTarget": "match the supplied BlackWolf runtime image; no inferred numerical camera angle or humanoid reference",
+      "status": "user-approved-for-idle-running-attack-dying-doubao-animation",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-bab149f2-6e49-4abb-99f6-5cdf980d6da4.png"
+    },
+    {
+      "enemyKey": "zombieDog",
+      "candidate": "mother/zombie-dog-mother-v03-monster-camera-white.png",
+      "prompt": "prompts/zombie-dog-mother-v03-monster-camera.txt",
+      "references": [
+        "references/coffin-ward-camera-reference.png",
+        "references/medusa-camera-reference.png",
+        "mother/zombie-dog-mother-v01-white.png"
+      ],
+      "referenceRoles": [
+        "primary game camera and material reference",
+        "three-quarter front-right orientation reference",
+        "undead canine identity only; side-profile camera explicitly rejected"
+      ],
+      "referenceSources": [
+        "tools/ai-gen/_horror_normal_mothers_20260830/mother/02-coffin-ward-v02-head-wrap.png",
+        "tools/ai-gen/_medusa_20260825/candidates/medusa-mother-v02-white.png"
+      ],
+      "status": "rejected-by-user-use-black-wolf-and-red-wolf-quadruped-references",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-14326f45-59f2-46ff-a2c7-d8cb45459a7a.png",
+      "availability": "historical_metadata_only_media_archived"
+    },
+    {
+      "enemyKey": "zombieDog",
+      "candidate": "mother/zombie-dog-mother-v02-elevated-white.png",
+      "prompt": "prompts/zombie-dog-mother-v02-elevated.txt",
+      "references": [
+        "mother/zombie-dog-mother-v01-white.png",
+        "references/brown-snake-elevation-reference.png"
+      ],
+      "referenceRoles": [
+        "identity edit target",
+        "elevation reference only, not anatomy"
+      ],
+      "cameraPromptTarget": "approximately 30 degrees above ground and 20 degrees toward front from broadside; not a measured output camera",
+      "status": "rejected-by-user-camera-still-incorrect",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-fb61bfbd-bf03-4931-8144-5c7b83cb5b16.png",
+      "availability": "historical_metadata_only_media_archived"
+    },
+    {
+      "enemyKey": "flySwarm",
+      "candidate": "mother/flyswarm-mother-v01-white.png",
+      "prompt": "prompts/flyswarm-mother-v01.txt",
+      "reference": "references/flyswarm-existing-idle-frame-00.png",
+      "referenceSource": "assets/enemies/flyswarm/idle.png",
+      "referenceExtraction": "native 512x512 frame at x=0,y=0, no resizing; System.Drawing used only to decode/extract the inspection reference because the image viewer could not open the full sheet",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-c50f615b-44ae-4b3d-99e1-a54783dcd44a.png",
+      "availability": "historical_metadata_only_media_archived"
+    },
+    {
+      "enemyKey": "zombieDog",
+      "candidate": "mother/zombie-dog-mother-v01-white.png",
+      "prompt": "prompts/zombie-dog-mother-v01.txt",
+      "reference": "references/zombie-dog-existing-mother-v3.png",
+      "referenceSource": "tools/ai-gen/_zombie_dog_upgrade_20260823/zombie-dog-idle-mother-v3-realistic.png",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-c00609d3-b95a-4508-a910-dcd685d679e6.png",
+      "availability": "historical_metadata_only_media_archived"
+    }
+  ],
+  "retiredMediaAvailability": "Rejected dog v01-v03, unused references and FlySwarm trial media moved to ignored recoverable archive; approved dog v04 and animation sources preserved.",
+  "cleanupManifest": "tools/ai-gen/_flyswarm_original_rife_20260831/reports/cleanup.json"
+}

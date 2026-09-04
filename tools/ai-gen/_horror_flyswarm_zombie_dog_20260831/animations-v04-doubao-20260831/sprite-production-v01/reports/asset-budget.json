@@ -1,0 +1,45 @@
+{
+  "profile": "crowd",
+  "targetMiB": 32,
+  "admissionMiB": 64,
+  "maxTextureSide": 4096,
+  "gpuBytes": 33185392,
+  "gpuMiB": 31.648056030273438,
+  "loadedTextureCount": 4,
+  "walkReusesTextureKey": "enemy_zombie_dog_run",
+  "textureFiles": [
+    {
+      "path": "assets\\enemies\\zombie_dog\\v3\\idle.png",
+      "pngBytes": 1445336,
+      "width": 1398,
+      "height": 1001,
+      "frameCount": 42,
+      "gpuBytes": 5597592
+    },
+    {
+      "path": "assets\\enemies\\zombie_dog\\v3\\running.png",
+      "pngBytes": 985109,
+      "width": 1064,
+      "height": 910,
+      "frameCount": 28,
+      "gpuBytes": 3872960
+    },
+    {
+      "path": "assets\\enemies\\zombie_dog\\v3\\attacking.png",
+      "pngBytes": 2465960,
+      "width": 1490,
+      "height": 2250,
+      "frameCount": 73,
+      "gpuBytes": 13410000
+    },
+    {
+      "path": "assets\\enemies\\zombie_dog\\v3\\dying.png",
+      "pngBytes": 1909105,
+      "width": 1330,
+      "height": 1937,
+      "frameCount": 65,
+      "gpuBytes": 10304840
+    }
+  ],
+  "basis": "Decoded RGBA dimensions including empty grid cells; no duplicate walk texture."
+}
