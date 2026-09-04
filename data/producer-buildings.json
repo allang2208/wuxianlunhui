@@ -535,15 +535,17 @@
     "tex": "interplane_research_hub",
     "assetPath": "assets/terrain/interplane_research_hub.png",
     "thumbnailPath": "assets/ui/building-thumbnails/interplane_research_hub.png",
-    "displayW": 512,
-    "displayH": 543,
-    "footOffsetY": 269,
-    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.759669, "widthRatio": 1, "depthRatio": 0.471455, "scaleMode": "strict" },
+    "displayW": 517,
+    "displayH": 510,
+    "footOffsetY": 253,
+    "visualFootprint": { "centerXRatio": 0.499437, "centerYRatio": 0.74453, "widthRatio": 0.989865, "depthRatio": 0.502188, "scaleMode": "strict" },
+    "assetCutoutHash": "520F93151D54E6A3584FBA036BEA8236D4F32320F1B8B0771B245F1471E97AC5",
     "perimeterTile": "none",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "advanced_research",
+    "upgradeProject": "interplane_research_hub_economy",
     "researchFacility": {
       "clusterType": "interplane_research_hub",
       "workerSlots": 10,
@@ -551,8 +553,8 @@
       "workerEfficiencyShare": 0.1,
       "baseResearchPointsPerSecond": 4
     },
-    "panelDescription": "十名科研协调员满员时提供4点基础科研/秒；全存档只能存在1座，需要共同控制至少5个位面。",
-    "buildWarning": "占位建筑：标准4×4、全存档全局唯一；数值、岗位、集群、前后台结算与存档链已就绪，后续替换同名贴图即可。"
+    "panelDescription": "十名科研协调员满员时提供4点基础科研/秒；完成跨位面科研协同后，可升级课题汇流核心、协调代理网络、档案总线半径与单类协议增效。全存档只能存在1座。",
+    "buildWarning": "标准4×4、全存档全局唯一；需要共同控制至少5个位面，与其他已上岗科研设施相邻可形成科研产业集群。"
   },
   "warehouse": {
     "id": "warehouse",

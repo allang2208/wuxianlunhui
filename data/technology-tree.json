@@ -1,5 +1,5 @@
 {
-  "version": 52,
+  "version": 53,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -98,8 +98,8 @@
     },
     {
       "id": "interplane_research_coordination", "name": "跨位面科研协同", "icon": "🧠", "iconPath": "assets/ui/technology-icons/interplane_research_coordination.png", "branch": "工程", "column": 6, "lane": 2, "researchCost": 5200,
-      "prerequisites": ["planar_observation_science", "ecological_vertical_city"], "requiredWorldCount": 5, "description": "在五个位面之间统一课题、档案与算力调度，开放全存档唯一的跨位面中枢，并为后续终局科技保留扩展节点。",
-      "unlocks": [{ "type": "building", "id": "interplane_research_hub", "label": "跨位面中枢" }]
+      "prerequisites": ["planar_observation_science", "ecological_vertical_city"], "requiredWorldCount": 5, "description": "在五个位面之间统一课题、档案与算力调度，开放全存档唯一的跨位面中枢，并直接开放本栋四项升级。",
+      "unlocks": [{ "type": "building", "id": "interplane_research_hub", "label": "跨位面中枢" }, { "type": "upgrade", "id": "interplane_topic_convergence", "label": "课题汇流核心" }, { "type": "upgrade", "id": "interplane_coordination_automation", "label": "协调代理网络" }, { "type": "upgrade", "id": "interplane_archive_backbone", "label": "档案总线延展" }, { "type": "upgrade", "id": "interplane_protocol_orchestration", "label": "协议编排矩阵" }]
     },
     {
       "id": "wall_battlement_engineering", "name": "女墙构筑", "icon": "🛡️", "iconPath": "assets/ui/technology-icons/wall_battlement_engineering.png", "branch": "工程", "column": 2, "lane": 0, "researchCost": 120,

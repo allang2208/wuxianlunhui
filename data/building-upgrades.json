@@ -153,6 +153,20 @@
       "high_energy_data_calibration": { "name": "数据标定链", "icon": "🔬", "iconImage": "assets/ui/building-upgrades/high-energy-data-calibration.png", "effect": "advancedResearchClusterBonusPerType", "mode": "add", "base": 0.03, "per": 0.002, "maxLevel": 10, "desc": "每种不同科研设施的集群增效由3%提升至5%，总集群增效仍封顶12%。" }
     }
   },
+  "interplane_research_hub_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [5000, 6700, 9000, 12000, 15800, 20600, 26700, 34400, 44200, 56600],
+      "energyByLevel": [8000, 10800, 14500, 19300, 25400, 33200, 43100, 55700, 71800, 92300],
+      "timeBaseMs": 150000,
+      "timeGrowthMs": 15000
+    },
+    "modules": {
+      "interplane_topic_convergence": { "name": "课题汇流核心", "icon": "🧠", "iconImage": "assets/ui/building-upgrades/interplane-topic-convergence.png", "effect": "advancedResearchBasePoints", "mode": "add", "base": 4, "per": 0.1, "maxLevel": 10, "desc": "满员基础科研由4.00提升至5.00点/秒，每级增加0.10点/秒。" },
+      "interplane_coordination_automation": { "name": "协调代理网络", "icon": "🦾", "iconImage": "assets/ui/building-upgrades/interplane-coordination-automation.png", "effect": "advancedResearchWorkerEfficiencyShare", "mode": "add", "base": 0.1, "per": 0.005, "maxLevel": 5, "goldByLevel": [22000, 31000, 44000, 62000, 87000], "energyByLevel": [28000, 40000, 57000, 81000, 114000], "timeByLevel": [180000, 225000, 270000, 330000, 420000], "desc": "每名科研协调员发挥率由10%提升至12.5%，8名即可达到100%发挥，岗位容量仍保持10名。" },
+      "interplane_archive_backbone": { "name": "档案总线延展", "icon": "🗄️", "iconImage": "assets/ui/building-upgrades/interplane-archive-backbone.png", "effect": "advancedResearchClusterRadius", "mode": "add", "base": 640, "per": 128, "maxLevel": 10, "desc": "本栋科研集群识别半径由640px提升至1920px，每级增加128px。" },
+      "interplane_protocol_orchestration": { "name": "协议编排矩阵", "icon": "🔗", "iconImage": "assets/ui/building-upgrades/interplane-protocol-orchestration.png", "effect": "advancedResearchClusterBonusPerType", "mode": "add", "base": 0.03, "per": 0.003, "maxLevel": 10, "desc": "每种不同科研设施的集群增效由3%提升至6%，总集群增效仍封顶12%。" }
+    }
+  },
   "weather_forecast_analysis": {
     "moduleUpgrade": {
       "goldByLevel": [400, 650, 950],
