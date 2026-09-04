@@ -1,0 +1,38 @@
+[
+  {
+    "source": "mother/hamster-mining-expert-mother-v01.png",
+    "output": "animations-v01/references/mining-expert-empty-video-ref-v01.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "pasteOffset": [
+      141,
+      141
+    ],
+    "resampled": false,
+    "operation": "Uniform white padding only. All source pixels preserved; identical canvas transform for empty and loaded state."
+  },
+  {
+    "source": "animations-v01/references/hamster-mining-expert-loaded-v01.png",
+    "output": "animations-v01/references/mining-expert-loaded-video-ref-v01.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "pasteOffset": [
+      141,
+      141
+    ],
+    "resampled": false,
+    "operation": "Uniform white padding only. All source pixels preserved; identical canvas transform for empty and loaded state."
+  }
+]

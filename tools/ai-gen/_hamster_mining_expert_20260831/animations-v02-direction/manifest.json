@@ -1,0 +1,146 @@
+{
+  "version": 2,
+  "task": "仓鼠矿业专家：移动方向修正",
+  "status": "accepted_and_integrated",
+  "provider": "MiniMax H3, explicitly requested by user",
+  "userRequest": "继续抽，开始之前，单位角度朝向一定要在动画工作流中进行确认，如果说没有的话，你要帮我补充，有的话，你以后设置工作规则，开展动画工作流前一定要看",
+  "scope": "Regenerate walking and carry-walking only; preserve accepted character identity and existing mining candidate",
+  "orientationCheck": {
+    "status": "checked_by_assistant_before_video_submission",
+    "checkedOn": "2026-09-01",
+    "workflow": "skill/16b-animation-alignment-and-timing.md#1.1",
+    "identitySource": "../mother/hamster-mining-expert-mother-v01.png",
+    "primaryReference": {
+      "config": "data/hamster-heavy-machine-gunner-config.json",
+      "asset": "assets/companions/hamster_heavy_machine_gunner/running.png",
+      "frameIndices": [
+        0,
+        7,
+        14
+      ],
+      "keyframeUsed": 7,
+      "frameSize": [
+        512,
+        512
+      ],
+      "cols": 8,
+      "extractionCrop": [
+        185,
+        200,
+        376,
+        362
+      ],
+      "inspectionScale": 4
+    },
+    "secondaryReference": {
+      "config": "data/hamster-musketeer-config.json",
+      "asset": "assets/companions/hamster_musketeer/running.png",
+      "frameIndices": [
+        0,
+        7,
+        14
+      ],
+      "purpose": "Facing only, not sprint gait or costume"
+    },
+    "rejectedReference": "Special forces movement is more frontal; military category alone is not camera authority",
+    "evidence": "previews/keyframe-direction-check.png",
+    "priorMovementEvidence": "../direction-review-20260901/military-vs-mining-expert-direction.png",
+    "camera": "Slightly elevated, side-dominant right-facing with some front chest visible; qualitative comparison only, no measured camera degrees",
+    "facing": "Nose, chest, pelvis, knees and boot toes broadly align toward screen-right; new keyframes show front/rear stride separation along screen X rather than frontal standing pose",
+    "motionAxis": "Predominantly screen-horizontal leg alternation; slight natural gait depth remains",
+    "rootMotion": "In-place video root; future entity movement controls world position; no gameplay changes here",
+    "actionKeyframes": [
+      "references/walking-keyframe-v01.png",
+      "references/carry-walking-keyframe-v01.png"
+    ],
+    "loadVariantConsistency": "Same camera, body pose, boots and drill; added brown pack and solid purple crystals",
+    "identityNotes": "Original two-handed drill, copper headlamp helmet, golden/white hamster, leather/dark workwear retained",
+    "userFinalSelection": "Accepted by user: 好的，接入游戏 (2026-09-01)",
+    "remaining": "Runtime visual acceptance remains with user; formal assets completed"
+  },
+  "generation": {
+    "width": 1024,
+    "height": 576,
+    "requestedDurationSeconds": 5.17,
+    "sourceFrames": 124,
+    "sourceFps": 24,
+    "steps": 20,
+    "loop": true,
+    "candidatesPerAction": 1,
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "actions": [
+    {
+      "action": "walking",
+      "status": "candidate_pending_user_acceptance",
+      "seed": 901601,
+      "reference": "references/walking-h3-ref-v01.png",
+      "authoredPrompt": "prompts/walking-h3-v01.txt",
+      "sourceVideo": "videos/walking-h3-v01.mp4",
+      "provenance": "videos/walking-h3-v01.mp4.json",
+      "preview": "previews/walking-h3-v01.gif",
+      "sourceDirectionReview": "Raw 24-point contact and enlarged sampled poses show the intended right-facing body and horizontal stride axis; not runtime acceptance",
+      "contactSheet": "videos/walking-h3-v01_contact.png",
+      "promptId": "9c9b6b2f-775d-4bd5-b707-8355a4155ce2",
+      "elapsedSecondsIncludingQueue": 460.808
+    },
+    {
+      "action": "carry-walking",
+      "status": "candidate_pending_user_acceptance",
+      "seed": 901602,
+      "reference": "references/carry-walking-h3-ref-v01.png",
+      "authoredPrompt": "prompts/carry-walking-h3-v01.txt",
+      "sourceVideo": "videos/carry-walking-h3-v01.mp4",
+      "provenance": "videos/carry-walking-h3-v01.mp4.json",
+      "preview": "previews/carry-walking-h3-v01-tail-clean.gif",
+      "contactSheet": "videos/carry-walking-h3-v01_contact.png",
+      "promptId": "456aa16f-2ef0-4c05-adea-5ab307179867",
+      "elapsedSecondsIncludingQueue": 886.575,
+      "sourceDirectionReview": "Raw 24-point contact and enlarged sampled poses show the intended right-facing body and horizontal stride axis; not runtime acceptance",
+      "originalPreview": "previews/carry-walking-h3-v01.gif",
+      "localCorrection": "previews/carry-tail-cleanup.json"
+    }
+  ],
+  "keyframePreparation": "reference-preparation.json",
+  "keyframeBackend": "built-in image_gen",
+  "runtimeIntegration": {
+    "active": true,
+    "manifest": "../runtime/asset-manifest.json",
+    "preview": "../runtime/accepted-actions.gif"
+  },
+  "backgroundRemoved": false,
+  "rifeApplied": false,
+  "testsAndRuntimeVerification": "Not run; user tests per project agreement",
+  "directionReview": {
+    "status": "source_contact_direction_passed_by_assistant",
+    "evidence": [
+      "videos/walking-h3-v01_contact.png",
+      "videos/carry-walking-h3-v01_contact.png",
+      "previews/walking-h3-v01-detail-contact.png",
+      "previews/carry-walking-h3-v01-detail-contact.png"
+    ],
+    "comparisonPreview": "previews/direction-motion-comparison-tail-clean.gif",
+    "observations": [
+      "Both source clips retain the new side-dominant right-facing chest/pelvis and horizontal leg alternation in sampled phases",
+      "Copper helmet, connected two-hand drill and purple ore backpack remain readable",
+      "Raw carry clip invents a long tail; derivative GIF trims only the tail tip in a recalibrated rear-hip ROI"
+    ],
+    "limitations": [
+      "Final user selection pending",
+      "Opening/ending stride amplitude varies; select a natural loop after motion acceptance",
+      "Loaded gait still has pronounced stepping; weight feel is a user review item",
+      "Tail cleanup permits a short root; original MP4 remains unchanged",
+      "No transparent extraction, RIFE, runtime scale or game integration"
+    ]
+  },
+  "retainedActions": [
+    {
+      "action": "mining",
+      "sourceVideo": "../animations-v01/h3-v01/videos/mining-h3-v01.mp4",
+      "preview": "../animations-v01/h3-v01/previews/mining-h3-v01.gif",
+      "status": "unchanged_previous_candidate_pending_user_acceptance"
+    }
+  ]
+}

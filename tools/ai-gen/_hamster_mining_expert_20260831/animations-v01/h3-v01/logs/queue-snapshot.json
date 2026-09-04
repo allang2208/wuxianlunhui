@@ -1,0 +1,24 @@
+{
+  "runningCount": 1,
+  "pendingCount": 2,
+  "ourJobs": [
+    {
+      "seed": 831601,
+      "promptId": "4429fd28-1507-42d7-81ae-81ee6d006a53",
+      "queueNumber": 52,
+      "state": "queue_running"
+    },
+    {
+      "seed": 831602,
+      "promptId": "27edcf43-188f-4b7b-8ae1-a70e5f3de5d5",
+      "queueNumber": 53,
+      "state": "queue_pending"
+    },
+    {
+      "seed": 831603,
+      "promptId": "eb4363e9-ae42-463d-a0e5-177ad006e42a",
+      "queueNumber": 54,
+      "state": "queue_pending"
+    }
+  ]
+}

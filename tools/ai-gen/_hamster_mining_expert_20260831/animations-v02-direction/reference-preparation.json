@@ -1,0 +1,62 @@
+[
+  {
+    "action": "walking",
+    "generatedSource": "C:\\Users\\allan\\.codex\\generated_images\\01a056cc-b3b8-7ea0-808b-05ffc9c09185\\exec-03a1a0dc-53d9-482d-944f-97ae24ba4785.png",
+    "keyframe": "references/walking-keyframe-v01.png",
+    "copyUnmodified": true,
+    "h3Reference": "references/walking-h3-ref-v01.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "paddedSquare": [
+      1536,
+      1536
+    ],
+    "sourcePasteOffset": [
+      141,
+      141
+    ],
+    "uniformScale": 0.375,
+    "outputSize": [
+      1024,
+      576
+    ],
+    "pasteOffset": [
+      224,
+      0
+    ],
+    "filter": "Lanczos",
+    "perFrameOrPerActionAutoFit": false
+  },
+  {
+    "action": "carry-walking",
+    "generatedSource": "C:\\Users\\allan\\.codex\\generated_images\\01a056cc-b3b8-7ea0-808b-05ffc9c09185\\exec-bb556fe4-73c7-4d27-9c60-edbf8c96e631.png",
+    "keyframe": "references/carry-walking-keyframe-v01.png",
+    "copyUnmodified": true,
+    "h3Reference": "references/carry-walking-h3-ref-v01.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "paddedSquare": [
+      1536,
+      1536
+    ],
+    "sourcePasteOffset": [
+      141,
+      141
+    ],
+    "uniformScale": 0.375,
+    "outputSize": [
+      1024,
+      576
+    ],
+    "pasteOffset": [
+      224,
+      0
+    ],
+    "filter": "Lanczos",
+    "perFrameOrPerActionAutoFit": false
+  }
+]

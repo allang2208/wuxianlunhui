@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T15:42:20.661532+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\videos\\carry-walking-h3-v01.mp4",
+    "bytes": 677592,
+    "sha256": "efb256f66fd45251dca1b976e06c00380e4259038df5267acf29b211640c4e1b"
+  },
+  "promptId": "eb4363e9-ae42-463d-a0e5-177ad006e42a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 831603,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second looping in-place loaded walk of the exact hamster miner in the first and last image. Preserve his stocky golden body, white cheeks, copper headlamp helmet, goggles, dark workwear, leather protection, boots and purple-battery electric drill. The same brown ore backpack remains strapped to his back throughout, visibly filled with the same solid purple crystal cluster. Preserve the detailed stylized game render and three-quarter orientation facing screen right.\n\nHe walks slowly and steadily on an invisible treadmill. Left and right legs visibly alternate with shorter strides and heavier, deliberate footfalls than an unloaded walk. Knees flex gently and the torso leans forward a little to balance the load, without becoming hunched. Complete several left-right walking cycles. Both paws keep holding the two original drill handles in front of his body; the drill bit stays stopped. The backpack follows the torso as a securely strapped load, with only a slight shared bob. Its purple crystal cluster stays seated in the pack, stable in number and shape. End naturally at the starting walking phase.\n\nLocked camera, stable body root at frame center, constant scale and unchanging facing. Complete helmet, backpack, crystals, hands, feet and drill stay visible. Keep equipment, face, fur and lighting consistent. Uniform pure white background, without a cave, ground scenery, loose rocks, dust, cast shadow, text or extra anatomy. The pack and crystals never leave his back or merge into the arms.",
+  "effectivePrompt": "A 5.17-second looping in-place loaded walk of the exact hamster miner in the first and last image. Preserve his stocky golden body, white cheeks, copper headlamp helmet, goggles, dark workwear, leather protection, boots and purple-battery electric drill. The same brown ore backpack remains strapped to his back throughout, visibly filled with the same solid purple crystal cluster. Preserve the detailed stylized game render and three-quarter orientation facing screen right.\n\nHe walks slowly and steadily on an invisible treadmill. Left and right legs visibly alternate with shorter strides and heavier, deliberate footfalls than an unloaded walk. Knees flex gently and the torso leans forward a little to balance the load, without becoming hunched. Complete several left-right walking cycles. Both paws keep holding the two original drill handles in front of his body; the drill bit stays stopped. The backpack follows the torso as a securely strapped load, with only a slight shared bob. Its purple crystal cluster stays seated in the pack, stable in number and shape. End naturally at the starting walking phase.\n\nLocked camera, stable body root at frame center, constant scale and unchanging facing. Complete helmet, backpack, crystals, hands, feet and drill stay visible. Keep equipment, face, fur and lighting consistent. Uniform pure white background, without a cave, ground scenery, loose rocks, dust, cast shadow, text or extra anatomy. The pack and crystals never leave his back or merge into the arms.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second looping in-place loaded walk of the exact hamster miner in the first and last image. Preserve his stocky golden body, white cheeks, copper headlamp helmet, goggles, dark workwear, leather protection, boots and purple-battery electric drill. The same brown ore backpack remains strapped to his back throughout, visibly filled with the same solid purple crystal cluster. Preserve the detailed stylized game render and three-quarter orientation facing screen right.\n\nHe walks slowly and steadily on an invisible treadmill. Left and right legs visibly alternate with shorter strides and heavier, deliberate footfalls than an unloaded walk. Knees flex gently and the torso leans forward a little to balance the load, without becoming hunched. Complete several left-right walking cycles. Both paws keep holding the two original drill handles in front of his body; the drill bit stays stopped. The backpack follows the torso as a securely strapped load, with only a slight shared bob. Its purple crystal cluster stays seated in the pack, stable in number and shape. End naturally at the starting walking phase.\n\nLocked camera, stable body root at frame center, constant scale and unchanging facing. Complete helmet, backpack, crystals, hands, feet and drill stay visible. Keep equipment, face, fur and lighting consistent. Uniform pure white background, without a cave, ground scenery, loose rocks, dust, cast shadow, text or extra anatomy. The pack and crystals never leave his back or merge into the arms. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "9bff654dbb7156b986a5dc84652d73b2380478ca10e0e7a29dc6ee6da7576673",
+  "effectivePromptSha256": "9bff654dbb7156b986a5dc84652d73b2380478ca10e0e7a29dc6ee6da7576673",
+  "finalPromptSha256": "7da51f210f1032c6db4ad675351095a6682b31040162bba8deaa0947d9988169",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\prompts\\carry-walking-h3-v01.txt",
+      "bytes": 1515,
+      "sha256": "4ea2a6811298eb2a5ea38a4dc62e0f5a0d5f05fd635786922f1aafa1747b9c2f"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\references\\mining-expert-loaded-h3-ref-v01.png",
+      "bytes": 316608,
+      "sha256": "44ff6ab48dc3a4bfaaf94b6c278621f9e3a264a11618efe7bf8c4a8f9255f76a"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\references\\mining-expert-loaded-h3-ref-v01.png",
+      "bytes": 316608,
+      "sha256": "44ff6ab48dc3a4bfaaf94b6c278621f9e3a264a11618efe7bf8c4a8f9255f76a"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\videos\\carry-walking-h3-v01_contact.png",
+    "bytes": 399768,
+    "sha256": "89ff62fc62a2c0186c506ed7076cb48c77065a9aa1e363c38598755848c6407a"
+  },
+  "elapsedSeconds": 1182.184
+}

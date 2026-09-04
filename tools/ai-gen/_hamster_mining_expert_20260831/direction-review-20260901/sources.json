@@ -1,0 +1,104 @@
+{
+  "purpose": "Offline pose-direction comparison only; no runtime test or visual scale calibration.",
+  "rows": [
+    {
+      "name": "仓鼠特战",
+      "config": "data\\hamster-special-forces-config.json",
+      "source": "assets\\companions\\hamster_special_forces\\walking.png",
+      "frameCount": 28,
+      "sampleFrames": [
+        0,
+        9,
+        18
+      ],
+      "fixedCrop": [
+        215,
+        222,
+        324,
+        352
+      ],
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "frameRate": 24
+    },
+    {
+      "name": "仓鼠重机枪",
+      "config": "data\\hamster-heavy-machine-gunner-config.json",
+      "source": "assets\\companions\\hamster_heavy_machine_gunner\\running.png",
+      "frameCount": 22,
+      "sampleFrames": [
+        0,
+        7,
+        14
+      ],
+      "fixedCrop": [
+        195,
+        210,
+        366,
+        352
+      ],
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "frameRate": 24
+    },
+    {
+      "name": "仓鼠火枪",
+      "config": "data\\hamster-musketeer-config.json",
+      "source": "assets\\companions\\hamster_musketeer\\running.png",
+      "frameCount": 22,
+      "sampleFrames": [
+        0,
+        7,
+        14
+      ],
+      "fixedCrop": [
+        129,
+        165,
+        423,
+        364
+      ],
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "frameRate": 24.0
+    },
+    {
+      "name": "仓鼠矿工",
+      "config": "data\\hamster-miner-config.json",
+      "source": "assets\\companions\\hamster_miner\\walking.png",
+      "frameCount": 24,
+      "sampleFrames": [
+        0,
+        8,
+        16
+      ],
+      "fixedCrop": [
+        38,
+        29,
+        480,
+        487
+      ],
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "frameRate": 24.0
+    },
+    {
+      "name": "矿业专家 · 当前移动",
+      "source": "tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\videos\\walking-h3-v01.mp4",
+      "sampleFrames": [
+        21,
+        43,
+        64
+      ],
+      "fixedCrop": [
+        300,
+        40,
+        790,
+        544
+      ]
+    }
+  ]
+}

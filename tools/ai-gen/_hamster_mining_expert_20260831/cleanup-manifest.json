@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-01",
+  "authorization": "User requested cleanup of task-produced rejected files before Git update",
+  "removed": [
+    {
+      "scope": "animations-v01/h3-v01 walking and carry-walking MP4/contact/GIF artifacts",
+      "reason": "User rejected their frontal movement direction; current sources are in animations-v02-direction"
+    },
+    {
+      "scope": "animations-v01/h3-v01/prune-carry-tail.py",
+      "reason": "One-time derivative script depended on a removed rejected carry video"
+    }
+  ],
+  "retained": [
+    "mother/",
+    "animations-v01/h3-v01/videos/mining-h3-v01.mp4",
+    "animations-v01/h3-v01/videos/*.mp4.json",
+    "animations-v01/h3-v01/prompts/",
+    "animations-v02-direction/",
+    "runtime/",
+    "upgrade-icons/"
+  ],
+  "removedBinaryMiB": 35.64
+}

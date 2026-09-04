@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T16:31:15.299935+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v02-direction\\videos\\walking-h3-v01.mp4",
+    "bytes": 582513,
+    "sha256": "4400fbbe2640c517bcffb335ce9b63225a81748224fb079432998ad537f996e0"
+  },
+  "promptId": "9c9b6b2f-775d-4bd5-b707-8355a4155ce2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901601,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second continuous looping walk in place of the exact hamster mining expert in the first and last image. Preserve the golden body, white cheeks, copper headlamp helmet, goggles, dark workwear, leather protection and the single purple-battery electric drill. Use the reference's SIDE-DOMINANT RIGHT-FACING walking pose and slightly elevated camera. The nose, chest, pelvis, knees and boot toes keep pointing screen-right together. Keep only the narrow front-chest visibility in the reference. The leg swing axis is horizontal across the screen, not diagonally toward the viewer.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants, weight rolls over it, the rear boot lifts and swings forward to the RIGHT. Alternate legs through several steady ordinary walking cycles, with modest stride and gentle torso bob. One foot always supports the body. The body root stays at the same screen location. Both paws continuously grip their original drill handles; the entire rigid drill moves gently with the torso and its bit is stopped. Continue stepping all the way to the end, returning to the initial moving phase without a neutral standing pause. No ore backpack on this unloaded version. Tail stays completely concealed by clothing throughout.\n\nFixed camera, zoom and body scale; pure white background. Keep the full helmet, boots and complete drill inside the frame. Preserve side-facing direction and connected equipment for the entire clip. No turning to camera, running, hopping, translation across the canvas, camera motion, dust, scenery, captions, extra anatomy or new tools.",
+  "effectivePrompt": "A 5.17-second continuous looping walk in place of the exact hamster mining expert in the first and last image. Preserve the golden body, white cheeks, copper headlamp helmet, goggles, dark workwear, leather protection and the single purple-battery electric drill. Use the reference's SIDE-DOMINANT RIGHT-FACING walking pose and slightly elevated camera. The nose, chest, pelvis, knees and boot toes keep pointing screen-right together. Keep only the narrow front-chest visibility in the reference. The leg swing axis is horizontal across the screen, not diagonally toward the viewer.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants, weight rolls over it, the rear boot lifts and swings forward to the RIGHT. Alternate legs through several steady ordinary walking cycles, with modest stride and gentle torso bob. One foot always supports the body. The body root stays at the same screen location. Both paws continuously grip their original drill handles; the entire rigid drill moves gently with the torso and its bit is stopped. Continue stepping all the way to the end, returning to the initial moving phase without a neutral standing pause. No ore backpack on this unloaded version. Tail stays completely concealed by clothing throughout.\n\nFixed camera, zoom and body scale; pure white background. Keep the full helmet, boots and complete drill inside the frame. Preserve side-facing direction and connected equipment for the entire clip. No turning to camera, running, hopping, translation across the canvas, camera motion, dust, scenery, captions, extra anatomy or new tools.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second continuous looping walk in place of the exact hamster mining expert in the first and last image. Preserve the golden body, white cheeks, copper headlamp helmet, goggles, dark workwear, leather protection and the single purple-battery electric drill. Use the reference's SIDE-DOMINANT RIGHT-FACING walking pose and slightly elevated camera. The nose, chest, pelvis, knees and boot toes keep pointing screen-right together. Keep only the narrow front-chest visibility in the reference. The leg swing axis is horizontal across the screen, not diagonally toward the viewer.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants, weight rolls over it, the rear boot lifts and swings forward to the RIGHT. Alternate legs through several steady ordinary walking cycles, with modest stride and gentle torso bob. One foot always supports the body. The body root stays at the same screen location. Both paws continuously grip their original drill handles; the entire rigid drill moves gently with the torso and its bit is stopped. Continue stepping all the way to the end, returning to the initial moving phase without a neutral standing pause. No ore backpack on this unloaded version. Tail stays completely concealed by clothing throughout.\n\nFixed camera, zoom and body scale; pure white background. Keep the full helmet, boots and complete drill inside the frame. Preserve side-facing direction and connected equipment for the entire clip. No turning to camera, running, hopping, translation across the canvas, camera motion, dust, scenery, captions, extra anatomy or new tools. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "21730b8c9fd82881398f08556b66beeeec47f8333e8e863867e459bb1016268e",
+  "effectivePromptSha256": "21730b8c9fd82881398f08556b66beeeec47f8333e8e863867e459bb1016268e",
+  "finalPromptSha256": "6fda6bfb8686df50bf543efdad12b6db8c7c41be17d5a472b4e40aabc2a55ce1",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v02-direction\\prompts\\walking-h3-v01.txt",
+      "bytes": 1606,
+      "sha256": "9534a503910afbec12c947892398d2aa101165bdb5eaf774b3788535e00be77c"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v02-direction\\references\\walking-h3-ref-v01.png",
+      "bytes": 286367,
+      "sha256": "ad1b940c4a48a9bf7a013cf08cb598c36ff9a13895b411d9ea4ae56c5d92b02f"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v02-direction\\references\\walking-h3-ref-v01.png",
+      "bytes": 286367,
+      "sha256": "ad1b940c4a48a9bf7a013cf08cb598c36ff9a13895b411d9ea4ae56c5d92b02f"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v02-direction\\videos\\walking-h3-v01_contact.png",
+    "bytes": 319058,
+    "sha256": "a58db6163824197195be197c4db6018d627ca343f13e006092943d9f2e8fcf4e"
+  },
+  "elapsedSeconds": 460.808
+}

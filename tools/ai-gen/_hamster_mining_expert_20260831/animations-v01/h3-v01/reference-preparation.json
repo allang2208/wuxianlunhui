@@ -1,0 +1,50 @@
+[
+  {
+    "input": "tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\references\\mining-expert-empty-video-ref-v01.png",
+    "output": "tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\references\\mining-expert-empty-h3-ref-v01.png",
+    "inputSize": [
+      1536,
+      1536
+    ],
+    "outputSize": [
+      1024,
+      576
+    ],
+    "uniformScale": 0.375,
+    "resizedSquareSize": [
+      576,
+      576
+    ],
+    "pasteOffset": [
+      224,
+      0
+    ],
+    "filter": "Lanczos",
+    "characterRedesigned": false,
+    "note": "Identical uniform transform for both references; added horizontal white space, no anisotropic stretch."
+  },
+  {
+    "input": "tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\references\\mining-expert-loaded-video-ref-v01.png",
+    "output": "tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\references\\mining-expert-loaded-h3-ref-v01.png",
+    "inputSize": [
+      1536,
+      1536
+    ],
+    "outputSize": [
+      1024,
+      576
+    ],
+    "uniformScale": 0.375,
+    "resizedSquareSize": [
+      576,
+      576
+    ],
+    "pasteOffset": [
+      224,
+      0
+    ],
+    "filter": "Lanczos",
+    "characterRedesigned": false,
+    "note": "Identical uniform transform for both references; added horizontal white space, no anisotropic stretch."
+  }
+]

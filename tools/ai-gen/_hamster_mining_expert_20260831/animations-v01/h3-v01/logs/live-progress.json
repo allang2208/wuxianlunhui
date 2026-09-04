@@ -1,0 +1,20 @@
+{
+  "4429fd28-1507-42d7-81ae-81ee6d006a53": {
+    "action": "mining",
+    "stage": "sampling",
+    "step": 20,
+    "total": 20
+  },
+  "27edcf43-188f-4b7b-8ae1-a70e5f3de5d5": {
+    "action": "walking",
+    "stage": "sampling",
+    "step": 20,
+    "total": 20
+  },
+  "eb4363e9-ae42-463d-a0e5-177ad006e42a": {
+    "action": "carry-walking",
+    "stage": "sampling",
+    "step": 20,
+    "total": 20
+  }
+}

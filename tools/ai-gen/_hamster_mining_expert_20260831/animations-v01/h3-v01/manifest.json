@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "unitKey": "hamster_mining_expert",
+  "status": "superseded_except_accepted_mining_source",
+  "authorization": {
+    "userInstruction": "使用minimax管线",
+    "provider": "MiniMax H3 on project LAN RTX 5080",
+    "endpoint": "http://192.168.3.142:8188",
+    "doubaoNotUsed": true
+  },
+  "parameters": {
+    "durationRequested": 5.17,
+    "expectedFrames": 124,
+    "expectedFps": 24,
+    "width": 1024,
+    "height": 576,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "actionMode": "loop",
+    "firstAndLastFrame": "same reference per action",
+    "visualProfile": "character-asset",
+    "audioMode": "visual-only",
+    "promptFormat": "h3"
+  },
+  "referencePreparation": "reference-preparation.json",
+  "actions": [
+    {
+      "key": "mining",
+      "name": "挖矿",
+      "status": "accepted_runtime_source",
+      "seed": 831601,
+      "reference": "references/mining-expert-empty-h3-ref-v01.png",
+      "prompt": "prompts/mining-h3-v01.txt",
+      "promptId": "4429fd28-1507-42d7-81ae-81ee6d006a53",
+      "video": "videos/mining-h3-v01.mp4",
+      "provenance": "videos/mining-h3-v01.mp4.json",
+      "contact": "videos/mining-h3-v01_contact.png",
+      "detailContact": "previews/mining-h3-v01-detail-contact.png",
+      "preview": "previews/mining-h3-v01.gif",
+      "sourceFrames": 124,
+      "sourceFps": 24.0,
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifDurationMs": 5170,
+      "userApproval": "accepted by 2026-09-01 game integration request",
+      "review": {
+        "observations": [
+          "Stable three-quarter facing and complete character/tool in the sampled frames.",
+          "Visible small pressure cycles; action amplitude is gentle."
+        ],
+        "limitations": [
+          "Drill rotation readability remains for user review at playback scale."
+        ]
+      }
+    },
+    {
+      "key": "walking",
+      "name": "普通移动",
+      "status": "direction_revision_required",
+      "seed": 831602,
+      "reference": "references/mining-expert-empty-h3-ref-v01.png",
+      "prompt": "prompts/walking-h3-v01.txt",
+      "promptId": "27edcf43-188f-4b7b-8ae1-a70e5f3de5d5",
+      "video": null,
+      "provenance": "videos/walking-h3-v01.mp4.json",
+      "contact": null,
+      "detailContact": null,
+      "preview": null,
+      "removedArtifactPaths": [
+        "videos/walking-h3-v01.mp4",
+        "videos/walking-h3-v01_contact.png",
+        "previews/walking-h3-v01-detail-contact.png",
+        "previews/walking-h3-v01.gif"
+      ],
+      "sourceFrames": 124,
+      "sourceFps": 24.0,
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifDurationMs": 5170,
+      "userApproval": "pending",
+      "review": {
+        "observations": [
+          "Alternating legs are visible while both hands carry the drill.",
+          "Reference facing and equipment remain recognizable."
+        ],
+        "limitations": [
+          "Ends with a short return to a neutral stance; a final seamless gait needs cycle selection.",
+          "A small rounded tail-root-like tuft becomes visible below the rear pouch in some phases.",
+          "User flagged movement perspective; military comparison confirms overly frontal chest/pelvis and step axis. Rebuild a right-facing gait reference before new H3 generation."
+        ]
+      }
+    },
+    {
+      "key": "carry-walking",
+      "name": "背矿移动",
+      "status": "direction_revision_required",
+      "seed": 831604,
+      "reference": "references/mining-expert-loaded-h3-ref-v01.png",
+      "prompt": "prompts/carry-walking-h3-v02.txt",
+      "promptId": "cbcf2d9f-5367-43f2-9db4-6eec690b1760",
+      "video": null,
+      "provenance": "videos/carry-walking-h3-v02.mp4.json",
+      "contact": null,
+      "detailContact": null,
+      "preview": null,
+      "removedArtifactPaths": [
+        "videos/carry-walking-h3-v01.mp4",
+        "videos/carry-walking-h3-v01_contact.png",
+        "videos/carry-walking-h3-v02.mp4",
+        "videos/carry-walking-h3-v02_contact.png",
+        "previews/carry-walking-h3-v01-detail-contact.png",
+        "previews/carry-walking-h3-v01.gif",
+        "previews/carry-walking-h3-v02-detail-contact.png",
+        "previews/carry-walking-h3-v02-tail-clean-contact.png",
+        "previews/carry-walking-h3-v02-tail-clean.gif",
+        "previews/carry-walking-h3-v02.gif"
+      ],
+      "sourceFrames": 124,
+      "sourceFps": 24.0,
+      "sourceDurationSeconds": 5.166666666666667,
+      "gifDurationMs": 5170,
+      "userApproval": "pending",
+      "review": {
+        "observations": [
+          "Purple crystals and the strapped backpack remain visible in sampled frames.",
+          "Alternating loaded walking motion preserved without reframing or retiming.",
+          "Extra pointed tail tips were locally removed from the derivative GIF; pouch and legs remain intact in the cleanup comparison."
+        ],
+        "limitations": [
+          "A short thick tail root may remain; not a claim that the generated video has no tail.",
+          "Raw H3 MP4 retains the original tail; use the cleanup script to reproduce the delivered derivative.",
+          "Loaded weight difference remains modest. Ends with a short neutral stance, so a runtime loop needs cycle selection.",
+          "User flagged movement perspective; military comparison confirms overly frontal chest/pelvis and step axis. Rebuild a right-facing gait reference before new H3 generation."
+        ]
+      },
+      "rejectedCandidate": {
+        "video": null,
+        "removedVideoPath": "videos/carry-walking-h3-v01.mp4",
+        "reason": "Pointed extra tail not present in reference",
+        "seed": 831603
+      },
+      "correction": {
+        "prompt": "prompts/carry-walking-h3-v02.txt",
+        "seed": 831604,
+        "plannedVideo": null,
+        "removedVideoPath": "videos/carry-walking-h3-v02.mp4",
+        "scope": "Rear silhouette/tail only; reference and production parameters unchanged.",
+        "status": "completed_generation_then_local_preview_cleanup",
+        "rawVideoStillContainsTail": true,
+        "cleanupScript": null,
+        "removedCleanupScript": "prune-carry-tail.py",
+        "cleanupReport": "previews/carry-tail-cleanup.json",
+        "comparison": null,
+        "removedComparisonPath": "previews/carry-tail-cleanup-comparison.png",
+        "sourceVideoUnmodified": true,
+        "removedPixelsTotal": 15961
+      },
+      "rawPreview": null
+    }
+  ],
+  "runtimeIntegrationActive": false,
+  "spriteSheetsCreated": false,
+  "runtimeApproved": false,
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement.",
+  "generationSubmittedCount": 4,
+  "reviewMethod": "Viewed offline 24-point source contact sheets, 12-point fixed-crop detail contact sheets and a 4-frame tail-removal mask comparison. Full 124-frame source timing retained in exported GIFs. No game/runtime verification.",
+  "sourceVideosGenerated": 4,
+  "deliveredActionCount": 3,
+  "candidateUserApproval": "pending",
+  "rifeApplied": false,
+  "directionReview": "../../direction-review-20260901/README.md"
+}

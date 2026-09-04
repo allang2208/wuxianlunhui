@@ -1,0 +1,49 @@
+{
+  "tool": "builtin image_gen",
+  "date": "2026-09-01",
+  "styleAuthority": "assets/ui/building-upgrades/attack-damage.png",
+  "basePrompt": "Create ONE production game UI upgrade icon. Reference image is STYLE/FRAME authority only; replace crossed swords with requested glyph. EXACT same clipped-corner dark gunmetal square frame, four round silver rivets, black/navy recessed circular inset, polished beveled SILVER relief, restrained icy cyan backlight. Strong readable compact silhouette at 48px. Center fills inner circle but never overlaps frame. Square composition, flat front-facing badge, minimal exterior margin. Outside badge genuinely transparent. No text, digits, letters, watermark, UI labels, grids, extra badges, yellow, hazard stripes, terrain. ",
+  "icons": [
+    {
+      "name": "guild-alloy-drill",
+      "prompt": "A single short powerful beveled silver spiral mining drill bit breaking a small faceted PURPLE crystal. Clear compact drill-bit emblem.",
+      "source": "C:/Users/allan/.codex/generated_images/01a056cc-b3b8-7ea0-808b-05ffc9c09185/exec-891a8896-d5b9-4558-8e71-ead55843a684.png",
+      "rawWorkspacePath": "tools/ai-gen/_hamster_mining_expert_20260831/upgrade-icons/raw/guild-alloy-drill.png",
+      "runtimePath": "assets/ui/building-upgrades/guild-alloy-drill.png",
+      "lightweightPath": "assets/ui/runtime-icons/ui/building-upgrades/guild-alloy-drill.png"
+    },
+    {
+      "name": "guild-high-speed-motor",
+      "prompt": "A compact industrial electric motor rotor inside a partial gear, with two restrained cyan curved arrows indicating rotation. Clear motor emblem, no drill.",
+      "source": "C:/Users/allan/.codex/generated_images/01a056cc-b3b8-7ea0-808b-05ffc9c09185/exec-daaa6ab4-a87c-451e-82d3-031ed39be491.png",
+      "rawWorkspacePath": "tools/ai-gen/_hamster_mining_expert_20260831/upgrade-icons/raw/guild-high-speed-motor.png",
+      "runtimePath": "assets/ui/building-upgrades/guild-high-speed-motor.png",
+      "lightweightPath": "assets/ui/runtime-icons/ui/building-upgrades/guild-high-speed-motor.png"
+    },
+    {
+      "name": "guild-crystal-pack",
+      "prompt": "A sturdy metal framed miner backpack with a few large solid PURPLE faceted crystals protruding from the top. Clear pack silhouette, front three-quarter emblem.",
+      "source": "C:/Users/allan/.codex/generated_images/01a056cc-b3b8-7ea0-808b-05ffc9c09185/exec-87e09f10-7e11-42af-b81f-147b3dfc9bb1.png",
+      "rawWorkspacePath": "tools/ai-gen/_hamster_mining_expert_20260831/upgrade-icons/raw/guild-crystal-pack.png",
+      "runtimePath": "assets/ui/building-upgrades/guild-crystal-pack.png",
+      "lightweightPath": "assets/ui/runtime-icons/ui/building-upgrades/guild-crystal-pack.png"
+    },
+    {
+      "name": "guild-powered-boots",
+      "prompt": "A single stout reinforced miner work boot with a small mechanical heel piston, angled facing right and two short cyan speed streaks. Clear boot emblem.",
+      "source": "C:/Users/allan/.codex/generated_images/01a056cc-b3b8-7ea0-808b-05ffc9c09185/exec-a6fa924d-011c-4869-b0c1-0ec53f944d63.png",
+      "rawWorkspacePath": "tools/ai-gen/_hamster_mining_expert_20260831/upgrade-icons/raw/guild-powered-boots.png",
+      "runtimePath": "assets/ui/building-upgrades/guild-powered-boots.png",
+      "lightweightPath": "assets/ui/runtime-icons/ui/building-upgrades/guild-powered-boots.png"
+    },
+    {
+      "name": "guild-expert-staff",
+      "prompt": "Three small silver hamster heads wearing miner helmets with headlamps, a larger central hamster and two smaller behind. Stylized compact workforce emblem, no bodies.",
+      "source": "C:/Users/allan/.codex/generated_images/01a056cc-b3b8-7ea0-808b-05ffc9c09185/exec-64af2b5d-ec80-40cc-a837-d98e7293f490.png",
+      "rawWorkspacePath": "tools/ai-gen/_hamster_mining_expert_20260831/upgrade-icons/raw/guild-expert-staff.png",
+      "runtimePath": "assets/ui/building-upgrades/guild-expert-staff.png",
+      "lightweightPath": "assets/ui/runtime-icons/ui/building-upgrades/guild-expert-staff.png"
+    }
+  ],
+  "revision": "Powered boots: removed yellow/gold accents via builtin imagegen edit; exact pose and frame retained."
+}

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T15:27:12.764523+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\videos\\mining-h3-v01.mp4",
+    "bytes": 600516,
+    "sha256": "9137a4a8036e49dac027d699ea3fe9c8db6acfd4aadfab7adf5fcf9949fc13ea"
+  },
+  "promptId": "4429fd28-1507-42d7-81ae-81ee6d006a53",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 831601,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second looping game-character mining animation on a uniform pure white background. Use the supplied first and last image as the identity, body proportions, equipment and framing authority: one stocky golden hamster with white cheeks, copper miner helmet and lamp, raised goggles, dark workwear, brown leather protection and boots, holding one industrial electric drill with a small purple crystal battery. Preserve the detailed stylized game render and the same three-quarter orientation facing screen right.\n\nBoth boots stay planted, knees slightly bent. Each paw keeps its original grip on the rear trigger handle or front support handle. The spiral drill bit spins around its own axis. The hamster leans gently into the drill, applies pressure toward an invisible mining surface just beyond the tip, then eases back slightly. Repeat three smooth, small pressure cycles across the clip with continuous subtle vibration in the forearms. The motor, handles, battery and bit remain rigid connected parts. The drill remains directed toward the lower right, with its tip visible and clear of the floor. This is drilling in place, not swinging, stabbing or walking. Only the character and tool appear; the mining target remains absent from the image.\n\nLocked camera, steady scale, stable body root and facing. Complete helmet, feet, hands and drill stay inside the frame. The last pose returns naturally to the initial braced pose. Keep the original lighting, face and clothing stable. Pure white background throughout, without scenery, cast shadow, dust, sparks, text or extra anatomy.",
+  "effectivePrompt": "A 5.17-second looping game-character mining animation on a uniform pure white background. Use the supplied first and last image as the identity, body proportions, equipment and framing authority: one stocky golden hamster with white cheeks, copper miner helmet and lamp, raised goggles, dark workwear, brown leather protection and boots, holding one industrial electric drill with a small purple crystal battery. Preserve the detailed stylized game render and the same three-quarter orientation facing screen right.\n\nBoth boots stay planted, knees slightly bent. Each paw keeps its original grip on the rear trigger handle or front support handle. The spiral drill bit spins around its own axis. The hamster leans gently into the drill, applies pressure toward an invisible mining surface just beyond the tip, then eases back slightly. Repeat three smooth, small pressure cycles across the clip with continuous subtle vibration in the forearms. The motor, handles, battery and bit remain rigid connected parts. The drill remains directed toward the lower right, with its tip visible and clear of the floor. This is drilling in place, not swinging, stabbing or walking. Only the character and tool appear; the mining target remains absent from the image.\n\nLocked camera, steady scale, stable body root and facing. Complete helmet, feet, hands and drill stay inside the frame. The last pose returns naturally to the initial braced pose. Keep the original lighting, face and clothing stable. Pure white background throughout, without scenery, cast shadow, dust, sparks, text or extra anatomy.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second looping game-character mining animation on a uniform pure white background. Use the supplied first and last image as the identity, body proportions, equipment and framing authority: one stocky golden hamster with white cheeks, copper miner helmet and lamp, raised goggles, dark workwear, brown leather protection and boots, holding one industrial electric drill with a small purple crystal battery. Preserve the detailed stylized game render and the same three-quarter orientation facing screen right.\n\nBoth boots stay planted, knees slightly bent. Each paw keeps its original grip on the rear trigger handle or front support handle. The spiral drill bit spins around its own axis. The hamster leans gently into the drill, applies pressure toward an invisible mining surface just beyond the tip, then eases back slightly. Repeat three smooth, small pressure cycles across the clip with continuous subtle vibration in the forearms. The motor, handles, battery and bit remain rigid connected parts. The drill remains directed toward the lower right, with its tip visible and clear of the floor. This is drilling in place, not swinging, stabbing or walking. Only the character and tool appear; the mining target remains absent from the image.\n\nLocked camera, steady scale, stable body root and facing. Complete helmet, feet, hands and drill stay inside the frame. The last pose returns naturally to the initial braced pose. Keep the original lighting, face and clothing stable. Pure white background throughout, without scenery, cast shadow, dust, sparks, text or extra anatomy. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "201e4a14cd5ee6ac95febdea1eb69fc8e1daa5939fc23e9ce72c55322778b4ea",
+  "effectivePromptSha256": "201e4a14cd5ee6ac95febdea1eb69fc8e1daa5939fc23e9ce72c55322778b4ea",
+  "finalPromptSha256": "f65df2aa6e97d32974cbf7f84daae06c723ad5f0af0d419d34cd9585cf110618",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\prompts\\mining-h3-v01.txt",
+      "bytes": 1590,
+      "sha256": "a43b585be59a3d2c199d3e00b8c9f4e2c1ea52712e520c3c58e6008409ace524"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\references\\mining-expert-empty-h3-ref-v01.png",
+      "bytes": 252713,
+      "sha256": "b6c8f40fb075e454cf34cdcff25528c94786ea75628b8fb43e8e1d5953a93fec"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\references\\mining-expert-empty-h3-ref-v01.png",
+      "bytes": 252713,
+      "sha256": "b6c8f40fb075e454cf34cdcff25528c94786ea75628b8fb43e8e1d5953a93fec"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_mining_expert_20260831\\animations-v01\\h3-v01\\videos\\mining-h3-v01_contact.png",
+    "bytes": 410287,
+    "sha256": "fbc4f49eae60b22e0196b31f9b78ee9efa1e82bfd8907125a974712b56e82e86"
+  },
+  "elapsedSeconds": 460.873
+}

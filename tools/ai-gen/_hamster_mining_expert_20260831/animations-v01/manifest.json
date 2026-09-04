@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "unitKey": "hamster_mining_expert",
+  "request": "可用，继续生成挖矿、移动，背负矿石移动的动画",
+  "status": "superseded_by_user_selected_minimax_h3",
+  "providerPlanned": "doubao-desktop",
+  "modelPlanned": "Seedance 2.0 Mini",
+  "requestedDurationSeconds": 5,
+  "requestedAspectRatio": "1:1",
+  "freeQuotaOnly": true,
+  "acceptedMother": "../mother/hamster-mining-expert-mother-v01.png",
+  "loadedReferenceGeneration": {
+    "backend": "built-in image_gen",
+    "sourceMother": "../mother/hamster-mining-expert-mother-v01.png",
+    "prompt": "prompts/loaded-reference-v01.txt",
+    "rawGeneratedSource": "C:/Users/allan/.codex/generated_images/01a056cc-b3b8-7ea0-808b-05ffc9c09185/exec-c0035b2b-8bd4-4bf1-8251-14735bce57cd.png",
+    "unmodifiedCopy": "references/hamster-mining-expert-loaded-v01.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "approval": "derived reference prepared for requested carrying animation; not separately selected as final sprite"
+  },
+  "referencePreparation": "references/video-reference-preparation.json",
+  "preflight": {
+    "mode": "fill-only in fresh conversation",
+    "action": "mining",
+    "referenceUploaded": false,
+    "videoSubmitted": false,
+    "verifiedEffectivePromptChars": 667,
+    "verifiedEffectivePromptSha256": "bd90b570e6fad61e2ca90b9f012b92eb4fa234761d54f9808a2f32e59467ce87",
+    "effectivePromptSuffix": "\nThe motion forms one complete cycle and returns to the exact starting pose, position, scale, and camera framing at the end."
+  },
+  "authorizationBlock": {
+    "source": "tool automatic safety review",
+    "blockedBeforeExecution": true,
+    "reason": "Existing standing authorization covers designated LAN ComfyUI only; Doubao upload of project character references and prompts requires explicit authorization.",
+    "authorizationRequested": "Send these two padded character references and three action prompts to Doubao for this three-animation request, free quota only.",
+    "generationSubmittedCount": 0,
+    "resolution": "User selected MiniMax pipeline; no Doubao upload authorization needed for the chosen LAN path."
+  },
+  "actions": [
+    {
+      "key": "mining",
+      "name": "挖矿",
+      "status": "not_submitted",
+      "reference": "references/mining-expert-empty-video-ref-v01.png",
+      "prompt": "prompts/mining-v01.txt",
+      "loopRequested": true,
+      "plannedVideo": "videos/mining-v01.mp4",
+      "plannedPreview": "previews/mining-v01.gif",
+      "actualVideo": null
+    },
+    {
+      "key": "walking",
+      "name": "普通移动",
+      "status": "not_submitted",
+      "reference": "references/mining-expert-empty-video-ref-v01.png",
+      "prompt": "prompts/walking-v01.txt",
+      "loopRequested": true,
+      "plannedVideo": "videos/walking-v01.mp4",
+      "plannedPreview": "previews/walking-v01.gif",
+      "actualVideo": null
+    },
+    {
+      "key": "carry-walking",
+      "name": "背矿移动",
+      "status": "not_submitted",
+      "reference": "references/mining-expert-loaded-video-ref-v01.png",
+      "prompt": "prompts/carry-walking-v01.txt",
+      "loopRequested": true,
+      "plannedVideo": "videos/carry-walking-v01.mp4",
+      "plannedPreview": "previews/carry-walking-v01.gif",
+      "actualVideo": null
+    }
+  ],
+  "runtimeIntegrationActive": false,
+  "runtimeAssetsWritten": false,
+  "sourceVideosGenerated": false,
+  "spriteSheetsCreated": false,
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement",
+  "activeManifest": "h3-v01/manifest.json"
+}

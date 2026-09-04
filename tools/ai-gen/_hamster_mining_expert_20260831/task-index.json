@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "task": "矿洞位面 · 仓鼠矿业专家形象设计",
+  "unitKey": "hamster_mining_expert",
+  "name": "仓鼠矿业专家",
+  "intendedBuilding": "mining_guild",
+  "status": "integrated_pending_user_runtime_acceptance",
+  "userRequest": "接下来设计单位，仓鼠矿业专家，手握电钻的仓鼠矿工形象",
+  "output": "mother/hamster-mining-expert-mother-v01.png",
+  "prompt": "prompts/mining-expert-v01.txt",
+  "sourceOutput": null,
+  "sourcePrompt": null,
+  "generation": {
+    "backend": "built-in image_gen",
+    "mode": "new_character_with_references",
+    "generatedSourcePath": "C:/Users/allan/.codex/generated_images/01a056cc-b3b8-7ea0-808b-05ffc9c09185/exec-415f725b-79bc-4b7a-a667-b6013cb2e4d7.png",
+    "workspaceCopyIsUnmodified": true,
+    "requestedCanvas": "1024x1024",
+    "actualImageSize": [
+      1254,
+      1254
+    ],
+    "modeActual": "RGB",
+    "background": "white mother-image backdrop; not a transparent runtime asset",
+    "submittedCount": 1
+  },
+  "references": [
+    {
+      "path": "references/hamster-miner-idle-frame0.png",
+      "source": "assets/companions/hamster_miner/idle.png",
+      "extractionBox": [
+        0,
+        0,
+        512,
+        512
+      ],
+      "role": "Primary miner identity, stocky body, copper mining helmet and working-hamster lineage"
+    },
+    {
+      "path": "references/render-style-service-rifleman.png",
+      "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/mother/service_rifleman-mother-v01.png",
+      "role": "Secondary material finish and game-character presentation only; no copied military equipment"
+    }
+  ],
+  "visualDesign": {
+    "pose": "Stable whole-body idle, three-quarter toward screen right; both paws hold one electric mining drill",
+    "identity": "Golden-orange hamster, white cheeks, short muzzle, compact worker body, copper headlamp helmet and raised goggles",
+    "clothing": "Charcoal workwear, brown leather chest protection, knee pads, work boots and tool pouch",
+    "tool": "One dark-steel and copper electric mining drill with rear trigger grip, forward support grip and spiral drill bit",
+    "guildAccent": "Small purple crystal battery inset"
+  },
+  "review": {
+    "method": "Viewed the generated mother image only; no game or runtime verification",
+    "observations": [
+      "One complete hamster and one drill",
+      "Both paws hold readable handles, with drill tip and both boots inside canvas",
+      "Copper helmet, headlamp and dark workwear follow the miner reference",
+      "Purple power insert echoes the accepted guild crystals"
+    ],
+    "limitations": [
+      "Game runtime not tested; user acceptance pending",
+      "No separate death video: own idle pose fades on death",
+      "Background transport uses abstract distance rather than live obstacle pathfinding"
+    ]
+  },
+  "productionPreparation": {
+    "profile": "crowd",
+    "profileStatus": "crowd; 4-6 jobs per guild, at most 3 guilds in scene12",
+    "bodyScaleReference": "Existing hamster miner worker lineage; drill and helmet lamp must not inflate effective body-height calibration",
+    "spriteSheetsCreated": true,
+    "runtimeBudgetCalculated": true,
+    "decodedTextureMiB": 30.1982421875
+  },
+  "approved": true,
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "replacesExistingUnit": false,
+  "gameplayDecisionsMade": true,
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement",
+  "userAcceptance": "2026-09-01 好的，接入游戏；岗位自动生成、自动采矿交付、不可控制、设计升级并生成图标",
+  "animationRequest": {
+    "actions": [
+      "mining",
+      "walking",
+      "carry-walking"
+    ],
+    "scope": "Accepted mining, walking and loaded walking promoted through BiRefNet and 2x RIFE",
+    "directory": "animations-v02-direction",
+    "manifest": "animations-v02-direction/manifest.json",
+    "sourceVideosGenerated": true,
+    "provider": "MiniMax H3, explicitly selected by user",
+    "deliveredActionCount": 3,
+    "animationUserApproval": "accepted by integration request 2026-09-01",
+    "previewDirectory": "animations-v02-direction/previews",
+    "localCorrection": "New carry-walking GIF uses a recalibrated rear-hip ROI tail-tip cleanup and matching source backdrop; original MP4 preserved",
+    "directionReview": "direction-review-20260901/README.md",
+    "userFeedback": "这个是不是有点移动方向不太对呀，因为我们其他单位的移动视角，你参考一下。例如军事单位",
+    "movementDirectionApproved": true,
+    "movementRevisionManifest": "animations-v02-direction/manifest.json",
+    "orientationPreflight": "animations-v02-direction/previews/keyframe-direction-check.png",
+    "workflowPreflightRule": "AGENTS.md: 动画制作前置规则（2026-09-01）",
+    "movementDirectionPreflight": "checked against HMG before generation; approved via integration request",
+    "comparisonPreview": "animations-v02-direction/previews/direction-motion-comparison-tail-clean.gif",
+    "retainedMiningManifest": "animations-v01/h3-v01/manifest.json",
+    "runtimeManifest": "runtime/asset-manifest.json",
+    "formalPreview": "runtime/accepted-actions.gif"
+  },
+  "integrationDoc": "docs/mining-guild-integration-2026-09-01.md",
+  "upgradeIcons": "upgrade-icons/manifest.json"
+}
