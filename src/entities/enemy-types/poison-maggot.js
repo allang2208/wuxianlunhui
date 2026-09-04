@@ -3,11 +3,13 @@ import enemyConfigData from '../../../data/enemy-config.json';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { Geom } from 'phaser';
+import { EffectManager } from '../../effects/effect-manager.js';
+import { VenomSprayEffect } from '../../effects/venom-spray-effect.js';
 
 /**
  * 毒蛆（精英，僵尸 family）
  * - 行动迟缓，仅使用「毒液喷射」一种攻击
- * - 3s 播放 spitting 16 帧，第 6~14 帧在面向目标扇形内持续发射绿色毒球（间隔/扇形/每次个数均配置驱动）
+ * - 3s 播放 spitting 动画，在配置帧窗内持续发射绿色毒球（间隔/扇形/每次个数均配置驱动）
  * - 毒球命中造成魔法攻击 ×0.33 伤害，33% 几率叠加 1 层中毒
  * - 攻击时不可移动
  */
@@ -28,6 +30,12 @@ export class PoisonMaggot extends Enemy {
         this._attackTimer = 0;
         this._spitEmitTimer = 0;
         this._spitCooldown = 0;
+        this._spitSprayVisualDone = false;
+
+        this._preserveCorpse = true;
+        this._deathStarted = false;
+        this._deathAnimTimer = 0;
+        this._corpseTimer = 0;
     }
 
     _getSkillConfigs() {
@@ -36,7 +44,7 @@ export class PoisonMaggot extends Enemy {
 
     update(dt, entities) {
         if (!this.active) {
-            super.update(dt, entities);
+            this._updateDeathAnimation(dt);
             return;
         }
 
@@ -49,6 +57,8 @@ export class PoisonMaggot extends Enemy {
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this._attackState = 'idle';
             this._attackTimer = 0;
+            this._spitEmitTimer = 0;
+            this._spitSprayVisualDone = false;
             return;
         }
 
@@ -69,6 +79,7 @@ export class PoisonMaggot extends Enemy {
             if (this._attackTimer <= 0) {
                 this._attackState = 'idle';
                 this._spitEmitTimer = 0;
+                this._spitSprayVisualDone = false;
             }
         } else {
             this._attackAnimTimer = 0;
@@ -91,6 +102,7 @@ export class PoisonMaggot extends Enemy {
         this._attackTimer = cfg.duration ?? 3000;
         this._spitCooldown = cfg.cooldown ?? 8000;
         this._spitEmitTimer = 0;
+        this._spitSprayVisualDone = false;
         this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
         // 喷射期间锁定朝向与翻转（不可转向）
         this._spitFlipX = target.x < this.x;
@@ -99,14 +111,19 @@ export class PoisonMaggot extends Enemy {
     _updateSpitting(dt, entities) {
         const cfg = this._getSkillConfigs().spit;
         const duration = cfg.duration ?? 3000;
-        const frames = cfg.frames ?? 16;
-        const startFrame = cfg.startFrame ?? 6;
-        const stopFrame = cfg.stopFrame ?? 14;
+        const frames = cfg.frames ?? 33;
+        const startFrame = cfg.startFrame ?? 14;
+        const stopFrame = cfg.stopFrame ?? 27;
         const frameTime = duration / Math.max(1, frames);
         const elapsed = duration - this._attackTimer;
 
         // 只在第 startFrame ~ stopFrame 之间发射
         if (elapsed < startFrame * frameTime || elapsed >= stopFrame * frameTime) return;
+
+        if (!this._spitSprayVisualDone) {
+            this._spitSprayVisualDone = true;
+            this._emitSpitSprayVisual();
+        }
 
         this._spitEmitTimer -= dt;
         if (this._spitEmitTimer > 0) return;
@@ -119,6 +136,25 @@ export class PoisonMaggot extends Enemy {
             const angle = this.rotation + (Math.random() * halfFan * 2 - halfFan);
             this._firePoisonBall(angle, entities);
         }
+    }
+
+    /** 一次性喷雾只负责视觉；实际命中仍由连续毒球与既有 ProjectileFactory 管线结算。 */
+    _emitSpitSprayVisual() {
+        const cfg = this._getSkillConfigs().spit || {};
+        const visual = cfg.sprayVisual || {};
+        const head = this._getHeadWorldPosition();
+        EffectManager.add(new VenomSprayEffect({
+            x: head.x,
+            y: head.y,
+            angle: this.rotation,
+            range: visual.range ?? 360,
+            arcDegrees: visual.arcDegrees ?? 36,
+            durationMs: visual.durationMs ?? 700,
+            particleCount: visual.particleCount ?? 64,
+            colors: [0x205913, 0x347d1b, 0x55a829, 0x7bdc3d, 0xa7f45a, 0x3d8f22],
+            hazeColor: 0x3f8f22,
+            coreColor: 0xc8ff83,
+        }));
     }
 
     _firePoisonBall(angle, entities) {
@@ -158,11 +194,40 @@ export class PoisonMaggot extends Enemy {
         this._attachPoisonTrail(p);
     }
 
-    /** 毒球发射口：贴图最前端（朝向方向上的贴图边缘，如朝右=贴图最右边），数值配置驱动 */
+    /** 喷雾/毒球共用正式喷毒帧的逐帧口器锚点，并按最终显示态与 flipX 换算。 */
     _getHeadWorldPosition() {
+        const cfg = this._getSkillConfigs().spit || {};
+        const frameIndex = this._getCurrentSpitFrameIndex(cfg);
+        const anchor = cfg.muzzleAnchors?.frames?.[frameIndex];
+        if (Array.isArray(anchor) && anchor.length >= 2) {
+            const layout = this._getFrameLayout('spitting');
+            const frameWidth = layout.frameWidth ?? 640;
+            const frameHeight = layout.frameHeight ?? 512;
+            const sprite = this._phaserSprite?.active ? this._phaserSprite : null;
+            const referenceCell = this.config?.textures?.referenceCell ?? 512;
+            const baseSpriteSize = this.config?.render?.spriteSize || 100;
+            const pixelScale = baseSpriteSize / referenceCell;
+            const displayWidth = sprite?.displayWidth || frameWidth * pixelScale;
+            const displayHeight = sprite?.displayHeight || frameHeight * pixelScale;
+            const originX = sprite?.originX ?? 0.5;
+            const originY = sprite?.originY ?? 0.5;
+            const flipX = this._attackState === 'spitting'
+                ? !!this._spitFlipX
+                : !!sprite?.flipX;
+            const localX = (anchor[0] - frameWidth * originX)
+                * (displayWidth / frameWidth) * (flipX ? -1 : 1);
+            const localY = (anchor[1] - frameHeight * originY)
+                * (displayHeight / frameHeight);
+            const centerX = sprite?.x ?? this.x;
+            const configuredFoot = this.footOffsetY ?? this.config?.render?.footOffsetY;
+            const centerY = sprite?.y
+                ?? (this.y - (typeof configuredFoot === 'number' ? configuredFoot : displayHeight * 0.5));
+            return { x: centerX + localX, y: centerY + localY };
+        }
+
+        // 兼容未提供逐帧口器锚点的外部覆盖配置。
         const opts = this._getPhaserOptions();
         const dirX = opts.flipX ? -1 : 1;
-        const cfg = this._getSkillConfigs().spit || {};
         const forward = cfg.muzzleForward ?? (this.config?.render?.spriteSize || 100) / 2;
         const upY = cfg.muzzleUpY ?? 8;
         let mx = this.x + dirX * forward;
@@ -173,6 +238,13 @@ export class PoisonMaggot extends Enemy {
             my += cfg.muzzleRightDy ?? 0;
         }
         return { x: mx, y: my };
+    }
+
+    _getCurrentSpitFrameIndex(cfg = this._getSkillConfigs().spit || {}) {
+        const duration = Math.max(1, cfg.duration ?? 3000);
+        const frames = Math.max(1, cfg.frames ?? 33);
+        const elapsed = Math.max(0, duration - Math.max(0, this._attackTimer));
+        return Math.min(frames - 1, Math.floor(elapsed / duration * frames));
     }
 
     /** 给毒球附加绿色彗尾粒子 + 环绕粒子（环绕参数配置驱动 spit.orbit） */
@@ -227,15 +299,75 @@ export class PoisonMaggot extends Enemy {
 
     _getTextureKey() {
         switch (this._animState) {
+            case 'death':    return 'enemy_poison_maggot_death';
             case 'spitting': return 'enemy_poison_maggot_spitting';
             case 'walk':     return 'enemy_poison_maggot_walk';
             default:         return 'enemy_poison_maggot_idle';
         }
     }
 
+    _getFrameLayout(state = this._animState) {
+        const layouts = this.config?.textures?.frameLayouts || {};
+        return layouts[state] || layouts.idle || {
+            frameWidth: 512,
+            frameHeight: 512,
+            frameCount: 1,
+            footY: 357,
+        };
+    }
+
+    _getDeathConfig() {
+        return this.config?.deathAnim || {};
+    }
+
+    _updateDeathAnimation(dt) {
+        if (!this._deathStarted) return;
+        if (this._deathAnimTimer > 0) {
+            this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
+            if (this._deathAnimTimer <= 0) {
+                this._corpseTimer = this._getDeathConfig().holdMs ?? 1000;
+            }
+        } else if (this._corpseTimer > 0) {
+            this._corpseTimer = Math.max(0, this._corpseTimer - dt);
+            if (this._corpseTimer <= 0 && this._phaserSprite?.active) {
+                this._phaserSprite.destroy();
+                this._phaserSprite = null;
+            }
+        }
+    }
+
+    onDeath(source) {
+        if (this._deathStarted) return;
+        this._deathStarted = true;
+        this._attackState = 'idle';
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._spitEmitTimer = 0;
+        this._spitSprayVisualDone = false;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.target = null;
+        this._tacticalTarget = null;
+        this._animState = 'death';
+        const death = this._getDeathConfig();
+        const duration = death.duration ?? 1800;
+        const holdMs = death.holdMs ?? 1000;
+        this._deathAnimTimer = duration;
+        this._corpseTimer = 0;
+        this._deathRemoveDelay = duration + holdMs + 500;
+        super.onDeath(source);
+    }
+
     _getPhaserOptions() {
         const renderCfg = this.config?.render || {};
-        const spriteSize = renderCfg.spriteSize || 100;
+        const layout = this._getFrameLayout();
+        const referenceCell = this.config?.textures?.referenceCell ?? 512;
+        const frameWidth = layout.frameWidth ?? referenceCell;
+        const frameHeight = layout.frameHeight ?? referenceCell;
+        const baseSpriteSize = renderCfg.spriteSize || 100;
+        const spriteSize = Math.max(frameWidth, frameHeight) * baseSpriteSize / referenceCell;
+        const phaserAnimState = this._animState === 'spitting' ? 'attack' : this._animState;
         let flipX = false;
         // 喷射期间锁定翻转（不可转向，与 _spitFlipX 一致）
         if (this._attackState === 'spitting') {
@@ -251,10 +383,12 @@ export class PoisonMaggot extends Enemy {
             spriteSize,
             collisionWidth: renderCfg.collisionWidth || 40,
             collisionHeight: renderCfg.collisionHeight || 60,
-            textOffsetY: -spriteSize / 2 - 10,
+            textOffsetY: -baseSpriteSize / 2 - 10,
             flipX,
-            animState: this._animState,
-            animKey: this._getTextureKey(),
+            // Phaser 将 attack/death 视为一次性动画，避免 3 秒喷毒结束瞬间重播首帧。
+            animState: phaserAnimState,
+            animKey: `enemy_poison_maggot_${this._animState}_v2`,
+            dynamicSpriteSize: true,
         };
     }
 }

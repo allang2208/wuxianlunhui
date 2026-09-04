@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_scratch\\poison_maggot_remake_20260828\\poison-maggot-video-ref-blue.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_scratch\\poison_maggot_remake_20260828\\videos\\idle_doubao_bg.txt",
+  "promptChars": 1345,
+  "promptSha256": "7cda66e98a67d69d32e8d75213bd7e523e0a429183ba1c3c9d5a103e157df0d8",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T09:33:44.290Z",
+  "sourceUrlScheme": "https"
+}

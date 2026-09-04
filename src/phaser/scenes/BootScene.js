@@ -1014,10 +1014,21 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_flyhand_slam',       'assets/enemies/flyhand/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
         this.load.spritesheet('enemy_flyhand_grand_slam', 'assets/enemies/flyhand/attacking-3.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
 
-        // 毒蛆（精英）：8列×4行 512×512 切帧（idle 1 帧 / walking 6 帧 / spitting 16 帧）
-        this.load.spritesheet('enemy_poison_maggot_idle',     'assets/enemies/poison_maggot/idle.png',     { frameWidth: 512, frameHeight: 512, endFrame: 0 });
-        this.load.spritesheet('enemy_poison_maggot_walk',     'assets/enemies/poison_maggot/walking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 5 });
-        this.load.spritesheet('enemy_poison_maggot_spitting', 'assets/enemies/poison_maggot/spitting.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        // 毒蛆（精英）四动作：喷毒与死亡使用加宽帧格，保留抬头/蜷缩的自然位移。
+        const poisonMaggotTextures = enemyConfigData.poisonMaggot?.textures || {};
+        const poisonMaggotLayouts = poisonMaggotTextures.frameLayouts || {};
+        const loadPoisonMaggotSheet = (state, textureKey, pathKey, fallbackPath) => {
+            const layout = poisonMaggotLayouts[state] || {};
+            this.load.spritesheet(textureKey, poisonMaggotTextures[pathKey] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadPoisonMaggotSheet('idle', 'enemy_poison_maggot_idle', 'idle', 'assets/enemies/poison_maggot/idle.png');
+        loadPoisonMaggotSheet('walk', 'enemy_poison_maggot_walk', 'walking', 'assets/enemies/poison_maggot/walking.png');
+        loadPoisonMaggotSheet('spitting', 'enemy_poison_maggot_spitting', 'spitting', 'assets/enemies/poison_maggot/spitting.png');
+        loadPoisonMaggotSheet('death', 'enemy_poison_maggot_death', 'death', 'assets/enemies/poison_maggot/dying.png');
 
         // ---- NPC 资源 ----
         // 小鼠大王：8列×4行 512×512 切帧（idle 1 帧 / walking 19 帧）
@@ -2356,24 +2367,23 @@ export class BootScene extends Scene {
         });
 
         // ---- 毒蛆（精英）动画 ----
-        this.anims.create({
-            key: 'enemy_poison_maggot_idle',
-            frames: this.anims.generateFrameNumbers('enemy_poison_maggot_idle', { start: 0, end: 0 }),
-            frameRate: 1,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'enemy_poison_maggot_walk',
-            frames: this.anims.generateFrameNumbers('enemy_poison_maggot_walk', { start: 0, end: 5 }),
-            frameRate: 8,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'enemy_poison_maggot_spitting',
-            frames: this.anims.generateFrameNumbers('enemy_poison_maggot_spitting', { start: 0, end: 15 }),
-            duration: 3000, // 与 spit.duration 对齐
-            repeat: 0,
-        });
+        const poisonMaggotLayouts = enemyConfigData.poisonMaggot?.textures?.frameLayouts || {};
+        const createPoisonMaggotAnim = (state, textureKey) => {
+            const layout = poisonMaggotLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_poison_maggot_${state}_v2`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createPoisonMaggotAnim('idle', 'enemy_poison_maggot_idle');
+        createPoisonMaggotAnim('walk', 'enemy_poison_maggot_walk');
+        createPoisonMaggotAnim('spitting', 'enemy_poison_maggot_spitting');
+        createPoisonMaggotAnim('death', 'enemy_poison_maggot_death');
 
         // ---- 矿工僵尸动画 ----
         this.anims.create({
