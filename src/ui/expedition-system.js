@@ -27,6 +27,7 @@ import { CONFIG } from '../config/config.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { resolveDungeonEnemyPreloadTypes } from '../world/dungeon-enemy-preload.js';
 import { isDungeonKeyCostIgnored } from '../config/dev-cheats.js';
+import { MailStore } from '../systems/mail-store.js';
 import {
     countDungeonKeys,
     getDungeonKeyRequirement,
@@ -371,6 +372,10 @@ export const ExpeditionSystem = {
     // 确认出征 — 自动从背包优先、仓库其次消耗对应等级钥匙
     async depart() {
         if (SceneManager?.isLoading) return;
+        if (MailStore.run?.status === 'active') {
+            this._showMessage('上次探险战利品尚未结算，暂时不能再次出征', 'error');
+            return;
+        }
         const dungeonType = this.selectedDungeon || 'zombieBeginner';
         if (!this.isDungeonUnlocked(dungeonType)) {
             this._refreshDungeonOptions();

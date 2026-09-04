@@ -48,6 +48,8 @@ import { ChestRoomSystem } from './chest-room-system.js';
 import { setDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallSystem } from './wall-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
+import { MailStore } from '../systems/mail-store.js';
+import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
 import { RARITY_ORDER, getRarityLabel } from '../config/rarity.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -280,6 +282,7 @@ export const DungeonMapSystem = {
     _exitPortalSpawned: false,
 
     init(sceneId, player, dungeonType = 'default') {
+        MailStore.beginRun(DungeonConfig.getDungeonList()[dungeonType]?.name || '地牢探险');
         this.active = true;
         this._observerSuspended = false;
         this._observerHiddenUi = null;
@@ -512,6 +515,7 @@ export const DungeonMapSystem = {
     /** 每次探险只登记一次；成功/失败/撤离/放弃都推进对应难度的全局入侵进度。 */
     _recordRunResult(outcome) {
         if (this._runResultRecorded || !this.dungeonType) return null;
+        PlayerRewardDelivery.finishRun(outcome);
         this._runResultRecorded = true;
         const grade = DungeonConfig.getDungeonGrade(this.dungeonType) || 'F';
         return window.WorldInvasionSystem?.recordDungeonRun?.(this.dungeonType, grade, outcome) || null;
@@ -3273,6 +3277,8 @@ export const DungeonMapSystem = {
 
     async _exitDungeonAfterLoadFailure() {
         const player = Game.player || this.player;
+        // 资源故障不属于玩家失败：先释放本局暂存，再沿用旧统计的 failed 口径退出。
+        PlayerRewardDelivery.finishRun('load_failure');
         this.shutdown();
         // 资源加载失败可能发生在 SceneManager 的 loading 生命周期内；先清掉旧锁，
         // 再强制重建主场景，不能让 switchScene 因 isLoading/currentScene 短路后假退出。
