@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_artillery_mother_20260904\\animations-v08-doubao-20260904\\references\\industrial-artillery-crew-v08-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_artillery_mother_20260904\\animations-v08-doubao-20260904\\prompts\\idle-doubao-v01.txt",
+  "promptChars": 595,
+  "promptSha256": "2bd355ed84dccba7b6aba1205fa05cfa6941a8575f448c05cff67f6971abddd0",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-04T09:21:47.034Z",
+  "sourceUrlScheme": "https"
+}
