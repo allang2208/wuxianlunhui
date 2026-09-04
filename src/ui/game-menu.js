@@ -47,6 +47,11 @@ export const GameMenu = {
     init() {
         if (this._overlay) return;
         this._build();
+        // 原生 button 默认会把 Space 当作激活键。菜单已有 Esc 快捷键，
+        // 因此即使玩家用 Tab 聚焦左上角按钮，也让 Space 继续进入游戏动作链。
+        document.getElementById('backMenuBtn')?.addEventListener('keydown', (event) => {
+            if (event.code === 'Space') event.preventDefault();
+        });
     },
 
     _build() {
@@ -446,6 +451,9 @@ export const GameMenu = {
         } catch (e) { console.error('Phaser resume failed:', e); }
         const btn = document.getElementById('backMenuBtn');
         if (btn) btn.classList.remove('active');
+        // 回到游戏后不把焦点交还给原生菜单按钮：浏览器会用 Space
+        // 激活聚焦按钮，导致玩家闪避时重新打开菜单。
+        document.activeElement?.blur?.();
     },
 
     _showView(name) {
