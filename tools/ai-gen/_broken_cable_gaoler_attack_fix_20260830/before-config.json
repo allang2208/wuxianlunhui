@@ -1,0 +1,216 @@
+{
+  "id": "brokenCableGaoler",
+  "name": "断索狱监",
+  "type": "领主",
+  "category": "monster",
+  "family": "僵尸",
+  "families": [
+    "僵尸",
+    "大型"
+  ],
+  "poolWhitelistOnly": true,
+  "color": "#564d43",
+  "highlightColor": "rgba(126, 103, 76, 0.38)",
+  "size": 25,
+  "collisionRadius": 62,
+  "height": 230,
+  "hp": 1850,
+  "maxHp": 1850,
+  "speed": 135,
+  "level": 9,
+  "rank": "lord",
+  "str": 72,
+  "dex": 18,
+  "con": 60,
+  "int": 6,
+  "wis": 14,
+  "luck": 12,
+  "attackRange": 850,
+  "attackDistance": 850,
+  "aiInterval": 1500,
+  "attack": {
+    "type": "thrust",
+    "cooldown": 5200,
+    "range": 850,
+    "dynamicRange": 850,
+    "width": 110,
+    "knockback": 0
+  },
+  "basicMelee": {
+    "approachReach": 850,
+    "impactReach": 850,
+    "width": 110,
+    "requiresSameSurface": true,
+    "requiresLosAtImpact": true
+  },
+  "attackSkills": {
+    "chainSweep": {
+      "comment": "常用压制技；锁定起手方向，在最终横扫接触帧对前方扇区结算一次",
+      "approachReach": 280,
+      "range": 300,
+      "arcDegrees": 210,
+      "width": 150,
+      "duration": 4583,
+      "frames": 55,
+      "contactFrame": 26,
+      "damageMul": 1.15,
+      "knockback": 70,
+      "cooldown": 5200
+    },
+    "hookWinch": {
+      "comment": "中远距单体控制；第18帧投钩命中并束缚，第42帧收索拉回",
+      "initialCooldownMs": 3500,
+      "minTriggerRange": 240,
+      "triggerRange": 850,
+      "range": 850,
+      "width": 110,
+      "duration": 4417,
+      "frames": 53,
+      "releaseFrame": 18,
+      "returnFrame": 42,
+      "damageMul": 1.3,
+      "damageType": "physical",
+      "bindMs": 2000,
+      "pullDistance": 320,
+      "cooldown": 12000
+    },
+    "cageSlam": {
+      "comment": "贴身范围镇压；第38帧在锁定方向前方落点结算椭圆冲击",
+      "initialCooldownMs": 6500,
+      "triggerRange": 190,
+      "forwardOffset": 135,
+      "radiusX": 190,
+      "radiusY": 105,
+      "duration": 4583,
+      "frames": 55,
+      "impactFrame": 38,
+      "damageMul": 1.75,
+      "damageType": "physical",
+      "knockback": 110,
+      "stunMs": 900,
+      "cooldown": 10000
+    }
+  },
+  "death": {
+    "animMs": 3417,
+    "holdMs": 1400,
+    "fadeMs": 300
+  },
+  "ai": {
+    "aggroRange": 9999,
+    "pacingRange": 220,
+    "loseTimeout": 3000
+  },
+  "render": {
+    "bodyDisplayHeight": 260,
+    "collisionWidth": 118,
+    "collisionHeight": 230,
+    "footOffsetY": 127.2,
+    "projectileHitbox": {
+      "width": 118,
+      "height": 230,
+      "offsetX": 0,
+      "bottom": 0
+    },
+    "capsuleHudAnchor": true,
+    "colliderOffsetX": 0,
+    "colliderOffsetY": 0
+  },
+  "textures": {
+    "idle": "assets/enemies/broken_cable_gaoler/idle.png",
+    "walking": "assets/enemies/broken_cable_gaoler/walking.png",
+    "chainSweep": "assets/enemies/broken_cable_gaoler/chain_sweep.png",
+    "hookWinch": "assets/enemies/broken_cable_gaoler/hook_winch.png",
+    "cageSlam": "assets/enemies/broken_cable_gaoler/cage_slam.png",
+    "dying": "assets/enemies/broken_cable_gaoler/dying.png",
+    "frameLayouts": {
+      "idle": {
+        "columns": 8,
+        "rows": 6,
+        "frameWidth": 640,
+        "frameHeight": 448,
+        "frameCount": 48,
+        "footY": 407,
+        "authoredBodyHeight": 374,
+        "frameRate": 24,
+        "repeat": -1
+      },
+      "walking": {
+        "columns": 8,
+        "rows": 5,
+        "frameWidth": 640,
+        "frameHeight": 448,
+        "frameCount": 38,
+        "footY": 407,
+        "authoredBodyHeight": 374,
+        "frameRate": 24,
+        "repeat": -1
+      },
+      "chainSweep": {
+        "columns": 6,
+        "rows": 10,
+        "frameWidth": 704,
+        "frameHeight": 384,
+        "frameCount": 55,
+        "footY": 343,
+        "authoredBodyHeight": 300,
+        "duration": 4583,
+        "contactFrame": 26,
+        "repeat": 0
+      },
+      "hookWinch": {
+        "columns": 4,
+        "rows": 14,
+        "frameWidth": 1504,
+        "frameHeight": 320,
+        "frameCount": 53,
+        "footY": 279,
+        "authoredBodyHeight": 260,
+        "duration": 4417,
+        "releaseFrame": 18,
+        "returnFrame": 42,
+        "repeat": 0
+      },
+      "cageSlam": {
+        "columns": 6,
+        "rows": 10,
+        "frameWidth": 1024,
+        "frameHeight": 512,
+        "frameCount": 55,
+        "footY": 471,
+        "authoredBodyHeight": 374,
+        "duration": 4583,
+        "impactFrame": 38,
+        "repeat": 0
+      },
+      "dying": {
+        "columns": 5,
+        "rows": 9,
+        "frameWidth": 672,
+        "frameHeight": 448,
+        "frameCount": 41,
+        "footY": 407,
+        "authoredBodyHeight": 374,
+        "duration": 3417,
+        "corpseSettledFrame": 32,
+        "repeat": 0
+      }
+    }
+  },
+  "description": "废弃矿洞旧牢区的巨型亡灵狱监，肩背卷扬机，右臂投掷断索铁钩，左手拖拽空囚笼。它以大范围断链横扫压迫站位，远距拘捕单体，再用囚笼重砸镇压贴身目标。仅通过废弃矿洞领主白名单生成。",
+  "skills": [
+    {
+      "name": "断链横扫",
+      "desc": "锁定起手方向，4.583秒动作第26帧横扫前方210度、300像素扇区，造成物攻×1.15物理伤害并击退70像素；冷却5.2秒。"
+    },
+    {
+      "name": "投钩收绞",
+      "desc": "对240—850像素内的锁定单体投出铁钩，第18帧造成物攻×1.3伤害并束缚2秒，第42帧沿原方向收索拉回320像素；隔墙或脱离钩线会落空，冷却12秒。"
+    },
+    {
+      "name": "囚笼镇压",
+      "desc": "对贴身目标举笼重砸，4.583秒动作第38帧冲击锁定方向前方190×105像素椭圆区域，造成物攻×1.75物理伤害、击退110像素并眩晕0.9秒；冷却10秒。"
+    }
+  ],
+  "attackType": "断链扇形AOE、单体投钩拉回与囚笼范围镇压"
+}

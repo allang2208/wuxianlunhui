@@ -1,0 +1,62 @@
+[
+  {
+    "state": "chainSweep",
+    "frame": 17,
+    "sourceFrame": 34,
+    "sourceFps": 24.0,
+    "sourceVideo": "tools/ai-gen/_abandoned_mine_lords_20260829/broken_cable_gaoler/candidates/chain-sweep-doubao-v01.mp4",
+    "sourcePixelScale": 0.49261083743842365,
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-native-frames/chainSweep-f17.png",
+    "anchorX": 344.981,
+    "footY": 343.0,
+    "method": "native video midpoint + original BiRefNet cutout/fixed scale; no new pose generation"
+  },
+  {
+    "state": "chainSweep",
+    "frame": 19,
+    "sourceFrame": 38,
+    "sourceFps": 24.0,
+    "sourceVideo": "tools/ai-gen/_abandoned_mine_lords_20260829/broken_cable_gaoler/candidates/chain-sweep-doubao-v01.mp4",
+    "sourcePixelScale": 0.49261083743842365,
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-native-frames/chainSweep-f19.png",
+    "anchorX": 289.481,
+    "footY": 342.0,
+    "method": "native video midpoint + original BiRefNet cutout/fixed scale; no new pose generation"
+  },
+  {
+    "state": "hookWinch",
+    "frame": 5,
+    "sourceFrame": 10,
+    "sourceFps": 24.0,
+    "sourceVideo": "tools/ai-gen/_abandoned_mine_lords_20260829/broken_cable_gaoler/candidates/hook-winch-doubao-v02.mp4",
+    "sourcePixelScale": 0.7580174927113703,
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-native-frames/hookWinch-f05.png",
+    "anchorX": 753.917,
+    "footY": 278.0,
+    "method": "native video midpoint + original BiRefNet cutout/fixed scale; no new pose generation"
+  },
+  {
+    "state": "hookWinch",
+    "frame": 7,
+    "sourceFrame": 14,
+    "sourceFps": 24.0,
+    "sourceVideo": "tools/ai-gen/_abandoned_mine_lords_20260829/broken_cable_gaoler/candidates/hook-winch-doubao-v02.mp4",
+    "sourcePixelScale": 0.7580174927113703,
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-native-frames/hookWinch-f07.png",
+    "anchorX": 773.917,
+    "footY": 278.0,
+    "method": "native video midpoint + original BiRefNet cutout/fixed scale; no new pose generation"
+  },
+  {
+    "state": "hookWinch",
+    "frame": 15,
+    "sourceFrame": 30,
+    "sourceFps": 24.0,
+    "sourceVideo": "tools/ai-gen/_abandoned_mine_lords_20260829/broken_cable_gaoler/candidates/hook-winch-doubao-v02.mp4",
+    "sourcePixelScale": 0.7580174927113703,
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-native-frames/hookWinch-f15.png",
+    "anchorX": 696.917,
+    "footY": 278.0,
+    "method": "native video midpoint + original BiRefNet cutout/fixed scale; no new pose generation"
+  }
+]

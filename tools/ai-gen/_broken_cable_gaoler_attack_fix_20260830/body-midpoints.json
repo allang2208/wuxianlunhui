@@ -1,0 +1,72 @@
+[
+  {
+    "state": "chainSweep",
+    "frame": 17,
+    "sourceFrames": [
+      16,
+      18
+    ],
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-midpoints/chainSweep-f17.png",
+    "method": "RIFE v4.6 t=0.5, support-root aligned authored even frames, RGB/alpha split",
+    "footShift": 0,
+    "darkPixelsRepaired": 99,
+    "redPixelsRepaired": 0,
+    "heldSourceKey": false
+  },
+  {
+    "state": "chainSweep",
+    "frame": 19,
+    "sourceFrames": [
+      18,
+      20
+    ],
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-midpoints/chainSweep-f19.png",
+    "method": "RIFE v4.6 t=0.5, support-root aligned authored even frames, RGB/alpha split",
+    "footShift": 0,
+    "darkPixelsRepaired": 324,
+    "redPixelsRepaired": 0,
+    "heldSourceKey": false
+  },
+  {
+    "state": "hookWinch",
+    "frame": 5,
+    "sourceFrames": [
+      4,
+      6
+    ],
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-midpoints/hookWinch-f05.png",
+    "method": "RIFE v4.6 t=0.5, support-root aligned authored even frames, RGB/alpha split",
+    "footShift": 0,
+    "darkPixelsRepaired": 0,
+    "redPixelsRepaired": 0,
+    "heldSourceKey": false
+  },
+  {
+    "state": "hookWinch",
+    "frame": 7,
+    "sourceFrames": [
+      6,
+      8
+    ],
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-midpoints/hookWinch-f07.png",
+    "method": "RIFE v4.6 t=0.5, support-root aligned authored even frames, RGB/alpha split",
+    "footShift": 0,
+    "darkPixelsRepaired": 0,
+    "redPixelsRepaired": 0,
+    "heldSourceKey": false
+  },
+  {
+    "state": "hookWinch",
+    "frame": 15,
+    "sourceFrames": [
+      14,
+      16
+    ],
+    "path": "tools/ai-gen/_broken_cable_gaoler_attack_fix_20260830/body-midpoints/hookWinch-f15.png",
+    "method": "RIFE v4.6 t=0.5, support-root aligned authored even frames, RGB/alpha split",
+    "footShift": 0,
+    "darkPixelsRepaired": 0,
+    "redPixelsRepaired": 0,
+    "heldSourceKey": false
+  }
+]
