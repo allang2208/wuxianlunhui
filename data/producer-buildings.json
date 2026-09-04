@@ -437,6 +437,7 @@
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "advanced_research",
+    "upgradeProject": "university_economy",
     "researchFacility": {
       "clusterType": "university",
       "workerSlots": 6,
@@ -444,7 +445,7 @@
       "workerEfficiencyShare": 0.1666666667,
       "baseResearchPointsPerSecond": 2
     },
-    "panelDescription": "六名大学研究员满员时提供2点基础科研/秒；与不同种类科研设施邻接可获得产业集群增效。",
+    "panelDescription": "六名大学研究员满员时提供2点基础科研/秒；完成对应的大学建筑研究后，可升级课程科研、智能教学、跨学科集群半径与同行评议增效。",
     "buildWarning": "标准4×4，四周自动生成道路；每个位面最多1座，与研究所、气象塔和上位科研设施相邻可形成科研产业集群。"
   },
   "high_energy_research_laboratory": {

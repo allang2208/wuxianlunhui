@@ -139,6 +139,20 @@
       "research_base_points": { "name": "精密研究设备", "icon": "🔭", "iconImage": "assets/ui/building-upgrades/research-equipment.png", "effect": "researchBasePoints", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "desc": "本栋研究所基础科研点 +{value}/秒（每级 +0.05）" }
     }
   },
+  "university_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [1200, 1600, 2100, 2800, 3700, 4800, 6200, 8000, 10300, 13200],
+      "energyByLevel": [1800, 2400, 3200, 4200, 5500, 7200, 9400, 12200, 15800, 20400],
+      "timeBaseMs": 60000,
+      "timeGrowthMs": 6000
+    },
+    "modules": {
+      "university_curriculum_reform": { "name": "课程体系改革", "icon": "📚", "iconImage": "assets/ui/building-upgrades/university-curriculum-reform.png", "effect": "advancedResearchBasePoints", "mode": "add", "base": 2, "per": 0.075, "maxLevel": 10, "desc": "满员基础科研由2.00提升至2.75点/秒，每级增加0.075点/秒。" },
+      "university_teaching_automation": { "name": "智能教学平台", "icon": "🦾", "iconImage": "assets/ui/building-upgrades/university-teaching-automation.png", "effect": "advancedResearchWorkerEfficiencyShare", "mode": "add", "base": 0.1666666667, "per": 0.0111111111, "maxLevel": 3, "goldByLevel": [5000, 7200, 10000], "energyByLevel": [6500, 9500, 14000], "timeByLevel": [90000, 120000, 150000], "desc": "每名大学研究员发挥率由16.67%提升至20%，5名即可达到100%发挥，岗位容量仍保持6名。" },
+      "university_interdisciplinary_network": { "name": "跨学科网络", "icon": "🔗", "iconImage": "assets/ui/building-upgrades/university-interdisciplinary-network.png", "effect": "advancedResearchClusterRadius", "mode": "add", "base": 640, "per": 32, "maxLevel": 10, "desc": "本栋科研集群识别半径由640px提升至960px，每级增加32px。" },
+      "university_peer_review": { "name": "同行评议体系", "icon": "🎓", "iconImage": "assets/ui/building-upgrades/university-peer-review.png", "effect": "advancedResearchClusterBonusPerType", "mode": "add", "base": 0.03, "per": 0.0015, "maxLevel": 10, "desc": "每种不同科研设施的集群增效由3%提升至4.5%，总集群增效仍封顶12%。" }
+    }
+  },
   "high_energy_laboratory_economy": {
     "moduleUpgrade": {
       "goldByLevel": [2000, 2700, 3600, 4800, 6300, 8200, 10600, 13600, 17400, 22200],

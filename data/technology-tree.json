@@ -1,5 +1,5 @@
 {
-  "version": 53,
+  "version": 54,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -83,8 +83,8 @@
     },
     {
       "id": "high_energy_experimentation", "name": "义务教育", "icon": "🎓", "iconPath": "assets/ui/technology-icons/compulsory_education.png", "branch": "工程", "column": 3, "lane": 2, "researchCost": 700,
-      "prerequisites": ["advanced_academia", "steam_residential_engineering"], "description": "建立覆盖基础学科、工程训练与人才选拔的公共教育体系，把三级研究所扩展为综合高等教育平台，开放每个位面一座大学。",
-      "unlocks": [{ "type": "building", "id": "high_energy_laboratory", "label": "大学" }]
+      "prerequisites": ["advanced_academia", "steam_residential_engineering"], "description": "建立公共教育与综合高等教育体系，开放每个位面一座大学，并直接开放本栋四项升级。",
+      "unlocks": [{ "type": "building", "id": "high_energy_laboratory", "label": "大学" }, { "type": "upgrade", "id": "university_curriculum_reform", "label": "课程体系改革" }, { "type": "upgrade", "id": "university_teaching_automation", "label": "智能教学平台" }, { "type": "upgrade", "id": "university_interdisciplinary_network", "label": "跨学科网络" }, { "type": "upgrade", "id": "university_peer_review", "label": "同行评议体系" }]
     },
     {
       "id": "high_energy_laboratory_science", "name": "高能实验学", "icon": "⚛️", "iconPath": "assets/ui/technology-icons/high_energy_experimentation.png", "branch": "工程", "column": 4, "lane": 2, "researchCost": 1400,
