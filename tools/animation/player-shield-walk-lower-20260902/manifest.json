@@ -1,0 +1,65 @@
+{
+  "task": "player-shield-walk-restore-initial-anatomy-20260902",
+  "status": "runtime-wired-static-only",
+  "scope": "keep a same-frame native walking core and attach the initial arms at walking shoulders",
+  "directionReference": {
+    "upperBody": "assets/character/walk.png, same frame as the pelvis and legs",
+    "lowerBody": "source-original-walk-lower.png retained from the pre-component native walking pass",
+    "reviewedFramesZeroBased": [0, 5, 10, 15, 20],
+    "bodyFacing": "screen-right source, runtime mirror for screen-left",
+    "rootStrategy": "same 512x516 native walking frame for head through feet; no cross-source waist seam"
+  },
+  "runtimeLayers": [
+    "native walking head, chest, lumbar, pelvis and legs",
+    "initial idle main arm attached to the per-frame native shoulder",
+    "initial shield upper arm",
+    "initial shield forearm and hand",
+    "shield"
+  ],
+  "removedApproach": "gun torso plus gun legs and six independently rotated arm joints",
+  "frameContract": {
+    "frameWidth": 512,
+    "frameHeight": 516,
+    "frameCount": 21,
+    "frameRate": 24,
+    "repeat": -1,
+    "bodyCore": "same-frame native walking head through feet"
+  },
+  "offlineReview": {
+    "weaponVisibility": "main melee weapon intentionally omitted from both previews",
+    "shieldVisual": "weapon17 formal shieldVisual is the guard-view baseline; no fallback origin",
+    "walkGuardTiltRadians": -0.14,
+    "walkGuardArmDegrees": { "upper": 8, "forearm": -132 },
+    "standGuardArmDegrees": { "upper": 8, "forearm": -132 },
+    "shieldAdjustment": "all seven shields use independent defenseOriginX/defenseOriginY values in standing and walking defense; ordinary origins remain unchanged and both axes transition with the shield rig",
+    "oakGarrisonHorizontalGrip": {
+      "ordinaryOriginX": 0.279296875,
+      "defenseOriginX": 0.42,
+      "reason": "smallest calibrated value that fully hides the palm while keeping 21 walking frames clear of the head and shoulder core"
+    },
+    "perspectiveReference": {
+      "baselineWeaponId": "weapon17",
+      "referenceFramesZeroBased": [0, 5, 10, 15, 20],
+      "targetGuardYawDegreesApprox": 42,
+      "frontAuthoredDefensePerspectiveScaleX": 0.74,
+      "alreadyObliqueWeapon57ScaleX": 1,
+      "dedicatedGuardImages": ["weapon58", "weapon59", "weapon60", "weapon61"],
+      "dedicatedGuardImageScaleX": 1,
+      "transition": "lerp from 1 to the per-shield value using the same defense lift"
+    },
+    "previewPolicy": "wide fixed canvas keeps the complete detached shield visible; runtime asset and placement are unchanged",
+    "shieldHeadShoulderOverlapMaxPixels": 0,
+    "oakGarrisonHeadShoulderOverlapMaxPixels": 0,
+    "oakGarrisonVisiblePalmMaxPixels": 0,
+    "handPolicy": "initial source arm pixels attached at per-frame native shoulder points; no six-joint retargeting",
+    "bodyCoverage": "head, chest, lumbar, pelvis, thighs, knees, shins and feet; no arm pixels",
+    "runtimeStatus": "not tested"
+  },
+  "excluded": [
+    "movement speed",
+    "shield combat timing",
+    "collision",
+    "save data",
+    "new video generation"
+  ]
+}

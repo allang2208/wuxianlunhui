@@ -111,6 +111,11 @@ export class BootScene extends Scene {
                 }
             }
         }
+        // 持盾格挡步行专用连续躯干：每帧头—胸—腰—胯—腿均取自同一帧原生 walking，
+        // 两侧摆臂已离线清除，运行时再由 PlayerShieldRig 挂回初版双臂。
+        this.load.spritesheet('player_shield_walk_body', 'assets/player/shield_walk_body.png', {
+            frameWidth: 512, frameHeight: 516, endFrame: 20,
+        });
 
         // ---- 侍从动作动画（配置驱动：companion-config.json animations；纹理键 companion_<id>_<动画>） ----
         for (const companion of companionConfigData.companions || []) {
@@ -1374,7 +1379,12 @@ export class BootScene extends Scene {
                 }
             }
         }
-
+        this.anims.create({
+            key: 'player_shield_walk_body',
+            frames: this.anims.generateFrameNumbers('player_shield_walk_body', { start: 0, end: 20 }),
+            frameRate: 24,
+            repeat: -1,
+        });
         // ---- 侍从动作动画注册（配置驱动；纹理/动画键 companion_<id>_<动画>） ----
         for (const companion of companionConfigData.companions || []) {
             const anims = companion.animations || {};

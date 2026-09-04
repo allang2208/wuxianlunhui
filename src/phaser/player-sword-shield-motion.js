@@ -544,6 +544,30 @@ export class PlayerSwordShieldMotion {
         return true;
     }
 
+    // 格挡步行时主手像素由 PlayerShieldRig 单独绘制；这里仅把剑柄钉到该手的
+    // 世界掌点，继续复用已认可的 idle 尺寸、握柄 origin 与角度。
+    syncDetachedGrip(player, binding) {
+        const body = this.scene.playerSprite;
+        const sword = this.scene.weaponSprite;
+        const item = player?.equipments?.[player.weaponMode];
+        const mainGrip = binding?.mainGrip;
+        if (item?.weaponType !== 'sword' || !mainGrip || !body?.visible || !body.active
+            || !sword?.visible || this.scene._useCanvasWeapon || player._isDead
+            || player.isDodging || player._frozenAbyssFalling || player.weaponAnim?.isAttacking
+            || player._isDashing || player._attackRecovering) return;
+        const grip = WeaponTransform.getSwordIdleGripPose(
+            walkGrip.idle, sword.texture.key, {}, PLAYER_DEFAULTS.physics.spriteSize
+        );
+        const facingRight = binding.facingRight !== false;
+        const mirror = facingRight ? 1 : -1;
+        sword.setPosition(mainGrip.x, mainGrip.y)
+            .setOrigin(facingRight ? grip.gripX : 1 - grip.gripX, grip.gripY)
+            .setDisplaySize(grip.width, grip.height)
+            .setFlipX(!facingRight).setFlipY(false)
+            .setRotation((Number(binding.mainRotation) || 0) + grip.rotation * mirror)
+            .setAlpha(body.alpha).setVisible(true);
+    }
+
     // 在盾牌rig完成本帧伸臂/举盾之后调用，只替换主手，不接管副臂或防御进度。
     syncIdleGrip(player) {
         const body = this.scene.playerSprite;
