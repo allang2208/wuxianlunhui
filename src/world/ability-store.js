@@ -53,7 +53,9 @@ export function takeLegacyLocalResearchLevels() {
 /** 当前能力全局等级 */
 export function getAbilityLevel(abilityId) {
     if (!abilityId) return 0;
-    return GLOBAL_ABILITY_LEVELS[abilityId] || 0;
+    const rawLevel = GLOBAL_ABILITY_LEVELS[abilityId] || 0;
+    const maxLevel = Number(getBuildingUpgradeAbility(abilityId)?.maxLevel);
+    return Number.isFinite(maxLevel) ? Math.min(rawLevel, Math.max(0, maxLevel)) : rawLevel;
 }
 
 /** 能力等级 +1，按调用方提供的配置上限钳制，返回新等级。 */
@@ -74,7 +76,9 @@ export function raiseAbilityLevel(abilityId, maxLevel = Number.POSITIVE_INFINITY
  */
 export function getAbilityValue(abilityCfg, level) {
     if (!abilityCfg) return 0;
-    const lv = Math.max(0, level ?? getAbilityLevel(abilityCfg.id));
+    const rawLevel = Math.max(0, level ?? getAbilityLevel(abilityCfg.id));
+    const maxLevel = Number(abilityCfg.maxLevel);
+    const lv = Number.isFinite(maxLevel) ? Math.min(rawLevel, Math.max(0, maxLevel)) : rawLevel;
     if (abilityCfg.firstLevel !== undefined) {
         return lv <= 0 ? 0 : abilityCfg.firstLevel + (abilityCfg.per ?? 0) * (lv - 1);
     }
