@@ -2102,8 +2102,11 @@ class ProducerBuildingPanel extends BasePanel {
                         : (snapshot.staffedCount <= 0 ? '等待科研人员上岗' : '人口容量不足'),
                     pbAdvancedResearchConfigured: `${snapshot.configuredResearchPointsPerSecond.toFixed(2)} 点/秒`,
                     pbAdvancedResearchStaffed: `${snapshot.staffedCount}/${snapshot.staffCapacity}`,
+                    pbAdvancedResearchWorkerShare: `${(snapshot.workerEfficiencyShare * 100).toFixed(2)}%/人`,
                     pbAdvancedResearchActual: `${snapshot.actualResearchPointsPerSecond.toFixed(2)} 点/秒`,
                     pbAdvancedResearchCluster: `+${Math.round(snapshot.clusterBonus * 100)}% · ${snapshot.clusterFacilityTypes.length}种`,
+                    pbAdvancedResearchClusterRadius: `${Math.round(snapshot.clusterRadius)}px`,
+                    pbAdvancedResearchClusterPerType: `+${(snapshot.clusterBonusPerType * 100).toFixed(1)}%/种`,
                     pbAdvancedResearchWorkshop: `+${((snapshot.workshopMultiplier - 1) * 100).toFixed(1)}%`,
                 };
                 Object.entries(values).forEach(([id, value]) => {
@@ -2111,6 +2114,18 @@ class ProducerBuildingPanel extends BasePanel {
                     if (node) node.textContent = value;
                 });
                 el.querySelector('#pbAdvancedResearchStatus')?.classList.toggle('is-blocked', !operating);
+                const upgrade = b._advancedResearchUpgrade;
+                if (upgrade) {
+                    const pct = Math.max(0, Math.min(100,
+                        Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)));
+                    const bar = el.querySelector(`#pbUpgradeBar_${upgrade.moduleId}`);
+                    const text = el.querySelector(`#pbUpgradeText_${upgrade.moduleId}`);
+                    if (bar) bar.style.width = `${pct}%`;
+                    if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(upgrade.remainMs / 1000)}s）`;
+                } else if (el.querySelector('[data-advanced-research-upgrading="true"]')) {
+                    this.refresh();
+                    return;
+                }
             } else if (b._economyType === 'research') {
                 const snapshot = PopulationEconomySystem.getResearchSnapshot(b);
                 const operating = snapshot.actualResearchPointsPerSecond > 0;
@@ -3507,18 +3522,56 @@ class ProducerBuildingPanel extends BasePanel {
                         <div><span>科研设施层级</span><b>第 ${Math.max(2, Number(cfg.researchTier) || 2)} 级</b></div>
                         <div><span>基础科研</span><b id="pbAdvancedResearchConfigured">${snapshot.configuredResearchPointsPerSecond.toFixed(2)} 点/秒</b></div>
                         <div><span>上岗 / 容量</span><b id="pbAdvancedResearchStaffed">${snapshot.staffedCount}/${snapshot.staffCapacity}</b></div>
+                        <div><span>单人岗位效率</span><b id="pbAdvancedResearchWorkerShare">${(snapshot.workerEfficiencyShare * 100).toFixed(2)}%/人</b></div>
                         <div><span>岗位发挥率</span><b>${Math.round(snapshot.staffFactor * 100)}%</b></div>
                         <div><span>实际科研速度</span><b id="pbAdvancedResearchActual">${snapshot.actualResearchPointsPerSecond.toFixed(2)} 点/秒</b></div>
                         <div><span>科研集群增效</span><b id="pbAdvancedResearchCluster">+${clusterPercent}% · ${snapshot.clusterFacilityTypes.length}种</b></div>
+                        <div><span>集群识别半径</span><b id="pbAdvancedResearchClusterRadius">${Math.round(snapshot.clusterRadius)}px</b></div>
+                        <div><span>单类集群增效</span><b id="pbAdvancedResearchClusterPerType">+${(snapshot.clusterBonusPerType * 100).toFixed(1)}%/种</b></div>
                         <div><span>工坊额外增效</span><b id="pbAdvancedResearchWorkshop">+${((snapshot.workshopMultiplier - 1) * 100).toFixed(1)}%</b></div>
                         <div><span>位面人口</span><b id="pbEconomyPopulation">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>
                     </div>
                     <p class="economy-panel-note">${cfg.panelDescription || ''}</p>
-                    <p class="economy-panel-note">产业集群只统计640px内已上岗且种类不同的科研设施：每种+3%，最高+12%；同类建筑不会重复叠层。最终产值仍统一经过全局科研软上限。</p>`;
-                modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>科研设施状态</span><span class="economy-panel-meta">固定科研平台 · 暂无本栋升级项目</span></div>
-                    <div class="troop-panel-empty">后续新增科技项目可继续向工程科研链扩展，不需要改写本栋结算器。</div>`;
+                    <p class="economy-panel-note">产业集群只统计识别半径内已上岗且种类不同的科研设施；同类建筑不重复叠层，总增效最高+${Math.round(snapshot.clusterMaxBonus * 100)}%。最终产值仍统一经过全局科研软上限。</p>`;
+                const upgrade = PopulationEconomySystem.getAdvancedResearchUpgrade(b);
+                const moduleEntries = Object.entries(cfg.modules || {});
+                const upgradeTechnologyName = moduleEntries.length
+                    ? TechnologySystem.getUnlockRequirementLabel('upgrade', moduleEntries[0][0]) : '';
+                const rows = moduleEntries.map(([moduleId, module]) => {
+                    const level = PopulationEconomySystem.getAdvancedResearchModuleLevel(b, moduleId);
+                    const maxed = level >= (Number(module.maxLevel) || 0);
+                    const inProgress = upgrade?.moduleId === moduleId;
+                    const unlocked = TechnologySystem.isUnlocked('upgrade', moduleId);
+                    const actionsHtml = maxed ? '<span class="troop-panel-caption">已满级</span>'
+                        : `<button class="troop-panel-upgrade-button" data-advanced-research-upgrade="${moduleId}" data-technology-gate-type="upgrade" data-technology-gate-id="${moduleId}" ${upgrade || !unlocked ? 'disabled' : ''}>${unlocked ? '升级' : '科技未解锁'}</button>`;
+                    return renderBuildingUpgradeCard({
+                        economyOwner: this.building,
+                        rowAttribute: 'data-advanced-research-row', projectId: moduleId,
+                        icon: module.icon, iconImage: module.iconImage, name: module.name,
+                        level, maxLevel: module.maxLevel,
+                        cost: PopulationEconomySystem.getAdvancedResearchUpgradeCost(b, moduleId),
+                        maxed, inProgress,
+                        progressPct: inProgress
+                            ? Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100) : 0,
+                        remainMs: inProgress ? upgrade.remainMs : 0,
+                        barId: `pbUpgradeBar_${moduleId}`, textId: `pbUpgradeText_${moduleId}`,
+                        actionsHtml, accent: '#77e7ff',
+                    }).replace('class="building-upgrade-card"',
+                        `class="building-upgrade-card" data-advanced-research-upgrading="${inProgress}"`);
+                }).join('');
+                modBox.innerHTML = `${this._renderWorkforceControls(b)}${moduleEntries.length
+                    ? `<div class="economy-panel-heading"><span>${cfg.name}升级项目</span><span class="economy-panel-meta">需要科技“${upgradeTechnologyName || '对应建筑研究'}”</span></div>`
+                    : '<div class="economy-panel-heading"><span>科研设施状态</span><span class="economy-panel-meta">固定科研平台</span></div>'}${rows || '<div class="troop-panel-empty">本科研设施没有本栋升级项目。</div>'}`;
                 this._bindWorkforceControls(modBox);
+                modBox.querySelectorAll('[data-advanced-research-upgrade]').forEach((button) => {
+                    button.addEventListener('click', () => this._upgradeAdvancedResearch(button.dataset.advancedResearchUpgrade));
+                });
+                modBox.querySelectorAll('[data-advanced-research-row]').forEach((row) => {
+                    row.addEventListener('mouseenter', (event) => this._showAdvancedResearchTip(row.dataset.advancedResearchRow, event));
+                    row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
+                    row.addEventListener('mouseleave', () => this._hideAbilityTip());
+                });
+                TechnologyGate.bindTree(modBox);
             } else if (cfg.economyType === 'research') {
                 const snapshot = PopulationEconomySystem.getResearchSnapshot(b);
                 const operating = snapshot.actualResearchPointsPerSecond > 0;
@@ -5442,6 +5495,41 @@ class ProducerBuildingPanel extends BasePanel {
         this._notify(result.ok ? `${name}开始升级（${Math.round(result.cost.timeMs / 1000)}秒）` : result.reason,
             result.ok ? '#6ca8ff' : '#ff5555');
         this.refresh();
+    }
+
+    _upgradeAdvancedResearch(moduleId) {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.startAdvancedResearchUpgrade(this.building, moduleId);
+        const name = this.building._cfg.modules?.[moduleId]?.name || moduleId;
+        this._notify(result.ok ? `${name}开始升级（${Math.round(result.cost.timeMs / 1000)}秒）` : result.reason,
+            result.ok ? '#77e7ff' : '#ff5555');
+        this.refresh();
+    }
+
+    _showAdvancedResearchTip(moduleId, event) {
+        if (!this.building) return;
+        const module = this.building._cfg.modules?.[moduleId];
+        if (!module) return;
+        const level = PopulationEconomySystem.getAdvancedResearchModuleLevel(this.building, moduleId);
+        const maxed = level >= module.maxLevel;
+        const valueAt = (atLevel) => (Number(module.base) || 0)
+            + (Number(module.per) || 0) * atLevel;
+        const format = (value) => {
+            if (module.effect === 'advancedResearchBasePoints') return `${value.toFixed(2)} 科研点/秒`;
+            if (module.effect === 'advancedResearchWorkerEfficiencyShare') return `${(value * 100).toFixed(2)}%/人`;
+            if (module.effect === 'advancedResearchClusterRadius') return `${Math.round(value)}px`;
+            if (module.effect === 'advancedResearchClusterBonusPerType') return `+${(value * 100).toFixed(1)}%/种`;
+            return `${value}`;
+        };
+        const cost = PopulationEconomySystem.getAdvancedResearchUpgradeCost(this.building, moduleId);
+        const unlocked = TechnologySystem.isUnlocked('upgrade', moduleId);
+        const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+        showBuildingUpgradeTooltip(`
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
+            <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">${module.desc || ''}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '对应建筑研究'}`}</div>
+            <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒；仅本栋高能实验室生效`}</div>`, event);
     }
 
     _showComputingCenterTip(moduleId, event) {

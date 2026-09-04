@@ -1,5 +1,5 @@
 {
-  "version": 50,
+  "version": 51,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -88,8 +88,8 @@
     },
     {
       "id": "high_energy_laboratory_science", "name": "高能实验学", "icon": "⚛️", "iconPath": "assets/ui/technology-icons/high_energy_experimentation.png", "branch": "工程", "column": 4, "lane": 2, "researchCost": 1400,
-      "prerequisites": ["high_energy_experimentation"], "requiredWorldCount": 2, "description": "在大学教育与多位面能源基础上建立高能实验、危险物质约束和大型仪器规范，开放每个位面一座高能实验室。",
-      "unlocks": [{ "type": "building", "id": "high_energy_research_laboratory", "label": "高能实验室" }]
+      "prerequisites": ["high_energy_experimentation"], "requiredWorldCount": 2, "description": "在大学教育与多位面能源基础上建立高能实验体系，开放每个位面一座高能实验室，并直接开放本栋四项升级。",
+      "unlocks": [{ "type": "building", "id": "high_energy_research_laboratory", "label": "高能实验室" }, { "type": "upgrade", "id": "high_energy_magnetic_confinement", "label": "磁约束增幅" }, { "type": "upgrade", "id": "high_energy_experiment_automation", "label": "自动化实验台" }, { "type": "upgrade", "id": "high_energy_detector_network", "label": "探测器网络" }, { "type": "upgrade", "id": "high_energy_data_calibration", "label": "数据标定链" }]
     },
     {
       "id": "planar_observation_science", "name": "位面观测学", "icon": "📡", "iconPath": "assets/ui/technology-icons/planar_observation_science.png", "branch": "工程", "column": 5, "lane": 2, "researchCost": 2600,

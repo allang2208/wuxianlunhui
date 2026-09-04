@@ -524,6 +524,13 @@ export function captureWorld(sceneId = 'scene8') {
                 totalMs: p._researchUpgrade.totalMs,
                 remainMs: p._researchUpgrade.remainMs,
             } : null,
+            advancedResearchModules: p._economyType === 'advanced_research'
+                ? { ...(p.modules || {}) } : undefined,
+            advancedResearchUpgrade: p._advancedResearchUpgrade ? {
+                moduleId: p._advancedResearchUpgrade.moduleId,
+                totalMs: p._advancedResearchUpgrade.totalMs,
+                remainMs: p._advancedResearchUpgrade.remainMs,
+            } : null,
             bankGoldRemainder: p._bankGoldRemainder || 0,
             pendingGoldDrop: p._pendingGoldDrop || 0,
             workProductionRemainder: p._workProductionRemainder || 0,
@@ -1232,6 +1239,8 @@ function _restoreProducer(s, sceneId) {
         economyUpgrade: s.economyUpgrade,
         researchModules: s.researchModules,
         researchUpgrade: s.researchUpgrade,
+        advancedResearchModules: s.advancedResearchModules,
+        advancedResearchUpgrade: s.advancedResearchUpgrade,
         bankGoldRemainder: s.bankGoldRemainder,
         workProductionRemainder: s.workProductionRemainder,
         assignedWorkers: s.assignedWorkers,

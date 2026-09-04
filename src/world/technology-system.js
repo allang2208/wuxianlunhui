@@ -6,7 +6,7 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 50;
+const VERSION = 51;
 const INDUSTRIAL_BARRACKS_VERSION = 45;
 const INDUSTRIAL_MILITARY_TIERS_VERSION = 47;
 const INDUSTRIAL_MILITARY_TIER_ANCESTORS = Object.freeze({

@@ -463,15 +463,16 @@
     "tex": "high_energy_laboratory",
     "assetPath": "assets/terrain/high_energy_laboratory.png",
     "thumbnailPath": "assets/ui/building-thumbnails/high_energy_laboratory.png",
-    "displayW": 512,
-    "displayH": 521,
-    "footOffsetY": 258,
-    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.74952, "widthRatio": 1, "depthRatio": 0.491363, "scaleMode": "strict" },
+    "displayW": 517,
+    "displayH": 355,
+    "footOffsetY": 175,
+    "visualFootprint": { "centerXRatio": 0.499467, "centerYRatio": 0.632375, "widthRatio": 0.990405, "depthRatio": 0.720121, "scaleMode": "strict" },
     "perimeterTile": "none",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "advanced_research",
+    "upgradeProject": "high_energy_laboratory_economy",
     "researchFacility": {
       "clusterType": "high_energy_research_laboratory",
       "workerSlots": 8,
@@ -479,8 +480,8 @@
       "workerEfficiencyShare": 0.125,
       "baseResearchPointsPerSecond": 2.5
     },
-    "panelDescription": "八名高能实验员满员时提供2.5点基础科研/秒；需要共同控制至少2个位面，并可与其他科研设施形成产业集群。",
-    "buildWarning": "功能占位已接入：标准4×4、每个位面最多1座；当前沿用旧占位贴图，后续可直接替换同名正式资产。"
+    "panelDescription": "八名高能实验员满员时提供2.5点基础科研/秒；完成高能实验学后，可升级科研本体、岗位自动化与科研集群能力。",
+    "buildWarning": "标准4×4、每个位面最多1座；需要共同控制至少2个位面，与其他科研设施相邻可形成科研产业集群。"
   },
   "planar_observation_array": {
     "id": "planar_observation_array",

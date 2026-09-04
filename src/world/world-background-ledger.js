@@ -18,6 +18,7 @@ const BAKERY_RETRY_MS = 10000;
 const UPGRADE_FIELDS = Object.freeze([
     'upgrade',
     'economyUpgrade',
+    'advancedResearchUpgrade',
     'workshopUpgrade',
     'windmillUpgrade',
     'mintUpgrade',
