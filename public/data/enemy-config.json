@@ -17,12 +17,12 @@
   "wis": 6,
   "luck": 10,
   "rank": "normal",
-  "attackRange": 140,
+  "attackRange": 64,
   "aiInterval": 2000,
   "dashDistance": 200,
-  "biteRange": 150,
+  "biteRange": 64,
   "biteCooldown": 1200,
-  "biteHitDistance": 165,
+  "biteHitDistance": 64,
   "ai": {
    "aggroRange": 2500,
    "pacingRange": 200,
@@ -31,7 +31,7 @@
   "attack": {
    "type": "thrust",
    "cooldown": 1000,
-   "dynamicRange": 160,
+   "dynamicRange": 64,
    "width": 18,
    "knockback": 13
   },
@@ -232,11 +232,11 @@
    "动物",
    "自然"
   ],
-  "attackRange": 190,
-  "attackDistance": 190,
+    "attackRange": 100,
+    "attackDistance": 100,
   "basicMelee": {
-   "approachReach": 190,
-   "impactReach": 185,
+      "approachReach": 100,
+      "impactReach": 100,
    "width": 52,
    "timeline": {
     "durationMs": 1200,
@@ -266,7 +266,7 @@
   "attack": {
    "type": "thrust",
    "cooldown": 1100,
-   "dynamicRange": 200,
+      "dynamicRange": 100,
    "width": 52,
    "knockback": 12
   },
@@ -520,11 +520,11 @@
   "wis": 10,
   "luck": 8,
   "rank": "normal",
-  "attackRange": 150,
-  "attackDistance": 150,
+    "attackRange": 120,
+    "attackDistance": 120,
   "basicMelee": {
-   "approachReach": 150,
-   "impactReach": 145,
+      "approachReach": 120,
+      "impactReach": 120,
    "width": 60,
    "timeline": {
     "durationMs": 1500,
@@ -553,8 +553,8 @@
   "attack": {
    "type": "thrust",
    "cooldown": 1700,
-   "range": 150,
-   "dynamicRange": 170,
+      "range": 120,
+      "dynamicRange": 120,
    "width": 46,
    "knockback": 22
   },
@@ -855,11 +855,11 @@
   "type": "精英",
   "category": "monster",
   "family": "自然",
-  "attackRange": 200,
-  "attackDistance": 200,
+    "attackRange": 253,
+    "attackDistance": 253,
   "basicMelee": {
-   "approachReach": 200,
-   "impactReach": 195,
+      "approachReach": 253,
+      "impactReach": 253,
    "width": 80,
    "timeline": {
     "durationMs": 1458,
@@ -888,8 +888,8 @@
   "attack": {
    "type": "thrust",
    "cooldown": 1500,
-   "range": 200,
-   "dynamicRange": 220,
+      "range": 253,
+      "dynamicRange": 253,
    "width": 80,
    "knockback": 18
   },
@@ -1003,16 +1003,16 @@
    "大型"
   ],
   "basicMeleeResolver": true,
-  "attackRange": 230,
-  "attackDistance": 230,
+    "attackRange": 168,
+    "attackDistance": 168,
   "basicMelee": {
-   "approachReach": 230,
-   "impactReach": 230,
+      "approachReach": 168,
+      "impactReach": 168,
    "forwardOffset": 0,
    "width": 58,
    "area": {
     "shape": "sector",
-    "range": 230,
+        "range": 168,
     "arcDegrees": 140,
     "damageMultiplier": 1,
     "knockback": 28
@@ -1070,7 +1070,7 @@
   "attack": {
    "type": "thrust",
    "cooldown": 1500,
-   "dynamicRange": 250,
+      "dynamicRange": 168,
    "width": 58,
    "knockback": 28
   },
@@ -1104,7 +1104,7 @@
   "skills": [
    {
     "name": "甩尾重击",
-    "desc": "朝锁定方向横扫前方140度、230像素扇形区域，对范围内全部地面目标造成一次物理伤害并击退；总时长1.55秒，横扫段加速，在第12帧结算。"
+    "desc": "朝锁定方向横扫前方140度、168像素扇形区域，对范围内全部地面目标造成一次物理伤害并击退；总时长1.55秒，横扫段加速，在第12帧结算。"
    },
    {
     "name": "石化凝视",
@@ -1542,12 +1542,14 @@
    "动物",
    "自然"
   ],
-  "attackRange": 210,
+  "attackRange": 105,
   "aiInterval": 1000,
   "dashDistance": 300,
-  "biteRange": 180,
+  "biteRange": 105,
   "biteCooldown": 1000,
-  "biteHitDistance": 185,
+  "biteHitDistance": 105,
+  "transformedBiteRange": 88,
+  "transformedBiteHitDistance": 88,
   "pounceCooldown": 12000,
   "pounceRange": 400,
   "pounceHitDistance": 130,
@@ -1562,7 +1564,7 @@
   "attack": {
    "type": "thrust",
    "cooldown": 1000,
-   "dynamicRange": 100,
+   "dynamicRange": 105,
    "width": 22,
    "knockback": 25
   },
@@ -3456,20 +3458,20 @@
   "int": 3,
   "wis": 4,
   "luck": 5,
-  "attackRange": 160,
-  "attackDistance": 160,
+  "attackRange": 112,
+  "attackDistance": 112,
   "aiInterval": 1500,
   "attack": {
    "type": "thrust",
    "cooldown": 4000,
-   "range": 160,
-   "dynamicRange": 160,
+   "range": 112,
+   "dynamicRange": 112,
    "width": 22,
    "knockback": 75
   },
   "attackSkills": {
    "slam": {
-    "range": 160,
+    "range": 112,
     "duration": 1500,
     "frames": 24,
     "hitFrame": 17,
@@ -3523,7 +3525,7 @@
   "skills": [
    {
     "name": "砸击",
-    "desc": "距离判定 160px，1.5s 播放 24 帧动画，第 17 帧进行伤害判定，命中后击退目标 75px；冷却 4s，攻击时不可移动"
+    "desc": "距离判定 112px，1.5s 播放 24 帧动画，第 17 帧进行伤害判定，命中后击退目标 75px；冷却 4s，攻击时不可移动"
    }
   ],
   "attackType": "物理"
@@ -3549,19 +3551,19 @@
   "con": 18,
   "wis": 22,
   "luck": 18,
-  "attackRange": 120,
-  "attackDistance": 120,
+  "attackRange": 108,
+  "attackDistance": 108,
   "aiInterval": 1500,
   "attack": {
    "type": "thrust",
    "cooldown": 4500,
-   "dynamicRange": 120,
+   "dynamicRange": 108,
    "width": 22,
    "knockback": 0
   },
   "attackSkills": {
    "slam": {
-    "range": 120,
+    "range": 108,
     "duration": 1500,
     "frames": 30,
     "hitFrame": 16,
@@ -3648,7 +3650,7 @@
   "skills": [
    {
     "name": "砸击",
-    "desc": "距离判定 120px，1.5s 播放 30 帧动画，第 16 帧进行伤害判定，造成物理攻击 ×1.5 伤害；冷却 4.5s，攻击时不可移动"
+    "desc": "距离判定 108px，1.5s 播放 30 帧动画，第 16 帧进行伤害判定，造成物理攻击 ×1.5 伤害；冷却 4.5s，攻击时不可移动"
    },
    {
     "name": "提灯攻击",
@@ -4227,11 +4229,11 @@
   "int": 3,
   "wis": 4,
   "luck": 5,
-  "attackRange": 92,
-  "attackDistance": 92,
+  "attackRange": 128,
+  "attackDistance": 128,
   "basicMelee": {
-   "approachReach": 92,
-   "impactReach": 80,
+   "approachReach": 128,
+   "impactReach": 128,
    "width": 26,
    "timeline": {
     "durationMs": 1000,
@@ -4323,7 +4325,7 @@
   "attack": {
    "type": "thrust",
    "cooldown": 2000,
-   "dynamicRange": 100,
+   "dynamicRange": 128,
    "lungeDistance": 35,
    "width": 18,
    "knockback": 10
@@ -4722,8 +4724,8 @@
   "int": 6,
   "wis": 12,
   "luck": 7,
-  "attackRange": 125,
-  "attackDistance": 125,
+  "attackRange": 150,
+  "attackDistance": 150,
   "aiInterval": 1000,
   "ai": {
    "aggroRange": 900,
@@ -4733,7 +4735,7 @@
   "attack": {
    "type": "thrust",
    "cooldown": 1000,
-   "dynamicRange": 125,
+   "dynamicRange": 150,
    "width": 24,
    "knockback": 20
   },
@@ -4746,8 +4748,8 @@
      12,
      25
     ],
-    "triggerRange": 75,
-    "range": 125,
+    "triggerRange": 150,
+    "range": 150,
     "damageMul": 1
    },
    "charge": {
@@ -4778,7 +4780,7 @@
   "skills": [
    {
     "name": "二连击挥砍",
-    "desc": "贴身 75px 触发：2s 内播放 32 帧攻击动画，第 12、25 帧各判定一次，各造成物理攻击 ×1 伤害（判定距离 125px），冷却 4s；挥砍期间不可移动"
+    "desc": "150px 内触发：2s 内播放 32 帧攻击动画，第 12、25 帧各判定一次，各造成物理攻击 ×1 伤害（判定距离 150px），冷却 4s；挥砍期间不可移动"
    },
    {
     "name": "持盾冲锋",
@@ -5095,10 +5097,10 @@
     "hitFrames": [
      3
     ],
-    "range": 100,
+    "range": 120,
     "damageMul": 1,
     "knockback": 75,
-    "triggerRange": 100,
+    "triggerRange": 120,
     "damageType": "physical"
    },
    "slam": {
@@ -5159,7 +5161,7 @@
   "skills": [
    {
     "name": "锤击",
-    "desc": "贴身 100px 触发：1.5s 播放 16 帧动画，第 3 帧判定，造成物理攻击 ×1 伤害并击退 75px，冷却 4s；攻击时不可移动"
+    "desc": "贴身 120px 触发：1.5s 播放 16 帧动画，第 3 帧判定，造成物理攻击 ×1 伤害并击退 75px，冷却 4s；攻击时不可移动"
    },
    {
     "name": "砸地",
@@ -8234,11 +8236,11 @@
       "大型",
       "昆虫"
     ],
-    "attackRange": 225,
-    "attackDistance": 225,
+    "attackRange": 175,
+    "attackDistance": 175,
     "basicMelee": {
-      "approachReach": 225,
-      "impactReach": 220,
+      "approachReach": 175,
+      "impactReach": 175,
       "width": 90,
       "timeline": {
         "durationMs": 1458,
@@ -8260,7 +8262,7 @@
     "attack": {
       "type": "thrust",
       "cooldown": 1400,
-      "dynamicRange": 235,
+      "dynamicRange": 175,
       "width": 90,
       "knockback": 18
     },
@@ -8400,11 +8402,11 @@
     "family": "自然",
     "families": ["自然", "动物", "大型", "两栖"],
     "basicMeleeResolver": true,
-    "attackRange": 500,
-    "attackDistance": 500,
+    "attackRange": 395,
+    "attackDistance": 395,
     "basicMelee": {
-      "approachReach": 500,
-      "impactReach": 480,
+      "approachReach": 395,
+      "impactReach": 395,
       "width": 58,
       "timeline": {
         "durationMs": 1792,
@@ -8423,7 +8425,7 @@
     "attack": {
       "type": "thrust",
       "cooldown": 2100,
-      "dynamicRange": 510,
+      "dynamicRange": 395,
       "width": 58,
       "knockback": 24
     },
@@ -8532,7 +8534,7 @@
     "skills": [
       {
         "name": "腐舌穿刺",
-        "desc": "以长舌快速刺击最远480像素内的单一目标；攻击锁定方向，接触帧才结算。"
+        "desc": "以长舌快速刺击最远395像素内的单一目标；攻击锁定方向，接触帧才结算。"
       },
       {
         "name": "蟾舌横潮",
@@ -8620,16 +8622,16 @@
       "昆虫"
     ],
     "basicMeleeResolver": true,
-    "attackRange": 260,
-    "attackDistance": 260,
+    "attackRange": 182,
+    "attackDistance": 182,
     "basicMelee": {
-      "approachReach": 260,
-      "impactReach": 260,
+      "approachReach": 182,
+      "impactReach": 182,
       "forwardOffset": 0,
       "width": 110,
       "area": {
         "shape": "sector",
-        "range": 260,
+        "range": 182,
         "arcDegrees": 140,
         "damageMultiplier": 1,
         "knockback": 42
@@ -8654,7 +8656,7 @@
     "attack": {
       "type": "thrust",
       "cooldown": 2200,
-      "dynamicRange": 260,
+      "dynamicRange": 182,
       "width": 110,
       "knockback": 42
     },
@@ -8697,7 +8699,7 @@
     "skills": [
       {
         "name": "巨颚横扫",
-        "desc": "朝锁定方向横扫前方140度、260像素扇形区域，对范围内全部可见目标造成一次物理伤害并击退。"
+        "desc": "朝锁定方向横扫前方140度、182像素扇形区域，对范围内全部可见目标造成一次物理伤害并击退。"
       },
       {
         "name": "泥沼冲城",
@@ -10444,16 +10446,16 @@
    "类人形"
   ],
   "basicMeleeResolver": true,
-  "attackRange": 245,
-  "attackDistance": 245,
+    "attackRange": 197,
+    "attackDistance": 197,
   "basicMelee": {
-   "approachReach": 245,
-   "impactReach": 245,
+      "approachReach": 197,
+      "impactReach": 197,
    "forwardOffset": 0,
    "width": 68,
    "area": {
     "shape": "sector",
-    "range": 245,
+        "range": 197,
     "arcDegrees": 135,
     "damageMultiplier": 1,
     "knockback": 32
@@ -10478,7 +10480,7 @@
   "attack": {
    "type": "thrust",
    "cooldown": 2200,
-   "dynamicRange": 245,
+      "dynamicRange": 197,
    "width": 68,
    "knockback": 32
   },
@@ -10516,7 +10518,7 @@
   "skills": [
    {
     "name": "王爪横扫",
-    "desc": "朝锁定方向攻击前方135度、245像素扇形区域，对范围内全部地面目标造成一次物理伤害并击退。"
+    "desc": "朝锁定方向攻击前方135度、197像素扇形区域，对范围内全部地面目标造成一次物理伤害并击退。"
    },
    {
     "name": "猎王飞扑",
@@ -10791,20 +10793,20 @@
   "int": 3,
   "wis": 8,
   "luck": 7,
-  "attackRange": 225,
-  "attackDistance": 225,
+  "attackRange": 360,
+  "attackDistance": 360,
   "aiInterval": 1500,
   "attack": {
    "type": "thrust",
    "cooldown": 7000,
-   "range": 225,
-   "dynamicRange": 225,
+   "range": 360,
+   "dynamicRange": 360,
    "width": 90,
    "knockback": 0
   },
   "basicMelee": {
-   "approachReach": 225,
-   "impactReach": 205,
+   "approachReach": 360,
+   "impactReach": 360,
    "width": 90,
    "forwardOffset": 36,
    "backExtension": 8,
@@ -10824,9 +10826,9 @@
     "brokenSpeed": 145
    },
    "beamThrust": {
-    "range": 225,
-    "approachReach": 225,
-    "impactReach": 205,
+    "range": 360,
+    "approachReach": 360,
+    "impactReach": 360,
     "forwardOffset": 36,
     "backExtension": 8,
     "width": 90,
@@ -10838,9 +10840,9 @@
     "cooldown": 7000
    },
    "unarmedSmash": {
-    "range": 150,
-    "approachReach": 150,
-    "impactReach": 135,
+    "range": 87,
+    "approachReach": 87,
+    "impactReach": 87,
     "forwardOffset": 34,
     "backExtension": 12,
     "width": 120,
@@ -10971,11 +10973,11 @@
    },
    {
     "name": "持梁突击",
-    "desc": "225px 起手、205px 命中范围，61 帧攻击动画第 30 帧结算物理攻击 ×1.45 并击退 120px；冷却 7s。"
+    "desc": "360px 起手与命中范围，61 帧攻击动画第 30 帧结算物理攻击 ×1.45 并击退 120px；冷却 7s。"
    },
    {
     "name": "双拳砸击",
-    "desc": "横梁断裂后启用：150px 起手、135px 命中范围，61 帧攻击动画第 36 帧结算物理攻击 ×1.65 并击退 90px；冷却 6s。"
+    "desc": "横梁断裂后启用：87px 起手与命中范围，61 帧攻击动画第 36 帧结算物理攻击 ×1.65 并击退 90px；冷却 6s。"
    }
   ],
   "attackType": "物理"
@@ -11167,19 +11169,19 @@
   "luck": 4,
   "showWeapon": false,
   "basicMeleeResolver": true,
-  "attackRange": 60,
-  "attackDistance": 60,
+  "attackRange": 72,
+  "attackDistance": 72,
   "attack": {
    "type": "thrust",
    "cooldown": 3000,
-   "range": 60,
-   "dynamicRange": 60,
+   "range": 72,
+   "dynamicRange": 72,
    "width": 36,
    "knockback": 22
   },
   "basicMelee": {
-   "approachReach": 60,
-   "impactReach": 60,
+   "approachReach": 72,
+   "impactReach": 72,
    "width": 36,
    "forwardOffset": 0,
    "backExtension": 8,
@@ -11199,7 +11201,7 @@
   "attackSkills": {
    "strike": {
     "comment": "0-based 接触帧；锁定起手目标与方向，整次攻击最多结算一次，命中前复查同地表/距离/视线；受控取消未结算命中",
-    "range": 60,
+    "range": 72,
     "duration": 1600,
     "frames": 51,
     "hitFrame": 28,
@@ -12001,8 +12003,8 @@
   "attackSkills": {
    "pickaxeSlam": {
     "comment": "常用近距压制；最终61帧动作第32帧以锁定方向结算正面矩形镐击",
-    "approachReach": 230,
-    "range": 250,
+    "approachReach": 90,
+    "range": 92,
     "width": 150,
     "duration": 5083,
     "frames": 61,
@@ -12156,7 +12158,7 @@
   "skills": [
    {
     "name": "沉镐镇压",
-    "desc": "锁定起手方向，5.083秒动作第32帧重砸前方250×150像素矩形，造成物攻×1.35物理伤害、击退80像素并致残2.5秒；冷却5.2秒。"
+    "desc": "锁定起手方向，5.083秒动作第32帧重砸前方92×150像素矩形，造成物攻×1.35物理伤害、击退80像素并致残2.5秒；冷却5.2秒。"
    },
    {
     "name": "黑肺咳雾",

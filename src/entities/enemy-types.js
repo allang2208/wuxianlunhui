@@ -1138,6 +1138,24 @@ class RedWolfKing extends BlackWolf {
         return true;
     }
 
+    _getBiteStartConfig() {
+        const base = super._getBiteStartConfig();
+        if (!this._isTransformed) return base;
+        return {
+            ...base,
+            range: this.config?.transformedBiteRange ?? base.range,
+        };
+    }
+
+    _getBiteImpactConfig() {
+        const base = super._getBiteImpactConfig();
+        if (!this._isTransformed) return base;
+        return {
+            ...base,
+            range: this.config?.transformedBiteHitDistance ?? base.range,
+        };
+    }
+
     _startPounce() {
         if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return;
         this._attackType = 'pounce';
