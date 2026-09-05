@@ -23,6 +23,11 @@
   "biteRange": 64,
   "biteCooldown": 1200,
   "biteHitDistance": 64,
+  "deathAnim": {
+   "duration": 2667,
+   "holdMs": 1000,
+   "lastFrame": 32
+  },
   "ai": {
    "aggroRange": 2500,
    "pacingRange": 200,
@@ -60,7 +65,8 @@
    "colliderOffsetY": -10
   },
   "textures": {
-   "idle": "assets/enemies/black_wolf_idle.png"
+   "idle": "assets/enemies/black_wolf_idle.png",
+   "dying": "assets/enemies/black_wolf_dying.png"
   },
   "height": 68.4
  },

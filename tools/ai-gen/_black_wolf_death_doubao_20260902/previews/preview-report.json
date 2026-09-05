@@ -1,0 +1,13 @@
+{
+  "video": "videos/black-wolf-dying-doubao-v01.mp4",
+  "gif": "previews/black-wolf-dying-doubao-v01.gif",
+  "contact": "previews/black-wolf-dying-doubao-v01-contact.png",
+  "sourceSize": [
+    1280,
+    720
+  ],
+  "sourceFrameCount": 121,
+  "sourceFps": 24.0,
+  "sourceDurationSeconds": 5.041666666666667,
+  "previewRange": "entire source, no trimming, no retiming"
+}

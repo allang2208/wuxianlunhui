@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_wolf_death_doubao_20260902\\references\\black-wolf-death-reference-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_wolf_death_doubao_20260902\\prompts\\dying-doubao-v01.txt",
+  "promptChars": 509,
+  "promptSha256": "cc88d84cacfcd34465e794ed8b05adc24ed1cf578682154d817b4c8f2cfa1530",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T01:58:39.931Z",
+  "sourceUrlScheme": "https"
+}

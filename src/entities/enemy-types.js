@@ -113,7 +113,8 @@ class BlackWolf extends Enemy {
             back: loadImage(spritePaths.back || 'assets/enemies/black_wolf_updown.png'),
             bite: loadImage(spritePaths.bite || 'assets/enemies/black_wolf_bite_regular.png'),
             pacing: loadImage(spritePaths.pacing || 'assets/enemies/black_wolf_walk.png'),
-            idle: loadImage(spritePaths.idle || 'assets/enemies/black_wolf_idle.png')
+            idle: loadImage(spritePaths.idle || 'assets/enemies/black_wolf_idle.png'),
+            dying: loadImage(spritePaths.dying || 'assets/enemies/black_wolf_dying.png')
         };
         
         // 当前 facing 方向
@@ -157,11 +158,20 @@ class BlackWolf extends Enemy {
         };
         this._facingThreshold = anim.facingThreshold ?? 0.5;
 
+        // 死亡动画播放完保留尸体 1 秒；Game/GameScene 依据这些计时字段继续更新 active=false 实体。
+        this._preserveCorpse = true;
+        this._deathStarted = false;
+        this._deathAnimTimer = 0;
+        this._corpseTimer = 0;
+
     }
 
     update(dt, entities) {
+        if (!this.active) {
+            this._updateDeathAnimation(dt);
+            return;
+        }
         super.update(dt, entities);
-        // 死亡防御：game.js 已跳过 active=false 实体的 update，这里双保险
         if (this._isDead || !this.active) return;
         
         // === 根据主导速度方向确定 facing（攻击期间锁定）===
@@ -617,7 +627,66 @@ class BlackWolf extends Enemy {
         });
     }
 
+    _getDeathConfig() {
+        return this.config?.deathAnim || {};
+    }
+
+    onDeath(source) {
+        if (this._deathStarted) return;
+        if (this._biteState === 'attacking') this._endBite();
+        if (this._usesPounce && this._pounceState !== 'idle') this._endPounce();
+        this._deathStarted = true;
+        this._frozenForCast = true;
+        this._attackAnimTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.target = null;
+        this._tacticalTarget = null;
+        this._animState = 'death';
+        this._animFrame = 0;
+        this._animTimer = 0;
+        const death = this._getDeathConfig();
+        const duration = death.duration ?? 2667;
+        const holdMs = death.holdMs ?? 1000;
+        this._deathAnimTimer = duration;
+        this._corpseTimer = 0;
+        this._preserveCorpse = true;
+        this._deathRemoveDelay = duration + holdMs + 500;
+        super.onDeath(source);
+    }
+
+    _updateDeathAnimation(dt) {
+        if (!this._deathStarted) return;
+        const death = this._getDeathConfig();
+        const duration = death.duration ?? 2667;
+        const holdMs = death.holdMs ?? 1000;
+        const layout = this._getFrameLayout('death');
+        const total = layout.frames ?? 33;
+        const lastFrame = Math.min(total - 1, death.lastFrame ?? (total - 1));
+        this._animState = 'death';
+        if (this._deathAnimTimer > 0) {
+            this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
+            const progress = 1 - this._deathAnimTimer / Math.max(1, duration);
+            this._animFrame = Math.min(lastFrame, Math.floor(progress * total));
+            if (this._deathAnimTimer <= 0) {
+                this._animFrame = lastFrame;
+                this._corpseTimer = holdMs;
+            }
+        } else if (this._corpseTimer > 0) {
+            this._animFrame = lastFrame;
+            this._corpseTimer = Math.max(0, this._corpseTimer - dt);
+            if (this._corpseTimer <= 0 && this._phaserSprite?.active) {
+                this._phaserSprite.destroy();
+                this._phaserSprite = null;
+            }
+        }
+    }
+
     _getTextureKey() {
+        if (this._deathStarted) {
+            return 'enemy_black_wolf_dying';
+        }
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             return 'enemy_black_wolf_idle';
         }
@@ -639,12 +708,15 @@ class BlackWolf extends Enemy {
     // 当前状态的精灵图网格与帧数
     _getFrameLayout(state) {
         const layouts = this._frameLayouts || {};
-        const key = state === 'attack' ? 'bite' : state;
+        const key = state === 'attack' ? 'bite' : (state === 'death' ? 'dying' : state);
         return layouts[key] || layouts.walk || { cols: 4, rows: 4 };
     }
 
     _getStateFrameCount() {
         const layouts = this._frameLayouts || {};
+        if (this._animState === 'death') {
+            return layouts.dying?.frames || 33;
+        }
         if (this._animState === 'attack') {
             return layouts.bite?.frames || 6;
         }
@@ -668,7 +740,7 @@ class BlackWolf extends Enemy {
         }
 
         const renderCfg = this._animCfg?.render || {};
-        return {
+        const options = {
             spriteSize: renderCfg.spriteSize ?? 151,
             rotation: 0,
             // 冻结继续定格 idle 首帧；眩晕则由共享状态入口切到 idle 并正常推进待机循环。
@@ -678,6 +750,20 @@ class BlackWolf extends Enemy {
             textOffsetY: -64,
             nameColor: 'rgba(255, 60, 60, 0.9)'
         };
+        if (this._deathStarted) {
+            const layout = this._getFrameLayout('death');
+            const referenceCell = renderCfg.referenceCell ?? 512;
+            const frameWidth = layout.frameWidth ?? referenceCell;
+            const frameHeight = layout.frameHeight ?? referenceCell;
+            const pixelScale = (renderCfg.spriteSize ?? 151) / referenceCell;
+            options.spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
+            options.dynamicSpriteSize = true;
+            options.frameAnchorX = layout.footX;
+            options.manualFrame = true;
+            options.frame = this._animFrame;
+            this.footOffsetY = ((layout.footY ?? frameHeight) - frameHeight * 0.5) * pixelScale;
+        }
+        return options;
     }
 
     _drawBody(ctx) {
@@ -686,7 +772,9 @@ class BlackWolf extends Enemy {
 
         let currentSprite;
         let staticImage = false;
-        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
+        if (this._deathStarted) {
+            currentSprite = this._sprites.dying;
+        } else if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             // 眩晕状态：显示 idle 图片（被弹反后）
             currentSprite = this._sprites.idle;
             staticImage = true;
@@ -736,7 +824,16 @@ class BlackWolf extends Enemy {
                 ctx.translate(0, swayX);
                 ctx.scale(scaleX, scaleY);
                 ctx.translate(0, bounceY);
-                ctx.drawImage(currentSprite, col * frameW, row * frameH, frameW, frameH, spriteOffset, spriteOffset, spriteSize, spriteSize);
+                if (this._deathStarted) {
+                    const pixelScale = spriteSize / (renderCfg.referenceCell ?? 512);
+                    const drawX = -(layout.footX ?? frameW / 2) * pixelScale;
+                    const drawY = -(layout.footY ?? frameH) * pixelScale;
+                    ctx.drawImage(currentSprite, col * frameW, row * frameH, frameW, frameH,
+                        drawX, drawY, frameW * pixelScale, frameH * pixelScale);
+                } else {
+                    ctx.drawImage(currentSprite, col * frameW, row * frameH, frameW, frameH,
+                        spriteOffset, spriteOffset, spriteSize, spriteSize);
+                }
                 ctx.restore();
             }
         } else {
@@ -776,6 +873,9 @@ class BlackWolf extends Enemy {
     }
 
     _getBodyAnimationParams() {
+        if (this._deathStarted) {
+            return { bounceY: 0, scaleX: 1, scaleY: 1, leanAngle: 0, swayX: 0 };
+        }
         const cfg = this._animCfg?.render?.body || {};
         const t = this.animTime;
         let bounceY = 0, scaleX = 1, scaleY = 1, leanAngle = 0, swayX = 0;

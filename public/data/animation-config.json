@@ -8,7 +8,8 @@
    "back": "assets/enemies/black_wolf_updown.png",
    "bite": "assets/enemies/black_wolf_bite_regular.png",
    "pacing": "assets/enemies/black_wolf_walk.png",
-   "idle": "assets/enemies/black_wolf_idle.png"
+   "idle": "assets/enemies/black_wolf_idle.png",
+   "dying": "assets/enemies/black_wolf_dying.png"
   },
   "animation": {
    "attackTypes": {
@@ -49,6 +50,16 @@
      "cols": 4,
      "rows": 4,
      "frames": 16
+    },
+    "dying": {
+     "frameWidth": 448,
+     "frameHeight": 288,
+     "cols": 5,
+     "rows": 7,
+     "frames": 33,
+     "footX": 208,
+     "footY": 227,
+     "duration": 2667
     }
    },
    "frameDurations": {
@@ -56,7 +67,8 @@
     "walk": 120,
     "run": 40,
     "bite": 100,
-    "pacing": 180
+    "pacing": 180,
+    "dying": 80.81818181818181
    },
    "speedThresholds": {
     "run": 1.2,
@@ -70,6 +82,7 @@
   },
   "render": {
    "spriteSize": 151,
+   "referenceCell": 512,
    "spriteOffset": -76,
    "transformedSpriteSize": 200,
    "healthBar": {

@@ -1,0 +1,10 @@
+{
+  "asset": "black-wolf-death",
+  "budgetTier": "crowd",
+  "decodedRgbaMiB": 17.2266,
+  "budgetTargetMiB": 32,
+  "budgetHardStopMiB": 64,
+  "withinTarget": true,
+  "withinHardStop": true,
+  "interpolationPasses": 1
+}

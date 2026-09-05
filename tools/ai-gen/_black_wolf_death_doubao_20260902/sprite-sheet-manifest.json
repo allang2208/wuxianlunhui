@@ -1,0 +1,246 @@
+{
+  "asset": "black-wolf",
+  "action": "death",
+  "stage": "formal-runtime-ready",
+  "budgetTier": "crowd",
+  "runtimeIntegrationActive": true,
+  "facing": "screen-right",
+  "sourceVideo": "videos/black-wolf-dying-doubao-v01.mp4",
+  "sourceVideoFps": 24.0,
+  "sourceWindow": [
+    0,
+    64
+  ],
+  "sourceWindowSemantics": "inclusive f0..f64; one complete collapse and settled corpse",
+  "selectedSourceFrames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64
+  ],
+  "settledFromSourceFrame": 56,
+  "sourceWallClockMs": 2667,
+  "sourceSheet": "spritesheets/formal-source-pre-rife/death.png",
+  "finalSheet": "spritesheets/formal-final/death.png",
+  "runtimeAsset": "assets/enemies/black_wolf_dying.png",
+  "previewGif": "previews/sprites/formal-final/death/black-wolf-death.gif",
+  "contactSheet": "previews/sprites/formal-final/death/black-wolf-death-contact.png",
+  "rifeReport": "reports/sprites/formal-final/death-rife.json",
+  "frameWidth": 448,
+  "frameHeight": 288,
+  "atlasWidth": 2240,
+  "atlasHeight": 2016,
+  "columns": 5,
+  "rows": 7,
+  "frameCount": 33,
+  "endFrame": 32,
+  "frameRate": 12.373453318335208,
+  "durationMs": 2667,
+  "repeat": 0,
+  "footX": 208,
+  "footY": 227,
+  "referenceCell": 512,
+  "decodedRgbaBytes": 18063360,
+  "decodedRgbaMiB": 17.2266,
+  "pngBytes": 1972881,
+  "gifTimingMs": [
+    80,
+    80,
+    80,
+    80,
+    80,
+    90,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    90,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    90,
+    80,
+    80,
+    80,
+    80,
+    80
+  ],
+  "alignment": {
+    "referenceSourceFrame": 0,
+    "referenceSourceBbox": [
+      266,
+      132,
+      904,
+      619
+    ],
+    "referenceSourceHeight": 488,
+    "fixedScale": 0.4672131147540984,
+    "targetStandingHeight": 228,
+    "frameWidth": 448,
+    "frameHeight": 288,
+    "footX": 208,
+    "footY": 227,
+    "visualBottomRootY": 242,
+    "runtimeRootAboveVisibleBottom": 15,
+    "placements": [
+      {
+        "sourceFrame": 0,
+        "x": 44,
+        "y": 14,
+        "width": 299,
+        "height": 228
+      },
+      {
+        "sourceFrame": 4,
+        "x": 44,
+        "y": 14,
+        "width": 299,
+        "height": 228
+      },
+      {
+        "sourceFrame": 8,
+        "x": 50,
+        "y": 33,
+        "width": 297,
+        "height": 210
+      },
+      {
+        "sourceFrame": 12,
+        "x": 46,
+        "y": 58,
+        "width": 299,
+        "height": 185
+      },
+      {
+        "sourceFrame": 16,
+        "x": 34,
+        "y": 65,
+        "width": 304,
+        "height": 177
+      },
+      {
+        "sourceFrame": 20,
+        "x": 26,
+        "y": 68,
+        "width": 304,
+        "height": 175
+      },
+      {
+        "sourceFrame": 24,
+        "x": 22,
+        "y": 73,
+        "width": 316,
+        "height": 170
+      },
+      {
+        "sourceFrame": 28,
+        "x": 19,
+        "y": 82,
+        "width": 326,
+        "height": 161
+      },
+      {
+        "sourceFrame": 32,
+        "x": 14,
+        "y": 95,
+        "width": 342,
+        "height": 148
+      },
+      {
+        "sourceFrame": 36,
+        "x": 14,
+        "y": 109,
+        "width": 356,
+        "height": 135
+      },
+      {
+        "sourceFrame": 40,
+        "x": 23,
+        "y": 128,
+        "width": 369,
+        "height": 117
+      },
+      {
+        "sourceFrame": 44,
+        "x": 33,
+        "y": 145,
+        "width": 381,
+        "height": 97
+      },
+      {
+        "sourceFrame": 48,
+        "x": 28,
+        "y": 145,
+        "width": 385,
+        "height": 98
+      },
+      {
+        "sourceFrame": 52,
+        "x": 37,
+        "y": 145,
+        "width": 377,
+        "height": 100
+      },
+      {
+        "sourceFrame": 56,
+        "x": 29,
+        "y": 143,
+        "width": 385,
+        "height": 101
+      },
+      {
+        "sourceFrame": 60,
+        "x": 19,
+        "y": 143,
+        "width": 393,
+        "height": 101
+      },
+      {
+        "sourceFrame": 64,
+        "x": 19,
+        "y": 144,
+        "width": 393,
+        "height": 101
+      }
+    ],
+    "alignmentMode": "single fixed scale plus source-frame whole-body coordinates; no per-frame recenter or resize; runtime root keeps the accepted 15-source-pixel paw-bottom offset"
+  },
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "nonzeroRgbInTransparentPixels": 0,
+    "alphaBottomMin": 241,
+    "alphaBottomMax": 244,
+    "alphaLeftMin": 14,
+    "alphaRightMax": 413,
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "interpolationPasses": 1,
+    "scaleAudit": "fixed scale for every source key; RIFE adds temporal in-betweens only"
+  }
+}
