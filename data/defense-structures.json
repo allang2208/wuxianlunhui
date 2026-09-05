@@ -106,6 +106,18 @@
     "maxUnitRadius": 30,
     "surfaceUnitRadius": 24,
     "commandPickTolerance": 16,
+    "garrison": {
+      "enabled": true,
+      "spacingGap": 8,
+      "arriveDistance": 2,
+      "searchRadius": 384,
+      "portalClearance": 16,
+      "retryMs": 1000,
+      "leaseMs": 3000,
+      "maxCandidatesPerFrame": 64,
+      "maxPlansPerFrame": 4,
+      "budgetMs": 2
+    },
     "surfaceNavigation": {
       "replanIntervalMs": 450,
       "failedPlanRetryMs": 900,
