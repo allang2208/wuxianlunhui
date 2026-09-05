@@ -1,0 +1,22 @@
+Use case: precise-object-edit
+Asset type: standalone 16:9 background plate for a 2.5D isometric game scene.
+
+Input role:
+- The summit composite concept supplies only the approved mountain-and-cloud direction, atmospheric depth, palette, and horizon placement.
+
+Primary request:
+- Remove every foreground object and reconstruct the missing pixels as one seamless mountain panorama.
+- The final image contains only distant layered blue-gray mountain ranges, restrained snow traces, a broad cloud sea, atmospheric perspective, and a calm pale-blue high-altitude sky.
+- Keep the brightest sky in the upper half and the broad cloud sea in the lower half so pale-marble foreground architecture remains readable when composited later.
+
+Style:
+- Refined semi-photorealistic next-generation game-environment background.
+- Believable terrain scale, natural muted colors, moderate detail, and a spacious sacred summit-overlook mood.
+
+Absolute exclusions:
+- No marble floor, platform edge, stair, column, arch, pavilion, lamp, plinth, brass trim, building, temple, ruin, portal, person, creature, symbol, UI, text, logo, or watermark.
+- No foreground cliff, close rock, tree, vegetation, or water.
+- No low-poly, cartoon, painterly brushwork, fantasy glow, neon, bloom, god rays, dramatic grading, or hard directional cast shadow.
+
+Output:
+- One complete high-resolution wide RGB background plate with no transparent region.

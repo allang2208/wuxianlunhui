@@ -101,6 +101,7 @@ import { resetUnitUpgrades } from './world/unit-upgrade-store.js';
 import { resetAbilityLevels } from './world/ability-store.js';
 import { resetWorld122Snapshot } from './world/world122-snapshot.js';
 import { TechnologySystem } from './world/technology-system.js';
+import { ensureMainHubArchitecture } from './world/main-hub-architecture.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -179,6 +180,8 @@ export const Game = {
             SceneManager._inMainHub = true;
             SoundManager.playBgmForScene('main');
             Renderer.generateWorld();
+            // 视觉、碰撞代理和阴影代理由一个幂等入口统一创建，避免回城时出现第二套布局。
+            ensureMainHubArchitecture(this);
             // 初始化 Phaser 渲染系统（渐进式迁移）
             if (PhaserGame && !PhaserGame.isReady) {
                 PhaserGame.init();
@@ -292,8 +295,11 @@ export const Game = {
         this.entities.set(portal.id, portal);
     },
     async spawnPlayer() {
-        const startX = CONFIG.WORLD_WIDTH / 2 + 120 - 200;
-        const startY = CONFIG.WORLD_HEIGHT / 2 - 150;
+        const spawn = GAME_CONFIG.scenes?.mainHub?.playerSpawn;
+        const startX = Number.isFinite(Number(spawn?.x))
+            ? Number(spawn.x) : CONFIG.WORLD_WIDTH / 2 + 120 - 200;
+        const startY = Number.isFinite(Number(spawn?.y))
+            ? Number(spawn.y) : CONFIG.WORLD_HEIGHT / 2 - 150;
         this.player = new Player(startX, startY);
         this.entities.set('player', this.player);
         // 修复：player 创建后才初始化 GameUIManager，否则 updateUI 会因 player 为 null 而直接返回

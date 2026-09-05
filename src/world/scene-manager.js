@@ -46,6 +46,7 @@ import { FogOfWarSystem } from './fog-of-war-system.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
 import { QuestRegistry } from '../quest/quest-registry.js';
 import { QuestStore } from '../quest/quest-store.js';
+import { ensureMainHubArchitecture } from './main-hub-architecture.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -917,6 +918,9 @@ export const SceneManager = {
                 Game.entities.set('player', player);
             }
         }
+
+        // 主神空间建筑群与首启共用同一幂等入口；旧快照中的版本会在这里按配置升级。
+        ensureMainHubArchitecture(Game);
 
         // 地板与边界墙：统一入口（与 Game.init 首启同一路径）
         this._setupMainHubTerrain();

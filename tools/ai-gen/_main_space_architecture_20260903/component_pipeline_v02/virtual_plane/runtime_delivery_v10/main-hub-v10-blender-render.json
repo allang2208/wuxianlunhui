@@ -1,0 +1,281 @@
+{
+  "assetId": "main_hub_v10_runtime_blender_render",
+  "status": "rendered_for_formal_runtime_integration",
+  "sourceBlend": "../runtime_delivery_v09/main_hub_runtime_master_v09.blend",
+  "outputBlend": "main_hub_runtime_master_v10.blend",
+  "beautyRender": "main_hub_v10_runtime_beauty.png",
+  "semanticIdRender": "main_hub_v10_runtime_semantic_id.png",
+  "geometrySourceOfTruth": "v09 runtime model plus v10 central-column fit correction",
+  "geometryCorrection": {
+    "centralColumnCount": 7,
+    "gapBefore": 26.900024,
+    "capitalTopZ": 394.399994,
+    "entablatureBottomZ": 421.300018,
+    "designedOverlap": 0.2,
+    "blocks": [
+      {
+        "name": "MainSpace_Tribunal_Pilaster_1_V10_ImpostBlock",
+        "center": [
+          -288.599976,
+          591.600037,
+          407.850006
+        ],
+        "dimensions": [
+          56.0,
+          56.0,
+          27.300024
+        ],
+        "bbox": {
+          "minX": -316.599976,
+          "maxX": -260.599976,
+          "minY": 563.600037,
+          "maxY": 619.600037,
+          "minZ": 394.199982,
+          "maxZ": 421.500031
+        },
+        "capitalOverlap": 0.200012,
+        "entablatureOverlap": 0.200012
+      },
+      {
+        "name": "MainSpace_Tribunal_Pilaster_2_V10_ImpostBlock",
+        "center": [
+          -192.399994,
+          591.600037,
+          407.850006
+        ],
+        "dimensions": [
+          56.0,
+          56.0,
+          27.300024
+        ],
+        "bbox": {
+          "minX": -220.399994,
+          "maxX": -164.399994,
+          "minY": 563.600037,
+          "maxY": 619.600037,
+          "minZ": 394.199982,
+          "maxZ": 421.500031
+        },
+        "capitalOverlap": 0.200012,
+        "entablatureOverlap": 0.200012
+      },
+      {
+        "name": "MainSpace_Tribunal_Pilaster_3_V10_ImpostBlock",
+        "center": [
+          -96.199989,
+          591.600037,
+          407.850006
+        ],
+        "dimensions": [
+          56.0,
+          56.0,
+          27.300024
+        ],
+        "bbox": {
+          "minX": -124.199989,
+          "maxX": -68.199989,
+          "minY": 563.600037,
+          "maxY": 619.600037,
+          "minZ": 394.199982,
+          "maxZ": 421.500031
+        },
+        "capitalOverlap": 0.200012,
+        "entablatureOverlap": 0.200012
+      },
+      {
+        "name": "MainSpace_Tribunal_Pilaster_4_V10_ImpostBlock",
+        "center": [
+          8e-06,
+          591.600037,
+          407.850006
+        ],
+        "dimensions": [
+          56.0,
+          56.0,
+          27.300024
+        ],
+        "bbox": {
+          "minX": -27.999992,
+          "maxX": 28.000008,
+          "minY": 563.600037,
+          "maxY": 619.600037,
+          "minZ": 394.199982,
+          "maxZ": 421.500031
+        },
+        "capitalOverlap": 0.200012,
+        "entablatureOverlap": 0.200012
+      },
+      {
+        "name": "MainSpace_Tribunal_Pilaster_5_V10_ImpostBlock",
+        "center": [
+          96.200005,
+          591.600037,
+          407.850006
+        ],
+        "dimensions": [
+          56.0,
+          56.0,
+          27.300024
+        ],
+        "bbox": {
+          "minX": 68.200005,
+          "maxX": 124.200005,
+          "minY": 563.600037,
+          "maxY": 619.600037,
+          "minZ": 394.199982,
+          "maxZ": 421.500031
+        },
+        "capitalOverlap": 0.200012,
+        "entablatureOverlap": 0.200012
+      },
+      {
+        "name": "MainSpace_Tribunal_Pilaster_6_V10_ImpostBlock",
+        "center": [
+          192.399994,
+          591.600037,
+          407.850006
+        ],
+        "dimensions": [
+          56.0,
+          56.0,
+          27.300024
+        ],
+        "bbox": {
+          "minX": 164.399994,
+          "maxX": 220.399994,
+          "minY": 563.600037,
+          "maxY": 619.600037,
+          "minZ": 394.199982,
+          "maxZ": 421.500031
+        },
+        "capitalOverlap": 0.200012,
+        "entablatureOverlap": 0.200012
+      },
+      {
+        "name": "MainSpace_Tribunal_Pilaster_7_V10_ImpostBlock",
+        "center": [
+          288.599976,
+          591.600037,
+          407.850006
+        ],
+        "dimensions": [
+          56.0,
+          56.0,
+          27.300024
+        ],
+        "bbox": {
+          "minX": 260.599976,
+          "maxX": 316.599976,
+          "minY": 563.600037,
+          "maxY": 619.600037,
+          "minZ": 394.199982,
+          "maxZ": 421.500031
+        },
+        "capitalOverlap": 0.200012,
+        "entablatureOverlap": 0.200012
+      }
+    ],
+    "symmetricCenterXs": [
+      -288.599976,
+      -192.399994,
+      -96.199989,
+      8e-06,
+      96.200005,
+      192.399994,
+      288.599976
+    ],
+    "maxPairSymmetryError": 1.6e-05
+  },
+  "camera": {
+    "name": "MainHub_Master_Ortho_30deg",
+    "type": "ORTHO",
+    "location": [
+      0.0,
+      -4623.169434,
+      2832.418945
+    ],
+    "rotationEuler": [
+      1.047198,
+      -0.0,
+      0.0
+    ],
+    "orthoScale": 4488.095215
+  },
+  "originPixel": [
+    1024.0,
+    640.506226
+  ],
+  "renderSize": [
+    2048,
+    1152
+  ],
+  "geometryTransformsLockedForPreExistingObjects": true,
+  "lightingOrShadowParametersChanged": false,
+  "bakedDirectionalCastShadow": false,
+  "lights": [
+    {
+      "name": "RuntimeNeutral_LeftFill",
+      "type": "SUN",
+      "useShadow": false,
+      "energy": 0.7,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.733038,
+        0.0,
+        -0.733038
+      ]
+    },
+    {
+      "name": "RuntimeNeutral_Overhead",
+      "type": "SUN",
+      "useShadow": false,
+      "energy": 0.95,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "RuntimeNeutral_RightFill",
+      "type": "SUN",
+      "useShadow": false,
+      "energy": 0.7,
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.733038,
+        0.0,
+        0.733038
+      ]
+    }
+  ],
+  "renderPolicy": "all component images derive from this same orthographic Blender model; surface treatment targets realistic PBR marble and metal while silhouettes, placement and perspective remain geometry-locked"
+}

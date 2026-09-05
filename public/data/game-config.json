@@ -42,7 +42,251 @@
         "x": 6144,
         "y": 4096
       },
+      "playerSpawn": {
+        "x": 6114,
+        "y": 3963
+      },
       "wallThickness": 20,
+      "backdrop": {
+        "enabled": true,
+        "version": 1,
+        "textureKey": "main_hub_summit_backdrop_v01",
+        "assetPath": "assets/scenes/main_hub_summit_backdrop_v01.png",
+        "baselineWorldY": 3650,
+        "baselineRatioFallback": 0.44,
+        "depthOffsetFromTerrain": 0.01,
+        "alpha": 1,
+        "comment": "主神空间山顶远眺背景层：只覆盖接地线以上及柱廊镂空区域；下半部继续显示原大理石地砖，碰撞、光照和阴影保持原系统。"
+      },
+      "architecture": {
+        "enabled": true,
+        "version": 11,
+        "comment": "主神空间v11组件化检查点：不使用Blender整片建模地面，继续使用原hub_brick大理石地砖；只叠加台阶/坐凳基座、后方立柱拱廊与灯台灯具。当前视觉尚未定稿，下一轮须先重做组件视角再精修材质。",
+        "underlay": {
+          "textureKey": "main_hub_v11_component_bases",
+          "assetPath": "assets/terrain/main_hub_v11_component_bases.png",
+          "x": 6144.0,
+          "y": 3808.906047,
+          "displayW": 2414.980921,
+          "displayH": 322.143553
+        },
+        "occluders": [
+          {
+            "id": "rear_architecture",
+            "textureKey": "main_hub_v11_rear_architecture",
+            "assetPath": "assets/terrain/main_hub_v11_rear_architecture.png",
+            "screenCenterX": 6144.0,
+            "screenCenterY": 3510.868474,
+            "displayW": 2200.218553,
+            "displayH": 392.270041,
+            "depthY": 3510
+          },
+          {
+            "id": "fixtures",
+            "textureKey": "main_hub_v11_fixtures",
+            "assetPath": "assets/terrain/main_hub_v11_fixtures.png",
+            "screenCenterX": 6144.0,
+            "screenCenterY": 3910.808599,
+            "displayW": 2274.727946,
+            "displayH": 271.74014,
+            "depthY": 4030
+          }
+        ],
+        "pieces": [
+          {
+            "id": "v11_shadow_tribunal",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "rear_wall",
+                "x": 6144,
+                "y": 3478
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 430,
+              "contactPolygon": [
+                [-375, -58],
+                [375, -58],
+                [375, 58],
+                [-375, 58]
+              ]
+            }
+          },
+          {
+            "id": "v11_shadow_colonnades",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "left",
+                "x": 5402,
+                "y": 3467
+              },
+              {
+                "id": "right",
+                "x": 6886,
+                "y": 3467
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 350,
+              "contactPolygon": [
+                [-351, -39],
+                [351, -39],
+                [351, 39],
+                [-351, 39]
+              ]
+            }
+          },
+          {
+            "id": "v11_shadow_marble_cube_lamps",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "inner_left",
+                "x": 5844,
+                "y": 4016
+              },
+              {
+                "id": "inner_right",
+                "x": 6444,
+                "y": 4016
+              },
+              {
+                "id": "outer_left",
+                "x": 5064,
+                "y": 3991
+              },
+              {
+                "id": "outer_right",
+                "x": 7224,
+                "y": 3991
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 298,
+              "contactPolygon": [
+                [0, -18],
+                [13, -13],
+                [18, 0],
+                [13, 13],
+                [0, 18],
+                [-13, 13],
+                [-18, 0],
+                [-13, -13]
+              ]
+            }
+          }
+        ],
+        "collisionProxies": [
+          {
+            "id": "summit_overlook_rear_edge",
+            "shape": "rect",
+            "x": 6144,
+            "y": 3638,
+            "width": 2788,
+            "height": 50
+          },
+          {
+            "id": "central_rear_base",
+            "shape": "rect",
+            "x": 6144,
+            "y": 3478,
+            "width": 750,
+            "height": 117
+          },
+          {
+            "id": "left_colonnade_base",
+            "shape": "rect",
+            "x": 5402,
+            "y": 3467,
+            "width": 702,
+            "height": 79
+          },
+          {
+            "id": "right_colonnade_base",
+            "shape": "rect",
+            "x": 6886,
+            "y": 3467,
+            "width": 702,
+            "height": 79
+          },
+          {
+            "id": "warehouse_service_plinth",
+            "shape": "rect",
+            "x": 6664,
+            "y": 3696,
+            "width": 160,
+            "height": 70
+          },
+          {
+            "id": "blacksmith_service_plinth",
+            "shape": "rect",
+            "x": 6944,
+            "y": 3696,
+            "width": 160,
+            "height": 70
+          },
+          {
+            "id": "lamp_inner_left",
+            "shape": "circle",
+            "x": 5844,
+            "y": 4016,
+            "radius": 24
+          },
+          {
+            "id": "lamp_inner_right",
+            "shape": "circle",
+            "x": 6444,
+            "y": 4016,
+            "radius": 24
+          },
+          {
+            "id": "lamp_outer_left",
+            "shape": "circle",
+            "x": 5064,
+            "y": 3991,
+            "radius": 24
+          },
+          {
+            "id": "lamp_outer_right",
+            "shape": "circle",
+            "x": 7224,
+            "y": 3991,
+            "radius": 24
+          }
+        ]
+      },
       "floor": {
         "tiles": [
           "hub_brick"

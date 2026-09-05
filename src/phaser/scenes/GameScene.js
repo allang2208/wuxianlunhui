@@ -377,6 +377,8 @@ export class GameScene extends Scene {
         this._terrainSource = null;
         this._terrainWorldWidth = 0;
         this._terrainWorldHeight = 0;
+        this._mainHubBackdrop = null;
+        this._mainHubBackdropKey = null;
         // 2048² 分块地板（世界-122 惰性加载）：key -> Phaser image；待烘焙队列
         this._terrainChunkSprites = new Map();
         this._terrainChunkQueue = [];
@@ -488,6 +490,7 @@ export class GameScene extends Scene {
         const _dms = DungeonMapSystem;
         const isMapMode = SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map';
         this._syncAmbientOverlay(isMapMode);
+        this._syncMainHubBackdrop(isMapMode);
         if (isMapMode) {
             this._clearRenderScratchSets();
             // 地图模式下 Phaser 相机背景透明，露出下方 Canvas 绘制的路线地图
@@ -3405,7 +3408,11 @@ export class GameScene extends Scene {
                 }
                 // 静态结构已在 _syncNeutralEntities 写入缓存深度，并由
                 // _syncStructureRenderOrder 在拓扑变化时覆盖最终值；动态单位阶段不得第三次重写。
-                if (e._structureDepthMode || e._isDefenseStructure || usesBuildingFootprintVolume(e)) continue;
+                if (data.sprCfg?.depthMode === 'ground'
+                    || e._isMainHubArchitectureOccluder
+                    || e._structureDepthMode
+                    || e._isDefenseStructure
+                    || usesBuildingFootprintVolume(e)) continue;
                 const footOffsetY = this._getFootOffsetY(e, data.sprite);
                 const depth = data.sprite.y + footOffsetY + 10;
                 setVisualDepthIfChanged(data.sprite, depth, depthStats);
@@ -11768,7 +11775,15 @@ export class GameScene extends Scene {
             // 掩体带 _faceDepth（=墙段底边线 max 端点 y + 12，见 DefenseCover），
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
             // 实体错误排到墙后被盖（2026-08-05 实机复现）
-            if (e._isDefenseStructure || (usesBuildingFootprintVolume(e) && e._structureDepthMode)) {
+            if (sprCfg?.depthMode === 'ground') {
+                // 大面积铺装/台基层固定在地形之上，不参与单位的动态 Y 排序。
+                sprite.setDepth(WORLD_RENDER_LAYERS.STRUCTURE_GROUND_CONTACT);
+                label.setDepth(WORLD_RENDER_LAYERS.STRUCTURE_GROUND_CONTACT + 0.01);
+            } else if (e._isMainHubArchitectureOccluder) {
+                // 同一母场景裁出的遮挡层以配置 depthY 为固定遮挡平面。
+                sprite.setDepth(e.y);
+                label.setDepth(e.y + 0.01);
+            } else if (e._isDefenseStructure || (usesBuildingFootprintVolume(e) && e._structureDepthMode)) {
                 const dd = Number.isFinite(e._structureRenderDepth)
                     ? e._structureRenderDepth
                     : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
@@ -11996,11 +12011,73 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 主神空间山顶远景。背景按屏幕 cover 显示，裁切底边由世界坐标基线换算；
+     * 它只位于地形之上、所有实体之下，不接收或制造阴影。
+     */
+    _syncMainHubBackdrop(isMapMode = false) {
+        const cfg = GAME_CONFIG.scenes?.mainHub?.backdrop;
+        const textureKey = cfg?.textureKey;
+        const shouldShow = cfg?.enabled === true
+            && SceneManager.currentScene === 'main'
+            && !isMapMode
+            && !!textureKey
+            && this.textures.exists(textureKey);
+
+        if (!shouldShow) {
+            this._mainHubBackdrop?.setVisible(false);
+            return;
+        }
+
+        if (!this._mainHubBackdrop || !this._mainHubBackdrop.active
+            || this._mainHubBackdropKey !== textureKey) {
+            this._mainHubBackdrop?.destroy();
+            this._mainHubBackdrop = this.add.image(0, 0, textureKey)
+                .setName('main_hub_summit_backdrop')
+                .setOrigin(0.5, 0)
+                .setScrollFactor(0);
+            this._mainHubBackdropKey = textureKey;
+        }
+
+        const camera = this.cameras.main;
+        const frame = this.textures.getFrame(textureKey);
+        const sourceW = Math.max(1, frame?.realWidth || frame?.width || 1);
+        const sourceH = Math.max(1, frame?.realHeight || frame?.height || 1);
+        const zoom = Math.max(0.001, Number(camera.zoom) || 1);
+        const viewportW = Math.max(1, Number(camera.width) || 1);
+        const viewportH = Math.max(1, Number(camera.height) || 1);
+        const screenScale = Math.max(viewportW / sourceW, viewportH / sourceH);
+
+        const configuredBaseline = Number(cfg.baselineWorldY);
+        const fallbackRatio = Math.max(0, Math.min(1,
+            Number(cfg.baselineRatioFallback) || 0.44));
+        const worldViewTop = Number(camera.worldView?.y);
+        const baselineScreenY = Number.isFinite(configuredBaseline)
+            && Number.isFinite(worldViewTop)
+            ? (configuredBaseline - worldViewTop) * zoom
+            : viewportH * fallbackRatio;
+        const cropH = Math.max(0, Math.min(sourceH,
+            Math.round(Math.max(0, Math.min(viewportH, baselineScreenY)) / screenScale)));
+
+        const depthOffset = Number.isFinite(Number(cfg.depthOffsetFromTerrain))
+            ? Number(cfg.depthOffsetFromTerrain) : 0.01;
+        const alpha = Number.isFinite(Number(cfg.alpha))
+            ? Math.max(0, Math.min(1, Number(cfg.alpha))) : 1;
+        this._mainHubBackdrop
+            .setCrop(0, 0, sourceW, cropH)
+            .setScale(screenScale / zoom)
+            .setPosition(viewportW / (2 * zoom), 0)
+            .setDepth(WORLD_RENDER_LAYERS.TERRAIN + depthOffset)
+            .setAlpha(alpha)
+            .setVisible(cropH > 0);
+    }
+
+    /**
      * 公共入口：由 scene-manager / combat-room-system 在场景/战斗房切换后调用，
      * 避免每帧检查地形纹理。
      */
     syncTerrain() {
         this._syncTerrain();
+        this._syncMainHubBackdrop(false);
     }
 
     /**

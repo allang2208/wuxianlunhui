@@ -1,0 +1,106 @@
+{
+  "assetId": "main_hub_v11_components_only_runtime_delivery",
+  "status": "runtime_checkpoint_needs_perspective_rework",
+  "sourceBlend": "../runtime_delivery_v10/main_hub_runtime_master_v10.blend",
+  "geometrySourceOfTruth": "v10 fixed-column Blender model",
+  "modeledGroundIncluded": false,
+  "runtimeFloor": "assets/terrain/hub_brick.png via scenes.mainHub.floor",
+  "runtimeBackdrop": "assets/scenes/main_hub_summit_backdrop_v01.png",
+  "runtimeLayers": {
+    "component_bases": {
+      "file": "main_hub_v11_component_bases.png",
+      "assetPath": "assets/terrain/main_hub_v11_component_bases.png",
+      "semanticGroups": [
+        "terraces_and_stair",
+        "service_plinths"
+      ],
+      "pixelCount": 76506,
+      "screenCenterX": 6144.0,
+      "screenCenterY": 3808.906047,
+      "displayW": 2414.980921,
+      "displayH": 322.143553,
+      "sourceCrop": {
+        "left": 473,
+        "top": 436,
+        "right": 1575,
+        "bottom": 583,
+        "width": 1102,
+        "height": 147
+      }
+    },
+    "rear_architecture": {
+      "file": "main_hub_v11_rear_architecture.png",
+      "assetPath": "assets/terrain/main_hub_v11_rear_architecture.png",
+      "semanticGroups": [
+        "rear_architecture"
+      ],
+      "pixelCount": 96009,
+      "screenCenterX": 6144.0,
+      "screenCenterY": 3510.868474,
+      "displayW": 2200.218553,
+      "displayH": 392.270041,
+      "sourceCrop": {
+        "left": 522,
+        "top": 284,
+        "right": 1526,
+        "bottom": 463,
+        "width": 1004,
+        "height": 179
+      }
+    },
+    "fixtures": {
+      "file": "main_hub_v11_fixtures.png",
+      "assetPath": "assets/terrain/main_hub_v11_fixtures.png",
+      "semanticGroups": [
+        "fixtures"
+      ],
+      "pixelCount": 9819,
+      "screenCenterX": 6144.0,
+      "screenCenterY": 3910.808599,
+      "displayW": 2274.727946,
+      "displayH": 271.74014,
+      "sourceCrop": {
+        "left": 505,
+        "top": 494,
+        "right": 1543,
+        "bottom": 618,
+        "width": 1038,
+        "height": 124
+      }
+    }
+  },
+  "shadowProxy": {
+    "file": "main_hub_v11_shadow_proxy.png",
+    "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png"
+  },
+  "camera": {
+    "name": "MainHub_Master_Ortho_30deg",
+    "type": "ORTHO",
+    "location": [
+      0.0,
+      -4623.169434,
+      2832.418945
+    ],
+    "rotationEuler": [
+      1.047198,
+      -0.0,
+      0.0
+    ],
+    "orthoScale": 4488.095215
+  },
+  "originPixel": [
+    1024.0,
+    640.506226
+  ],
+  "worldPerPixel": 2.191452742,
+  "recomposition": {
+    "maxChannelErrorAgainstComponentsOnlyTarget": 0,
+    "changedPixelsAgainstComponentsOnlyTarget": 0,
+    "omittedModeledGroundPixels": 401220
+  },
+  "lightingOrShadowParametersChanged": false,
+  "bakedDirectionalCastShadow": false,
+  "runtimeIntegrated": true,
+  "visualApproval": false,
+  "nextStep": "Rebuild isolated component renders from the unchanged full-scene game camera before any further material generation."
+}

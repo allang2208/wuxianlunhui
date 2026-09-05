@@ -1,0 +1,26 @@
+{
+  "assetId": "main_hub_v13_summit_backdrop",
+  "status": "runtime_integrated_checkpoint",
+  "generator": "built-in imagegen",
+  "useCase": "precise-object-edit",
+  "backgroundOutput": "../../../../../../assets/scenes/main_hub_summit_backdrop_v01.png",
+  "backgroundOutputSize": [1672, 941],
+  "backgroundOutputMode": "RGB",
+  "backgroundSha256": "20681BA49933CAB735AE2B8C43B840358AF36062AE40687DF6356F36CC3E8D87",
+  "conceptOutput": null,
+  "runtimeAsset": "assets/scenes/main_hub_summit_backdrop_v01.png",
+  "runtimeContract": {
+    "scene": "main",
+    "layer": "WORLD_RENDER_LAYERS.TERRAIN + 0.01",
+    "fit": "cover",
+    "baselineWorldY": 3650,
+    "baselineRatioFallback": 0.44,
+    "lowerMarbleFloorPreserved": true,
+    "collisionChanged": false,
+    "lightingChanged": false,
+    "shadowChanged": false
+  },
+  "architectureRuntimeIntegrated": true,
+  "backgroundRuntimeTestEnabled": false,
+  "formalApproval": true
+}

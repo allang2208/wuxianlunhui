@@ -1,0 +1,42 @@
+{
+  "assetId": "main_space_architecture_20260903",
+  "cleanupDate": "2026-09-05",
+  "reason": "User rejected the component material pass because its isolated exports used the wrong visual angle. Keep only the current runtime checkpoint and its minimal editable ancestry.",
+  "before": {
+    "fileCount": 1170,
+    "bytes": 896509470
+  },
+  "keptExisting": {
+    "fileCount": 16,
+    "bytes": 55821193,
+    "roots": [
+      "component_pipeline_v02/virtual_plane/runtime_delivery_v09/main_hub_runtime_master_v09.blend",
+      "component_pipeline_v02/virtual_plane/build-main-hub-v10-central-column-fit.py",
+      "component_pipeline_v02/virtual_plane/runtime_delivery_v10/",
+      "component_pipeline_v02/virtual_plane/compose-main-hub-v11-components-only.py",
+      "component_pipeline_v02/virtual_plane/runtime_delivery_v11_components_only/",
+      "component_pipeline_v02/virtual_plane/layout_reference_v13_summit_backdrop/"
+    ]
+  },
+  "removed": {
+    "existingFileCount": 1154,
+    "bytes": 840688277,
+    "categories": [
+      "rejected standalone component models and their generated candidates",
+      "rejected full-scene and isolated-compositing iterations before v09",
+      "unselected 12-step and 48-step AI candidates",
+      "wrong-perspective v11 isolated component controls and candidates",
+      "unapproved Alps backdrop candidate",
+      "contact sheets, logs, caches, blend1 backups and reproducible previews"
+    ]
+  },
+  "runtimeAssetsPreserved": [
+    "assets/scenes/main_hub_summit_backdrop_v01.png",
+    "assets/terrain/main_hub_v11_component_bases.png",
+    "assets/terrain/main_hub_v11_rear_architecture.png",
+    "assets/terrain/main_hub_v11_fixtures.png",
+    "assets/terrain/main_hub_v11_shadow_proxy.png"
+  ],
+  "rejectedCandidatesRetained": false,
+  "runtimeTestsRun": false
+}

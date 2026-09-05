@@ -53,6 +53,7 @@ import {
     queueCivilianVisualAssets,
     registerCivilianVisualAnimations,
 } from '../../world/civilian-visual-runtime.js';
+import { getMainHubArchitectureTextureEntries } from '../../world/main-hub-architecture.js';
 
 export class BootScene extends Scene {
     constructor() {
@@ -337,6 +338,9 @@ export class BootScene extends Scene {
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）
         this.load.image('hub_wall_straight', 'assets/terrain/hub_wall_straight.png');
         this.load.image('hub_gate', 'assets/terrain/hub_gate.png');
+        for (const entry of getMainHubArchitectureTextureEntries()) {
+            this.load.image(entry.key, entry.path);
+        }
         // 障碍物组件（木桶/石柱/烛台，摆墙编辑器障碍物类）
         this.load.image('obstacle_barrel', 'assets/terrain/obstacle_barrel.png');
         this.load.image('obstacle_pillar', 'assets/terrain/obstacle_pillar.png');
