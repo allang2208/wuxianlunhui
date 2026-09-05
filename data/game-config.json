@@ -1550,6 +1550,88 @@
       "environmentEffects": {
         "rain": {
           "enabled": false
+        },
+        "mineWeather": {
+          "enabled": true,
+          "schedule": {
+            "intervalDays": {
+              "min": 3,
+              "max": 5
+            },
+            "warningLeadDays": 0.25,
+            "weights": {
+              "earthquake": 40,
+              "poisonGas": 35,
+              "resurrection": 25
+            }
+          },
+          "portalSafeRadius": 420,
+          "earthquake": {
+            "name": "矿层震荡",
+            "durationDays": {
+              "min": 0.4,
+              "max": 0.6
+            },
+            "rounds": {
+              "min": 4,
+              "max": 6
+            },
+            "rocksPerRound": 6,
+            "buildingTargetChance": 0.8,
+            "radius": 110,
+            "telegraphMs": 1500,
+            "rockStaggerMs": 600,
+            "unitDamageRatio": 0.06,
+            "buildingDamageRatio": 0.1
+          },
+          "poisonGas": {
+            "name": "毒气蔓延",
+            "durationDays": {
+              "min": 0.5,
+              "max": 0.75
+            },
+            "maxZones": 4,
+            "radius": 260,
+            "growMs": 5000,
+            "zoneDurationMs": 40000,
+            "zoneIntervalMs": 12000,
+            "exposureMs": 2000,
+            "tickMs": 1000,
+            "damageRatio": 0.005,
+            "lingerMs": 3000
+          },
+          "resurrection": {
+            "name": "沉眠者归来",
+            "durationDays": {
+              "min": 0.5,
+              "max": 1
+            },
+            "batchSize": 3,
+            "batchIntervalMs": 20000,
+            "maxAlive": 18,
+            "totalBudget": 36,
+            "maxAliveElite": 3,
+            "totalElite": 6,
+            "maxAliveLord": 1,
+            "totalLord": 2,
+            "reviveDelayMs": 8000,
+            "reviveHpRatio": 0.4,
+            "emergeMs": 3000,
+            "eliteStartFraction": 0.25,
+            "lordStartFraction": 0.5,
+            "pools": {
+              "normal": [
+                "zombie",
+                "minerZombie"
+              ],
+              "elite": [
+                "lanternMinerZombie"
+              ],
+              "lord": [
+                "foremanZombie"
+              ]
+            }
+          }
         }
       },
       "origin": {
