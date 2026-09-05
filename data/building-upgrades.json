@@ -187,7 +187,8 @@
     "modules": {
       "planar_aperture_synthesis": { "name": "孔径合成阵列", "icon": "🌀", "iconImage": "assets/ui/building-upgrades/planar-aperture-synthesis.png", "effect": "advancedResearchBasePoints", "mode": "add", "base": 3, "per": 0.1, "maxLevel": 10, "desc": "满员基础科研由3.00提升至4.00点/秒，每级增加0.10点/秒。" },
       "planar_multispectral_automation": { "name": "多谱段自动观测", "icon": "🦾", "iconImage": "assets/ui/building-upgrades/planar-multispectral-automation.png", "effect": "advancedResearchWorkerEfficiencyShare", "mode": "add", "base": 0.1666666667, "per": 0.0083333334, "maxLevel": 4, "goldByLevel": [14000, 20000, 28500, 40000], "energyByLevel": [18000, 26000, 37000, 52000], "timeByLevel": [150000, 180000, 225000, 300000], "desc": "每名位面观测员发挥率由16.67%提升至20%，实际岗位效率仍封顶100%，岗位容量保持6名。" },
-      "planar_baseline_extension": { "name": "阵列基线延展", "icon": "📡", "iconImage": "assets/ui/building-upgrades/planar-baseline-extension.png", "effect": "advancedResearchClusterRadius", "mode": "add", "base": 640, "per": 80, "maxLevel": 10, "desc": "本栋科研集群识别半径由640px提升至1440px，每级增加80px。" }
+      "planar_baseline_extension": { "name": "阵列基线延展", "icon": "📡", "iconImage": "assets/ui/building-upgrades/planar-baseline-extension.png", "effect": "advancedResearchClusterRadius", "mode": "add", "base": 640, "per": 80, "maxLevel": 10, "desc": "本栋科研集群识别半径由640px提升至1440px，每级增加80px。" },
+      "planar_warning_resolution": { "name": "预警解析链", "icon": "🔭", "iconImage": "assets/ui/building-upgrades/planar-warning-resolution.png", "effect": "advancedResearchStrategicReconRadius", "mode": "add", "base": 3, "per": 1, "maxLevel": 2, "goldByLevel": [18000, 30000], "energyByLevel": [24000, 42000], "timeByLevel": [210000, 330000], "desc": "至少一名观测员上岗时，本栋所在基地的战略入侵侦察半径由3格提升至5格，每级增加1格。" }
     }
   },
   "interplane_research_hub_economy": {
