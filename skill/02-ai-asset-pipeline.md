@@ -1,4 +1,6 @@
 > 本文件为 game-dev 技能库分卷，主索引与目录见 ../SKILL.md
+
+> 任务阶段与局部修补分流见 [00-workflows](00-workflows.md)。本卷保留系统细节与案例；历史测试/构建命令仅供用户授权后选择，不自动执行。公共动画规则以16/16b为准，案例参数不扩大为通用要求。
 > 本节：2. AI 资产与出图管线
 
 ## 2. AI 资产与出图管线
@@ -167,29 +169,9 @@ python tools/ai-gen/ai-asset.py verify   --sheet <sheet.png> --cell 512|640
 - 详细参数/异常处理见「四足动物（狼系）动画精灵图全管线」章节。
 
 ---
-### ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
+### 识图入口
 
-需要读取/理解任何图片（用户发图、游戏截图、贴图、UI 截图、OCR 等）时，
-**优先调用已构建的 GLM-4.6V 识图系统**（deepseek-vision-skill，智谱 GLM-4.6V 接口）：
-
-```bash
-# 读本地图片（可多张）：
-node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.js" "路径\图片.png"
-# 带具体问题：
-node "...\describe-image.js" --prompt "图片里剑柄是否在手中？" "路径\图片.png"
-# 恢复用户最新发送的图片（本模型收不到图时）：
-node "...\describe-image.js" --latest
-```
-
-要点（实战沉淀，2026-08-03 一段攻击跟手三轮）：
-- **定位坐标不可靠**：GLM-4.6V 读绝对像素坐标会跑飞（全图/网格/裁剪多格式均验证过）；
-  需要精确定位时用它做定性判断（ON/OFF、方向、内容描述、OCR），坐标以贴图真值掩码为准。
-- **特写图效果最好**：把目标区域裁小（~140px）、2 倍/3 倍放大、必要时加红点标记当前点，
-  问"红点是否在目标上 / 偏哪个方向多少像素"，回答稳定可用。
-- 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
-  deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
-
----
+优先使用当前模型直接视觉能力；像素/Alpha用于精确尺寸与边缘。外部识图仅在能力不足或有明确交叉判断需要且目的地已授权时使用。DeepSeek专用识图技能只在其声明的模型条件满足时启用，不读取历史配置判断当前主模型。具体公共步骤见 [任务工作流](00-workflows.md)。
 
 ### 全屏 Loading 背景低颗粒出图与入库合同（2026-08-28）
 
@@ -215,7 +197,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 新技能贴图/图标/素材一律**优先走双机 ComfyUI**（本地零成本、不限量）：
 远程 5080 默认使用 FLUX.2 Dev（需要锁结构时复用 Fun-Controlnet-Union + Blender Depth），本机 3080 Ti 兜底；
-智谱 API 作为第三兜底（双机不可用 / 特殊场景，有免费额度）。出图后必须过 GLM-4.6V 验收再入库。
+智谱 API 作为第三兜底（双机不可用 / 特殊场景，有免费额度）。出图后按当前直接视觉与相应像素问题确认；外部识图按需，不作为入库必经步骤。
 
 #### 生图入口（优先：双机 ComfyUI；智谱 API 第三兜底，2026-08-04 调整）
 - **远程 5080 主力（默认）**：`python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png`（命令相对 game-dev/ 仓库根目录执行）
@@ -887,7 +869,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
   中心漂移、对齐三铁律。
 - 循环验证：首尾中心差、(腿部)同相 IoU、接缝步幅 vs 正常步幅、结尾 5 帧速度无突变。
 - 抠图验证：每帧背景占比稳定、角色内部孤立背景斑（连通域）、无空格帧。
-- 集成验证：`npx vite build` + `npx eslint` + 无空格帧 + GLM **单张**抽查
+- 用户明确授权后的集成验证选项：`npx vite build` + `npx eslint` + 无空格帧 + GLM **单张**抽查
   （多图并排 GLM 会串扰，联系图只用于定性）。
 
 #### 9. 本次产物与可复用命令
@@ -1233,21 +1215,7 @@ v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力�
   最近色填充（distance_transform 索引，防边缘黑晕），alpha 作灰度图单独过 RIFE 再取亮度回贴。
   循环动画含尾→首回绕对。插后中间帧脚底会因 alpha 软化上移 2~14px：整像素竖移校准到
   邻帧底边均值（elise-interp-feet-fix.py）。walk 12→24@28fps、run 循环 12→24@32fps 实装。
-- **新增怪物/友军正式动画强制门禁（2026-08-25）**：从本规则生效后，每一张新导入或重做的怪物、
-  NPC、侍从、士兵、工人角色动画精灵表，在关键姿态、动作窗口、透明抠图、固定比例、脚线与格宽先验收后，
-  都必须再执行一次 `tools/ai-gen/rife-spritesheet-interpolate.py` 的 RIFE v4.6 2× 插帧流程；静态图标、
-  UI、地形 Tile 和非角色逐帧机械部件不在此门禁内。插帧只能平滑已经正确的关键姿态，不能修复错手、断肢、
-  武器换侧、拓扑变化、错误循环或错误攻击轨迹；发现中间帧破坏解剖/武器连续性时必须退回修源帧或剔除坏帧，
-  禁止以“帧数更多”视为通过。
-- **循环与一次性动作必须分流**：idle/walk/run 等真循环对 N 个原帧插入 N 个中间帧，包含末→首回绕，
-  输出 2N 帧；attack/cast/hit/dying 等一次性动作只处理相邻原帧，严禁末→首回绕，输出 2N−1 帧。
-  原关键帧必须逐像素保留在输出偶数索引，`outputIndex = sourceIndex × 2`；接触帧、发射帧、声音帧和定格帧
-  先按此式映射，`activeFrames` 等窗口再按同一墙钟重新核对，不能直接复制旧帧号。播放帧率同步×2以保持动作
-  总时长不变，死亡末帧必须仍是原始稳定尸体帧。
-- **透明与脚线收口**：RGB 透明区先以最近前景色填充，RGB/Alpha 分通道插值后将 alpha=0 区 RGB 清零；
-  每张中间帧按相邻两原帧 `alpha>32` 底边均值做整像素 Y 校正。长柄武器、法杖、尾巴和横向扑击只影响
-  帧格安全宽度，不参与主体缩放，也不得用逐帧居中消除攻击源位移。正式覆盖前保存未插帧母表，交付
-  插帧 GIF/联系图与报告，并检查空帧、触边、透明 RGB、脚线、循环缝以及原关键帧偶数位保真。
+- **角色插帧公共合同**：统一见 [16b §4](16b-animation-alignment-and-timing.md#4-插帧与循环)。按需一次2×RIFE，保留源关键帧、循环/单次分流、脚点与事件时钟；不重复强制插帧。以下工具异常案例只在采用RIFE时参考。
 - **黑闪门禁（2026-08-25 仓鼠长戟兵实测）**：RIFE 可能在两张正确关键帧之间凭空生成不透明近黑块，
   透明 RGB 清零和脚线正确都不能证明没有此问题。`rife-spritesheet-interpolate.py` 必须逐个中间帧检查
   `alpha>96 && max(RGB)<24` 且远离相邻关键帧原有暗部的时间异常；达到 8px 即用两侧“最近前景色填充场”
@@ -1814,59 +1782,6 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 
 ---
 
-### 阶段性进度总结（2026-08-04：生图标准工作流 + 提示词固化定稿）
-
-#### 本次完成
-1. **生图标准工作流定稿**：`game-dev/tools/ai-gen/WORKFLOW.md`——六步全流程
-   （定风格→生成→粗筛→视觉验收→抠图入库→清理废案）+ 生成入口矩阵（智谱 API 优先 /
-   ComfyUI 兜底 / 远程 5080 主力 / 本地 3080 Ti 兜底 / models.json 模型登记表）+
-   各类资产子流程（技能图标 / 装备图标 / 障碍物 / 怪物 / 投射物 / 视频）+
-   沉淀坑位清单 + NAS 归置原则。
-2. **提示词固化**：`game-dev/tools/ai-gen/prompts/` 提示词库——
-   README（拼接顺序 / 权重语法 / 智谱 vs ComfyUI 差异 / img2img 模板锁定规则）+
-   8 个固化模板：skill-icon（六边形徽章系列，含 fireball 内容框基准）、
-   equipment-icon（style_prefix + 负面词 + 单件强制 + 构图硬性规则）、obstacle、
-   monster-sprite、video（MiniMax H3）、cover（世界-122 掩体六档）、
-   defense-tower（世界-122 防御塔）、transparent-subject（透明主体纯色底）。
-3. **一致性修正**：文首工作流「标准流程」命名由五步修正为六步（实际条目一直是 6 条）；
-   障碍物提示词引用改指 prompts/obstacle.md（旧 obstacle-prompt-strategy.md 收敛为跳转桩）。
-
-#### 验证
-- WORKFLOW.md 引用的工具路径全部核实存在（当时位于根 `tools/`，现已整体迁入
-  `game-dev/tools/ai-gen/`：comfyui-gen.py、models.json、make-transparent-icon.py、
-  check-icon-sizes.py、birefnet-cutout.py、verify-eclipse-icons.py、flip-boots-right.py、
-  check-components.py、minimax-h3-gen.py、start-comfyui-remote.bat 等）。
-- 模板内容全部来自实战沉淀（陨星/暴风雪图标、稀有三套+首饰、沙袋/拒马、陨星 VFX 视频），非虚构。
-
----
-
-### 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
-
-#### 本次完成
-1. **入口优先级调整**：双机 ComfyUI 优先（远程 5080 主力 + 本机 3080 Ti 兜底）→ 本地零成本；
-   智谱 API 降级为第三兜底（双机不可用/特殊场景）。
-2. **5080 主力模型实机核对并登记**：FLUX.2 dev fp8（`flux2_dev_fp8mixed` +
-   `mistral_3_small_flux2_fp4_mixed` + `flux2-vae`）+ FLUX.2 Depth ControlNet
-   （`FLUX.2-dev-Fun-Controlnet-Union`，Depth/Canny/HED/Pose 单文件多模式）已装；
-   `tools/ai-gen/models.json` 登记 `flux2-dev-fp8`（24 步/CFG 3.5）+ `flux2-dev-depth`（默认强度 0.75）。
-3. **客户端升级**：`tools/ai-gen/comfyui-gen.py` 新增 `--control-image` / `--strength` 与
-   ControlNet 工作流分支（Flux2FunControlNetLoader/Apply），深度图锁视角/方向；
-   官方 BFL JSON 结构化提示词（camera 块）作双保险。
-4. **兼容修复（已应用 2026-08-04）**：flux2fun-controlnet v1.1.0 的
-   `timestep_zero_index` / `multigpu_clones` 两处补丁与 comfyui-mesh Icarus stub 补丁
-   已在 5080 替换并重启（原文件备份 + 修复版在 `tools/ai-gen/remote-patch/`，NAS 同步一份）；
-   Mesh 跨机出图实测通过（`flux2-dev-mesh`，8 步 turbo，Turbo LoRA 两端本地加载）。
-5. **文档同步**：WORKFLOW.md（入口矩阵/§1.5/第 2 步）、prompts/ 8 个模板补深度锁用法、
-   SKILL.md v2.1、CHANGELOG。
-
-#### 验证
-- 远程 5080 在线（192.168.3.142，RTX 5080 16GB，ComfyUI 0.30.0），模型/节点清单实机核对
-  （Flux2FunControlNetLoader/Apply 存在，ControlNet 文件在 models/controlnet）。
-- `tools/ai-gen/comfyui-gen.py --list-models` 通过；`flux2-dev-mesh` 跨机实测出图成功
-  （5080 Icarus + 3080 Ti Daedalus，8 步 turbo，服务端每步 decode~140ms/fwd~9ms/enc~650ms）。
-
----
-
 ### 树木/植被等距素材管线（2026-08-26 Klein 路由更新）
 > 2026-08-16 删除的是世界-122 当时的树木资产和旧专用批处理脚本，不代表禁止后续世界新增树木/植被。
 > 新资产统一按本节通用链路执行；不得引用已删除的 `gen-tree-iso2-assets.py` / `process-tree-iso2-assets.py`。
@@ -2050,3 +1965,5 @@ RGB 151/87/70 红主色）+ 屋顶 prism 材质 `roof`（墙身仍是黑砖 wall
 「塔顶高于屋脊」≠「屏幕上高于屋脊」，塔台做平顶最稳。
 
 ---
+
+历史阶段结果见 [AI资产历史记录](02-ai-asset-history.md)。

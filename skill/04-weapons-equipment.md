@@ -1,4 +1,6 @@
 > 本文件为 game-dev 技能库分卷，主索引与目录见 ../SKILL.md
+
+> 任务阶段与局部修补分流见 [00-workflows](00-workflows.md)。本卷保留系统细节与案例；历史测试/构建命令仅供用户授权后选择，不自动执行。公共动画规则以16/16b为准，案例参数不扩大为通用要求。
 > 本节：4. 武器与装备系统
 
 ## 4. 武器与装备系统
@@ -52,7 +54,7 @@
 - **改造新效果键要过三处**（2026-07-30 Beretta 93R 落地）：①`craft-effect-registry.js` 注册（test-craft-sync 三角校验会拦未注册键）；②消费端代码（散布在 update.js 主副手+tooltip、fireMode 在 update.js 触发器+gun-ammo getFireMode）；③craft-config 写 effects。已有键覆盖绝大多数需求（shotSpreadDelta/recoilRecoveryDelta/rangeDelta/knockbackDelta/magazineDelta/reloadTimeDelta/moveSpeedPercent/damagePercent/piercingBonus/attackIntervalDelta/spreadStartDelta/redDotScope）；**模式切换类新键**：`burstMode`（N 连发，60ms 间隔排队，末发恢复标准冷却，**主副手各自独立队列**）、`fireModeOverride`（覆盖射击模式，全自动板机）、`spreadParamsOverride`（散布模板整体覆盖）。
 - **附魔/强化**：通用链路，零登记（强化只影响攻击公式派生与盾防）。
 - **图鉴**：ItemDatabase 自动收录，公式展示委托 buildFormulaDisplay，无需改代码。
-- **验证**：JSON 双份一致（`npm test` 的 test-regressions 双份一致性+音效路径存在性检查会拦）；`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs`、`node scripts/test-craft-sync.mjs`（动了 craft 配置时）；实机清单：装备/开火/换弹/双持（手枪族）/瞄准姿态/强化+1 攻击变化/图鉴公式展示。
+- **用户授权测试后的候选清单（按变更选择）**：JSON 双份一致（`npm test` 的 test-regressions 双份一致性+音效路径存在性检查会拦）；`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs`、`node scripts/test-craft-sync.mjs`（动了 craft 配置时）；实机清单：装备/开火/换弹/双持（手枪族）/瞄准姿态/强化+1 攻击变化/图鉴公式展示。
 
 ### 盾牌开发标准工作流（2026-09-02）
 
@@ -535,7 +537,7 @@ setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rang
 - 掉落：`chest-room-system.js _equipmentPool()` 自动含全部 armor/accessory（ItemDatabase 数据源），
   新增装备零登记自动进精英宝箱房掉落池。
 
-#### 5. 验证四件套
+#### 5. 用户授权测试后的验收选项
 - `tools/verify-set-shop.mjs`（双份一致/图标存在/商店目录/套装件数=3；⚠ 脚本已丢失、待重建，重建前以 JSON 双份比对 + 实机目检代替）
 - JSON 双份一致（test-regressions 会拦）；`npm run lint`；`npx vite build`；
   `node scripts/test-config-integrity.mjs`；实机：商店购买 → 装备三件 → 面板套装生效
@@ -609,7 +611,7 @@ setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rang
 #### 5. 掉率表（combat-formulas.json tributes.dropTables）
 elite（必掉）/normal（5%）两表按稀有度权重；新增等级自动按 RARITY_ORDER 参与。
 
-#### 6. 验证
+#### 6. 用户授权测试后的验收选项
 JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGELOG 记录。
 
 - v3.5 (2026-07-18) — 20 矿石祭品/怪物向效果/比例耦合/三新特效

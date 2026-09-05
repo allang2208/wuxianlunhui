@@ -1,7 +1,7 @@
 ---
 name: game-dev-lessons
 description: >
-  Reusable patterns for the Vite + Phaser 3 + Electron roguelike game-dev project.
+  Reusable patterns for the Vite + Phaser + Electron roguelike game-dev project.
   Use when implementing or tuning enemy AI, combat, movement, summoning, predictive
   aim, player dash/weapon-state fixes, boss/elite mechanics, or data-driven enemy
   configuration.
@@ -12,6 +12,8 @@ description: >
 记录该项目中经过验证的设计模式、坑点和可复用实现。
 
 > 64 条教训正文已移至同目录 `lessons.md`。本文件只保留索引；处理对应主题时按标题定位后到 lessons.md 读该节，勿全文加载。
+
+历史测试/CDP步骤仅在用户明确授权测试后使用，不能覆盖根AGENTS。当前公共工作流见根SKILL路由；案例参数不作为全局默认。
 
 ## 教训索引
 
@@ -44,7 +46,7 @@ description: >
 - 27. 实体级遮挡仲裁：多面线"被任一遮挡则遮挡"，别只取最近一条
 - 28. 跟随件/特效必须继承本体的遮挡仲裁（V0.365 武器/阴影/烟尘穿墙）
 - 29. 新增阵营/实体类型先查 GameScene 渲染闸门清单（V0.365 特工动画消失）
-- 30. 位置/观感类改动必须 CDP 实机自验（V0.366 三轮返工的教训）
+- 30. 位置/观感类改动的授权后 CDP 验收案例（V0.366 三轮返工的教训）
 - 31. 本轮零散但可复用的教训（V0.365~V0.366）
 - 32. 武器运动模糊 / 浮空投射物 / 防具属性挂接（V0.368 前后）
 - 33. 冰墙案例：写实 AI 素材管线 / 临时碰撞 / 魔法门槛 / 本轮坑（2026-08-02）
