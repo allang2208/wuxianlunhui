@@ -216,6 +216,7 @@
     "denoise": 0.28,
     "steps": 24,
     "background": "#FF00FF",
+    "shadowPolicy": "no-authored-cast-shadow",
     "raw": "tools/ai-gen/_frozen_environment_props_20260829/generation/frozen-props-dev-depth-v01-raw.png",
     "approvalContactSheet": "tools/ai-gen/_frozen_environment_props_20260829/review/frozen-props-dev-contact-sheet.png"
   },
@@ -223,6 +224,8 @@
     "status": "active",
     "approvedByUser": true,
     "installedOn": "2026-08-29",
+    "shadowPolicy": "no-authored-cast-shadow",
+    "shadowRemovedOn": "2026-08-30",
     "assetDirectory": "assets/terrain/frozen-props",
     "config": "data/frozen-terrain.json",
     "targets": [
