@@ -61,9 +61,9 @@ export class HamsterWarrior extends Companion {
      * 受击入口（CombatSystem / DamagePipeline / 投射物统一调用）。
      * 死亡 → 播 dying 动画，结束后由 update 自清理。
      */
-    takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
+    takeDamage(damage, source, _damageType = 'physical', _isMelee = true, hitContext = null) {
         if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
-        const result = super.takeDamage(damage, source, _damageType, _isMelee);
+        const result = super.takeDamage(damage, source, _damageType, _isMelee, hitContext);
         if (this.data.hp <= 0) {
             this._startDying();
         }

@@ -66,7 +66,7 @@ export class HamsterGuard extends Companion {
      * 受击入口（CombatSystem / DamagePipeline / 投射物统一调用）。
      * 死亡 → 播 dying 动画，结束后由 update 自清理。
      */
-    takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
+    takeDamage(damage, source, _damageType = 'physical', _isMelee = true, hitContext = null) {
         if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
         if (_isMelee && source && !canMeleeShareSurface(source, this)) {
             return { damage: 0, parried: false, critical: false, blockedBySurface: true };
@@ -80,7 +80,7 @@ export class HamsterGuard extends Companion {
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 34, '🛡️ 防御', '#7fd4ff'));
             }
         }
-        const result = super.takeDamage(damage, source, _damageType, _isMelee);
+        const result = super.takeDamage(damage, source, _damageType, _isMelee, hitContext);
         if (this.data.hp <= 0) {
             this._startDying();
         }

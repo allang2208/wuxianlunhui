@@ -64,9 +64,9 @@ export class HamsterMusketeer extends Companion {
         };
     }
 
-    takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
+    takeDamage(damage, source, _damageType = 'physical', _isMelee = true, hitContext = null) {
         if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
-        const result = super.takeDamage(damage, source, _damageType, _isMelee);
+        const result = super.takeDamage(damage, source, _damageType, _isMelee, hitContext);
         if (this.data.hp <= 0) this._startDying();
         return result;
     }

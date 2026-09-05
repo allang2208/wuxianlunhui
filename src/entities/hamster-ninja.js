@@ -61,9 +61,9 @@ export class HamsterNinja extends Companion {
     get hp() { return this.data.hp; }
     get maxHp() { return this.data.maxHp; }
 
-    takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+    takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
         if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
-        const result = super.takeDamage(damage, source, damageType, isMelee);
+        const result = super.takeDamage(damage, source, damageType, isMelee, hitContext);
         if (this.data.hp <= 0) this._startDying();
         return result;
     }

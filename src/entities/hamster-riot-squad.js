@@ -10,6 +10,7 @@ import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
 const DYING_DURATION_MS = 1550; // dying 31 帧 @20fps
 
@@ -32,9 +33,12 @@ export class HamsterRiotSquad extends HamsterMusketeer {
         return null;
     }
 
-    takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+    takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
         if (this._dying || this.data.hp <= 0) {
             return { damage: 0, parried: false, critical: false };
+        }
+        if (isMelee && source && !canMeleeShareSurface(source, this)) {
+            return { damage: 0, parried: false, critical: false, blockedBySurface: true };
         }
         const guardLevel = getAbilityLevel('auto_guard');
         const guardAbility = getBuildingUpgradeAbility('auto_guard');
@@ -43,7 +47,7 @@ export class HamsterRiotSquad extends HamsterMusketeer {
             damage = Math.round(damage * (1 - guardAbility.damageReduction));
             EffectManager?.add(new FloatingTextEffect(this.x, this.y - 34, '🛡️ 防御', '#7fd4ff'));
         }
-        return super.takeDamage(damage, source, damageType, isMelee);
+        return super.takeDamage(damage, source, damageType, isMelee, hitContext);
     }
 
     _startDying() {
