@@ -1,0 +1,28 @@
+{
+  "variant": "low",
+  "tier": "black_brick",
+  "source": "tools/ai-gen/_wall_battlement_20260828/tier_renders/wall_battlement_low_black_brick_raw.png",
+  "stagedOutput": "tools/ai-gen/_wall_battlement_20260828/tier_renders/staged/wall_battlement_low_black_brick.png",
+  "cropBox": [
+    595,
+    241,
+    941,
+    1396
+  ],
+  "fileSize": [
+    346,
+    1155
+  ],
+  "modelFootprint": [
+    64,
+    64
+  ],
+  "modelFootprintSide": 64,
+  "logicalFootprintAreaCells": 0.25,
+  "placementRole": "attach_to_standard_wall_outer_edge",
+  "standardWallHeight": 160,
+  "totalHeight": 196,
+  "heightAboveWall": 36,
+  "visualTotalHeight": 315.04,
+  "runtimeStatus": "integrated_runtime"
+}

@@ -1,22 +1,35 @@
-# World-122 城垛女墙资源包
+# World-122 城垛女墙模型包
 
-## 已采用合同
+本目录保存女墙模型、五级材质渲染、审批预览与正式资源真源。
 
-- 单件逻辑占地为 `64 × 64`，即标准 `128 × 128` 城墙格面积的四分之一。
-- 每条标准墙外沿分成两个半槽，高段 `220`、低段 `196`，都高于普通墙的 `160`。
-- 女墙是不可通行、不可站立的软掩体；墙顶单位可向外射击，外侧来弹命中墙后单位时由女墙承担减免的 50% 最终伤害。
-- 五级材质与方块墙科技同步，运行图位于 `assets/terrain/wall_battlement_{high|low}_{tier}.png`。
-- 运行时脚线按四分之一格菱形前顶点接地；不能用整张 PNG 底边作为实体锚点。
+## 几何合同
 
-## 最小复现链
+- 单格基准：`128 × 128` Blender 世界单位。
+- 单件占地：`64 × 64`，长宽均为标准城墙的一半，保持正方形平面，面积严格为单格的 `1/4`。
+- 模型从地面 `Z=0` 完整立起，紧贴标准城墙外沿；主墙保留为后方连续可移动区域，外沿城垛自身是不可站立障碍。
+- 普通城墙高度基准：`160`。
+- 高段总高度：`220`，比普通城墙高 `60`。
+- 低段总高度：`196`，比普通城墙高 `36`。
+- 高—低—高连续相邻时形成 `24` 高的射击缺口；两种城垛都明确高于原墙。
+- 两个 `64` 宽女墙主体沿边拼接后严格等于一个 `128` 宽主墙，不留缝、不重叠。高低段的基座、墙身、分界槽、横带和顶帽全部使用同一个 `64 × 64` 外廓，不允许沿切向或墙体进深方向突出。
+- 单体在普通墙顶 `Z=160` 位置通过上下堆叠的深色分界槽与横带形成层次；高低段只允许总高度不同，平面规格、中心线、接地面与裁图口径完全一致，避免矮段顶帽伸入相邻槽位。
+- 两种模型均为实心障碍顶，不提供可行走面或站位面。
 
-- `manifest.json`：尺寸、相机、材质与结构合同。
+## 文件
+
+- `manifest.json`：尺寸、相机、五级材质与结构合同。
 - `wall_battlement_model.blend`：可编辑高/低白模。
-- `wall_battlement_model_preview_approval.png`：采用模型预览。
+- `wall_battlement_model_preview_approval.png`：白模审批预览。
 - `wall_battlement_depth.png`：同相机深度图。
-- `tier_renders/wall_battlement_textured_tiers.blend`：五级材质场景。
-- `tier_renders/*_raw.png`：十张采用的原始分级渲染。
-- `tier_renders/runtime_metadata/*.json`：运行裁切与占地元数据。
-- 生成脚本：`blender-wall-battlement.py`、`render-wall-battlement-tiers.py`、`finalize-wall-battlement-tiers.mjs`。
+- `tier_renders/wall_battlement_textured_tiers.blend`：五级材质模型。
+- `tier_renders/staged/`：十张紧身裁切的候选透明贴图与逐图元数据。
+- `tier_renders/wall_battlement_tier_review.png`：高/低 × 五等级单体审查图。
+- `tier_renders/wall_battlement_assembly_review.png`：五等级高—低—高拼接审查图。
+- `tier_renders/wall_battlement_two_per_wall_review.png`：五等级“一段128宽主墙对应两个64宽女墙”的精确比例审查图。
+- `rune_decal_concept_imagegen.png`：四组独立符文的 ImageGen 透明源稿。
+- `rune_decal_metadata.json`：四象限紧裁、Alpha 重采样与正式资源映射。
+- `tier_renders/wall_battlement_rune_decal_review.png`：四组运行符文的透明审查图。
 
-重复 staged 成品、组合候选、拼版评审图与重复预览不纳入仓库。
+## 状态
+
+五级高/低贴图已接入 `assets/terrain/`。2026-08-29 最高符文档由“每个主体烘焙一枚符文”调整为四组独立透明装饰：同一堵承载墙、同一外沿的两个女墙槽位齐全时，运行时才在两者共享接缝与共同立面中心显示一枚；图案按墙格和外沿确定性抽取，刷新、读档和科技切换不会跳图。单件、缺槽或非符文科技均不显示装饰。四格门的两端实体石柱与普通方块墙共用女墙支撑合同，但门洞中间两格始终禁止女墙伸入。正式高/低主体使用统一 `64×64` 平面外廓和固定裁图口径，符文层不参与碰撞、占格、寻路、掩护或存档。

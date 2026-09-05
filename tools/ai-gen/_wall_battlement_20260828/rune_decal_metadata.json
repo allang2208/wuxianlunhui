@@ -1,0 +1,54 @@
+{
+  "source": "tools/ai-gen/_wall_battlement_20260828/rune_decal_concept_imagegen.png",
+  "sourceDimensions": [
+    1214,
+    1295
+  ],
+  "outputDimensions": [
+    128,
+    160
+  ],
+  "selection": "four alpha-bounded quadrants normalized with premultiplied-alpha bilinear sampling",
+  "variants": [
+    {
+      "id": 1,
+      "file": "assets/terrain/wall_battlement_rune_decal_1.png",
+      "sourceBounds": {
+        "x": 254,
+        "y": 24,
+        "w": 110,
+        "h": 573
+      }
+    },
+    {
+      "id": 2,
+      "file": "assets/terrain/wall_battlement_rune_decal_2.png",
+      "sourceBounds": {
+        "x": 764,
+        "y": 149,
+        "w": 288,
+        "h": 404
+      }
+    },
+    {
+      "id": 3,
+      "file": "assets/terrain/wall_battlement_rune_decal_3.png",
+      "sourceBounds": {
+        "x": 212,
+        "y": 690,
+        "w": 232,
+        "h": 517
+      }
+    },
+    {
+      "id": 4,
+      "file": "assets/terrain/wall_battlement_rune_decal_4.png",
+      "sourceBounds": {
+        "x": 857,
+        "y": 710,
+        "w": 149,
+        "h": 470
+      }
+    }
+  ]
+}

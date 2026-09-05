@@ -3,9 +3,10 @@
     "elevation": 30.0,
     "azimuth": 0.0,
     "buildingRotationZ": 44.8,
-    "resolution": 1024,
-    "bottomY": 930,
-    "topMargin": 54,
+    "resolution": 1536,
+    "bottomY": 1395,
+    "topMargin": 81,
+    "fixedPixelsPerWorld": 3.62470788767288,
     "widthMargin": 0.82
   },
   "palette": {
@@ -20,26 +21,32 @@
       "wallHeight": 160,
       "highHeight": 220,
       "lowHeight": 196,
+      "visualHighHeight": 350.72,
+      "visualLowHeight": 315.04,
       "baseCourseHeight": 10,
       "capCourseHeight": 12,
       "bodyInset": 0,
-      "capOutwardOverhang": 3,
+      "capOutwardOverhang": 0,
       "crownBandHeight": 4,
-      "crownBandOutwardOverhang": 1,
+      "crownBandOutwardOverhang": 0,
       "wallDatumBandHeight": 4,
-      "wallDatumBandOutwardOverhang": 2,
+      "wallDatumBandOutwardOverhang": 0,
       "separationGrooveHeight": 3,
-      "separationGrooveOutwardOverhang": 1,
-      "upperPilasterWidth": 7,
-      "upperPilasterProjection": 2
+      "separationGrooveOutwardOverhang": 0,
+      "upperPilasterWidth": 0,
+      "upperPilasterProjection": 0
+    },
+    "runtimeCropBoxes": {
+      "high": [595, 129, 941, 1396],
+      "low": [595, 241, 941, 1396]
     },
     "materialTiers": [
       { "id": "sand", "wallTextureKey": "obstacle_block_sand", "source": "tools/ai-gen/_depth_templates/stair_tread_sand.png" },
       { "id": "brick", "wallTextureKey": "obstacle_block_brick", "source": "tools/ai-gen/_depth_templates/stair_tread_brick.png" },
       { "id": "black_brick", "wallTextureKey": "obstacle_block", "source": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png" },
       { "id": "concrete", "wallTextureKey": "obstacle_block_concrete", "source": "tools/ai-gen/_depth_templates/stair_tread_concrete.png" },
-      { "id": "rune", "wallTextureKey": "obstacle_block_rune", "source": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png", "ornamentStyle": "single_restrained_inset_channel" }
+      { "id": "rune", "wallTextureKey": "obstacle_block_rune", "source": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png", "ornamentStyle": "paired_center_decal_pool", "runeDecalVariants": 4 }
     ],
-    "structureContract": "Two separate full-height square battlement segments attach along the outside edge of a standard wall. Each logical footprint is exactly 64x64, so two adjacent battlements span exactly one 128-unit wall edge with no body gap or overlap and each occupies one quarter of a 128x128 wall cell by area. All bands and caps remain exactly 64 units along the wall direction; their relief may project only in the outward depth direction, preserving the exact two-per-wall rhythm. The high segment is 220 units tall and the low segment is 196 units tall; both clearly exceed the existing 160-unit wall, while their restrained 24-unit difference creates a readable firing notch. A dark separation groove and projecting datum band mark the standard wall-top height, and the raised portion adds front-face pilasters, a crown band and an outward-projecting cap so the parapet remains identifiable even with the same wall texture. The main wall remains the continuous walkable rampart behind them; each outer-edge battlement top is solid, blocked and non-walkable. Geometry, camera and scale remain identical across all five material tiers."
+    "structureContract": "Two separate full-height square battlement segments attach along the outside edge of a standard wall. Each logical footprint is exactly 64x64, so two adjacent battlements span exactly one 128-unit wall edge with no body gap or overlap and each occupies one quarter of a 128x128 wall cell by area. Every base, body, groove, datum band, crown band and cap uses the same exact 64x64 horizontal cross-section; the high and low variants differ only along Z, preventing the low cap or decorative relief from protruding into its neighbor. Gameplay cover height remains 220/196 above the ground, while the authored visual body is 350.72/315.04 units tall so the accepted 65px half-slot width can display at approximately 238/217px with one uniform scale instead of stretching the texture vertically. A dark separation course marks the standard 160-unit wall datum without changing the footprint. The main wall remains the continuous walkable rampart behind them; each outer-edge battlement top is solid, blocked and non-walkable. Geometry, fixed pixels-per-world camera, canonical crop and scale remain identical across all five material tiers. The rune tier keeps the high and low body textures clean; one deterministic decal from a four-glyph pool is centered between the two slots only when a complete pair exists on the same support wall and edge."
   }
 }
