@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "id": "sealed-shaft-rock-wraith",
+  "profile": "boss",
+  "sheets": [
+    {
+      "textureKey": "enemy_sealed_shaft_rock_wraith_idle",
+      "path": "assets/enemies/sealed_shaft_rock_wraith/idle.png",
+      "frameWidth": 254,
+      "frameHeight": 412,
+      "frameCount": 50,
+      "endFrame": 49,
+      "footX": 127.0,
+      "footY": 406
+    },
+    {
+      "textureKey": "enemy_sealed_shaft_rock_wraith_walking",
+      "path": "assets/enemies/sealed_shaft_rock_wraith/walking.png",
+      "frameWidth": 302,
+      "frameHeight": 450,
+      "frameCount": 50,
+      "endFrame": 49,
+      "footX": 151.0,
+      "footY": 434
+    },
+    {
+      "textureKey": "enemy_sealed_shaft_rock_wraith_crystalArmSmash",
+      "path": "assets/enemies/sealed_shaft_rock_wraith/crystal_arm_smash.png",
+      "frameWidth": 370,
+      "frameHeight": 440,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 185.0,
+      "footY": 433
+    },
+    {
+      "textureKey": "enemy_sealed_shaft_rock_wraith_borequake",
+      "path": "assets/enemies/sealed_shaft_rock_wraith/borequake.png",
+      "frameWidth": 358,
+      "frameHeight": 436,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 179.0,
+      "footY": 429
+    },
+    {
+      "textureKey": "enemy_sealed_shaft_rock_wraith_drillRush",
+      "path": "assets/enemies/sealed_shaft_rock_wraith/drill_rush.png",
+      "frameWidth": 340,
+      "frameHeight": 436,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 170.0,
+      "footY": 429
+    },
+    {
+      "textureKey": "enemy_sealed_shaft_rock_wraith_dying",
+      "path": "assets/enemies/sealed_shaft_rock_wraith/dying.png",
+      "frameWidth": 612,
+      "frameHeight": 468,
+      "frameCount": 41,
+      "endFrame": 40,
+      "footX": 306.0,
+      "footY": 428
+    }
+  ],
+  "dependencies": []
+}

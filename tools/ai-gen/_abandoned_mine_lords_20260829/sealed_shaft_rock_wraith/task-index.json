@@ -6,7 +6,92 @@
   "mother": "references/mother-v04.png",
   "provider": "minimax-h3-local",
   "model": "MiniMax H3",
-  "status": "minimax-h3-attack-scale-corrected-rife-runtime-integrated",
+  "status": "six-actions-repaired-runtime-integrated-awaiting-user-test",
+  "repair20260830": {
+    "report": "../../../../docs/sealed-shaft-rock-wraith-animation-repair-2026-08-30.md",
+    "generationStatus": "walking-and-dying-v02-generated",
+    "uploadAuthorization": "User explicitly agreed on 2026-08-30 to send only references/crystal-bore-video-safe-v02.png and the walking/dying v02 prompts to http://192.168.3.142:8188 for replacement animation generation.",
+    "reference": "references/crystal-bore-video-safe-v02.png",
+    "generationEntry": "generate-locomotion-repair.py",
+    "sourceGeometryFixed": true,
+    "runtimePngChanged": true,
+    "runtimeTested": false,
+    "runtimeClock": {
+      "crystalArmSmashContactFrame": 20,
+      "drillRush": {
+        "prepareFrames": [
+          0,
+          17
+        ],
+        "prepareMs": 900,
+        "chargeFrames": [
+          18,
+          49
+        ],
+        "chargeMs": 1100,
+        "recoveryFrames": [
+          50,
+          60
+        ],
+        "durationMs": 3000
+      },
+      "death": {
+        "animationMs": 3417,
+        "holdMs": 1600,
+        "fadeMs": 300
+      },
+      "crystalArmSmashDurationMs": 2550,
+      "borequakeDurationMs": 2650
+    },
+    "directRgbaMiB": 204.03265380859375,
+    "previousDirectRgbaMiB": 373.0078125,
+    "dependencyRgbaMiB": 0,
+    "authoredBodyHeight": 390,
+    "runtimeBodyHeight": 260,
+    "familyFrameCount": 324,
+    "rebuildEntry": "rebuild-animations-20260830.py",
+    "previewManifest": "previews/runtime-20260830/preview-manifest.json",
+    "spriteBudgetManifest": "sprite-budget-manifest.json",
+    "sourceScalePolicy": "One fixed isotropic scale per source; no per-frame height normalization.",
+    "deathSourceSelection": {
+      "indices": [
+        24,
+        27,
+        30,
+        33,
+        36,
+        39,
+        42,
+        45,
+        48,
+        51,
+        54,
+        57,
+        60,
+        63,
+        66,
+        69,
+        72,
+        75,
+        78,
+        81,
+        84
+      ],
+      "nativeMiddleReplacement": {
+        "19": 52
+      },
+      "corpseSettledFrame": 28
+    },
+    "usedPrompts": [
+      "prompts/walking-minimax-h3-v02.txt",
+      "prompts/dying-minimax-h3-v02.txt"
+    ],
+    "rejectedSourceDefects": {
+      "walking": "v01 uses a stretched square reference; body aspect drifts, late toes reach the source boundary; per-frame scale normalization does not repair geometry",
+      "dying": "v01 begins with the same horizontally stretched source geometry"
+    },
+    "parallelTimingNote": "Preserved concurrent gameplay timing: smash 2550ms, borequake 2650ms, rush 3000ms with 900ms prepare and 1100ms charge; previews/manifests follow current config."
+  },
   "runtimeIntegrated": true,
   "sourceSheetReport": "source-sheet-report.json",
   "interpolationReport": "interpolation-report.json",
@@ -18,7 +103,10 @@
     "headReplacement": "single-integrated-upward-mining-drill",
     "materialReference": "../references/ore-spider-purple-mineral-reference.png",
     "family": "僵尸",
-    "families": ["僵尸", "大型"]
+    "families": [
+      "僵尸",
+      "大型"
+    ]
   },
   "attackDesign": {
     "crystalArmSmash": {
@@ -30,9 +118,10 @@
       "damageMul": 1.4,
       "knockback": 90,
       "crippleMs": 2200,
-      "cooldownMs": 5200,
+      "cooldownMs": 3400,
       "parryable": true,
-      "video": "videos/crystal-arm-smash-minimax-h3-v02.mp4"
+      "video": "videos/crystal-arm-smash-minimax-h3-v02.mp4",
+      "durationMs": 2550
     },
     "borequake": {
       "role": "close-centered-ground-ellipse",
@@ -45,13 +134,14 @@
       "slowMs": 3000,
       "cooldownMs": 12000,
       "parryable": false,
-      "video": "videos/borequake-minimax-h3-v02.mp4"
+      "video": "videos/borequake-minimax-h3-v02.mp4",
+      "durationMs": 2650
     },
     "drillRush": {
       "role": "locked-direction-swept-charge",
       "minTriggerRange": 260,
       "triggerRange": 760,
-      "prepareMs": 1500,
+      "prepareMs": 900,
       "chargeMs": 1100,
       "maxDistance": 760,
       "sweepWidth": 135,
@@ -62,7 +152,8 @@
       "cooldownMs": 15000,
       "parryable": true,
       "wallStopsCharge": true,
-      "video": "videos/drill-rush-minimax-h3-v03.mp4"
+      "video": "videos/drill-rush-minimax-h3-v03.mp4",
+      "durationMs": 3000
     }
   },
   "rejectedCandidates": [
@@ -85,14 +176,78 @@
       "removedVideo": "videos/drill-rush-minimax-h3-v02.mp4",
       "provenance": "videos/drill-rush-minimax-h3-v02.mp4.json",
       "reason": "the left-offset safe frame introduced source root translation and about 45 percent visual-area growth"
+    },
+    {
+      "retainedVideo": "videos/walking-minimax-h3-v01.mp4",
+      "provenance": "videos/walking-minimax-h3-v01.mp4.json",
+      "reason": "Rejected stretched v01 geometry; retained only as source history and before/after evidence, never used by the current rebuild."
+    },
+    {
+      "retainedVideo": "videos/dying-minimax-h3-v01.mp4",
+      "provenance": "videos/dying-minimax-h3-v01.mp4.json",
+      "reason": "Rejected stretched v01 geometry; retained only as source history and before/after evidence, never used by the current rebuild."
     }
   ],
   "actions": {
-    "idle": { "mode": "loop", "prompt": "prompts/idle-minimax-h3-v01.txt", "video": "videos/idle-minimax-h3-v01.mp4", "sheet": "sheets/interpolated/idle.png", "preview": "previews/interpolated/idle-interpolated.gif", "seed": 2026082921, "status": "runtime-integrated" },
-    "walking": { "mode": "loop", "prompt": "prompts/walking-minimax-h3-v01.txt", "video": "videos/walking-minimax-h3-v01.mp4", "sheet": "sheets/interpolated/walking.png", "preview": "previews/interpolated/walking-interpolated.gif", "seed": 2026082922, "status": "runtime-integrated" },
-    "crystalArmSmash": { "mode": "recover", "prompt": "prompts/crystal-arm-smash-minimax-h3-v02.txt", "video": "videos/crystal-arm-smash-minimax-h3-v02.mp4", "sheet": "sheets/interpolated/crystalArmSmash.png", "preview": "previews/interpolated/crystalArmSmash-interpolated.gif", "seed": 2026082933, "status": "scale-corrected-runtime-integrated" },
-    "borequake": { "mode": "recover", "prompt": "prompts/borequake-minimax-h3-v02.txt", "video": "videos/borequake-minimax-h3-v02.mp4", "sheet": "sheets/interpolated/borequake.png", "preview": "previews/interpolated/borequake-interpolated.gif", "seed": 2026082934, "status": "scale-corrected-runtime-integrated" },
-    "drillRush": { "mode": "recover", "prompt": "prompts/drill-rush-minimax-h3-v03.txt", "video": "videos/drill-rush-minimax-h3-v03.mp4", "sheet": "sheets/interpolated/drillRush.png", "preview": "previews/interpolated/drillRush-interpolated.gif", "seed": 2026082936, "status": "scale-corrected-runtime-integrated" },
-    "dying": { "mode": "one-way", "prompt": "prompts/dying-minimax-h3-v01.txt", "video": "videos/dying-minimax-h3-v01.mp4", "sheet": "sheets/interpolated/dying.png", "preview": "previews/interpolated/dying-interpolated.gif", "seed": 2026082926, "status": "runtime-integrated" }
+    "idle": {
+      "mode": "loop",
+      "prompt": "prompts/idle-minimax-h3-v01.txt",
+      "video": "videos/idle-minimax-h3-v01.mp4",
+      "sheet": "sheets/interpolated/idle.png",
+      "preview": "previews/runtime-20260830/idle.gif",
+      "seed": 2026082921,
+      "status": "repaired-runtime-integrated-awaiting-user-test",
+      "runtimeSheet": "../../../../assets/enemies/sealed_shaft_rock_wraith/idle.png"
+    },
+    "walking": {
+      "mode": "loop",
+      "prompt": "prompts/walking-minimax-h3-v02.txt",
+      "video": "videos/walking-minimax-h3-v02.mp4",
+      "sheet": "sheets/interpolated/walking.png",
+      "preview": "previews/runtime-20260830/walking.gif",
+      "seed": 2026083022,
+      "status": "repaired-runtime-integrated-awaiting-user-test",
+      "runtimeSheet": "../../../../assets/enemies/sealed_shaft_rock_wraith/walking.png"
+    },
+    "crystalArmSmash": {
+      "mode": "recover",
+      "prompt": "prompts/crystal-arm-smash-minimax-h3-v02.txt",
+      "video": "videos/crystal-arm-smash-minimax-h3-v02.mp4",
+      "sheet": "sheets/interpolated/crystalArmSmash.png",
+      "preview": "previews/runtime-20260830/crystalArmSmash.gif",
+      "seed": 2026082933,
+      "status": "repaired-runtime-integrated-awaiting-user-test",
+      "runtimeSheet": "../../../../assets/enemies/sealed_shaft_rock_wraith/crystal_arm_smash.png"
+    },
+    "borequake": {
+      "mode": "recover",
+      "prompt": "prompts/borequake-minimax-h3-v02.txt",
+      "video": "videos/borequake-minimax-h3-v02.mp4",
+      "sheet": "sheets/interpolated/borequake.png",
+      "preview": "previews/runtime-20260830/borequake.gif",
+      "seed": 2026082934,
+      "status": "repaired-runtime-integrated-awaiting-user-test",
+      "runtimeSheet": "../../../../assets/enemies/sealed_shaft_rock_wraith/borequake.png"
+    },
+    "drillRush": {
+      "mode": "recover",
+      "prompt": "prompts/drill-rush-minimax-h3-v03.txt",
+      "video": "videos/drill-rush-minimax-h3-v03.mp4",
+      "sheet": "sheets/interpolated/drillRush.png",
+      "preview": "previews/runtime-20260830/drillRush.gif",
+      "seed": 2026082936,
+      "status": "repaired-runtime-integrated-awaiting-user-test",
+      "runtimeSheet": "../../../../assets/enemies/sealed_shaft_rock_wraith/drill_rush.png"
+    },
+    "dying": {
+      "mode": "one-way",
+      "prompt": "prompts/dying-minimax-h3-v02.txt",
+      "video": "videos/dying-minimax-h3-v02.mp4",
+      "sheet": "sheets/interpolated/dying.png",
+      "preview": "previews/runtime-20260830/dying.gif",
+      "seed": 2026083026,
+      "status": "repaired-runtime-integrated-awaiting-user-test",
+      "runtimeSheet": "../../../../assets/enemies/sealed_shaft_rock_wraith/dying.png"
+    }
   }
 }

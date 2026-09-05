@@ -3,19 +3,19 @@
   "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\source-sheets-pre-interpolation\\walking.png",
   "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\sheets\\interpolated\\walking.png",
   "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
-  "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+  "pipelineVersion": "rife-v4.6-rgba-v8-exact-half-step",
   "mode": "loop",
   "loopStartSourceIndex": 0,
   "sourceFrameCount": 25,
   "outputFrameCount": 50,
-  "frameWidth": 640,
-  "frameHeight": 672,
+  "frameWidth": 328,
+  "frameHeight": 475,
   "cols": 8,
   "rows": 7,
   "sourceFrameRate": 6.0,
   "outputFrameRate": 12.0,
   "durationPreserved": true,
-  "middleFrameBottomAlignment": true,
+  "middleFrameBottomAlignment": false,
   "middleFrameBlueSpillRepair": false,
   "blueSpillThreshold": null,
   "blueSpillPixelsRepaired": [
@@ -71,21 +71,18 @@
     0
   ],
   "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "middleFrameTimestep": 0.5,
+  "directoryOutputCount": 50,
   "validation": {
     "emptyFrames": [],
     "touchingFrames": [],
-    "alphaBottomMin": 649,
-    "alphaBottomMax": 651,
+    "alphaBottomMin": 436,
+    "alphaBottomMax": 456,
     "middleFrameFootShifts": [
       0,
       0,
       0,
       0,
-      2,
-      0,
-      0,
-      1,
-      1,
       0,
       0,
       0,
@@ -94,7 +91,12 @@
       0,
       0,
       0,
-      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
       0,
       0,
       0,
@@ -110,6 +112,7 @@
       0,
       0,
       0,
+      8,
       0,
       0,
       0,
@@ -127,8 +130,7 @@
       0,
       0,
       0,
-      0,
-      58
+      0
     ],
     "middleFrameVisibleRedPixelsRepaired": [
       0,
@@ -155,7 +157,7 @@
       0,
       0,
       0,
-      26
+      0
     ],
     "middleFrameHeldSourceKeyFallbacks": [],
     "visibleDarkOutlierFrames": {},
@@ -164,7 +166,16 @@
     "visibleCyanSpillFrames": {},
     "originalKeyFramesPreservedAtEvenIndices": true,
     "nonzeroRgbInTransparentPixels": 0,
-    "adjacentDeltaMeanBefore": 21.208601326942443,
-    "adjacentDeltaMeanAfter": 14.188995152115822
+    "adjacentDeltaMeanBefore": 34.88846661567688,
+    "adjacentDeltaMeanAfter": 24.398975274562837
+  },
+  "manualVisualRepairs": {
+    "heldOddFrames": [
+      21,
+      23,
+      31
+    ],
+    "keyFramesChanged": false,
+    "reason": "red/black codec fragments or collapsed drill in generated middle pose"
   }
 }

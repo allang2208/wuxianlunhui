@@ -1,0 +1,5 @@
+# Rebuildable production caches. Canonical authored keys, source videos,
+# runtime sheets, provenance and delivery previews remain outside these paths.
+/repair-20260830/
+/frames/
+__pycache__/
