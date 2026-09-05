@@ -1,0 +1,84 @@
+{
+  "runtimeTested": false,
+  "sourceAssetsModified": false,
+  "previewPurpose": "Current-config offline pose/timing review; no game, collisions, warnings or status simulation.",
+  "actions": [
+    {
+      "state": "idle",
+      "label": "待机",
+      "frames": 30,
+      "currentDurationMs": 5000,
+      "oldManifestDurationMs": 5000,
+      "previewDurationMs": 5000,
+      "file": "idle-current.gif",
+      "sourceVideo": "tools/ai-gen/_deep_vein_mother_20260830/animations/videos/idle-doubao-v01.mp4",
+      "runtimeSheet": "assets/enemies/deep_vein_mother/idle.png"
+    },
+    {
+      "state": "walking",
+      "label": "行走",
+      "frames": 48,
+      "currentDurationMs": 4000,
+      "oldManifestDurationMs": 4000,
+      "previewDurationMs": 4000,
+      "file": "walking-current.gif",
+      "sourceVideo": "tools/ai-gen/_deep_vein_mother_20260830/animations/videos/walking-doubao-v01.mp4",
+      "runtimeSheet": "assets/enemies/deep_vein_mother/walking.png"
+    },
+    {
+      "state": "stomp",
+      "label": "矿足重踏",
+      "frames": 41,
+      "currentDurationMs": 1550,
+      "oldManifestDurationMs": 2400,
+      "previewDurationMs": 1550,
+      "file": "stomp-current.gif",
+      "sourceVideo": "tools/ai-gen/_deep_vein_mother_20260830/animations/videos/stomp-doubao-v02-single-foot.mp4",
+      "runtimeSheet": "assets/enemies/deep_vein_mother/stomp.png"
+    },
+    {
+      "state": "pipe_blast",
+      "label": "高压喷矿",
+      "frames": 41,
+      "currentDurationMs": 3000,
+      "oldManifestDurationMs": 3000,
+      "previewDurationMs": 3000,
+      "file": "pipe_blast-current.gif",
+      "sourceVideo": "tools/ai-gen/_deep_vein_mother_20260830/animations/videos/pipe_blast-doubao-v02-three-recoils.mp4",
+      "runtimeSheet": "assets/enemies/deep_vein_mother/pipe_blast.png"
+    },
+    {
+      "state": "vein_resonance",
+      "label": "绞盘震脉",
+      "frames": 41,
+      "currentDurationMs": 2300,
+      "oldManifestDurationMs": 3200,
+      "previewDurationMs": 2300,
+      "file": "vein_resonance-current.gif",
+      "sourceVideo": "tools/ai-gen/_deep_vein_mother_20260830/animations/videos/vein_resonance-doubao-v01.mp4",
+      "runtimeSheet": "assets/enemies/deep_vein_mother/vein_resonance.png"
+    },
+    {
+      "state": "pressure_release",
+      "label": "矿压泄尽",
+      "frames": 49,
+      "currentDurationMs": 6000,
+      "oldManifestDurationMs": 6000,
+      "previewDurationMs": 6000,
+      "file": "pressure_release-current.gif",
+      "sourceVideo": "tools/ai-gen/_deep_vein_mother_20260830/animations/videos/pressure_release-doubao-v01.mp4",
+      "runtimeSheet": "assets/enemies/deep_vein_mother/pressure_release.png"
+    },
+    {
+      "state": "dying",
+      "label": "死亡",
+      "frames": 49,
+      "currentDurationMs": 3400,
+      "oldManifestDurationMs": 3400,
+      "previewDurationMs": 3400,
+      "file": "dying-current.gif",
+      "sourceVideo": "tools/ai-gen/_deep_vein_mother_20260830/animations/videos/dying-doubao-v01.mp4",
+      "runtimeSheet": "assets/enemies/deep_vein_mother/dying.png"
+    }
+  ]
+}
