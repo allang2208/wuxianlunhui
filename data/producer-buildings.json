@@ -195,17 +195,19 @@
     "spawnRadius": 90,
     "defaultUnitType": "priest",
     "unitTypes": [
-      { "key": "priest", "name": "仓鼠牧师", "roleLabel": "一级法术 · 单体圣光", "spawnIntervalMs": 90000, "spawnFoodCost": 240, "spawnEnergyCost": 90 }
+      { "key": "priest", "name": "仓鼠牧师", "roleLabel": "一级法术 · 单体圣光", "spawnIntervalMs": 90000, "spawnFoodCost": 240, "spawnEnergyCost": 90 },
+      { "key": "bishop", "name": "仓鼠主教", "roleLabel": "二级法术 · 群疗净化", "spawnIntervalMs": 120000, "spawnFoodCost": 360, "spawnEnergyCost": 150 },
+      { "key": "archbishop", "name": "仓鼠大主教", "roleLabel": "三级法术 · 圣佑领域", "spawnIntervalMs": 150000, "spawnFoodCost": 520, "spawnEnergyCost": 240 }
     ],
     "recruitmentTiers": [
       { "id": "church_level_1", "level": 1, "name": "教堂一级编制", "baseline": true, "lines": [
         { "slot": "spellcaster", "role": "法术单位", "unitKey": "priest", "unitName": "仓鼠牧师", "profile": "当前法术与支援基线" }
       ] },
-      { "id": "church_level_2", "level": 2, "name": "主教议会", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "church_lv2", "assetPath": "assets/terrain/church_lv2.png", "displayW": 293, "displayH": 240, "footOffsetY": 119, "visualFootprint": { "centerXRatio": 0.505143, "centerYRatio": 0.729167, "widthRatio": 0.87372, "depthRatio": 0.533333, "scaleMode": "strict" } }, "note": "建筑等级已开放；仓鼠主教仍为兵种占位，研究后继续沿用仓鼠牧师。", "lines": [
-        { "slot": "spellcaster", "role": "法术支援", "fromUnitName": "仓鼠牧师", "unitKey": "bishop", "unitName": "仓鼠主教", "profile": "中距离群体治疗与净化支援；以较低输出换取更强续航，具体数值待开发审计", "placeholder": true }
+      { "id": "church_level_2", "level": 2, "name": "主教议会", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "church_lv2", "assetPath": "assets/terrain/church_lv2.png", "displayW": 293, "displayH": 240, "footOffsetY": 119, "visualFootprint": { "centerXRatio": 0.505143, "centerYRatio": 0.729167, "widthRatio": 0.87372, "depthRatio": 0.533333, "scaleMode": "strict" } }, "note": "二级编制已完成；研究后法术槽由仓鼠牧师换代为仓鼠主教。", "lines": [
+        { "slot": "spellcaster", "role": "法术支援", "fromUnitName": "仓鼠牧师", "unitKey": "bishop", "unitName": "仓鼠主教", "profile": "中距离群体治疗、负面状态净化与持续续航" }
       ] },
-      { "id": "church_level_3", "level": 3, "name": "圣迹大教堂", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "church_lv3", "assetPath": "assets/terrain/church_lv3.png", "displayW": 293, "displayH": 315, "footOffsetY": 156, "visualFootprint": { "centerXRatio": 0.505143, "centerYRatio": 0.793651, "widthRatio": 0.87372, "depthRatio": 0.406349, "scaleMode": "strict" } }, "note": "建筑等级已开放；仓鼠大主教仍为兵种占位，研究后继续沿用仓鼠牧师。", "lines": [
-        { "slot": "spellcaster", "role": "法术支援", "fromUnitName": "仓鼠主教", "unitKey": "archbishop", "unitName": "仓鼠大主教", "profile": "大范围祝福、护盾与圣域支援；不预设复活机制，具体数值待开发审计", "placeholder": true }
+      { "id": "church_level_3", "level": 3, "name": "圣迹大教堂", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "church_lv3", "assetPath": "assets/terrain/church_lv3.png", "displayW": 293, "displayH": 315, "footOffsetY": 156, "groundContact": null, "visualFootprint": { "centerXRatio": 0.505143, "centerYRatio": 0.793651, "widthRatio": 0.87372, "depthRatio": 0.406349, "scaleMode": "strict" } }, "note": "三级编制已完成；研究后法术槽由仓鼠主教换代为仓鼠大主教。", "lines": [
+        { "slot": "spellcaster", "role": "法术支援", "fromUnitName": "仓鼠主教", "unitKey": "archbishop", "unitName": "仓鼠大主教", "profile": "大范围群疗净化、圣佑减伤与圣辉领域支援；不具备复活能力" }
       ] }
     ],
     "upgradeProject": "priest_support"

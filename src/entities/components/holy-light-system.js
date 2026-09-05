@@ -44,6 +44,10 @@ const HOLY_LIGHT_DEFAULTS = {
  *  玩家 faction='player'、队友 faction='companion' 必须互认友军，不能按 `_faction===` 直比
  *  （2026-08-17：伊莉丝 AI 给玩家施法被误判成"打敌人"的根因）。 */
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
+const SUPPORT_CLEANSE_TYPES = [
+    'poison', 'bleed', 'fear', 'chill', 'frozen', 'slow', 'waxSealSlow', 'bind',
+    'magicVulnerability', 'droneVulnerability', 'electrified',
+];
 
 /** 世界-122 的建筑、墙门和塔统一标记为防御结构，不能成为圣光目标。 */
 function isHolyLightBuilding(target) {
@@ -64,6 +68,79 @@ function isHolyLightBuilding(target) {
 export class HolyLightSystem {
     constructor(source) {
         this.source = source;
+    }
+
+    /** 教堂高阶单位的配置化群体治疗、净化与圣佑；基础牧师没有这些字段。 */
+    _applyTierSupport(primary, primaryHealAmount) {
+        const src = this.source;
+        const radius = Math.max(0, Number(src?.aiConfig?.supportPulseRadius) || 0);
+        if (!(radius > 0) || !primary || !FRIENDLY_FACTIONS.has(primary._faction)) return;
+        const healMul = Math.max(0, Number(src.aiConfig.supportPulseHealMul) || 0);
+        const cleanseCount = Math.max(
+            0,
+            Math.floor(Number(src.aiConfig.supportCleanseCount) || 0)
+        );
+        const wardDurationMs = Math.max(0, Number(src.aiConfig.holyWardDurationMs) || 0);
+        const wardDamageTakenMultiplier = Math.max(
+            0.05,
+            Math.min(1, Number(src.aiConfig.holyWardDamageTakenMultiplier) || 1)
+        );
+        const candidates = new Set();
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        if (game?.player) candidates.add(game.player);
+        for (const friend of game?.friendlyUnits || []) candidates.add(friend);
+        for (const friend of game?.PartySystem?.members || []) candidates.add(friend);
+        for (const entity of game?.entities?.values?.() || []) candidates.add(entity);
+        candidates.add(src);
+        candidates.add(primary);
+        const radiusSq = radius * radius;
+        const splashHeal = Math.max(0, Math.floor(primaryHealAmount * healMul));
+        for (const friend of candidates) {
+            if (!friend || friend.active === false || !FRIENDLY_FACTIONS.has(friend._faction)) continue;
+            // 死亡动画期间实体仍 active；群疗不能把尸体回血成可选目标。
+            if (friend._dying || friend._isDead || !((friend.data?.hp ?? friend.hp) > 0)) continue;
+            const dx = friend.x - primary.x;
+            const dy = friend.y - primary.y;
+            if (dx * dx + dy * dy > radiusSq) continue;
+            if (friend !== primary && splashHeal > 0 && friend.data) {
+                const maxHp = friend.data.maxHp || friend.maxHp || 0;
+                const before = friend.data.hp;
+                friend.data.hp = Math.min(
+                    maxHp > 0 ? maxHp : Infinity,
+                    friend.data.hp + splashHeal
+                );
+                const healed = Math.max(0, friend.data.hp - before);
+                if (healed > 0) {
+                    EffectManager.add(new FloatingTextEffect(
+                        friend.x,
+                        friend.y - entitySurfaceZ(friend) - 30,
+                        `+${healed}`,
+                        '#9dffb0'
+                    ));
+                }
+            }
+            let cleansed = 0;
+            while (cleansed < cleanseCount && Array.isArray(friend.statusEffects)) {
+                const effect = friend.statusEffects.find((entry) => (
+                    entry?.remaining > 0 && SUPPORT_CLEANSE_TYPES.includes(entry.type)
+                ));
+                if (!effect || typeof friend.removeStatusEffect !== 'function') break;
+                friend.removeStatusEffect(effect.type);
+                if (effect.type === 'electrified') friend._electrifiedStacks = 0;
+                cleansed++;
+            }
+            if (cleansed > 0) {
+                EffectManager.add(new FloatingTextEffect(
+                    friend.x,
+                    friend.y - entitySurfaceZ(friend) - 42,
+                    '净化',
+                    '#fff3c8'
+                ));
+            }
+            if (wardDurationMs > 0 && typeof friend.applyHolyWard === 'function') {
+                friend.applyHolyWard(wardDurationMs, wardDamageTakenMultiplier);
+            }
+        }
     }
 
     _isPlayer() {
@@ -184,11 +261,12 @@ export class HolyLightSystem {
             const isFriendly = !!best && FRIENDLY_FACTIONS.has(src._faction) && FRIENDLY_FACTIONS.has(best._faction);
             let killCount = 0;
             if (isFriendly) {
+                const healAmount = Math.floor(baseAmount * healMul);
                 if (best.data) {
                     const maxHp = best.data.maxHp || best.maxHp || 0;
-                    best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + Math.floor(baseAmount * healMul));
+                    best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + healAmount);
                 }
-                EffectManager.add(new FloatingTextEffect(best.x, best.y - entitySurfaceZ(best) - 30, `+${Math.floor(baseAmount * healMul)}`, '#7aff9a'));
+                EffectManager.add(new FloatingTextEffect(best.x, best.y - entitySurfaceZ(best) - 30, `+${healAmount}`, '#7aff9a'));
                 // 翠灵水晶：治疗后给目标添加圣光续疗
                 if (ce && ce.holyLightHoTStacks && typeof best.applyHolyRenewal === 'function') {
                     best.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
@@ -199,6 +277,7 @@ export class HolyLightSystem {
                         best.applyHaste(ce.lightHasteDuration || 5000);
                     }
                 }
+                this._applyTierSupport(best, healAmount);
                 if (best === src && window.GameUIManager && typeof window.GameUIManager.updateUI === 'function') {
                     window.GameUIManager.updateUI();
                 }
@@ -359,11 +438,12 @@ export class HolyLightSystem {
             const isFriendly = !!best && FRIENDLY_FACTIONS.has(src._faction) && FRIENDLY_FACTIONS.has(best._faction);
             let killCount = 0;
             if (isFriendly) {
+                const healAmount = Math.floor(baseAmount * healMul);
                 if (best.data) {
                     const maxHp = best.data.maxHp || best.maxHp || 0;
-                    best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + Math.floor(baseAmount * healMul));
+                    best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + healAmount);
                 }
-                EffectManager.add(new FloatingTextEffect(best.x, best.y - entitySurfaceZ(best) - 30, `+${Math.floor(baseAmount * healMul)}`, '#7aff9a'));
+                EffectManager.add(new FloatingTextEffect(best.x, best.y - entitySurfaceZ(best) - 30, `+${healAmount}`, '#7aff9a'));
                 // 翠灵水晶：治疗后给目标添加圣光续疗
                 if (ce && ce.holyLightHoTStacks && typeof best.applyHolyRenewal === 'function') {
                     best.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
@@ -374,6 +454,7 @@ export class HolyLightSystem {
                         best.applyHaste(ce.lightHasteDuration || 5000);
                     }
                 }
+                this._applyTierSupport(best, healAmount);
                 if (best === src && window.GameUIManager && typeof window.GameUIManager.updateUI === 'function') {
                     window.GameUIManager.updateUI();
                 }

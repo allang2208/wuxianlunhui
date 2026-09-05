@@ -272,6 +272,7 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false, hitContext 
                     finalDamage = Math.floor(finalDamage * getTributeMonsterAtkDownMul());
                 }
                 finalDamage = applyOutgoingDamageModifiers(finalDamage, source);
+                finalDamage = this.applyHolyWardDamageMultiplier(finalDamage);
                 // 金刚石「金刚不坏」：单次伤害不超过最大生命值的配置比例
                 const surviveCap = getSurviveCapRatio();
                 if (surviveCap > 0 && this.data) {

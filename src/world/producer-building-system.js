@@ -34,6 +34,8 @@ import { HamsterSniper } from '../entities/hamster-sniper.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
 import { HamsterAntiVehicle } from '../entities/hamster-anti-vehicle.js';
 import { HamsterPriest } from '../entities/hamster-priest.js';
+import { HamsterBishop } from '../entities/hamster-bishop.js';
+import { HamsterArchbishop } from '../entities/hamster-archbishop.js';
 import { HamsterKnight } from '../entities/hamster-knight.js';
 import { HamsterLightCavalry } from '../entities/hamster-light-cavalry.js';
 import { HamsterCavalry } from '../entities/hamster-cavalry.js';
@@ -111,6 +113,8 @@ import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
+import bishopCfg from '../../data/hamster-bishop-config.json';
+import archbishopCfg from '../../data/hamster-archbishop-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
 import cavalryCfg from '../../data/hamster-cavalry-config.json';
@@ -234,6 +238,8 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     musketeer: '仓鼠火枪',
     anti_vehicle: '仓鼠反载',
     priest: '仓鼠牧师',
+    bishop: '仓鼠主教',
+    archbishop: '仓鼠大主教',
     knight: '仓鼠骑士',
     light_cavalry: '仓鼠轻骑',
     cavalry: '仓鼠骑兵',
@@ -365,6 +371,8 @@ const PRODUCER_UNIT_CFG = {
     musketeer: musketeerCfg,
     anti_vehicle: antiVehicleCfg,
     priest: priestCfg,
+    bishop: bishopCfg,
+    archbishop: archbishopCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
     cavalry: cavalryCfg,
@@ -414,6 +422,8 @@ const PRODUCER_UNIT_CLASS = {
     musketeer: HamsterMusketeer,
     anti_vehicle: HamsterAntiVehicle,
     priest: HamsterPriest,
+    bishop: HamsterBishop,
+    archbishop: HamsterArchbishop,
     knight: HamsterKnight,
     light_cavalry: HamsterLightCavalry,
     cavalry: HamsterCavalry,
@@ -477,6 +487,8 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     musketeer: 'data/hamster-musketeer-config.json',
     anti_vehicle: 'data/hamster-anti-vehicle-config.json',
     priest: 'data/hamster-priest-config.json',
+    bishop: 'data/hamster-bishop-config.json',
+    archbishop: 'data/hamster-archbishop-config.json',
     knight: 'data/hamster-knight-config.json',
     light_cavalry: 'data/hamster-light-cavalry-config.json',
     cavalry: 'data/hamster-cavalry-config.json',
@@ -1207,7 +1219,8 @@ export class ProducerBuilding extends DamageableEntity {
         };
         const baseMaxHp = Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult));
         const unit = new UnitClass(spot.x, spot.y, { id, ai, baseMaxHp });
-        if (this.unitType === 'priest' && Number.isFinite(this._restoredTitheTimer)
+        if (['priest', 'bishop', 'archbishop'].includes(this.unitType)
+            && Number.isFinite(this._restoredTitheTimer)
             && unit._ai && '_titheTimer' in unit._ai) {
             unit._ai._titheTimer = Math.max(0, this._restoredTitheTimer);
         }

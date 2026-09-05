@@ -136,6 +136,7 @@ export class SanctuaryDomainSystem {
         const src = this.source;
         this._active = true;
         src._sanctuaryDomainActive = true;
+        src._sanctuaryDomainRadius = Math.max(0, Number(effect.radius) || 0);
         this._remaining = effect.duration * 1000;
         this._tickTimer = 0;
         this._cleanseTimer = 0;
@@ -166,7 +167,7 @@ export class SanctuaryDomainSystem {
         if (!src || !src.active || !effect) return;
         const radius = effect.radius;
         const d = this._castContext?.stats || src.data;
-        const healAmount = Math.floor(
+        const baseHealAmount = (
             ((effect.healBase ?? 0) + (d.wis ?? 0) * (effect.healWisMul ?? 0)) * this._healMul
         );
         const damageAmount = Math.floor(
@@ -180,6 +181,18 @@ export class SanctuaryDomainSystem {
             if (Math.hypot(e.x - src.x, e.y - src.y) > radius) continue;
             if (this._isFriendly(e) || e === src) {
                 if (!e.data) continue;
+                const overlappingDomains = entityList.filter((candidate) => (
+                    candidate?._isHamsterArchbishop
+                    && candidate._sanctuaryDomainActive
+                    && candidate.active !== false
+                    && Math.hypot(e.x - candidate.x, e.y - candidate.y)
+                        <= Math.max(0, Number(candidate._sanctuaryDomainRadius) || 0)
+                ));
+                const overlapIndex = overlappingDomains.indexOf(src);
+                const overlapMultiplier = overlapIndex > 0
+                    ? Math.max(0, Number(src.aiConfig?.sanctuaryOverlapHealMultiplier) || 0.35)
+                    : 1;
+                const healAmount = Math.floor(baseHealAmount * overlapMultiplier);
                 const maxHp = e.data.maxHp || e.maxHp || 0;
                 const before = e.data.hp;
                 e.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, e.data.hp + healAmount);
@@ -272,7 +285,10 @@ export class SanctuaryDomainSystem {
             this._fx = null;
         }
         this._active = false;
-        if (this.source) this.source._sanctuaryDomainActive = false;
+        if (this.source) {
+            this.source._sanctuaryDomainActive = false;
+            this.source._sanctuaryDomainRadius = 0;
+        }
         this._remaining = 0;
         this._tickTimer = 0;
         this._cleanseTimer = 0;
@@ -288,7 +304,10 @@ export class SanctuaryDomainSystem {
             this._fx = null;
         }
         this._active = false;
-        if (this.source) this.source._sanctuaryDomainActive = false;
+        if (this.source) {
+            this.source._sanctuaryDomainActive = false;
+            this.source._sanctuaryDomainRadius = 0;
+        }
         this._remaining = 0;
         this._tickTimer = 0;
         this._cleanseTimer = 0;

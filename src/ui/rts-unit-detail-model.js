@@ -24,6 +24,7 @@ const STATUS_META = Object.freeze({
     statusImmune: { name: '状态免疫', icon: '🔰', tone: 'buff' },
     haste: { name: '加速', icon: '💨', tone: 'buff' },
     holyRenewal: { name: '圣光续疗', icon: '💚', tone: 'buff' },
+    holyWard: { name: '圣佑', icon: '🛡️', tone: 'buff' },
     chainSpell: { name: '链式强化', icon: '🔗', tone: 'buff' },
     flameArmor: { name: '灼锋焰甲', icon: '🔥', tone: 'buff' },
     shield: { name: '护盾', icon: '🛡️', tone: 'buff' },
@@ -257,6 +258,7 @@ function effectDetail(entity, type, effect, stacks) {
             const healPercent = finite(entity?._holyRenewalHealPercent, 0.01);
             return `每秒恢复 ${Math.max(1, Math.floor(maxHp * healPercent * stacks))} 生命`;
         }
+        case 'holyWard': return `受到最终伤害 -${compactNumber((1 - finite(effect?.value, 0.75)) * 100)}%`;
         case 'chainSpell': return `下次魔法伤害 +${compactNumber(stacks * 2)}% · MP 消耗 +${compactNumber(stacks * 5)}%`;
         case 'chill': {
             const multiplier = typeof entity?.getChillSpeedMul === 'function'

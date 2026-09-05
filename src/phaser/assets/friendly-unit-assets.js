@@ -29,6 +29,8 @@ import hamsterBarAutomaticRiflemanConfig from '../../../data/hamster-bar-automat
 import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json';
 import hamsterAntiVehicleConfig from '../../../data/hamster-anti-vehicle-config.json';
 import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
+import hamsterBishopConfig from '../../../data/hamster-bishop-config.json';
+import hamsterArchbishopConfig from '../../../data/hamster-archbishop-config.json';
 import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
 import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
 import hamsterCavalryConfig from '../../../data/hamster-cavalry-config.json';
@@ -78,6 +80,8 @@ export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterMusketeerConfig,
     hamsterAntiVehicleConfig,
     hamsterPriestConfig,
+    hamsterBishopConfig,
+    hamsterArchbishopConfig,
     hamsterKnightConfig,
     hamsterLightCavalryConfig,
     hamsterCavalryConfig,

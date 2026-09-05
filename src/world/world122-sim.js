@@ -56,6 +56,8 @@ import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
+import bishopCfg from '../../data/hamster-bishop-config.json';
+import archbishopCfg from '../../data/hamster-archbishop-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
 import cavalryCfg from '../../data/hamster-cavalry-config.json';
@@ -117,7 +119,7 @@ const UNIT_CFGS = {
     industrial_artillery_crew: industrialArtilleryCrewCfg,
     hamster_howitzer_crew: howitzerCrewCfg,
     militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
-    guard: guardCfg, phalanx: phalanxCfg, trench_assault: trenchAssaultCfg, special_forces: specialForcesCfg, riot_special: riotSquadCfg, steel_shield_assault: steelShieldAssaultCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, industrial_recon_rifleman: industrialReconRiflemanCfg, crossbow: crossbowCfg, longbow: longbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, service_rifleman: serviceRiflemanCfg, emplaced_machine_gun_crew: barAutomaticRiflemanCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, anti_tank_rifleman: antiTankRiflemanCfg, priest: priestCfg,
+    guard: guardCfg, phalanx: phalanxCfg, trench_assault: trenchAssaultCfg, special_forces: specialForcesCfg, riot_special: riotSquadCfg, steel_shield_assault: steelShieldAssaultCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, industrial_recon_rifleman: industrialReconRiflemanCfg, crossbow: crossbowCfg, longbow: longbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, service_rifleman: serviceRiflemanCfg, emplaced_machine_gun_crew: barAutomaticRiflemanCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, anti_tank_rifleman: antiTankRiflemanCfg, priest: priestCfg, bishop: bishopCfg, archbishop: archbishopCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
     cavalry: cavalryCfg, winged_hussar: wingedHussarCfg,
     industrial_carbine_cavalry: industrialCarbineCavalryCfg,
@@ -846,7 +848,9 @@ function _unitDps(kind, levelOverrides = null) {
     if (kind === 'explorer') return 0;
     const mults = getUnitUpgradeMults(kind, getUpgradeModulesForUnitKind(kind));
     const dmg = (cfg.ai.attackDamage ?? 20) * mults.attackDamageMult;
-    const spellCooldownMult = kind === 'jungle_priest' ? mults.jungleSpellCooldownMult : 1;
+    const spellCooldownMult = kind === 'jungle_priest'
+        ? mults.jungleSpellCooldownMult
+        : ((kind === 'bishop' || kind === 'archbishop') ? mults.holyLightCooldownMult : 1);
     const artillery = ['hamster_catapult_crew', 'hamster_field_cannon_crew',
         'industrial_artillery_crew', 'hamster_howitzer_crew'].includes(kind);
     const interval = Math.max(300, artillery ? cfg.animations.attack.durationMs : 0,
@@ -2322,7 +2326,8 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     if (tithePerTick > 0 && titheIntervalMs > 0) {
         for (const s of target.structures || []) {
             if (s.kind !== 'producer') continue;
-            const priests = _normalizedRoster(s).priest || 0;
+            const roster = _normalizedRoster(s);
+            const priests = (roster.priest || 0) + (roster.bishop || 0) + (roster.archbishop || 0);
             if (priests <= 0) continue;
             const accumulated = Math.max(0, Number(s.titheTimerMs) || 0) + elapsedMs;
             const ticks = Math.floor(accumulated / titheIntervalMs);
@@ -2760,7 +2765,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                 && !(structure.kind === 'producer' && structure.unitType)) continue;
             const roster = _normalizedRoster(structure);
             unitDps += _rosterDps(roster, segment.levels);
-            priestCount += roster.priest || 0;
+            priestCount += (roster.priest || 0) + (roster.bishop || 0) + (roster.archbishop || 0);
             scoutCount += roster.scout || 0;
         }
         const inspire = getBuildingUpgradeAbility('inspire_magic');

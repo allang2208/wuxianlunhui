@@ -31,6 +31,8 @@ import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
+import bishopCfg from '../../data/hamster-bishop-config.json';
+import archbishopCfg from '../../data/hamster-archbishop-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
 import cavalryCfg from '../../data/hamster-cavalry-config.json';
@@ -113,6 +115,8 @@ export const UNIT_KIND_CFG = {
     musketeer: musketeerCfg,
     anti_vehicle: antiVehicleCfg,
     priest: priestCfg,
+    bishop: bishopCfg,
+    archbishop: archbishopCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
     cavalry: cavalryCfg,
@@ -182,6 +186,9 @@ export function getUnitKind(unit) {
     if (unit._isHamsterIndustrialCarbineCavalry) return 'industrial_carbine_cavalry';
     if (unit._isHamsterScoutRifleSkirmisher) return 'scout_rifle_skirmisher';
     if (unit._isHamsterMusketeer) return 'musketeer';
+    // 大主教继承主教、主教继承牧师，必须按最高阶优先识别。
+    if (unit._isHamsterArchbishop) return 'archbishop';
+    if (unit._isHamsterBishop) return 'bishop';
     if (unit._isHamsterPriest) return 'priest';
     // 二级骑兵继承一级实体，必须先于基础骑士/轻骑判断。
     if (unit._isHamsterPoweredEodExplosiveLancer) return 'powered_eod_explosive_lancer';

@@ -196,6 +196,31 @@ export class Companion {
         return this.statusEffects.some((effect) => effect.type === type && effect.remaining > 0);
     }
 
+    removeStatusEffect(type) {
+        const hadEffect = this.statusEffects.some((effect) => effect.type === type);
+        this.statusEffects = this.statusEffects.filter((effect) => effect.type !== type);
+        if (hadEffect && type === 'inspire') this._onInspireEnd();
+        return hadEffect;
+    }
+
+    applyHolyWard(duration, damageTakenMultiplier = 0.75) {
+        const durationMs = Math.max(0, Number(duration) || 0);
+        if (!durationMs || this._dying || this.data.hp <= 0) return null;
+        const multiplier = Math.max(0.05, Math.min(1, Number(damageTakenMultiplier) || 0.75));
+        const effect = this.addStatusEffect('holyWard', durationMs, {
+            name: '圣佑', icon: '🛡️', color: '#ffe7a3', value: multiplier,
+        });
+        // 与公共承伤入口一致：刷新同名圣佑，不叠乘，最新施法值生效。
+        if (effect) effect.value = multiplier;
+        return effect;
+    }
+
+    applyHolyWardDamageMultiplier(damage) {
+        const value = Math.max(0, Number(damage) || 0);
+        const ward = this.statusEffects.find((effect) => effect.type === 'holyWard' && effect.remaining > 0);
+        return ward ? Math.floor(value * Math.max(0.05, Math.min(1, Number(ward.value) || 0.75))) : value;
+    }
+
     addStatusEffect(type, duration, options = {}) {
         if (type !== 'statusImmune' && this.hasStatusEffect('statusImmune')) return null;
         const existing = this.statusEffects.find((effect) => effect.type === type);
@@ -452,6 +477,7 @@ export class Companion {
                 outgoingAdjusted * Math.max(1, Number(petrified?.value) || 1.5)
             );
         }
+        outgoingAdjusted = this.applyHolyWardDamageMultiplier(outgoingAdjusted);
         if (this._defending) {
             const shieldData = this._getShieldData();
             const defense = (shieldData && shieldData.defense) || {};

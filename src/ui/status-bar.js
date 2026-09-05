@@ -29,6 +29,7 @@ export const StatusBar = {
         tributeMoonstone: { icon: '🌙', name: '月影庇护', color: '#b0a0e0', desc: '进入战斗获得无敌；Boss/精英战斗中物理魔法伤害 +5%。' },
         tributePhilosopher: { icon: '🪨', name: '点石成金', color: '#e0c060', desc: '获得随机传说祭品（若为传说祭品则额外再得一份）。' },
         holyRenewal: { icon: '💚', name: '圣光续疗', color: '#7aff9a', desc: '每秒恢复最大生命值 1%×层数 的生命值。' },
+        holyWard: { icon: '🛡️', name: '圣佑', color: '#ffe7a3', desc: '持续期间降低受到的最终伤害。' },
         chainSpell: { icon: '🔗', name: '链式强化', color: '#8a7a6a', desc: '下次施法的魔法伤害与 MP 消耗按层数提高。' },
         weaponHaste: { icon: '➤', name: '命中动能', color: '#69e7e3', desc: 'P4040命中后移动速度提高10%；再次命中刷新持续时间。' },
         chill: { icon: '❄️', name: '寒冷', color: '#7ab8e0', desc: '每层降低 5% 移动速度；层数加法叠加，最终乘算。' },

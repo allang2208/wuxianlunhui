@@ -31,6 +31,8 @@ export const HAMSTER_UNIT_ICONS = Object.freeze({
     anti_vehicle: `${UNIT_ICON_ROOT}/hamster-anti-vehicle.png`,
     musketeer: `${UNIT_ICON_ROOT}/hamster-musketeer.png`,
     priest: `${UNIT_ICON_ROOT}/hamster-priest.png`,
+    bishop: `${UNIT_ICON_ROOT}/hamster-archbishop.png`,
+    archbishop: `${UNIT_ICON_ROOT}/hamster-archbishop.png`,
     knight: `${UNIT_ICON_ROOT}/hamster-knight.png`,
     light_cavalry: `${UNIT_ICON_ROOT}/hamster-light-cavalry.png`,
     cavalry: `${UNIT_ICON_ROOT}/hamster-cavalry.png`,

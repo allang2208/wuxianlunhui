@@ -162,6 +162,12 @@ export class HamsterPriestAI {
                     m._holyLightCooldown *= this._holyLightCooldownMult;
                 } else if (this._castKind === 'inspire') {
                     this._releaseInspireMagic(this._pendingEntities, this._pendingPlayer);
+                } else {
+                    this._releaseSpecialCast(
+                        this._castKind,
+                        this._pendingEntities,
+                        this._pendingPlayer
+                    );
                 }
             }
         }
@@ -200,6 +206,11 @@ export class HamsterPriestAI {
         }
         if (this._tryInspireMagic(entities, player)) return;
         this._followPlayer(player);
+    }
+
+    /** 高阶教堂单位的扩展释放点；基础牧师无额外施法。 */
+    _releaseSpecialCast(_kind, _entities, _player) {
+        return false;
     }
 
     /** RTS 指令：移动/待命优先于自动施法；指定攻击用圣光锁定目标。 */

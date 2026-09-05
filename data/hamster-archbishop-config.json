@@ -1,0 +1,113 @@
+{
+  "id": "hamster_archbishop",
+  "name": "仓鼠大主教",
+  "title": "圣迹大教堂法术支援",
+  "desc": "教堂法术支援的三级进阶单位。大范围强化圣光兼具群体治疗、净化与圣佑，并会周期性展开圣辉领域；不具备复活能力。",
+  "role": "archbishop",
+  "growthRule": "priest",
+  "avatar": "🐹👑",
+  "weaponType": "staff",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 230,
+  "baseData": {
+    "str": 6,
+    "dex": 7,
+    "int": 38,
+    "con": 14,
+    "wis": 34,
+    "luck": 9
+  },
+  "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
+  "skills": ["holyLight", "sanctuaryDomain"],
+  "sounds": {
+    "inspire": "assets/sounds/skills/holy-light-1.mp3",
+    "walk": "assets/sounds/friendly/hamster_archbishop_walk_video.mp3",
+    "walkInterval": 500,
+    "walkVolume": 0.3
+  },
+  "ai": {
+    "role": "holy_archbishop",
+    "walkSpeed": 130,
+    "runSpeed": 130,
+    "castRange": 760,
+    "engageRange": 950,
+    "castAnimFps": 36,
+    "castReleaseFrame": 31,
+    "holyLightBaseLevel": 7,
+    "supportPulseRadius": 260,
+    "supportPulseHealMul": 0.55,
+    "supportCleanseCount": 1,
+    "holyWardDurationMs": 6000,
+    "holyWardDamageTakenMultiplier": 0.8,
+    "sanctuaryDomainLevel": 6,
+    "sanctuaryTriggerRadius": 320,
+    "sanctuaryMinHostiles": 2,
+    "sanctuaryOverlapHealMultiplier": 0.35,
+    "attackDamage": 145,
+    "attackInterval": 8000,
+    "followOffset": 165,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 300.4,
+  "spriteOffsetY": -55.742188,
+  "render": {
+    "footOffsetY": 55.742188,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_bishop_archbishop_shared/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 7,
+      "frameCount": 54,
+      "frames": [0, 53],
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_bishop_archbishop_shared/moving.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameCount": 14,
+      "frames": [0, 13],
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "spell": {
+      "src": "assets/companions/hamster_bishop_archbishop_shared/spellcast.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 8,
+      "frameCount": 61,
+      "frames": [0, 60],
+      "frameRate": 36,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_bishop_archbishop_shared/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 8,
+      "frameCount": 61,
+      "frames": [0, 60],
+      "frameRate": 12,
+      "repeat": 0
+    }
+  }
+}

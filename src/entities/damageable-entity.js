@@ -283,6 +283,8 @@ export function isFriendlyFire(source, target) {
                     const markedMul = 1 + (marked && marked.value ? marked.value : 0.15);
                     baseDamage = Math.floor(baseDamage * markedMul);
                 }
+                // 圣佑属于最终承伤倍率：在防御、易伤与来源修正后统一消费一次。
+                baseDamage = this.applyHolyWardDamageMultiplier(baseDamage);
                 // 女墙方向掩护在所有承伤、防御、暴击与来源增减伤之后结算，确保目标实际
                 // 少承受 50%，而不是把原始攻击力减半后再次走非线性防御公式。
                 const battlementCover = !isMelee
@@ -517,6 +519,7 @@ export function isFriendlyFire(source, target) {
                     haste: { icon: '💨', name: '加速', color: '#5ac85a' },
                     weaponHaste: { icon: '➤', name: '命中动能', color: '#69e7e3' },
                     holyRenewal: { icon: '💚', name: '圣光续疗', color: '#7aff9a' },
+                    holyWard: { icon: '🛡️', name: '圣佑', color: '#ffe7a3' },
                     chainSpell: { icon: '🔗', name: '链式强化', color: '#8a7a6a' },
                     chill: { icon: '❄️', name: '寒冷', color: '#7ab8e0' },
                     burn: { icon: '🔥', name: '灼伤', color: '#ff6b35' },
@@ -567,6 +570,33 @@ export function isFriendlyFire(source, target) {
                 return this.statusEffects.some(e => e.type === type && e.remaining > 0);
             }
 
+            /** 大主教圣佑：所有 DamageableEntity 共用同一状态入口。 */
+            applyHolyWard(duration, damageTakenMultiplier = 0.75) {
+                const durationMs = Math.max(0, Number(duration) || 0);
+                const currentHp = Number(this.data?.hp ?? this.hp);
+                if (durationMs <= 0 || this._isDead || (Number.isFinite(currentHp) && currentHp <= 0)) {
+                    return null;
+                }
+                const multiplier = Math.max(0.05, Math.min(1,
+                    Number(damageTakenMultiplier) || 0.75));
+                const effect = this.addStatusEffect('holyWard', durationMs, {
+                    name: '圣佑',
+                    icon: '🛡️',
+                    color: '#ffe7a3',
+                    value: multiplier,
+                });
+                if (!effect) return null;
+                // 同名效果只刷新/覆盖，不叠乘；最新施法值是唯一真源。
+                effect.value = multiplier;
+                if (this._faction === 'player' && StatusBar) {
+                    if (this._holyWardEffectId) StatusBar.removeEffect(this._holyWardEffectId);
+                    this._holyWardEffectId = StatusBar.addEffect('holyWard', durationMs, {
+                        value: multiplier,
+                    });
+                }
+                return effect;
+            }
+
             /** 星噬秘镜盾：降低目标魔法抗性，重复触发取较高比例并刷新时限。 */
             applyMagicResistanceShred(ratio, duration, source = null) {
                 const value = Math.max(0, Math.min(0.95, Number(ratio) || 0));
@@ -591,6 +621,17 @@ export function isFriendlyFire(source, target) {
                     entry => entry.type === 'magicResistanceShred' && entry.remaining > 0
                 );
                 return Math.max(0, Math.min(0.95, Number(effect?.value) || 0));
+            }
+
+            /** 圣佑最终承伤倍率；玩家/侍从/通用实体均只调用一次。 */
+            applyHolyWardDamageMultiplier(damage) {
+                const value = Math.max(0, Number(damage) || 0);
+                const ward = this.statusEffects?.find(
+                    effect => effect.type === 'holyWard' && effect.remaining > 0
+                );
+                if (!ward) return value;
+                const multiplier = Math.max(0.05, Math.min(1, Number(ward.value) || 0.75));
+                return Math.floor(value * multiplier);
             }
 
             /**
