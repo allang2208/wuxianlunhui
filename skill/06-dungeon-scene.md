@@ -844,8 +844,16 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 > 主体 Sprite 当前 alpha，所有视觉拟合都不可用时才回退 placement footprint；建造与碰撞逻辑完全不改。
 > 散布障碍物继续凸包∪manifest 剪影；掩体墙、门、楼梯继续各自的专用纯几何链。
 
+> **2026-09-01 主体影根补充**：上文“不读取 manifest 剪影”专指旧的完整建筑投影剪影；普通建筑现在可
+> 读取 `data/structure-shadow-casters.json` 中的离线**主体接触面**。优先级固定为逐实体/等级显式
+> `shadowCaster` > 同纹理键且同当前等级配置画布尺寸的主体影根清单 > `visualFootprint` > 主体 alpha > placement。
+> 清单只改变太阳阴影低模，不改变 Sprite、逻辑占格、碰撞、寻路或 `visualFootprint`。
+> 清单尺寸匹配读取 `spriteCfg.size/sizeH`，即严格棱柱拟合前的配置尺寸；最终 Sprite 可因
+> `visualFootprint` 微调为不同显示宽高，但语义代理已映射到逻辑 footprint，不得再次随 Sprite 缩放。
+
 - **普通建筑真源**：优先使用 `shadowCaster.contactPolygon`（相对逻辑脚点的局部坐标），
-  其次复用 `visualFootprint` 映射接触面，再次才是主体 alpha 接地拟合，最后走 placement footprint
+  其次使用 `data/structure-shadow-casters.json` 中同纹理/显示尺寸的离线主体接触面，再复用
+  `visualFootprint` 映射接触面，再次才是主体 alpha 接地拟合，最后走 placement footprint
   兜底。默认高度只取主体 Sprite 最终显示高度，
   不再由 footprint 半径放大。普通建筑默认把真实接地轮廓作为单一棱柱，沿全局唯一太阳向量
   正交平行扫掠：左右终端边必须是平行线，不能分别追随不同高度的屋檐、塔楼或侧翼。
@@ -858,10 +866,26 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   **上层截面只能信任 alpha 的左右边界**：不能再按截面宽度猜对称 iso 菱形纵深，否则
   人造的前/后顶点会生成额外斜边，把左侧或右侧影角拉歪。自动部件统一使用实测 left/right
   加最小稳定 Y 厚度的薄横截面；接地纵深仍只由 0~24% 的真实 contact polygon 提供。
-- **覆盖优先级**：配置了 `shadowCaster.parts[]` 就完全使用显式部件，每层写 `polygon`
+- **覆盖优先级**：配置了至少一个 `shadowCaster.parts[]` 就完全使用显式部件，每层写 `polygon`
   （或 `footprint:'contact'`）与 `baseZ/topZ`；默认是单体平行扫掠，只有显式
   `shadowCaster.autoParts:true` 才启用自动分层造型。`getLayeredShadowPolygon` 负责把自动或
-  显式部件分层挤出后合成单一边界。
+  显式部件分层挤出后合成单一边界。配置克隆或旧快照产生的空 `parts:[]` 视为“未覆盖”，
+  继续继承已验证的语义代理部件。
+- **地基剥离门禁与自动代理 v2**：`tools/generate-building-shadow-casters.mjs --write` 优先读取 Blender
+  导出的 `*_shadow_proxy.json`。模型网格语义固定为 `ground/body/part/ignore`：公共
+  `masonry_plinth` 自动把整栋视觉地基标为 `ground`，未标注的新主体、柱、烟囱和附楼默认按 `body`
+  纳入；需要跨空隙合并的构件可共用 `shadow_group`。导出器排除 `ground/ignore` 后按4个高度带和 XY
+  连通簇生成确定性的 `parts[] + baseRatio/topRatio`，因此后续新增柱会自动成为高段影体，不再依赖 PNG
+  猜轮廓。生成器仍须复核正式 PNG 裁切元数据、代理身份、源 `.blend` SHA-256、地基排除对象和几何边界；
+  陈旧或越界代理一律拒绝。代理中的 `.blend`/manifest 路径统一相对仓库根目录记录，调用工作目录不参与。
+  标准 Blender builder 保存模型时自动导出代理；`finalize-building-runtime.py` 只有在目标是
+  `assets/terrain/` 根目录下且已登记为建筑正式贴图时，才自动刷新清单与审计报告，候选图、任务目录
+  中间稿和非建筑素材即使写入 metadata 也不得触发全局改写。
+- **旧素材回退**：没有语义模型代理时，才接受模型/构建清单明确记录“已排除整栋地基”的 Body Depth；
+  不得因文件名含 `body_depth`、地基外环看似较空或同系列名字相近就借用。完整生成 Depth 仍可保留地基，
+  但不得直接作为主体影根。旧白模可用 `tools/ai-gen/render-foundation-free-building-depth.py` 隐藏精确命名
+  的整栋地基网格后另出阴影专用 Depth；门槛、烟囱脚座、附楼和真实支撑仍保留。未通过来源/几何门禁
+  的建筑继续保守回退并在 `docs/building-shadow-caster-audit-2026-09-01.md` 显式列出。
 - **共享结构阴影层**（2026-08-24 性能结构修复）：单个 Graphics、深度读取
   `WORLD_RENDER_LAYERS.STRUCTURE_SHADOW`（当前 −994.4，位于道路和地基之上），每帧汇入全部
   结构阴影多边形。重叠/相贴的 job 先聚簇并集再画，聚簇判定覆盖顶点互含、普通相交和共线相贴；

@@ -32,7 +32,10 @@ function cloneCasterParts(parts) {
     });
 }
 
-/** 注册离线生成的建筑主体影根；实体显式配置仍具有最高优先级。 */
+/**
+ * 注册由离线 Body Depth/模型低模生成的主体影根。
+ * 清单只补充视觉阴影配置；实体显式 shadowCaster 始终拥有最高优先级。
+ */
 export function registerStructureShadowCasterManifest(manifest) {
     _manifestCastersByTexture.clear();
     const entries = Array.isArray(manifest?.entries) ? manifest.entries : [];
@@ -66,6 +69,10 @@ function manifestCasterConfig(entity, sprite) {
     const textureKey = sprite?.texture?.key;
     const candidates = _manifestCastersByTexture.get(textureKey) || [];
     if (!candidates.length) return null;
+
+    // 语义代理已经在离线阶段映射到逻辑 2x2/4x4 footprint；这里的尺寸只用于
+    // 识别“哪一张建筑画布/等级”，不能使用 visualFootprint 拟合后的 Sprite 尺寸，
+    // 否则严格棱柱会把 512x397 调成 516.5x390 后误判清单失配。
     const configuredWidth = Number(entity?.spriteCfg?.size);
     const configuredHeight = Number(entity?.spriteCfg?.sizeH);
     const usesConfiguredDimensions = configuredWidth > 0 && configuredHeight > 0;
@@ -80,6 +87,7 @@ function manifestCasterConfig(entity, sprite) {
         candidate.displayHeight
     ) === exactKey);
     if (exact) return exact.config;
+
     const ranked = candidates.map((candidate) => ({
         candidate,
         error: Math.abs(candidate.displayWidth - width) / width
@@ -91,15 +99,19 @@ function manifestCasterConfig(entity, sprite) {
 function casterConfig(entity, sprite = null) {
     const explicit = entity?.shadowCaster
         || entity?.spriteCfg?.shadowCaster
+        // spriteCfg 是当前实际显示等级；基础 _cfg 只能作为未分级建筑的兜底。
         || entity?._cfg?.shadowCaster
         || entity?.config?.render?.shadowCaster;
     const derived = manifestCasterConfig(entity, sprite);
     if (!derived || explicit?.contactSource === 'placement') return explicit || {};
     if (!explicit) return derived;
+
     const merged = { ...derived, ...explicit };
     if (!Array.isArray(explicit.contactPolygon) || explicit.contactPolygon.length < 3) {
         merged.contactPolygon = derived.contactPolygon;
     }
+    // 配置克隆器和旧快照可能把“未配置 parts”物化为空数组；空数组不应吞掉
+    // 已验证的模型语义部件。至少一个显式部件才算真正覆盖清单。
     if (!Array.isArray(explicit.parts) || explicit.parts.length === 0) {
         merged.parts = derived.parts;
     }
@@ -107,6 +119,16 @@ function casterConfig(entity, sprite = null) {
         Array.isArray(explicit.contactPolygon) && explicit.contactPolygon.length >= 3
     ) ? undefined : derived.__manifestSource;
     return merged;
+}
+
+/** 当前结构是否允许注册太阳阴影；_noShadow 只负责单位接触影，不能在这里复用。 */
+export function isStructureShadowEnabled(entity) {
+    const config = casterConfig(entity);
+    const render = entity?.config?.render || {};
+    const styleEnabled = entity?.shadow?.enabled
+        ?? render.shadow?.enabled
+        ?? entity?._cfg?.shadow?.enabled;
+    return config.enabled !== false && styleEnabled !== false;
 }
 
 function normalizeLocalPolygon(points, mirrorSign = 1) {
@@ -173,8 +195,11 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
         : null;
     let groundFit = null;
 
-    // 只有普通独立建筑走统一视觉拟合。塔、墙、门、楼梯继续使用各自专用几何。
-    if (config.contactSource !== 'placement' && shouldAutoAnchorStructure(entity)) {
+    // 普通独立建筑与防御塔基座走统一视觉拟合；墙、门、楼梯继续使用各自专用几何。
+    // 防御塔的炮臂/武器仍由专属渲染同步，但阴影根部必须与基座 visualFootprint 同源。
+    if (config.contactSource !== 'placement'
+        && shouldAutoAnchorStructure(entity)
+        && (!contactLocal || config.autoParts === true)) {
         const fallbackFoot = getBuildingFootprint(entity._buildingFootprintCells || 2);
         const constrainToPrism = entity.spriteCfg?.autoFootprint !== true;
         const nominal = {

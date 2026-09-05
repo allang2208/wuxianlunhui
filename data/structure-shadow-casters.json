@@ -1,11 +1,3533 @@
 {
-  "version": 1,
+  "algorithmVersion": 2,
+  "generatedBy": "tools/generate-building-shadow-casters.mjs",
   "entries": [
-    {"id":"cannery","textureKey":"cannery","displayWidth":512,"displayHeight":356,"sourceKind":"semantic_shadow_proxy_v2","sourcePath":"assets/terrain/cannery.png","shadowProxyPath":"tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/shadow-caster/cannery_shadow_proxy.json","sourceBlend":"tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_model.blend","runtimeMetadataPath":"tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/export-metadata.json","foundationExclusion":"semantic-shadow-role-v2","bodyAreaRatio":0.6494,"contactPolygon":[[-148.5,-94],[-49,-46],[-38,-46],[68,-62],[126.5,-77.5],[162,-95],[189.5,-126],[157.5,-158],[18,-227.5],[11,-227.5],[-148.5,-159],[-212.5,-127]],"parts":[{"id":"band_01_cluster_01","polygon":[[-147.5,-93.5],[1.5,-79.5],[126,-77.5],[145.5,-86],[162,-95],[189.5,-126],[157.5,-158],[18,-227.5],[11,-227.5],[-148.5,-159],[-212.5,-127],[-212.5,-126]],"baseRatio":0,"topRatio":0.25},{"id":"band_01_cluster_02","polygon":[[-49,-46],[-48.5,-46],[-38,-46],[-25.5,-50.5],[-11,-57.5],[-2.5,-63.5],[-2.5,-69],[-2.5,-69.5],[-75.5,-106],[-76.5,-106],[-122,-83],[-122,-82.5]],"baseRatio":0,"topRatio":0.25},{"id":"band_01_cluster_03","polygon":[[67,-62],[68.5,-62],[73,-64],[91,-73],[95,-75.5],[95,-76],[72,-87.5],[70.5,-87.5],[66,-85.5],[48,-76.5],[44,-74],[44,-73.5]],"baseRatio":0,"topRatio":0.25},{"id":"band_02_cluster_04","polygon":[[-163.5,-107],[1.5,-79.5],[95,-80],[140.5,-84.5],[148.5,-89],[157.5,-158],[18,-227.5],[11,-227.5],[-177,-141],[-186,-134.5],[-189,-126.5],[-186,-118.5]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_02_cluster_05","polygon":[[-63.5,-57],[-38.5,-46],[-25.5,-50.5],[-11,-57.5],[-3,-64],[-24,-76.5],[-61.5,-95],[-75.5,-100.5],[-93,-96],[-109.5,-86.5],[-112,-82.5],[-100.5,-75.5]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_02_cluster_06","polygon":[[29,-121],[75,-144],[73.5,-145],[27,-122]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_02_cluster_07","polygon":[[149.5,-117.5],[153.5,-116.5],[161.5,-118],[176,-125],[178,-126.5],[178.5,-129],[176,-131.5],[171,-133],[163,-131.5],[148.5,-124],[146,-122],[146,-120]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_03_cluster_08","polygon":[[-170.5,-109],[-63,-71.5],[1.5,-79.5],[54.5,-89.5],[111,-107.5],[137.5,-131],[158,-160],[16.5,-231],[14,-231],[-177,-141],[-186,-134.5],[-186,-118.5]],"baseRatio":0.5,"topRatio":0.75},{"id":"band_04_cluster_09","polygon":[[-178.5,-110.5],[-158.5,-105],[-2.5,-80.5],[101.5,-103],[111,-107.5],[155.5,-159.5],[15.5,-230],[9.5,-228.5],[-178.5,-142],[-190.5,-132],[-191.5,-123.5],[-188.5,-118]],"baseRatio":0.75,"topRatio":1}]},
-    {"id":"desert_cookhouse","textureKey":"desert_cookhouse","displayWidth":300,"displayHeight":232,"sourceKind":"semantic_shadow_proxy_v2","sourcePath":"assets/terrain/desert_cookhouse.png","shadowProxyPath":"tools/ai-gen/_food_processors_20260902/desert_cookhouse/desert_cookhouse_shadow_proxy.json","sourceBlend":"tools/ai-gen/_food_processors_20260902/desert_cookhouse/desert_cookhouse_model.blend","runtimeMetadataPath":"tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/desert_cookhouse_runtime_metadata.json","foundationExclusion":"semantic-shadow-role-v2","bodyAreaRatio":0.672,"contactPolygon":[[-29,-19],[-28,-19],[54.5,-27.5],[106,-53],[106,-53.5],[87,-72],[8.5,-111],[6,-111.5],[-84,-66.5],[-88.5,-63.5],[-98.5,-54.5],[-98.5,-54]],"parts":[{"id":"band_01_cluster_01","polygon":[[-29,-19],[-28,-19],[59.5,-35],[92,-51],[93.5,-53.5],[87,-72],[8.5,-111],[6,-111.5],[-84,-66.5],[-88.5,-63.5],[-98.5,-54.5],[-98.5,-54]],"baseRatio":0,"topRatio":0.25},{"id":"band_02_cluster_04","polygon":[[-4.5,-23],[-3,-23],[54.5,-25.5],[55,-25.5],[109.5,-53],[109.5,-53.5],[93,-71],[92.5,-71.5],[8,-114],[6,-114],[-89.5,-66.5],[-89,-65.5]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_03_cluster_05","polygon":[[-4.5,-23],[-2.5,-23],[65.5,-51.5],[66.5,-52],[93,-70.5],[92.5,-71.5],[8,-114],[6.5,-114],[6,-114],[-89.5,-66.5],[-89.5,-66],[-89,-65.5]],"baseRatio":0.5,"topRatio":0.75},{"id":"band_04_cluster_06","polygon":[[-50,-50.5],[-49,-50.5],[-48.5,-50.5],[-35.5,-57],[-35,-57.5],[-35.5,-58],[-52,-66],[-53,-66],[-53.5,-66],[-66.5,-59.5],[-67,-59],[-66.5,-58.5]],"baseRatio":0.75,"topRatio":1}]},
-    {"id":"frost_smokehouse","textureKey":"frost_smokehouse","displayWidth":300,"displayHeight":259,"sourceKind":"semantic_shadow_proxy_v2","sourcePath":"assets/terrain/frost_smokehouse.png","shadowProxyPath":"tools/ai-gen/_food_processors_20260902/frost_smokehouse/frost_smokehouse_shadow_proxy.json","sourceBlend":"tools/ai-gen/_food_processors_20260902/frost_smokehouse/frost_smokehouse_model.blend","runtimeMetadataPath":"tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/frost_smokehouse_runtime_metadata.json","foundationExclusion":"semantic-shadow-role-v2","bodyAreaRatio":0.568,"contactPolygon":[[-57,-43.5],[-7,-21.5],[-5,-21.5],[61,-30],[65.5,-32],[109,-54],[82.5,-68.5],[5,-106.5],[1.5,-107],[-85.5,-63],[-86,-62],[-68,-49]],"parts":[{"id":"band_01_cluster_01","polygon":[[-57,-43.5],[-7,-21.5],[-4.5,-21.5],[43.5,-37],[71,-56.5],[84.5,-67],[82.5,-68.5],[5,-106.5],[1.5,-107],[-85.5,-63],[-86,-62],[-68,-49]],"baseRatio":0,"topRatio":0.25},{"id":"band_02_cluster_08","polygon":[[-8,-14.5],[-6,-14],[61.5,-29],[62,-29],[111.5,-53.5],[111.5,-54.5],[100,-67.5],[99.5,-68],[2,-116.5],[0.5,-117],[-106,-64],[-105,-63]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_03_cluster_09","polygon":[[-56.5,-37.5],[-8,-14.5],[-6,-14],[100,-67],[99.5,-68],[53,-92],[50.5,-93.5],[2,-116.5],[0.5,-117],[-106,-64],[-105,-63],[-59,-38.5]],"baseRatio":0.5,"topRatio":0.75},{"id":"band_04_cluster_10","polygon":[[-44.5,-49],[-43.5,-48.5],[-43,-48.5],[-30,-55.5],[-29.5,-55.5],[-30,-56],[-46,-64],[-47,-64],[-47.5,-64],[-60.5,-57.5],[-60.5,-57],[-60.5,-57]],"baseRatio":0.75,"topRatio":1}]},
-    {"id":"geothermal_power_plant","textureKey":"geothermal_power_plant","displayWidth":512,"displayHeight":351,"sourceKind":"body_depth_v1","sourcePath":"assets/terrain/geothermal_power_plant.png","bodyDepthPath":"tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_body_depth.png","runtimeMetadataPath":"tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_runtime_metadata.json","foundationExclusion":"geothermal-model-manifest","foundationRingCoverage":0.2465,"bodyAreaRatio":0.2583,"contactPolygon":[[42,-155.5],[149.5,1.5],[-66,1.5]]},
-    {"id":"oil_power_plant","textureKey":"oil_power_plant","displayWidth":512,"displayHeight":397,"sourceKind":"semantic_shadow_proxy_v2","sourcePath":"assets/terrain/oil_power_plant.png","shadowProxyPath":"tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/shadow-caster/oil_power_plant_shadow_proxy.json","sourceBlend":"tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/oil_power_plant_model.blend","runtimeMetadataPath":"tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/export-metadata.json","foundationExclusion":"semantic-shadow-role-v2","bodyAreaRatio":0.6286,"contactPolygon":[[-160,-97],[-9.5,-23],[-8.5,-23],[41,-47.5],[138.5,-114.5],[170.5,-145],[165.5,-149],[6.5,-228.5],[-0.5,-228.5],[-160,-151],[-212.5,-125],[-212.5,-123]],"parts":[{"id":"band_01_cluster_01","polygon":[[-160,-97],[-9.5,-23],[-8.5,-23],[41,-47.5],[138.5,-114.5],[170.5,-145],[165.5,-149],[6.5,-228.5],[-0.5,-228.5],[-160,-151],[-212.5,-125],[-212.5,-123]],"baseRatio":0,"topRatio":0.25},{"id":"band_02_cluster_02","polygon":[[-171,-109],[18,-70.5],[37,-77],[88,-99],[116,-112.5],[172.5,-146],[6.5,-228.5],[-0.5,-228.5],[-150,-154.5],[-184,-134],[-190.5,-126],[-184,-114]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_02_cluster_03","polygon":[[-22,-33],[-10,-28.5],[9,-33.5],[29,-46],[29.5,-48.5],[20.5,-54],[-10,-69.5],[-22,-74],[-31,-72.5],[-51,-63.5],[-61.5,-54],[-52.5,-48.5]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_02_cluster_04","polygon":[[-87.5,-65.5],[-76,-61.5],[-62,-64.5],[-42,-74],[-36,-81],[-45,-87],[-75.5,-102.5],[-87.5,-106.5],[-96.5,-105.5],[-116.5,-96.5],[-127,-87],[-118,-81]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_03_cluster_05","polygon":[[-167,-108.5],[-138,-107.5],[-125.5,-113.5],[-127,-128],[-132.5,-134],[-138.5,-137],[-150,-139.5],[-171,-139],[-184,-134],[-190.5,-126],[-190,-120],[-184,-114]],"baseRatio":0.5,"topRatio":1},{"id":"band_03_cluster_06","polygon":[[-15,-85],[17.5,-70.5],[21,-70.5],[46.5,-81.5],[150.5,-133.5],[161.5,-139.5],[172.5,-146.5],[7,-229.5],[3,-231],[-150,-154.5],[-137,-146.5],[-121.5,-138]],"baseRatio":0.5,"topRatio":0.75}]},
-    {"id":"trading_company","textureKey":"trading_company","displayWidth":512,"displayHeight":433,"sourceKind":"semantic_shadow_proxy_v2","sourcePath":"assets/terrain/trading_company.png","shadowProxyPath":"tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/shadow-caster/trading_company_shadow_proxy.json","sourceBlend":"tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/trading_company_model.blend","runtimeMetadataPath":"tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/export-metadata.json","foundationExclusion":"semantic-shadow-role-v2","bodyAreaRatio":0.7159,"contactPolygon":[[-108,-53],[-74,-39],[-35,-24.5],[100,-70.5],[176,-108.5],[188,-144],[13,-231.5],[6,-231.5],[-146,-155.5],[-213.5,-112],[-213.5,-108.5],[-134,-66]],"parts":[{"id":"band_01_cluster_01","polygon":[[-108,-53],[-74,-39],[-35,-24.5],[100,-70.5],[176,-108.5],[188,-144],[13,-231.5],[6,-231.5],[-146,-155.5],[-213.5,-112],[-213.5,-108.5],[-134,-66]],"baseRatio":0,"topRatio":0.25},{"id":"band_02_cluster_02","polygon":[[-74,-39],[-70,-38],[129,-77.5],[160.5,-94],[172,-109],[188,-144],[182,-147.5],[13,-231.5],[6,-231.5],[-146,-155.5],[-213.5,-112],[-213.5,-108.5]],"baseRatio":0.25,"topRatio":0.5},{"id":"band_03_cluster_03","polygon":[[4,-72.5],[22,-65.5],[29,-64.5],[46.5,-72.5],[172,-135],[188,-144],[182,-147.5],[10.5,-230],[8.5,-230],[-146,-155],[-151,-152],[-136.5,-143]],"baseRatio":0.5,"topRatio":0.75},{"id":"band_04_cluster_04","polygon":[[-9,-79],[24.5,-64.5],[29,-64.5],[58,-78],[161,-129.5],[188,-144],[184.5,-148],[14.5,-233],[9.5,-235],[-153.5,-153.5],[-138,-144],[-123.5,-136.5]],"baseRatio":0.75,"topRatio":1}]}
+    {
+      "id": "hamster_barracks",
+      "textureKey": "barracks",
+      "displayWidth": 275,
+      "displayHeight": 247,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/barracks.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks/hamster_barracks_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks/hamster_barracks_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:hamster_barracks",
+      "foundationRingCoverage": 0.4214,
+      "bodyAreaRatio": 0.8432,
+      "contactPolygon": [
+        [
+          -52.5,
+          -154.5
+        ],
+        [
+          75.5,
+          -90
+        ],
+        [
+          65.5,
+          -71.5
+        ],
+        [
+          35.5,
+          -50
+        ],
+        [
+          5.5,
+          -37
+        ],
+        [
+          -11.5,
+          -33
+        ],
+        [
+          -26.5,
+          -39
+        ],
+        [
+          -53.5,
+          -26.5
+        ],
+        [
+          -85,
+          -43
+        ],
+        [
+          -88.5,
+          -70
+        ],
+        [
+          -90.5,
+          -135
+        ],
+        [
+          -100,
+          -137.5
+        ]
+      ]
+    },
+    {
+      "id": "blacksmith_level_2",
+      "textureKey": "blacksmith_lv2",
+      "displayWidth": 290,
+      "displayHeight": 278,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/blacksmith_lv2.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv2/blacksmith_lv2_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv2/accepted_direct_12step_v01/blacksmith_lv2_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:blacksmith_lv2",
+      "foundationRingCoverage": 0.4155,
+      "bodyAreaRatio": 0.7163,
+      "contactPolygon": [
+        [
+          5.5,
+          -147
+        ],
+        [
+          109.5,
+          -76
+        ],
+        [
+          92.5,
+          -79.5
+        ],
+        [
+          90.5,
+          -65
+        ],
+        [
+          85,
+          -75.5
+        ],
+        [
+          68,
+          -67.5
+        ],
+        [
+          66,
+          -52.5
+        ],
+        [
+          60.5,
+          -63.5
+        ],
+        [
+          45.5,
+          -63
+        ],
+        [
+          21,
+          -38
+        ],
+        [
+          -8.5,
+          -29.5
+        ],
+        [
+          -98,
+          -75
+        ]
+      ]
+    },
+    {
+      "id": "blacksmith_level_3",
+      "textureKey": "blacksmith_lv3",
+      "displayWidth": 290,
+      "displayHeight": 267,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/blacksmith_lv3.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv3/blacksmith_lv3_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv3/accepted_direct_12step_v01/blacksmith_lv3_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:blacksmith_lv3",
+      "foundationRingCoverage": 0.4223,
+      "bodyAreaRatio": 0.6308,
+      "contactPolygon": [
+        [
+          8.5,
+          -129
+        ],
+        [
+          115.5,
+          -76
+        ],
+        [
+          101,
+          -69
+        ],
+        [
+          90,
+          -74.5
+        ],
+        [
+          86.5,
+          -64.5
+        ],
+        [
+          50,
+          -46.5
+        ],
+        [
+          35.5,
+          -53.5
+        ],
+        [
+          -4,
+          -33.5
+        ],
+        [
+          -8,
+          -38
+        ],
+        [
+          -17,
+          -35
+        ],
+        [
+          -98.5,
+          -76
+        ]
+      ]
+    },
+    {
+      "id": "cannery",
+      "textureKey": "cannery",
+      "displayWidth": 512,
+      "displayHeight": 356,
+      "sourceKind": "semantic_shadow_proxy_v2",
+      "sourcePath": "assets/terrain/cannery.png",
+      "shadowProxyPath": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/shadow-caster/cannery_shadow_proxy.json",
+      "sourceBlend": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_model.blend",
+      "runtimeMetadataPath": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/export-metadata.json",
+      "foundationExclusion": "semantic-shadow-role-v2",
+      "bodyAreaRatio": 0.6494,
+      "contactPolygon": [
+        [
+          -148.5,
+          -94
+        ],
+        [
+          -49,
+          -46
+        ],
+        [
+          -38,
+          -46
+        ],
+        [
+          68,
+          -62
+        ],
+        [
+          126.5,
+          -77.5
+        ],
+        [
+          162,
+          -95
+        ],
+        [
+          189.5,
+          -126
+        ],
+        [
+          157.5,
+          -158
+        ],
+        [
+          18,
+          -227.5
+        ],
+        [
+          11,
+          -227.5
+        ],
+        [
+          -148.5,
+          -159
+        ],
+        [
+          -212.5,
+          -127
+        ]
+      ],
+      "parts": [
+        {
+          "id": "band_01_cluster_01",
+          "polygon": [
+            [
+              -147.5,
+              -93.5
+            ],
+            [
+              1.5,
+              -79.5
+            ],
+            [
+              126,
+              -77.5
+            ],
+            [
+              145.5,
+              -86
+            ],
+            [
+              162,
+              -95
+            ],
+            [
+              189.5,
+              -126
+            ],
+            [
+              157.5,
+              -158
+            ],
+            [
+              18,
+              -227.5
+            ],
+            [
+              11,
+              -227.5
+            ],
+            [
+              -148.5,
+              -159
+            ],
+            [
+              -212.5,
+              -127
+            ],
+            [
+              -212.5,
+              -126
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_02",
+          "polygon": [
+            [
+              -49,
+              -46
+            ],
+            [
+              -48.5,
+              -46
+            ],
+            [
+              -38,
+              -46
+            ],
+            [
+              -25.5,
+              -50.5
+            ],
+            [
+              -11,
+              -57.5
+            ],
+            [
+              -2.5,
+              -63.5
+            ],
+            [
+              -2.5,
+              -69
+            ],
+            [
+              -2.5,
+              -69.5
+            ],
+            [
+              -75.5,
+              -106
+            ],
+            [
+              -76.5,
+              -106
+            ],
+            [
+              -122,
+              -83
+            ],
+            [
+              -122,
+              -82.5
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_03",
+          "polygon": [
+            [
+              67,
+              -62
+            ],
+            [
+              68.5,
+              -62
+            ],
+            [
+              73,
+              -64
+            ],
+            [
+              91,
+              -73
+            ],
+            [
+              95,
+              -75.5
+            ],
+            [
+              95,
+              -76
+            ],
+            [
+              72,
+              -87.5
+            ],
+            [
+              70.5,
+              -87.5
+            ],
+            [
+              66,
+              -85.5
+            ],
+            [
+              48,
+              -76.5
+            ],
+            [
+              44,
+              -74
+            ],
+            [
+              44,
+              -73.5
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_02_cluster_04",
+          "polygon": [
+            [
+              -163.5,
+              -107
+            ],
+            [
+              1.5,
+              -79.5
+            ],
+            [
+              95,
+              -80
+            ],
+            [
+              140.5,
+              -84.5
+            ],
+            [
+              148.5,
+              -89
+            ],
+            [
+              157.5,
+              -158
+            ],
+            [
+              18,
+              -227.5
+            ],
+            [
+              11,
+              -227.5
+            ],
+            [
+              -177,
+              -141
+            ],
+            [
+              -186,
+              -134.5
+            ],
+            [
+              -189,
+              -126.5
+            ],
+            [
+              -186,
+              -118.5
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_02_cluster_05",
+          "polygon": [
+            [
+              -63.5,
+              -57
+            ],
+            [
+              -38.5,
+              -46
+            ],
+            [
+              -25.5,
+              -50.5
+            ],
+            [
+              -11,
+              -57.5
+            ],
+            [
+              -3,
+              -64
+            ],
+            [
+              -24,
+              -76.5
+            ],
+            [
+              -61.5,
+              -95
+            ],
+            [
+              -75.5,
+              -100.5
+            ],
+            [
+              -93,
+              -96
+            ],
+            [
+              -109.5,
+              -86.5
+            ],
+            [
+              -112,
+              -82.5
+            ],
+            [
+              -100.5,
+              -75.5
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_02_cluster_06",
+          "polygon": [
+            [
+              29,
+              -121
+            ],
+            [
+              75,
+              -144
+            ],
+            [
+              73.5,
+              -145
+            ],
+            [
+              27,
+              -122
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_02_cluster_07",
+          "polygon": [
+            [
+              149.5,
+              -117.5
+            ],
+            [
+              153.5,
+              -116.5
+            ],
+            [
+              161.5,
+              -118
+            ],
+            [
+              176,
+              -125
+            ],
+            [
+              178,
+              -126.5
+            ],
+            [
+              178.5,
+              -129
+            ],
+            [
+              176,
+              -131.5
+            ],
+            [
+              171,
+              -133
+            ],
+            [
+              163,
+              -131.5
+            ],
+            [
+              148.5,
+              -124
+            ],
+            [
+              146,
+              -122
+            ],
+            [
+              146,
+              -120
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_03_cluster_08",
+          "polygon": [
+            [
+              -170.5,
+              -109
+            ],
+            [
+              -63,
+              -71.5
+            ],
+            [
+              1.5,
+              -79.5
+            ],
+            [
+              54.5,
+              -89.5
+            ],
+            [
+              111,
+              -107.5
+            ],
+            [
+              137.5,
+              -131
+            ],
+            [
+              158,
+              -160
+            ],
+            [
+              16.5,
+              -231
+            ],
+            [
+              14,
+              -231
+            ],
+            [
+              -177,
+              -141
+            ],
+            [
+              -186,
+              -134.5
+            ],
+            [
+              -186,
+              -118.5
+            ]
+          ],
+          "baseRatio": 0.5,
+          "topRatio": 0.75
+        },
+        {
+          "id": "band_04_cluster_09",
+          "polygon": [
+            [
+              -178.5,
+              -110.5
+            ],
+            [
+              -158.5,
+              -105
+            ],
+            [
+              -2.5,
+              -80.5
+            ],
+            [
+              101.5,
+              -103
+            ],
+            [
+              111,
+              -107.5
+            ],
+            [
+              155.5,
+              -159.5
+            ],
+            [
+              15.5,
+              -230
+            ],
+            [
+              9.5,
+              -228.5
+            ],
+            [
+              -178.5,
+              -142
+            ],
+            [
+              -190.5,
+              -132
+            ],
+            [
+              -191.5,
+              -123.5
+            ],
+            [
+              -188.5,
+              -118
+            ]
+          ],
+          "baseRatio": 0.75,
+          "topRatio": 1
+        }
+      ]
+    },
+    {
+      "id": "cavalry_school_level_2",
+      "textureKey": "cavalry_school_lv2",
+      "displayWidth": 512,
+      "displayHeight": 322,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/cavalry_school_lv2.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv2/cavalry_school_lv2_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_cavalry_school_tiers_20260828/accepted_48step_20260828/cavalry_school_lv2_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:cavalry_school_lv2",
+      "foundationRingCoverage": 0.4131,
+      "bodyAreaRatio": 0.3069,
+      "contactPolygon": [
+        [
+          -57.5,
+          -210.5
+        ],
+        [
+          53,
+          -60.5
+        ],
+        [
+          44,
+          -56
+        ],
+        [
+          42,
+          -44.5
+        ],
+        [
+          35.5,
+          -52
+        ],
+        [
+          -23,
+          -23
+        ],
+        [
+          -25,
+          -11.5
+        ],
+        [
+          -31.5,
+          -21.5
+        ],
+        [
+          -58.5,
+          -35.5
+        ],
+        [
+          -67,
+          -39.5
+        ],
+        [
+          -164,
+          -89
+        ],
+        [
+          -167.5,
+          -81.5
+        ]
+      ]
+    },
+    {
+      "id": "cavalry_school_level_3",
+      "textureKey": "cavalry_school_lv3",
+      "displayWidth": 512,
+      "displayHeight": 294,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/cavalry_school_lv3.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv3/cavalry_school_lv3_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_cavalry_school_tiers_20260828/accepted_48step_20260828/cavalry_school_lv3_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:cavalry_school_lv3",
+      "foundationRingCoverage": 0.453,
+      "bodyAreaRatio": 0.3269,
+      "contactPolygon": [
+        [
+          -61,
+          -214
+        ],
+        [
+          54,
+          -62.5
+        ],
+        [
+          42,
+          -56.5
+        ],
+        [
+          33.5,
+          -52.5
+        ],
+        [
+          -28,
+          -21.5
+        ],
+        [
+          -34.5,
+          -10.5
+        ],
+        [
+          -36.5,
+          -21.5
+        ],
+        [
+          -135,
+          -71.5
+        ],
+        [
+          -141.5,
+          -64
+        ],
+        [
+          -143.5,
+          -75.5
+        ],
+        [
+          -170.5,
+          -89
+        ],
+        [
+          -176,
+          -82
+        ]
+      ]
+    },
+    {
+      "id": "chain_restaurant",
+      "textureKey": "chain_restaurant",
+      "displayWidth": 300,
+      "displayHeight": 321,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/chain_restaurant.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/chain_restaurant_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/chain_restaurant_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:chain_restaurant",
+      "foundationRingCoverage": 0.3507,
+      "bodyAreaRatio": 0.7239,
+      "contactPolygon": [
+        [
+          0,
+          -152.5
+        ],
+        [
+          106,
+          -100
+        ],
+        [
+          64,
+          -79
+        ],
+        [
+          57.5,
+          -79
+        ],
+        [
+          47,
+          -74.5
+        ],
+        [
+          45,
+          -64
+        ],
+        [
+          26.5,
+          -54.5
+        ],
+        [
+          19.5,
+          -51
+        ],
+        [
+          9,
+          -46
+        ],
+        [
+          -3,
+          -49.5
+        ],
+        [
+          -16,
+          -43
+        ],
+        [
+          -106,
+          -87
+        ]
+      ]
+    },
+    {
+      "id": "computing_center",
+      "textureKey": "computing_center",
+      "displayWidth": 512,
+      "displayHeight": 453,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/computing_center.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/computing_center/computing_center_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/formal_runtime/computing_center_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:computing_center",
+      "foundationRingCoverage": 0.8065,
+      "bodyAreaRatio": 0.9705,
+      "contactPolygon": [
+        [
+          -10.5,
+          -267.5
+        ],
+        [
+          223,
+          -133
+        ],
+        [
+          179.5,
+          -111.5
+        ],
+        [
+          177,
+          -102
+        ],
+        [
+          39.5,
+          -34
+        ],
+        [
+          31.5,
+          -38
+        ],
+        [
+          -47,
+          1.5
+        ],
+        [
+          -50.5,
+          1.5
+        ],
+        [
+          -97.5,
+          -22.5
+        ],
+        [
+          -113.5,
+          -22.5
+        ],
+        [
+          -124.5,
+          -36
+        ],
+        [
+          -244,
+          -96.5
+        ]
+      ]
+    },
+    {
+      "id": "corn_farm",
+      "textureKey": "corn_farm",
+      "displayWidth": 512,
+      "displayHeight": 319,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/corn_farm.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/corn_farm/corn_farm_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/corn_farm/corn_farm_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:corn_farm",
+      "foundationRingCoverage": 0.4862,
+      "bodyAreaRatio": 0.8711,
+      "contactPolygon": [
+        [
+          -34,
+          -266
+        ],
+        [
+          222.5,
+          -149
+        ],
+        [
+          128.5,
+          -102
+        ],
+        [
+          126.5,
+          -86
+        ],
+        [
+          113,
+          -86.5
+        ],
+        [
+          108,
+          -82
+        ],
+        [
+          101,
+          -74.5
+        ],
+        [
+          72.5,
+          -74.5
+        ],
+        [
+          -2,
+          -37
+        ],
+        [
+          -37.5,
+          -23
+        ],
+        [
+          -244,
+          -127.5
+        ],
+        [
+          -250.5,
+          -119
+        ]
+      ]
+    },
+    {
+      "id": "deep_drill",
+      "textureKey": "deep_drill",
+      "displayWidth": 300,
+      "displayHeight": 316,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/deep_drill.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/deep_drill/deep_drill_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/deep_drill/deep_drill_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:deep_drill",
+      "foundationRingCoverage": 0.4192,
+      "bodyAreaRatio": 0.8609,
+      "contactPolygon": [
+        [
+          1.5,
+          -144
+        ],
+        [
+          123,
+          -83.5
+        ],
+        [
+          100,
+          -72.5
+        ],
+        [
+          87,
+          -78.5
+        ],
+        [
+          82,
+          -66
+        ],
+        [
+          67.5,
+          -72
+        ],
+        [
+          53,
+          -51.5
+        ],
+        [
+          38,
+          -58.5
+        ],
+        [
+          35,
+          -39
+        ],
+        [
+          10,
+          -27
+        ],
+        [
+          -19,
+          -32.5
+        ],
+        [
+          -120,
+          -83.5
+        ]
+      ]
+    },
+    {
+      "id": "desert_cookhouse",
+      "textureKey": "desert_cookhouse",
+      "displayWidth": 300,
+      "displayHeight": 232,
+      "sourceKind": "semantic_shadow_proxy_v2",
+      "sourcePath": "assets/terrain/desert_cookhouse.png",
+      "shadowProxyPath": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/desert_cookhouse_shadow_proxy.json",
+      "sourceBlend": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/desert_cookhouse_model.blend",
+      "runtimeMetadataPath": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/desert_cookhouse_runtime_metadata.json",
+      "foundationExclusion": "semantic-shadow-role-v2",
+      "bodyAreaRatio": 0.672,
+      "contactPolygon": [
+        [
+          -29,
+          -19
+        ],
+        [
+          -28,
+          -19
+        ],
+        [
+          54.5,
+          -27.5
+        ],
+        [
+          106,
+          -53
+        ],
+        [
+          106,
+          -53.5
+        ],
+        [
+          87,
+          -72
+        ],
+        [
+          8.5,
+          -111
+        ],
+        [
+          6,
+          -111.5
+        ],
+        [
+          -84,
+          -66.5
+        ],
+        [
+          -88.5,
+          -63.5
+        ],
+        [
+          -98.5,
+          -54.5
+        ],
+        [
+          -98.5,
+          -54
+        ]
+      ],
+      "parts": [
+        {
+          "id": "band_01_cluster_01",
+          "polygon": [
+            [
+              -29,
+              -19
+            ],
+            [
+              -28,
+              -19
+            ],
+            [
+              59.5,
+              -35
+            ],
+            [
+              92,
+              -51
+            ],
+            [
+              93.5,
+              -53.5
+            ],
+            [
+              87,
+              -72
+            ],
+            [
+              8.5,
+              -111
+            ],
+            [
+              6,
+              -111.5
+            ],
+            [
+              -84,
+              -66.5
+            ],
+            [
+              -88.5,
+              -63.5
+            ],
+            [
+              -98.5,
+              -54.5
+            ],
+            [
+              -98.5,
+              -54
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_02",
+          "polygon": [
+            [
+              54,
+              -27.5
+            ],
+            [
+              54,
+              -27.5
+            ],
+            [
+              55,
+              -27.5
+            ],
+            [
+              57,
+              -28.5
+            ],
+            [
+              57.5,
+              -29
+            ],
+            [
+              57,
+              -29
+            ],
+            [
+              54.5,
+              -30.5
+            ],
+            [
+              54,
+              -30.5
+            ],
+            [
+              53,
+              -30.5
+            ],
+            [
+              51,
+              -29.5
+            ],
+            [
+              51,
+              -29
+            ],
+            [
+              51,
+              -28.5
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_03",
+          "polygon": [
+            [
+              102.5,
+              -52
+            ],
+            [
+              103.5,
+              -51.5
+            ],
+            [
+              104,
+              -52
+            ],
+            [
+              106,
+              -53
+            ],
+            [
+              106,
+              -53.5
+            ],
+            [
+              106,
+              -53.5
+            ],
+            [
+              103.5,
+              -55
+            ],
+            [
+              102.5,
+              -55
+            ],
+            [
+              102,
+              -55
+            ],
+            [
+              100,
+              -54
+            ],
+            [
+              99.5,
+              -53.5
+            ],
+            [
+              100,
+              -53
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_02_cluster_04",
+          "polygon": [
+            [
+              -4.5,
+              -23
+            ],
+            [
+              -3,
+              -23
+            ],
+            [
+              54.5,
+              -25.5
+            ],
+            [
+              55,
+              -25.5
+            ],
+            [
+              109.5,
+              -53
+            ],
+            [
+              109.5,
+              -53.5
+            ],
+            [
+              93,
+              -71
+            ],
+            [
+              92.5,
+              -71.5
+            ],
+            [
+              8,
+              -114
+            ],
+            [
+              6,
+              -114
+            ],
+            [
+              -89.5,
+              -66.5
+            ],
+            [
+              -89,
+              -65.5
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_03_cluster_05",
+          "polygon": [
+            [
+              -4.5,
+              -23
+            ],
+            [
+              -2.5,
+              -23
+            ],
+            [
+              65.5,
+              -51.5
+            ],
+            [
+              66.5,
+              -52
+            ],
+            [
+              93,
+              -70.5
+            ],
+            [
+              92.5,
+              -71.5
+            ],
+            [
+              8,
+              -114
+            ],
+            [
+              6.5,
+              -114
+            ],
+            [
+              6,
+              -114
+            ],
+            [
+              -89.5,
+              -66.5
+            ],
+            [
+              -89.5,
+              -66
+            ],
+            [
+              -89,
+              -65.5
+            ]
+          ],
+          "baseRatio": 0.5,
+          "topRatio": 0.75
+        },
+        {
+          "id": "band_04_cluster_06",
+          "polygon": [
+            [
+              -50,
+              -50.5
+            ],
+            [
+              -49,
+              -50.5
+            ],
+            [
+              -48.5,
+              -50.5
+            ],
+            [
+              -35.5,
+              -57
+            ],
+            [
+              -35,
+              -57.5
+            ],
+            [
+              -35.5,
+              -58
+            ],
+            [
+              -52,
+              -66
+            ],
+            [
+              -53,
+              -66
+            ],
+            [
+              -53.5,
+              -66
+            ],
+            [
+              -66.5,
+              -59.5
+            ],
+            [
+              -67,
+              -59
+            ],
+            [
+              -66.5,
+              -58.5
+            ]
+          ],
+          "baseRatio": 0.75,
+          "topRatio": 1
+        }
+      ]
+    },
+    {
+      "id": "frost_smokehouse",
+      "textureKey": "frost_smokehouse",
+      "displayWidth": 300,
+      "displayHeight": 259,
+      "sourceKind": "semantic_shadow_proxy_v2",
+      "sourcePath": "assets/terrain/frost_smokehouse.png",
+      "shadowProxyPath": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/frost_smokehouse_shadow_proxy.json",
+      "sourceBlend": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/frost_smokehouse_model.blend",
+      "runtimeMetadataPath": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/frost_smokehouse_runtime_metadata.json",
+      "foundationExclusion": "semantic-shadow-role-v2",
+      "bodyAreaRatio": 0.568,
+      "contactPolygon": [
+        [
+          -57,
+          -43.5
+        ],
+        [
+          -7,
+          -21.5
+        ],
+        [
+          -5,
+          -21.5
+        ],
+        [
+          61,
+          -30
+        ],
+        [
+          65.5,
+          -32
+        ],
+        [
+          109,
+          -54
+        ],
+        [
+          82.5,
+          -68.5
+        ],
+        [
+          5,
+          -106.5
+        ],
+        [
+          1.5,
+          -107
+        ],
+        [
+          -85.5,
+          -63
+        ],
+        [
+          -86,
+          -62
+        ],
+        [
+          -68,
+          -49
+        ]
+      ],
+      "parts": [
+        {
+          "id": "band_01_cluster_01",
+          "polygon": [
+            [
+              -57,
+              -43.5
+            ],
+            [
+              -7,
+              -21.5
+            ],
+            [
+              -4.5,
+              -21.5
+            ],
+            [
+              43.5,
+              -37
+            ],
+            [
+              71,
+              -56.5
+            ],
+            [
+              84.5,
+              -67
+            ],
+            [
+              82.5,
+              -68.5
+            ],
+            [
+              5,
+              -106.5
+            ],
+            [
+              1.5,
+              -107
+            ],
+            [
+              -85.5,
+              -63
+            ],
+            [
+              -86,
+              -62
+            ],
+            [
+              -68,
+              -49
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_02",
+          "polygon": [
+            [
+              60,
+              -30.5
+            ],
+            [
+              60.5,
+              -30
+            ],
+            [
+              61,
+              -30
+            ],
+            [
+              65.5,
+              -32
+            ],
+            [
+              69,
+              -33.5
+            ],
+            [
+              69,
+              -34
+            ],
+            [
+              67,
+              -35
+            ],
+            [
+              66.5,
+              -35
+            ],
+            [
+              59,
+              -33.5
+            ],
+            [
+              57,
+              -32.5
+            ],
+            [
+              56.5,
+              -32
+            ],
+            [
+              57,
+              -31.5
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_03",
+          "polygon": [
+            [
+              60.5,
+              -38
+            ],
+            [
+              62.5,
+              -37.5
+            ],
+            [
+              65.5,
+              -38
+            ],
+            [
+              67,
+              -39
+            ],
+            [
+              68,
+              -40
+            ],
+            [
+              67.5,
+              -41
+            ],
+            [
+              65.5,
+              -41.5
+            ],
+            [
+              64,
+              -41.5
+            ],
+            [
+              62.5,
+              -41.5
+            ],
+            [
+              61.5,
+              -41
+            ],
+            [
+              60,
+              -40
+            ],
+            [
+              60,
+              -38.5
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_04",
+          "polygon": [
+            [
+              71,
+              -42
+            ],
+            [
+              74.5,
+              -42.5
+            ],
+            [
+              75.5,
+              -43
+            ],
+            [
+              76.5,
+              -44.5
+            ],
+            [
+              76.5,
+              -45
+            ],
+            [
+              75.5,
+              -45.5
+            ],
+            [
+              73,
+              -46
+            ],
+            [
+              71.5,
+              -46
+            ],
+            [
+              70,
+              -45.5
+            ],
+            [
+              68.5,
+              -44
+            ],
+            [
+              68.5,
+              -43.5
+            ],
+            [
+              69,
+              -42.5
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_05",
+          "polygon": [
+            [
+              80,
+              -46.5
+            ],
+            [
+              83,
+              -47
+            ],
+            [
+              84.5,
+              -47.5
+            ],
+            [
+              85,
+              -48.5
+            ],
+            [
+              85,
+              -49.5
+            ],
+            [
+              84.5,
+              -50
+            ],
+            [
+              81.5,
+              -50.5
+            ],
+            [
+              80,
+              -50
+            ],
+            [
+              78.5,
+              -49.5
+            ],
+            [
+              77.5,
+              -48.5
+            ],
+            [
+              77,
+              -48
+            ],
+            [
+              77.5,
+              -47
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_06",
+          "polygon": [
+            [
+              86.5,
+              -51
+            ],
+            [
+              88.5,
+              -51
+            ],
+            [
+              91.5,
+              -51.5
+            ],
+            [
+              93,
+              -52
+            ],
+            [
+              94,
+              -53
+            ],
+            [
+              93,
+              -54.5
+            ],
+            [
+              92,
+              -54.5
+            ],
+            [
+              90.5,
+              -55
+            ],
+            [
+              89,
+              -54.5
+            ],
+            [
+              87.5,
+              -54
+            ],
+            [
+              86,
+              -53
+            ],
+            [
+              86,
+              -52
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_01_cluster_07",
+          "polygon": [
+            [
+              105,
+              -53
+            ],
+            [
+              106,
+              -53
+            ],
+            [
+              106.5,
+              -53
+            ],
+            [
+              109,
+              -54
+            ],
+            [
+              109,
+              -54.5
+            ],
+            [
+              108.5,
+              -54.5
+            ],
+            [
+              106,
+              -56
+            ],
+            [
+              105,
+              -56.5
+            ],
+            [
+              104.5,
+              -56
+            ],
+            [
+              102.5,
+              -55
+            ],
+            [
+              102,
+              -54.5
+            ],
+            [
+              102.5,
+              -54.5
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_02_cluster_08",
+          "polygon": [
+            [
+              -8,
+              -14.5
+            ],
+            [
+              -6,
+              -14
+            ],
+            [
+              61.5,
+              -29
+            ],
+            [
+              62,
+              -29
+            ],
+            [
+              111.5,
+              -53.5
+            ],
+            [
+              111.5,
+              -54.5
+            ],
+            [
+              100,
+              -67.5
+            ],
+            [
+              99.5,
+              -68
+            ],
+            [
+              2,
+              -116.5
+            ],
+            [
+              0.5,
+              -117
+            ],
+            [
+              -106,
+              -64
+            ],
+            [
+              -105,
+              -63
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_03_cluster_09",
+          "polygon": [
+            [
+              -56.5,
+              -37.5
+            ],
+            [
+              -8,
+              -14.5
+            ],
+            [
+              -6,
+              -14
+            ],
+            [
+              100,
+              -67
+            ],
+            [
+              99.5,
+              -68
+            ],
+            [
+              53,
+              -92
+            ],
+            [
+              50.5,
+              -93.5
+            ],
+            [
+              2,
+              -116.5
+            ],
+            [
+              0.5,
+              -117
+            ],
+            [
+              -106,
+              -64
+            ],
+            [
+              -105,
+              -63
+            ],
+            [
+              -59,
+              -38.5
+            ]
+          ],
+          "baseRatio": 0.5,
+          "topRatio": 0.75
+        },
+        {
+          "id": "band_04_cluster_10",
+          "polygon": [
+            [
+              -44.5,
+              -49
+            ],
+            [
+              -43.5,
+              -48.5
+            ],
+            [
+              -43,
+              -48.5
+            ],
+            [
+              -30,
+              -55.5
+            ],
+            [
+              -29.5,
+              -55.5
+            ],
+            [
+              -30,
+              -56
+            ],
+            [
+              -46,
+              -64
+            ],
+            [
+              -47,
+              -64
+            ],
+            [
+              -47.5,
+              -64
+            ],
+            [
+              -60.5,
+              -57.5
+            ],
+            [
+              -60.5,
+              -57
+            ],
+            [
+              -60.5,
+              -57
+            ]
+          ],
+          "baseRatio": 0.75,
+          "topRatio": 1
+        }
+      ]
+    },
+    {
+      "id": "geothermal_power_plant",
+      "textureKey": "geothermal_power_plant",
+      "displayWidth": 512,
+      "displayHeight": 351,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/geothermal_power_plant.png",
+      "bodyDepthPath": "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_runtime_metadata.json",
+      "foundationExclusion": "geothermal-model-manifest",
+      "foundationRingCoverage": 0.2465,
+      "bodyAreaRatio": 0.2583,
+      "contactPolygon": [
+        [
+          42,
+          -155.5
+        ],
+        [
+          149.5,
+          1.5
+        ],
+        [
+          -66,
+          1.5
+        ]
+      ]
+    },
+    {
+      "id": "grand_mall",
+      "textureKey": "grand_mall",
+      "displayWidth": 300,
+      "displayHeight": 386,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/grand_mall.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/grand_mall/grand_mall_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/grand_mall/grand_mall_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:grand_mall",
+      "foundationRingCoverage": 0.6557,
+      "bodyAreaRatio": 0.4382,
+      "contactPolygon": [
+        [
+          55,
+          -64.5
+        ],
+        [
+          150,
+          5
+        ],
+        [
+          1.5,
+          5
+        ],
+        [
+          -40,
+          -16.5
+        ]
+      ]
+    },
+    {
+      "id": "hamster_barracks_level_2",
+      "textureKey": "hamster_barracks_lv2",
+      "displayWidth": 290,
+      "displayHeight": 233,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/hamster_barracks_lv2.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:hamster_barracks_lv2",
+      "foundationRingCoverage": 0.3658,
+      "bodyAreaRatio": 0.672,
+      "contactPolygon": [
+        [
+          -2,
+          -146
+        ],
+        [
+          88,
+          -94.5
+        ],
+        [
+          64.5,
+          -83
+        ],
+        [
+          63,
+          -72.5
+        ],
+        [
+          27,
+          -56
+        ],
+        [
+          23,
+          -52
+        ],
+        [
+          13.5,
+          -49
+        ],
+        [
+          4,
+          -53
+        ],
+        [
+          -40,
+          -32
+        ],
+        [
+          -79,
+          -51
+        ],
+        [
+          -81,
+          -77.5
+        ],
+        [
+          -92.5,
+          -84
+        ]
+      ]
+    },
+    {
+      "id": "hamster_barracks_level_3",
+      "textureKey": "hamster_barracks_lv3",
+      "displayWidth": 300,
+      "displayHeight": 270,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/hamster_barracks_lv3.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:hamster_barracks_lv3",
+      "foundationRingCoverage": 0.4463,
+      "bodyAreaRatio": 0.5466,
+      "contactPolygon": [
+        [
+          -5.5,
+          -117
+        ],
+        [
+          101,
+          -64
+        ],
+        [
+          73.5,
+          -48
+        ],
+        [
+          57,
+          -63.5
+        ],
+        [
+          36.5,
+          -53
+        ],
+        [
+          28,
+          -56.5
+        ],
+        [
+          1,
+          -45
+        ],
+        [
+          -2,
+          -33.5
+        ],
+        [
+          -40,
+          -15.5
+        ],
+        [
+          -47.5,
+          -27
+        ],
+        [
+          -91.5,
+          -48
+        ],
+        [
+          -111.5,
+          -44.5
+        ]
+      ]
+    },
+    {
+      "id": "high_energy_research_laboratory",
+      "textureKey": "high_energy_laboratory",
+      "displayWidth": 517,
+      "displayHeight": 355,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/high_energy_laboratory.png",
+      "bodyDepthPath": "tools/ai-gen/_high_energy_research_laboratory_20260901/model_v2/high_energy_research_laboratory_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_high_energy_research_laboratory_20260901/accepted/high_energy_laboratory_runtime_metadata.json",
+      "foundationExclusion": "high-energy-body-only-render",
+      "foundationRingCoverage": 0.4833,
+      "bodyAreaRatio": 0.8599,
+      "contactPolygon": [
+        [
+          -20,
+          -287.5
+        ],
+        [
+          164,
+          -182
+        ],
+        [
+          154.5,
+          -143.5
+        ],
+        [
+          152.5,
+          -91
+        ],
+        [
+          83,
+          -57.5
+        ],
+        [
+          66.5,
+          -74.5
+        ],
+        [
+          47,
+          -68.5
+        ],
+        [
+          -11,
+          -97
+        ],
+        [
+          -82,
+          -65
+        ],
+        [
+          -100.5,
+          -60.5
+        ],
+        [
+          -203,
+          -111
+        ],
+        [
+          -204.5,
+          -182
+        ]
+      ]
+    },
+    {
+      "id": "interplane_research_hub",
+      "textureKey": "interplane_research_hub",
+      "displayWidth": 517,
+      "displayHeight": 510,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/interplane_research_hub.png",
+      "bodyDepthPath": "tools/ai-gen/_interplane_research_hub_20260901/model_v2/interplane_research_hub_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_interplane_research_hub_20260901/accepted/interplane_research_hub_runtime_metadata.json",
+      "foundationExclusion": "blender-foundation-excluded:interplane_research_hub",
+      "foundationRingCoverage": 0.4842,
+      "bodyAreaRatio": 0.6731,
+      "contactPolygon": [
+        [
+          -9.5,
+          -260
+        ],
+        [
+          165,
+          -159.5
+        ],
+        [
+          160,
+          -100
+        ],
+        [
+          151.5,
+          -153.5
+        ],
+        [
+          149.5,
+          -87
+        ],
+        [
+          92,
+          -59
+        ],
+        [
+          11.5,
+          -91.5
+        ],
+        [
+          10,
+          -86.5
+        ],
+        [
+          -65,
+          -50.5
+        ],
+        [
+          -74.5,
+          -50
+        ],
+        [
+          -180.5,
+          -101.5
+        ],
+        [
+          -184,
+          -129.5
+        ]
+      ]
+    },
+    {
+      "id": "oil_power_plant",
+      "textureKey": "oil_power_plant",
+      "displayWidth": 512,
+      "displayHeight": 397,
+      "sourceKind": "semantic_shadow_proxy_v2",
+      "sourcePath": "assets/terrain/oil_power_plant.png",
+      "shadowProxyPath": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/shadow-caster/oil_power_plant_shadow_proxy.json",
+      "sourceBlend": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/oil_power_plant_model.blend",
+      "runtimeMetadataPath": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/export-metadata.json",
+      "foundationExclusion": "semantic-shadow-role-v2",
+      "bodyAreaRatio": 0.6286,
+      "contactPolygon": [
+        [
+          -160,
+          -97
+        ],
+        [
+          -9.5,
+          -23
+        ],
+        [
+          -8.5,
+          -23
+        ],
+        [
+          41,
+          -47.5
+        ],
+        [
+          138.5,
+          -114.5
+        ],
+        [
+          170.5,
+          -145
+        ],
+        [
+          165.5,
+          -149
+        ],
+        [
+          6.5,
+          -228.5
+        ],
+        [
+          -0.5,
+          -228.5
+        ],
+        [
+          -160,
+          -151
+        ],
+        [
+          -212.5,
+          -125
+        ],
+        [
+          -212.5,
+          -123
+        ]
+      ],
+      "parts": [
+        {
+          "id": "band_01_cluster_01",
+          "polygon": [
+            [
+              -160,
+              -97
+            ],
+            [
+              -9.5,
+              -23
+            ],
+            [
+              -8.5,
+              -23
+            ],
+            [
+              41,
+              -47.5
+            ],
+            [
+              138.5,
+              -114.5
+            ],
+            [
+              170.5,
+              -145
+            ],
+            [
+              165.5,
+              -149
+            ],
+            [
+              6.5,
+              -228.5
+            ],
+            [
+              -0.5,
+              -228.5
+            ],
+            [
+              -160,
+              -151
+            ],
+            [
+              -212.5,
+              -125
+            ],
+            [
+              -212.5,
+              -123
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_02_cluster_02",
+          "polygon": [
+            [
+              -171,
+              -109
+            ],
+            [
+              18,
+              -70.5
+            ],
+            [
+              37,
+              -77
+            ],
+            [
+              88,
+              -99
+            ],
+            [
+              116,
+              -112.5
+            ],
+            [
+              172.5,
+              -146
+            ],
+            [
+              6.5,
+              -228.5
+            ],
+            [
+              -0.5,
+              -228.5
+            ],
+            [
+              -150,
+              -154.5
+            ],
+            [
+              -184,
+              -134
+            ],
+            [
+              -190.5,
+              -126
+            ],
+            [
+              -184,
+              -114
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_02_cluster_03",
+          "polygon": [
+            [
+              -22,
+              -33
+            ],
+            [
+              -10,
+              -28.5
+            ],
+            [
+              9,
+              -33.5
+            ],
+            [
+              29,
+              -46
+            ],
+            [
+              29.5,
+              -48.5
+            ],
+            [
+              20.5,
+              -54
+            ],
+            [
+              -10,
+              -69.5
+            ],
+            [
+              -22,
+              -74
+            ],
+            [
+              -31,
+              -72.5
+            ],
+            [
+              -51,
+              -63.5
+            ],
+            [
+              -61.5,
+              -54
+            ],
+            [
+              -52.5,
+              -48.5
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_02_cluster_04",
+          "polygon": [
+            [
+              -87.5,
+              -65.5
+            ],
+            [
+              -76,
+              -61.5
+            ],
+            [
+              -62,
+              -64.5
+            ],
+            [
+              -42,
+              -74
+            ],
+            [
+              -36,
+              -81
+            ],
+            [
+              -45,
+              -87
+            ],
+            [
+              -75.5,
+              -102.5
+            ],
+            [
+              -87.5,
+              -106.5
+            ],
+            [
+              -96.5,
+              -105.5
+            ],
+            [
+              -116.5,
+              -96.5
+            ],
+            [
+              -127,
+              -87
+            ],
+            [
+              -118,
+              -81
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_03_cluster_05",
+          "polygon": [
+            [
+              -167,
+              -108.5
+            ],
+            [
+              -138,
+              -107.5
+            ],
+            [
+              -125.5,
+              -113.5
+            ],
+            [
+              -127,
+              -128
+            ],
+            [
+              -132.5,
+              -134
+            ],
+            [
+              -138.5,
+              -137
+            ],
+            [
+              -150,
+              -139.5
+            ],
+            [
+              -171,
+              -139
+            ],
+            [
+              -184,
+              -134
+            ],
+            [
+              -190.5,
+              -126
+            ],
+            [
+              -190,
+              -120
+            ],
+            [
+              -184,
+              -114
+            ]
+          ],
+          "baseRatio": 0.5,
+          "topRatio": 1
+        },
+        {
+          "id": "band_03_cluster_06",
+          "polygon": [
+            [
+              -15,
+              -85
+            ],
+            [
+              17.5,
+              -70.5
+            ],
+            [
+              21,
+              -70.5
+            ],
+            [
+              46.5,
+              -81.5
+            ],
+            [
+              150.5,
+              -133.5
+            ],
+            [
+              161.5,
+              -139.5
+            ],
+            [
+              172.5,
+              -146.5
+            ],
+            [
+              7,
+              -229.5
+            ],
+            [
+              3,
+              -231
+            ],
+            [
+              -150,
+              -154.5
+            ],
+            [
+              -137,
+              -146.5
+            ],
+            [
+              -121.5,
+              -138
+            ]
+          ],
+          "baseRatio": 0.5,
+          "topRatio": 0.75
+        }
+      ]
+    },
+    {
+      "id": "planar_observation_array",
+      "textureKey": "planar_observation_array",
+      "displayWidth": 516,
+      "displayHeight": 400,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/planar_observation_array.png",
+      "bodyDepthPath": "tools/ai-gen/_planar_observation_array_20260901/model/planar_observation_array_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_planar_observation_array_20260901/accepted/planar_observation_array_runtime_metadata.json",
+      "foundationExclusion": "planar-observation-manifest",
+      "foundationRingCoverage": 0.5844,
+      "bodyAreaRatio": 0.4183,
+      "contactPolygon": [
+        [
+          5.5,
+          -142
+        ],
+        [
+          183,
+          2.5
+        ],
+        [
+          177,
+          2.5
+        ],
+        [
+          175,
+          -25.5
+        ],
+        [
+          165.5,
+          -20.5
+        ],
+        [
+          163.5,
+          2.5
+        ],
+        [
+          30.5,
+          2.5
+        ],
+        [
+          29,
+          -4
+        ],
+        [
+          18.5,
+          2.5
+        ],
+        [
+          -168,
+          2.5
+        ],
+        [
+          -168.5,
+          -19.5
+        ],
+        [
+          -172,
+          -21
+        ]
+      ]
+    },
+    {
+      "id": "royal_mint",
+      "textureKey": "royal_mint",
+      "displayWidth": 300,
+      "displayHeight": 303,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/royal_mint.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/royal_mint/royal_mint_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/royal_mint/royal_mint_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:royal_mint",
+      "foundationRingCoverage": 0.8116,
+      "bodyAreaRatio": 0.7844,
+      "contactPolygon": [
+        [
+          23.5,
+          -103.5
+        ],
+        [
+          128.5,
+          -51
+        ],
+        [
+          81.5,
+          -28
+        ],
+        [
+          48.5,
+          -7.5
+        ],
+        [
+          23,
+          1.5
+        ],
+        [
+          10.5,
+          1.5
+        ],
+        [
+          -8.5,
+          -8
+        ],
+        [
+          -28.5,
+          -7
+        ],
+        [
+          -41.5,
+          -2
+        ],
+        [
+          -74.5,
+          -18.5
+        ],
+        [
+          -78,
+          -50
+        ],
+        [
+          -82,
+          -51
+        ]
+      ]
+    },
+    {
+      "id": "shooting_range_level_2",
+      "textureKey": "shooting_range_lv2",
+      "displayWidth": 290,
+      "displayHeight": 253,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/shooting_range_lv2.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:shooting_range_lv2",
+      "foundationRingCoverage": 0.5498,
+      "bodyAreaRatio": 0.5913,
+      "contactPolygon": [
+        [
+          -15.5,
+          -130
+        ],
+        [
+          58,
+          -54.5
+        ],
+        [
+          52.5,
+          -52
+        ],
+        [
+          50.5,
+          -35.5
+        ],
+        [
+          -4,
+          -8.5
+        ],
+        [
+          -8,
+          -10
+        ],
+        [
+          -11.5,
+          -8.5
+        ],
+        [
+          -73.5,
+          -40
+        ],
+        [
+          -75.5,
+          -52
+        ],
+        [
+          -77.5,
+          -51
+        ],
+        [
+          -89,
+          -56.5
+        ]
+      ]
+    },
+    {
+      "id": "shooting_range_level_3",
+      "textureKey": "shooting_range_lv3",
+      "displayWidth": 290,
+      "displayHeight": 186,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/shooting_range_lv3.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:shooting_range_lv3",
+      "foundationRingCoverage": 0.4429,
+      "bodyAreaRatio": 0.6402,
+      "contactPolygon": [
+        [
+          -1.5,
+          -126.5
+        ],
+        [
+          98,
+          -69
+        ],
+        [
+          5,
+          -15.5
+        ],
+        [
+          -22,
+          -29.5
+        ],
+        [
+          -26,
+          -43.5
+        ],
+        [
+          -39.5,
+          -37
+        ],
+        [
+          -49,
+          -42
+        ],
+        [
+          -53,
+          -68
+        ],
+        [
+          -58.5,
+          -54
+        ],
+        [
+          -64.5,
+          -64
+        ],
+        [
+          -89.5,
+          -59
+        ],
+        [
+          -101,
+          -65
+        ]
+      ]
+    },
+    {
+      "id": "solar_power_plant",
+      "textureKey": "solar_power_plant",
+      "displayWidth": 512,
+      "displayHeight": 411,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/solar_power_plant.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/solar_power_plant_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/solar_power_plant_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:solar_power_plant",
+      "foundationRingCoverage": 0.401,
+      "bodyAreaRatio": 0.5971,
+      "contactPolygon": [
+        [
+          10.5,
+          -307
+        ],
+        [
+          174,
+          -130.5
+        ],
+        [
+          170,
+          -145.5
+        ],
+        [
+          80,
+          -103
+        ],
+        [
+          19,
+          -70
+        ],
+        [
+          -12,
+          -56.5
+        ],
+        [
+          -43,
+          -80.5
+        ],
+        [
+          -53.5,
+          -77.5
+        ],
+        [
+          -82,
+          -101
+        ],
+        [
+          -95.5,
+          -99
+        ],
+        [
+          -122.5,
+          -120.5
+        ],
+        [
+          -153.5,
+          -132.5
+        ]
+      ]
+    },
+    {
+      "id": "stock_exchange",
+      "textureKey": "stock_exchange",
+      "displayWidth": 512,
+      "displayHeight": 542,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/stock_exchange.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/stock_exchange/stock_exchange_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/stock_exchange/stock_exchange_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:stock_exchange",
+      "foundationRingCoverage": 0.5195,
+      "bodyAreaRatio": 0.5511,
+      "contactPolygon": [
+        [
+          -18.5,
+          -230.5
+        ],
+        [
+          161.5,
+          -127
+        ],
+        [
+          -36.5,
+          -29
+        ],
+        [
+          -198,
+          -110
+        ]
+      ]
+    },
+    {
+      "id": "trading_company",
+      "textureKey": "trading_company",
+      "displayWidth": 512,
+      "displayHeight": 433,
+      "sourceKind": "semantic_shadow_proxy_v2",
+      "sourcePath": "assets/terrain/trading_company.png",
+      "shadowProxyPath": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/shadow-caster/trading_company_shadow_proxy.json",
+      "sourceBlend": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/trading_company_model.blend",
+      "runtimeMetadataPath": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/export-metadata.json",
+      "foundationExclusion": "semantic-shadow-role-v2",
+      "bodyAreaRatio": 0.7159,
+      "contactPolygon": [
+        [
+          -108,
+          -53
+        ],
+        [
+          -74,
+          -39
+        ],
+        [
+          -35,
+          -24.5
+        ],
+        [
+          100,
+          -70.5
+        ],
+        [
+          176,
+          -108.5
+        ],
+        [
+          188,
+          -144
+        ],
+        [
+          13,
+          -231.5
+        ],
+        [
+          6,
+          -231.5
+        ],
+        [
+          -146,
+          -155.5
+        ],
+        [
+          -213.5,
+          -112
+        ],
+        [
+          -213.5,
+          -108.5
+        ],
+        [
+          -134,
+          -66
+        ]
+      ],
+      "parts": [
+        {
+          "id": "band_01_cluster_01",
+          "polygon": [
+            [
+              -108,
+              -53
+            ],
+            [
+              -74,
+              -39
+            ],
+            [
+              -35,
+              -24.5
+            ],
+            [
+              100,
+              -70.5
+            ],
+            [
+              176,
+              -108.5
+            ],
+            [
+              188,
+              -144
+            ],
+            [
+              13,
+              -231.5
+            ],
+            [
+              6,
+              -231.5
+            ],
+            [
+              -146,
+              -155.5
+            ],
+            [
+              -213.5,
+              -112
+            ],
+            [
+              -213.5,
+              -108.5
+            ],
+            [
+              -134,
+              -66
+            ]
+          ],
+          "baseRatio": 0,
+          "topRatio": 0.25
+        },
+        {
+          "id": "band_02_cluster_02",
+          "polygon": [
+            [
+              -74,
+              -39
+            ],
+            [
+              -70,
+              -38
+            ],
+            [
+              129,
+              -77.5
+            ],
+            [
+              160.5,
+              -94
+            ],
+            [
+              172,
+              -109
+            ],
+            [
+              188,
+              -144
+            ],
+            [
+              182,
+              -147.5
+            ],
+            [
+              13,
+              -231.5
+            ],
+            [
+              6,
+              -231.5
+            ],
+            [
+              -146,
+              -155.5
+            ],
+            [
+              -213.5,
+              -112
+            ],
+            [
+              -213.5,
+              -108.5
+            ]
+          ],
+          "baseRatio": 0.25,
+          "topRatio": 0.5
+        },
+        {
+          "id": "band_03_cluster_03",
+          "polygon": [
+            [
+              4,
+              -72.5
+            ],
+            [
+              22,
+              -65.5
+            ],
+            [
+              29,
+              -64.5
+            ],
+            [
+              46.5,
+              -72.5
+            ],
+            [
+              172,
+              -135
+            ],
+            [
+              188,
+              -144
+            ],
+            [
+              182,
+              -147.5
+            ],
+            [
+              10.5,
+              -230
+            ],
+            [
+              8.5,
+              -230
+            ],
+            [
+              -146,
+              -155
+            ],
+            [
+              -151,
+              -152
+            ],
+            [
+              -136.5,
+              -143
+            ]
+          ],
+          "baseRatio": 0.5,
+          "topRatio": 0.75
+        },
+        {
+          "id": "band_04_cluster_04",
+          "polygon": [
+            [
+              -9,
+              -79
+            ],
+            [
+              24.5,
+              -64.5
+            ],
+            [
+              29,
+              -64.5
+            ],
+            [
+              58,
+              -78
+            ],
+            [
+              161,
+              -129.5
+            ],
+            [
+              188,
+              -144
+            ],
+            [
+              184.5,
+              -148
+            ],
+            [
+              14.5,
+              -233
+            ],
+            [
+              9.5,
+              -235
+            ],
+            [
+              -153.5,
+              -153.5
+            ],
+            [
+              -138,
+              -144
+            ],
+            [
+              -123.5,
+              -136.5
+            ]
+          ],
+          "baseRatio": 0.75,
+          "topRatio": 1
+        }
+      ]
+    },
+    {
+      "id": "high_energy_laboratory",
+      "textureKey": "university",
+      "displayWidth": 512,
+      "displayHeight": 353,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/university.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/university/university_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/formal_runtime/university_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:university",
+      "foundationRingCoverage": 0.6475,
+      "bodyAreaRatio": 0.6776,
+      "contactPolygon": [
+        [
+          -38.5,
+          -227.5
+        ],
+        [
+          171.5,
+          -122
+        ],
+        [
+          133.5,
+          -103.5
+        ],
+        [
+          108.5,
+          -81
+        ],
+        [
+          88.5,
+          -78
+        ],
+        [
+          77,
+          -72
+        ],
+        [
+          69,
+          -75.5
+        ],
+        [
+          67,
+          -70.5
+        ],
+        [
+          -28.5,
+          -23
+        ],
+        [
+          -41,
+          -15
+        ],
+        [
+          -52,
+          -23.5
+        ],
+        [
+          -248.5,
+          -122
+        ]
+      ]
+    },
+    {
+      "id": "weather_forecast_tower",
+      "textureKey": "weather_forecast_tower",
+      "displayWidth": 256,
+      "displayHeight": 303,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/weather_forecast_tower.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/weather_forecast_tower/weather_forecast_tower_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/weather_forecast_tower/weather_forecast_tower_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:weather_forecast_tower",
+      "foundationRingCoverage": 0.8223,
+      "bodyAreaRatio": 0.6586,
+      "contactPolygon": [
+        [
+          -7,
+          -105
+        ],
+        [
+          95.5,
+          -53.5
+        ],
+        [
+          -12,
+          0
+        ],
+        [
+          -110,
+          -48.5
+        ]
+      ]
+    }
   ]
 }

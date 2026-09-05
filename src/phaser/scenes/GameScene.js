@@ -128,7 +128,10 @@ import { PopulationEconomySystem } from '../../world/population-economy-system.j
 import { BakeryEconomySystem } from '../../world/bakery-economy-system.js';
 import { CheeseFarmSystem } from '../../world/cheese-farm-system.js';
 import { SteamPowerPlantSystem } from '../../world/steam-power-plant-system.js';
-import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
+import {
+    isStructureShadowEnabled,
+    resolveStructureShadowCaster,
+} from '../../world/structure-shadow-caster.js';
 import { WORLD_RENDER_LAYERS } from '../../world/world-render-layers.js';
 import { resolveUnitGroundFootprint } from '../../world/unit-ground-footprint.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
@@ -11616,6 +11619,7 @@ export class GameScene extends Scene {
      * 剪影取 cover_gate_<grade> 帧 0 列、沿实体 `_faceLine`（世界面线真源）映射。
      */
     _ensureGateSunShadow(entity, active) {
+        if (!isStructureShadowEnabled(entity)) return;
         const gateTex = entity._cfg?.tex;
         const silMeta = lightingAssets.assets?.[gateTex]?.shadowSilhouette || null;
         const verts = entity.collisionShape === 'iso_rect' ? isoFootprintVertices(entity) : null;
@@ -11682,6 +11686,7 @@ export class GameScene extends Scene {
      * measuredHeight（墙/楼梯影长修复不回退），`_silCache` 置 null 走纯凸包。
      */
     _ensureStairSunShadows(entity, active) {
+        if (!isStructureShadowEnabled(entity)) return;
         const neutral = this._neutralSprites && this._neutralSprites.get(entity);
         const segSprites = neutral?.segmentSprites || [];
         const segments = Array.isArray(entity.segments) ? entity.segments : [];
@@ -11761,6 +11766,8 @@ export class GameScene extends Scene {
 
         const ensure = (entity, sprite) => {
             if (!sprite || !sprite.active) return;
+            // 禁用态在昂贵的 footprint/alpha/分层低模解析前退出；旧句柄由尾部清理。
+            if (!isStructureShadowEnabled(entity)) return;
             const footprint = this._getGroundShadowFootprint(entity, entity.collisionRadius || 10, {
                 x: sprite.x,
                 y: sprite.y + this._getFootOffsetY(entity, sprite),
