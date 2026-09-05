@@ -149,6 +149,7 @@ export function getUnitKind(unit) {
     if (!unit) return null;
     // 冠军继承民兵近战生命周期，必须先于 _isHamsterMilitia 判断。
     if (unit._isHamsterChampion) return 'champion';
+    if (unit._isHamsterHalberdier) return 'halberd';
     if (unit._isHamsterMilitia) return 'militia';
     if (unit._isHamsterExplorer) return 'explorer';
     if (unit._isHamsterBountyHunter) return 'bounty_hunter';
@@ -161,7 +162,6 @@ export function getUnitKind(unit) {
     // 方阵继承盾卫，必须先于 _isHamsterGuard 判断。
     if (unit._isHamsterPhalanx) return 'phalanx';
     if (unit._isHamsterGuard) return 'guard';
-    if (unit._isHamsterHalberdier) return 'halberd';
     if (unit._isHamsterRanger) return 'ranger';
     if (unit._isHamsterCrossbow) return 'crossbow';
     if (unit._isHamsterHowitzerCrew) return 'hamster_howitzer_crew';
@@ -169,8 +169,8 @@ export function getUnitKind(unit) {
     if (unit._isHamsterFieldCannonCrew) return 'hamster_field_cannon_crew';
     if (unit._isHamsterCatapultCrew) return 'hamster_catapult_crew';
     if (unit._isHamsterLongbow) return 'longbow';
-    if (unit._isHamsterIndustrialReconRifleman) return 'industrial_recon_rifleman';
     if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
+    if (unit._isHamsterIndustrialReconRifleman) return 'industrial_recon_rifleman';
     if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';
     // 战壕突击、特战、防暴队、突击兵与重机枪手都继承火枪实体，必须先于 _isHamsterMusketeer 判断。

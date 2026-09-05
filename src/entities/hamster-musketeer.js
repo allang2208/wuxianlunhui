@@ -50,9 +50,16 @@ export class HamsterMusketeer extends Companion {
     getCurrentWeapon() {
         const level = getAbilityLevel('armor_piercing_round');
         if (level <= 0) return null;
+        const ability = getBuildingUpgradeAbility('armor_piercing_round');
+        const kind = this._isHamsterBountyHunter ? 'bounty_hunter' : 'musketeer';
+        const rawValue = getAbilityValue(ability, level);
+        const configuredCap = Number(ability?.unitValueCaps?.[kind]);
+        const armorPenetrationPercent = Number.isFinite(configuredCap)
+            ? Math.min(rawValue, configuredCap)
+            : rawValue;
         return {
             _craftEffects: {
-                armorPenetrationPercent: getAbilityValue(getBuildingUpgradeAbility('armor_piercing_round'), level),
+                armorPenetrationPercent,
             },
         };
     }

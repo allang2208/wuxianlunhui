@@ -54,6 +54,7 @@
       "damageMul": 2.25,
       "knockback": 240,
       "stunMs": 3000,
+      "lordStunDurationMultiplier": 0.25,
       "frames": 39,
       "frameRate": 24,
       "hitStartFrame": 15,

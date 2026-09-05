@@ -399,7 +399,13 @@ export class HamsterKnightAI {
         const parried = !!target.shieldSystem?._lastParried;
         const angle = Math.atan2(target.y - this.m.y, target.x - this.m.x);
         if (typeof target.applyKnockback === 'function') target.applyKnockback(angle, cfg.knockback ?? 200);
-        if (!parried && typeof target.applyStun === 'function') target.applyStun(cfg.stunMs ?? 2500);
+        if (!parried && typeof target.applyStun === 'function') {
+            const lordMultiplier = target.rank === 'lord'
+                ? Math.max(0, Number(cfg.lordStunDurationMultiplier) || 0.25)
+                : 1;
+            // 共享状态表会刷新既有眩晕而不叠加连续冲锋的时长。
+            target.applyStun((cfg.stunMs ?? 2500) * lordMultiplier);
+        }
         if (typeof this.m.onChargeImpact === 'function') {
             this.m.onChargeImpact({
                 target,

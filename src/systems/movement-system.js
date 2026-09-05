@@ -869,6 +869,14 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     _getEnemyBaseSpeed(enemy) {
         const base = enemy.maxSpeed ?? enemy.speed ?? 100;
         const chillMul = (typeof enemy.getChillSpeedMul === 'function') ? enemy.getChillSpeedMul() : 1;
+        const slowEffect = enemy.statusEffects?.find((effect) => (
+            effect?.type === 'slow' && effect.remaining > 0
+        ));
+        const configuredSlow = slowEffect?.value == null ? 0.5 : Number(slowEffect.value);
+        const slowReduction = slowEffect
+            ? Math.max(0, Math.min(0.9, Number.isFinite(configuredSlow) ? configuredSlow : 0.5))
+            : 0;
+        const slowMul = 1 - slowReduction;
         const inspireMul = enemy._usesModifierInspire
             && typeof enemy.getMoveSpeedMultiplier === 'function'
             ? enemy.getMoveSpeedMultiplier()
@@ -884,7 +892,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 friendlyMul *= 1 + aura.moveSpeedPercent / 100;
             }
         }
-        return base * chillMul * inspireMul * friendlyMul * waxSealSpeedMultiplier(enemy);
+        return base * chillMul * slowMul * inspireMul * friendlyMul * waxSealSpeedMultiplier(enemy);
     },
 
     /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */

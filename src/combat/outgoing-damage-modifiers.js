@@ -12,8 +12,23 @@ function getGiantSlayerMultiplier(source, target) {
     const level = getAbilityLevel(GIANT_SLAYER_ID);
     if (!ability || level <= 0 || !ability.unitKinds?.includes(getUnitKind(source))) return 1;
     const targetFamilies = new Set(getEnemyFamilies(target));
-    const eligible = (ability.targetFamilies || []).some((family) => targetFamilies.has(family));
-    return eligible ? 1 + Math.max(0, getAbilityValue(ability, level)) : 1;
+    let bonus = 0;
+    for (const family of ability.targetFamilies || []) {
+        if (!targetFamilies.has(family)) continue;
+        const familyValue = ability.targetFamilyValues?.[family];
+        if (!familyValue) {
+            bonus = Math.max(bonus, getAbilityValue(ability, level));
+            continue;
+        }
+        const raw = (Number(familyValue.firstLevel) || 0)
+            + (Number(familyValue.per) || 0) * Math.max(0, level - 1);
+        const cap = Number(familyValue.maxValue);
+        bonus = Math.max(bonus, Number.isFinite(cap) ? Math.min(raw, cap) : raw);
+    }
+    const configuredMultiplier = Number(source.aiConfig?.giantSlayerBonusMultiplier);
+    const sourceBonusMultiplier = Number.isFinite(configuredMultiplier)
+        ? Math.max(0, configuredMultiplier) : 1;
+    return 1 + Math.max(0, bonus) * sourceBonusMultiplier;
 }
 
 /**

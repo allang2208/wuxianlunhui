@@ -85,15 +85,23 @@ function moduleEffectText(module, level) {
     }
 }
 
-function abilityEffectText(abilityId, ability, level) {
-    const value = getAbilityValue(ability, level);
+function abilityEffectText(abilityId, ability, level, kind = null) {
+    const rawValue = getAbilityValue(ability, level);
+    const configuredCap = Number(ability?.unitValueCaps?.[kind]);
+    const value = Number.isFinite(configuredCap) ? Math.min(rawValue, configuredCap) : rawValue;
     switch (abilityId) {
         case 'poison_arrow': return `命中中毒概率 ${signedPercent(value, { absolute: true })}`;
         case 'auto_guard': return `触发 ${signedPercent(value, { absolute: true })} · 减伤 ${compactNumber(finite(ability.damageReduction) * 100)}%`;
         case 'sweep_aoe': return `扇形 AOE 伤害强化 ${signedPercent(value, { absolute: true })}`;
         case 'mark_arrow': return `标记概率 ${signedPercent(value, { absolute: true })} · 目标承伤 +${compactNumber(finite(ability.damageAmplify) * 100)}%`;
         case 'armor_piercing_round': return `护甲穿透 ${signedPercent(value, { absolute: true })}`;
-        case 'giant_slayer': return `对骑兵/大型怪物伤害 +${signedPercent(value, { absolute: true })}`;
+        case 'giant_slayer': {
+            const familyCaps = Object.entries(ability?.targetFamilyValues || {});
+            if (familyCaps.length <= 0) return ability?.desc || '按目标类型提高伤害';
+            return familyCaps.map(([family, config]) => (
+                `对${family}最高 +${compactNumber(finite(config?.maxValue) * 100)}%`
+            )).join(' · ');
+        }
         case 'inspire_magic': return `持续 ${compactNumber(value / 1000)}s · 移速 +${compactNumber((finite(ability.speedMul, 1) - 1) * 100)}% · 物攻 +${compactNumber((finite(ability.atkMul, 1) - 1) * 100)}%`;
         default:
             if (ability?.displayMode === 'seconds') return `当前效果 ${compactNumber(value / 1000)}s`;
@@ -151,7 +159,7 @@ export function getUnitUpgradeRows(entity) {
                 icon: ability.icon || '◆',
                 iconImage: ability.iconImage || '',
                 level,
-                detail: abilityEffectText(abilityId, ability, level),
+                detail: abilityEffectText(abilityId, ability, level, kind),
             });
         }
     }
@@ -230,9 +238,9 @@ function effectDetail(entity, type, effect, stacks) {
                 : Math.max(0.01, 1 - 0.33 * stacks);
             return `强制逃离 · 移速 -${compactNumber((1 - multiplier) * 100)}%`;
         }
-        case 'slow': return entity?._faction === 'player'
-            ? '移动速度 -50%'
-            : '致残已登记 · 当前移动逻辑未应用减速';
+        case 'slow': return `移动速度 -${compactNumber(
+            Math.max(0, Math.min(0.9, finite(effect?.value, 0.5))) * 100
+        )}%`;
         case 'poison': return `每秒 ${compactNumber(stacks, 0)} 点毒素伤害`;
         case 'bleed': return `每秒 ${Math.max(1, Math.floor(hp * 0.01 * stacks))} 点流血伤害`;
         case 'corrosion': {

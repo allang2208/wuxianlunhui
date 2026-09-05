@@ -149,6 +149,15 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
                 'physical',
                 false
             );
+            const slowPercent = Math.max(0, Math.min(0.9,
+                Number(this.cfg.attackSlowPercent) || 0));
+            const slowDurationMs = Math.max(0,
+                Math.floor(Number(this.cfg.attackSlowDurationMs) || 0));
+            if (entity.hp > 0 && slowPercent > 0 && slowDurationMs > 0) {
+                entity.addStatusEffect?.('slow', slowDurationMs, {
+                    name: '镇暴压制', icon: '🛡️', color: '#7aa6bd', value: slowPercent,
+                });
+            }
         }
 
         this._playShotSound();
