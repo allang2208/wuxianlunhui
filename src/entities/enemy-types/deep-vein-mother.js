@@ -54,6 +54,11 @@ export class DeepVeinMother extends Enemy {
     _controlled() { return ['stun', 'frozen', 'petrified', 'fear'].some(k => this.hasStatusEffect(k)); }
     triggerWeaponAnim() {} // 所有攻击仅从本类 _startAction 进入。
 
+    _onCombatActionInterruptedByControl() {
+        this._finishAction(false);
+        super._onCombatActionInterruptedByControl();
+    }
+
     updateWhilePetrified(dt) {
         // 主循环石化时绕过 Enemy.update；仍须取消未释放节点并清理预警。
         this._finishAction(false);

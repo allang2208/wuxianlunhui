@@ -414,6 +414,11 @@ export class CoreDrillWorm extends Enemy {
         this.aiTimer = 0;
     }
 
+    _onCombatActionInterruptedByControl() {
+        this._cancelAction();
+        super._onCombatActionInterruptedByControl();
+    }
+
     _cancelAction() {
         if (this._actionState === 'idle') return;
         this._finishAction();

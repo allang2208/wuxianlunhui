@@ -212,6 +212,11 @@ export class SupportBeamBrute extends Enemy {
         this._clearAttackLock();
     }
 
+    _onCombatActionInterruptedByControl() {
+        this._cancelAttack();
+        super._onCombatActionInterruptedByControl();
+    }
+
     _clearAttackLock() {
         this._attackTarget = null;
         this._attackSnapshot = null;

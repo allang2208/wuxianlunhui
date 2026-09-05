@@ -99,6 +99,11 @@ export class BrokenCableGaoler extends Enemy {
         super.updateWhilePetrified(dt);
     }
 
+    _onCombatActionInterruptedByControl() {
+        if (this._action) this._finishAction();
+        super._onCombatActionInterruptedByControl();
+    }
+
     update(dt, entities) {
         if (!this.active) {
             this._updateDeathSequence(dt);

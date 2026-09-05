@@ -205,6 +205,11 @@ export class CoffinWard extends Enemy {
         this._stopMovement();
     }
 
+    _onCombatActionInterruptedByControl() {
+        this._cancelStrike();
+        super._onCombatActionInterruptedByControl();
+    }
+
     updateWhilePetrified(dt) {
         this._cancelStrike();
         super.updateWhilePetrified(dt);

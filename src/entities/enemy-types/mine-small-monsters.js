@@ -199,6 +199,11 @@ class MineSmallMonster extends Enemy {
         this._stopMovement();
     }
 
+    _onCombatActionInterruptedByControl() {
+        this._cancelStrike();
+        super._onCombatActionInterruptedByControl();
+    }
+
     updateWhilePetrified(dt) {
         // Game skips Enemy.update while petrified; cancel the stored hit here too.
         this._cancelStrike();

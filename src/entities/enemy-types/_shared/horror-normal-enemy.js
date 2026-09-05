@@ -175,6 +175,10 @@ export class HorrorNormalEnemy extends Enemy {
         this._cancelAction();
         this._stopMovement();
     }
+    _onCombatActionInterruptedByControl() {
+        this._cancelAction();
+        super._onCombatActionInterruptedByControl();
+    }
     updateWhilePetrified(dt) { this._cancelAction(); super.updateWhilePetrified(dt); }
     _updateAttack() {}
     triggerWeaponAnim() { return false; }

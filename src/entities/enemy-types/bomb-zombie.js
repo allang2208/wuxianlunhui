@@ -138,6 +138,11 @@ export class BombZombie extends Enemy {
         this._throwReleased = false;
     }
 
+    _onCombatActionInterruptedByControl() {
+        this._cancelAttack();
+        super._onCombatActionInterruptedByControl();
+    }
+
     _updateThrowAttack(dt) {
         const cfg = this._getThrowConfig();
         const duration = cfg.duration ?? 5083;
