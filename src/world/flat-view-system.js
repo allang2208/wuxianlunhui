@@ -4,6 +4,7 @@ import {
     worldDeltaToIsoLocal,
 } from '../physics/iso-footprint.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
+import { UIState } from '../ui/ui-state.js';
 
 const SUPPORTED_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']);
 
@@ -168,6 +169,7 @@ export const FlatViewSystem = {
     },
 
     _onKeyDown(event) {
+        if (UIState.isOpen('worldSwitch')) return;
         if (!isSpaceEvent(event) || !this.isSpaceAvailable()) return;
         const typing = isTypingTarget(event.target);
         // 合法上下文中的 Space 必须始终与角色输入隔离。文本输入保留浏览器默认的空格录入，
@@ -185,10 +187,6 @@ export const FlatViewSystem = {
         // 离开指挥/建筑输入态即恢复立面，避免移除滚轮入口后留下无法恢复的压平画面。
         if (this.enabled && (!this.isAvailable(game) || !this.isSpaceAvailable(game))) {
             this.setEnabled(false);
-        }
-        if (!this.enabled || !scene?.add) {
-            this._updateIndicator(0, 0);
-            return;
         }
         if (!this.enabled || !scene?.add) {
             this._updateIndicator(0, 0);
