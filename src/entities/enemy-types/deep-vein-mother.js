@@ -28,6 +28,7 @@ export class DeepVeinMother extends Enemy {
         this.aiInterval = Number.MAX_SAFE_INTEGER;
         this._animState = 'idle';
         this._animStateTimer = 0;
+        this._heldVisualPose = null;
         this._action = null;
         this._actionTimer = 0;
         this._actionSnapshot = null;
@@ -52,17 +53,22 @@ export class DeepVeinMother extends Enemy {
 
     _skill(state) { return this.config.attackSkills[state]; }
     _layout(state = this._animState) { return this.config.textures.frameLayouts[state]; }
-    _controlled() { return ['stun', 'frozen', 'petrified', 'fear'].some(k => this.hasStatusEffect(k)); }
+    _controlled() { return this.isCombatActionBlocked(); }
+    _holdsFrozenPose() { return this.hasStatusEffect('petrified') || this.hasStatusEffect('frozen'); }
     triggerWeaponAnim() {} // 所有攻击仅从本类 _startAction 进入。
 
     _onCombatActionInterruptedByControl() {
-        this._finishAction(false);
+        this._finishAction(false, this._holdsFrozenPose());
         super._onCombatActionInterruptedByControl();
     }
 
+    _enterStunnedIdleAnimation() {
+        if (this.active && !this._holdsFrozenPose()) this._setState('idle');
+    }
+
     updateWhilePetrified(dt) {
-        // 主循环石化时绕过 Enemy.update；仍须取消未释放节点并清理预警。
-        this._finishAction(false);
+        // 取消未释放节点和预警，但冻结当前姿势，不能切回待机贴图。
+        this._finishAction(false, true);
         super.updateWhilePetrified(dt);
         if (this.active) this._updateProjectiles(dt);
     }
@@ -80,10 +86,16 @@ export class DeepVeinMother extends Enemy {
         this._updateProjectiles(dt);
         if (!this.active) return;
         if (wasControlled || this._controlled()) {
-            this._finishAction(false);
-            this._setState('idle');
+            const frozen = this._holdsFrozenPose();
+            this._finishAction(false, frozen);
+            if (frozen) return;
+            this._releaseVisualPose();
+            const fleeing = this.hasStatusEffect('fear')
+                && !this._dashStunned && !this.hasStatusEffect('stun');
+            this._updateLocomotion(dt, fleeing);
             return;
         }
+        this._releaseVisualPose();
         if (this._action) { this._updateAction(dt); return; }
         if (this._pressurePending) { this._startAction('pressure_release'); return; }
         this._syncApproachProfile();
@@ -93,7 +105,11 @@ export class DeepVeinMother extends Enemy {
             this._chooseAction();
             if (this._action) return;
         }
-        const moving = Math.hypot(this.vx || 0, this.vy || 0) > this.speed * 0.05;
+        this._updateLocomotion(dt);
+    }
+
+    _updateLocomotion(dt, allowWalking = true) {
+        const moving = allowWalking && Math.hypot(this.vx || 0, this.vy || 0) > this.speed * 0.05;
         if (moving) this.rotation = Math.atan2(this.vy, this.vx);
         this._setState(moving ? 'walking' : 'idle');
         this._animStateTimer = (this._animStateTimer + dt) % this._layout().duration;
@@ -209,7 +225,10 @@ export class DeepVeinMother extends Enemy {
                 this._impact(area, cfg, state, state === 'stomp');
             }
             // 招架反制/反伤可能在同一次命中内打断或击杀攻击者。
-            if (!this.active || this._controlled()) { this._finishAction(false); return; }
+            if (!this.active || this._controlled()) {
+                this._finishAction(false, this.active && this._holdsFrozenPose());
+                return;
+            }
         }
         if (this._actionTimer <= 0) this._finishAction(true);
     }
@@ -282,8 +301,10 @@ export class DeepVeinMother extends Enemy {
         const targets = new Set(supplied);
         for (const member of PartySystem.members || []) targets.add(member);
         for (const unit of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) targets.add(unit);
+        const actionSnapshot = this._actionSnapshot;
         for (const target of targets) {
-            if (!this.active || (isMelee && this._controlled())) break;
+            if (!this.active || (skillId !== 'pipe_blast'
+                && (this._controlled() || this._actionSnapshot !== actionSnapshot))) break;
             if (!this._validTarget(target) || !shape.intersectsEntity(target) || this._wallBlocked(area.x, area.y, target)) continue;
             const angle = Math.atan2(target.collider.y-area.y, target.collider.x-area.x);
             const result = DamagePipeline.applyHit(this, target, {
@@ -291,7 +312,7 @@ export class DeepVeinMother extends Enemy {
                 damageType: cfg.damageType, knockback: 0, angle, isMelee,
                 confirmedHitContext: { skillId: `deepVeinMother.${skillId}` },
             });
-            if (!result.hit || target.shieldSystem?._lastParried) continue;
+            if (!result.hit || result.parried) continue;
             if (cfg.knockback > 0 && target.active) target.applyKnockback?.(angle, cfg.knockback);
             if (cfg.crippleMs > 0 && target.active) target.applyCripple?.(cfg.crippleMs);
         }
@@ -306,7 +327,13 @@ export class DeepVeinMother extends Enemy {
         return !hasAttackLineOfSight(this, target, x, y);
     }
 
-    _finishAction(completed) {
+    _finishAction(completed, preservePose = false) {
+        if (preservePose && !this._heldVisualPose) {
+            this._heldVisualPose = {
+                frame: this._getVisualFrame(),
+                flipX: Math.cos(this._actionSnapshot?.angle ?? this.rotation) < 0,
+            };
+        }
         if (!this._action) return;
         if (completed && this._action === 'pressure_release') {
             this._pressure = 0;
@@ -320,7 +347,7 @@ export class DeepVeinMother extends Enemy {
         this._actionTimer = this._attackAnimTimer = 0;
         this._frozenForCast = false;
         this._recoveryTimer = this.config.recoveryPauseMs;
-        this._setState('idle');
+        if (!preservePose) this._setState('idle');
         this._syncApproachProfile();
     }
 
@@ -352,10 +379,17 @@ export class DeepVeinMother extends Enemy {
         this._finishAction(false);
         this._pressurePending = false;
         this._destroyCustomEffects();
+        // 尸体不再推进状态计时；先解除渲染冻结，死亡动画才不会卡住。
+        this.removeStatusEffect('petrified');
+        this.removeStatusEffect('frozen');
+        this._freezeStacks = 0;
+        this._freezeTimer = 0;
         this.vx = this.vy = 0;
         this.isMoving = false;
         this._setState('dying');
         this._deathAnimTimer = this._layout('dying').duration;
+        // 3.4秒动作 + 1.8秒停留 + 0.4秒淡出由游戏dt负责，避开通用3秒墙钟回收。
+        this._deathRemoveDelay = Infinity;
         super.onDeath(source); // 掉落、首领奖励、波次击杀只结算一次。
     }
 
@@ -368,13 +402,21 @@ export class DeepVeinMother extends Enemy {
         this._deathAnimTimer = Math.max(0, animMs-elapsed);
         this._corpseTimer = elapsed >= animMs ? Math.max(0, animMs+cfg.holdMs-elapsed) : 0;
         this._fadeTimer = elapsed >= animMs+cfg.holdMs ? Math.max(0, animMs+cfg.holdMs+cfg.fadeMs-elapsed) : 0;
-        if (elapsed >= animMs+cfg.holdMs+cfg.fadeMs && this._phaserSprite) {
-            this._phaserSprite.destroy();
+        if (elapsed >= animMs+cfg.holdMs+cfg.fadeMs) {
+            this._phaserSprite?.destroy();
             this._phaserSprite = null;
+            this._deathRemoveDelay = 0;
         }
     }
 
+    _releaseVisualPose() {
+        if (!this._heldVisualPose) return;
+        this._heldVisualPose = null;
+        this._setState('idle'); // 控制已取消攻击，解冻不能续播取消的招式。
+    }
+
     _setState(state) {
+        this._heldVisualPose = null;
         if (state === this._animState) return;
         this._animState = state;
         this._animStateTimer = 0;
@@ -389,14 +431,28 @@ export class DeepVeinMother extends Enemy {
 
     _getTextureKey() { return `enemy_deep_vein_mother_${this._animState}`; }
 
+    _syncPetrifiedBodyAnchor(sprite) {
+        const state = sprite.texture?.key?.replace('enemy_deep_vein_mother_', '');
+        const layout = this.config.textures.frameLayouts[state];
+        if (!layout) return;
+        sprite.y += this.footOffsetY
+            - (layout.footY-layout.frameHeight/2)*Math.abs(sprite.scaleY);
+    }
+
+    _getVisualFrame() {
+        if (this._heldVisualPose) return this._heldVisualPose.frame;
+        const layout = this._layout();
+        const elapsed = layout.repeat < 0 ? this._animStateTimer % layout.duration : this._animStateTimer;
+        return Math.min(layout.frameCount-1, Math.floor(elapsed*layout.frameCount/layout.duration));
+    }
+
     _getPhaserOptions() {
         const layout = this._layout();
         const render = this.config.render;
-        const elapsed = layout.repeat < 0 ? this._animStateTimer % layout.duration : this._animStateTimer;
-        const frame = Math.min(layout.frameCount-1, Math.floor(elapsed*layout.frameCount/layout.duration));
         const alpha = !this.active && this._animStateTimer >= layout.duration+this.config.death.holdMs
-            ? this._fadeTimer/this.config.death.fadeMs : 1;
-        return { frame, alpha, flipX: Math.cos(this._actionSnapshot?.angle ?? this.rotation) < 0,
+            ? this._fadeTimer/Math.max(1, this.config.death.fadeMs) : 1;
+        return { frame: this._getVisualFrame(), manualFrame: true, alpha,
+            flipX: this._heldVisualPose?.flipX ?? (Math.cos(this._actionSnapshot?.angle ?? this.rotation) < 0),
             spriteSize: Math.max(layout.frameWidth, layout.frameHeight)*render.bodyDisplayHeight/layout.authoredBodyHeight,
             collisionWidth: render.collisionWidth, collisionHeight: render.collisionHeight,
             textOffsetY: -render.collisionHeight-18, dynamicSpriteSize: true };

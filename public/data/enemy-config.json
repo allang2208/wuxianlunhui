@@ -12384,8 +12384,8 @@
     "damageType": "physical",
     "knockback": 110,
     "crippleMs": 1800,
-    "cooldown": 4200,
-    "duration": 2400,
+    "cooldown": 3000,
+    "duration": 1550,
     "frames": 41,
     "contactFrame": 24
    },
@@ -12426,7 +12426,7 @@
     "knockback": 125,
     "crippleMs": 2400,
     "cooldown": 13000,
-    "duration": 3200,
+    "duration": 2300,
     "frames": 41,
     "releaseFrame": 20
    },
@@ -12454,7 +12454,7 @@
    "bodyDisplayHeight": 300,
    "collisionWidth": 224,
    "collisionHeight": 255,
-   "footOffsetY": 191.51785714285714,
+   "footOffsetY": 188.4375,
    "projectileHitbox": {
     "width": 224,
     "height": 255,
@@ -12475,53 +12475,54 @@
    "dying": "assets/enemies/deep_vein_mother/dying.png",
    "oreFragment": "assets/enemies/deep_vein_mother/ore_fragment.png",
    "frameLayouts": {
-    "idle": {
-     "frameWidth": 320,
-     "frameHeight": 312,
+   "idle": {
+     "frameWidth": 448,
+     "frameHeight": 440,
      "frameCount": 30,
      "rows": 6,
-     "footY": 299,
-     "authoredBodyHeight": 224,
+     "footY": 421,
+     "authoredBodyHeight": 320,
      "frameRate": 6,
      "repeat": -1,
      "columns": 5,
      "duration": 5000
     },
-    "walking": {
-     "frameWidth": 336,
-     "frameHeight": 320,
-     "frameCount": 48,
+   "walking": {
+     "frameWidth": 472,
+     "frameHeight": 448,
+     "frameCount": 46,
      "rows": 8,
-     "footY": 301,
-     "authoredBodyHeight": 224,
-     "frameRate": 12,
+     "footY": 425,
+     "authoredBodyHeight": 320,
+     "frameRate": 36,
      "repeat": -1,
      "columns": 6,
-     "duration": 4000
+     "duration": 1277.7777777777776,
+     "endFrame": 45
     },
-    "stomp": {
-     "frameWidth": 304,
-     "frameHeight": 320,
+   "stomp": {
+     "frameWidth": 424,
+     "frameHeight": 448,
      "frameCount": 41,
      "rows": 6,
-     "footY": 299,
-     "authoredBodyHeight": 224,
-     "frameRate": 17.083333333333332,
+     "footY": 422,
+     "authoredBodyHeight": 320,
+     "frameRate": 26.451612903225808,
      "repeat": 0,
      "columns": 7,
-     "duration": 2400,
+     "duration": 1550,
      "contactFrame": 24
     },
-    "pipe_blast": {
-     "frameWidth": 312,
-     "frameHeight": 312,
+   "pipe_blast": {
+     "frameWidth": 432,
+     "frameHeight": 440,
      "frameCount": 41,
-     "rows": 7,
-     "footY": 299,
-     "authoredBodyHeight": 224,
+     "rows": 6,
+     "footY": 422,
+     "authoredBodyHeight": 320,
      "frameRate": 13.666666666666666,
      "repeat": 0,
-     "columns": 6,
+     "columns": 7,
      "duration": 3000,
      "releaseFrames": [
       10,
@@ -12529,26 +12530,26 @@
       26
      ]
     },
-    "vein_resonance": {
-     "frameWidth": 312,
-     "frameHeight": 320,
+   "vein_resonance": {
+     "frameWidth": 432,
+     "frameHeight": 440,
      "frameCount": 41,
      "rows": 6,
-     "footY": 300,
-     "authoredBodyHeight": 224,
-     "frameRate": 12.8125,
+     "footY": 423,
+     "authoredBodyHeight": 320,
+     "frameRate": 17.82608695652174,
      "repeat": 0,
      "columns": 7,
-     "duration": 3200,
+     "duration": 2300,
      "releaseFrame": 20
     },
-    "pressure_release": {
-     "frameWidth": 328,
-     "frameHeight": 312,
+   "pressure_release": {
+     "frameWidth": 448,
+     "frameHeight": 440,
      "frameCount": 49,
      "rows": 7,
-     "footY": 299,
-     "authoredBodyHeight": 224,
+     "footY": 422,
+     "authoredBodyHeight": 320,
      "frameRate": 8.166666666666666,
      "repeat": 0,
      "columns": 7,
@@ -12556,13 +12557,13 @@
      "exposedStartFrame": 8,
      "exposedEndFrame": 33
     },
-    "dying": {
-     "frameWidth": 400,
-     "frameHeight": 336,
+   "dying": {
+     "frameWidth": 552,
+     "frameHeight": 472,
      "frameCount": 49,
      "rows": 7,
-     "footY": 299,
-     "authoredBodyHeight": 224,
+     "footY": 421,
+     "authoredBodyHeight": 320,
      "frameRate": 14.411764705882353,
      "repeat": 0,
      "columns": 7,
@@ -12574,7 +12575,7 @@
   "skills": [
    {
     "name": "矿足重踏",
-    "desc": "2.4秒单次动作，第24/41帧重踏锁定方向前方85像素处的190半径地面椭圆；物攻×1.65、击退110、致残1.8秒，可招架。冷却4.2秒。"
+    "desc": "1.55秒单次动作，第24/41帧重踏锁定方向前方85像素处的190半径地面椭圆；物攻×1.65、击退110、致残1.8秒，可招架。冷却3秒。"
    },
    {
     "name": "高压喷矿",
@@ -12582,7 +12583,7 @@
    },
    {
     "name": "绞盘震脉",
-    "desc": "3.2秒单次动作，第20/41帧释放420半径地面椭圆震荡；魔攻×1.8、击退125、致残2.4秒，不可招架。冷却13秒。"
+    "desc": "2.3秒单次动作，第20/41帧释放420半径地面椭圆震荡；魔攻×1.8、击退125、致残2.4秒，不可招架。冷却13秒。"
    },
    {
     "name": "矿压泄尽",
