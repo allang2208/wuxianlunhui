@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T04:24:55.988799+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_corn_farmer_delivery_20260829\\videos\\empty-running.mp4",
+    "bytes": 556092,
+    "sha256": "6b14e62da5e86341e53b30222c872a1f556e21b9c2a7a7f23afcad36cf701b0a"
+  },
+  "promptId": "a89bc7e2-e804-430f-ba29-caa5e7158a7f",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2014857131,
+  "mode": "ref2va",
+  "actionMode": "free",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> defines the exact identity and rendering style of one hamster farmer: the same golden-brown and white face, round black eyes, straw field hat, cream rolled-sleeve shirt, muted olive vest, brown trousers, belt and small side pouch. The farmer carries nothing; both hands are empty and visible, with relaxed fists pumping naturally beside the torso. <Video 1> supplies locomotion timing only, not clothing, anatomy, props, tail or background.\n\nThe single farmer runs briskly in place toward screen right with a clear alternating two-foot gait. The torso leans slightly forward, both empty arms counter-swing naturally, and the hands never acquire an object. The first seconds begin in an established running cadence; the middle maintains the same energetic cadence; near the end the feet return naturally to the same gait phase for a clean cycle extraction.\n\nStatic orthographic game-asset camera, full body always visible, stable scale and horizontal center, generous empty margin, flat uniform pure white background, even shadowless studio light. Preserve the exact farmer face, hat, clothing colors and painterly realistic game-sprite finish throughout. One character only. No sickle, harvesting tool, weapon, corn, food, basket, sack, cart, long tail, ground plane, cast shadow, text or camera movement.",
+  "effectivePrompt": "<Picture 1> defines the exact identity and rendering style of one hamster farmer: the same golden-brown and white face, round black eyes, straw field hat, cream rolled-sleeve shirt, muted olive vest, brown trousers, belt and small side pouch. The farmer carries nothing; both hands are empty and visible, with relaxed fists pumping naturally beside the torso. <Video 1> supplies locomotion timing only, not clothing, anatomy, props, tail or background.\n\nThe single farmer runs briskly in place toward screen right with a clear alternating two-foot gait. The torso leans slightly forward, both empty arms counter-swing naturally, and the hands never acquire an object. The first seconds begin in an established running cadence; the middle maintains the same energetic cadence; near the end the feet return naturally to the same gait phase for a clean cycle extraction.\n\nStatic orthographic game-asset camera, full body always visible, stable scale and horizontal center, generous empty margin, flat uniform pure white background, even shadowless studio light. Preserve the exact farmer face, hat, clothing colors and painterly realistic game-sprite finish throughout. One character only. No sickle, harvesting tool, weapon, corn, food, basket, sack, cart, long tail, ground plane, cast shadow, text or camera movement.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] <Picture 1> defines the exact identity and rendering style of one hamster farmer: the same golden-brown and white face, round black eyes, straw field hat, cream rolled-sleeve shirt, muted olive vest, brown trousers, belt and small side pouch. The farmer carries nothing; both hands are empty and visible, with relaxed fists pumping naturally beside the torso. <Video 1> supplies locomotion timing only, not clothing, anatomy, props, tail or background.\n\nThe single farmer runs briskly in place toward screen right with a clear alternating two-foot gait. The torso leans slightly forward, both empty arms counter-swing naturally, and the hands never acquire an object. The first seconds begin in an established running cadence; the middle maintains the same energetic cadence; near the end the feet return naturally to the same gait phase for a clean cycle extraction.\n\nStatic orthographic game-asset camera, full body always visible, stable scale and horizontal center, generous empty margin, flat uniform pure white background, even shadowless studio light. Preserve the exact farmer face, hat, clothing colors and painterly realistic game-sprite finish throughout. One character only. No sickle, harvesting tool, weapon, corn, food, basket, sack, cart, long tail, ground plane, cast shadow, text or camera movement. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Follow the authored temporal order exactly and keep every transition visually readable.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "4e5d8a1ebcaa451eb38510fdb25f5f3c32844881e22355cfc60b12a516feef69",
+  "effectivePromptSha256": "4e5d8a1ebcaa451eb38510fdb25f5f3c32844881e22355cfc60b12a516feef69",
+  "finalPromptSha256": "ece5b12e0ba9827c1dde35a0737b2752b194b6e9e1b766ae0366d3a78a5c720e",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_corn_farmer_delivery_20260829\\prompts\\empty-running.txt",
+      "bytes": 1318,
+      "sha256": "df10ddec108c28b5e6fa617850101384a1491db4ec956933c34d28562177cf38"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_corn_farmer_delivery_20260829\\references\\farmer-master.png",
+        "bytes": 162635,
+        "sha256": "f549499d1854db7d98f9c1077101bbd302d479cb61dac1b96984f9b22ae12c0d"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_corn_farmer_delivery_20260829\\references\\farmer-running-motion.mp4",
+        "bytes": 930760,
+        "sha256": "c065b23a34794e714d13e487bb1387fd420b0a3e82cc5ba1c8ea986d99fef4d7"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_corn_farmer_delivery_20260829\\videos\\empty-running_contact.png",
+    "bytes": 369055,
+    "sha256": "2a628cd51c37ffb67400b3cc944e149a4f07ab9b2a42b7a09a947af39dba527c"
+  },
+  "elapsedSeconds": 405.622
+}

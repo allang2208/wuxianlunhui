@@ -1,0 +1,18 @@
+{
+  "actions": {
+    "corn_loaded_running": {
+      "video": "corn-loaded-running-v02.mp4",
+      "start": 32,
+      "endpoint": 62,
+      "step": 2,
+      "frameRate": 12
+    },
+    "empty_running": {
+      "video": "empty-running.mp4",
+      "start": 16,
+      "endpoint": 46,
+      "step": 2,
+      "frameRate": 12
+    }
+  }
+}
