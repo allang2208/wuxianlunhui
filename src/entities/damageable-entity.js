@@ -374,6 +374,11 @@ export function isFriendlyFire(source, target) {
             }
             onDeath(source) {
                 this.active = false;
+                // 尸体不再更新活体控制计时，死亡表现不能继承石化/冻结定格。
+                this.removeStatusEffect('petrified');
+                this.removeStatusEffect('frozen');
+                this._freezeStacks = 0;
+                this._freezeTimer = 0;
                 // 统一清理自定义特效（循环音轨/头部粒子/范围圈/投射物等）：
                 // 死亡后 update 多数被跳过，各实体自身的"死亡即停"检查未必执行，必须在此兜底
                 if (typeof this._destroyCustomEffects === 'function') this._destroyCustomEffects();
