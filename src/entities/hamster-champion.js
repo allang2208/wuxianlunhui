@@ -17,4 +17,12 @@ export class HamsterChampion extends HamsterMilitia {
         this.animId = 'hamster_champion';
         this._ai = new HamsterMilitiaAI(this);
     }
+
+    getAnimationFootY(textureKey) {
+        const prefix = `companion_${this.animId}_`;
+        if (!textureKey?.startsWith(prefix)) return undefined;
+        const action = textureKey.slice(prefix.length);
+        const footY = Number(this.animations?.[action]?.footY);
+        return Number.isFinite(footY) ? footY : undefined;
+    }
 }
