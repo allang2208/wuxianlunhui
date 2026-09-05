@@ -1,0 +1,44 @@
+[
+  {
+    "action": "walk-v01",
+    "promptId": "96f56213-e452-4d9c-b66e-4c2ae9cb1372",
+    "queue": "completed",
+    "position": 0,
+    "status": "candidate_not_installed"
+  },
+  {
+    "action": "attack-v01",
+    "promptId": "24133452-2758-4395-8c99-46764fc5e582",
+    "queue": "completed",
+    "position": 0,
+    "reason": "Long straight whip hold and incorrect return pose",
+    "status": "rejected_archived_metadata_only",
+    "recoveryManifest": "rejected-assets.json"
+  },
+  {
+    "action": "attack-v02",
+    "promptId": "6992f336-8507-49b6-a982-d575c2935557",
+    "queue": "completed",
+    "position": 0,
+    "reason": "User rejected weak impact",
+    "status": "rejected_archived_metadata_only",
+    "recoveryManifest": "rejected-assets.json"
+  },
+  {
+    "action": "attack-v03",
+    "promptId": "c47d0388-7378-40ec-afbc-1fd35c53a4f5",
+    "queue": "completed",
+    "seed": 8315301,
+    "reason": "Long straight hold and whip tip clipped during recovery",
+    "status": "rejected_archived_metadata_only",
+    "recoveryManifest": "rejected-assets.json"
+  },
+  {
+    "action": "attack-v04",
+    "promptId": "446f8837-eb66-4b20-837b-cdcbb386c40f",
+    "queue": "completed",
+    "seed": 8315302,
+    "reason": "User accepted the pixels; import follows runtime-import.json",
+    "status": "runtime_integrated_user_validation_pending"
+  }
+]

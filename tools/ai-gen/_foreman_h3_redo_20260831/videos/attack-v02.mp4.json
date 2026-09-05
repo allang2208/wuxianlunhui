@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T11:32:01.800223+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v02.mp4",
+    "bytes": 265095,
+    "sha256": "b6e8684591410c322aa91a38ffdde7e5e9a35c9798688fe88a01ae612b5dec71"
+  },
+  "promptId": "6992f336-8507-49b6-a982-d575c2935557",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 8315202,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The same stocky undead mine foreman performs one quick leather-whip crack toward screen-right and returns to his original resting pose. Preserve the broad belly, short thick limbs, torn overalls, helmet lamp and bare feet exactly as in the reference. His feet stay planted; the solid torso only makes a small shoulder twist.\n\n0.0-1.0 seconds: lift the hand holding the brown coiled whip beside the shoulder. Release the coils naturally while drawing the elbow back. The free hand balances near the belly.\n1.0-1.8 seconds: swing the elbow and wrist forward once. A single travelling loop runs down the attached leather cord and the tip snaps forward. The fully extended pose is momentary, followed immediately by the rope bending and dropping under gravity. Total whip length stays about one and a half body heights.\n1.8-3.8 seconds: bend the whip arm back down, gather the relaxed cord with a brief assistance of the free hand, then let the single compact coil hang from the original holding hand beside the thigh.\n3.8-5.17 seconds: settle into exactly the original first-frame resting pose, holding the SAME coiled whip, and remain there. The final reference is the exact ending posture.\n\nLocked camera, original three-quarter right-facing direction, stable body size, uniform white background and generous empty space. Full character and whip remain in frame. One whip and one tip only. No stiff horizontal rod hold, extra limbs, rubber torso, growing rope, second strike or motion trails.",
+  "effectivePrompt": "The same stocky undead mine foreman performs one quick leather-whip crack toward screen-right and returns to his original resting pose. Preserve the broad belly, short thick limbs, torn overalls, helmet lamp and bare feet exactly as in the reference. His feet stay planted; the solid torso only makes a small shoulder twist.\n\n0.0-1.0 seconds: lift the hand holding the brown coiled whip beside the shoulder. Release the coils naturally while drawing the elbow back. The free hand balances near the belly.\n1.0-1.8 seconds: swing the elbow and wrist forward once. A single travelling loop runs down the attached leather cord and the tip snaps forward. The fully extended pose is momentary, followed immediately by the rope bending and dropping under gravity. Total whip length stays about one and a half body heights.\n1.8-3.8 seconds: bend the whip arm back down, gather the relaxed cord with a brief assistance of the free hand, then let the single compact coil hang from the original holding hand beside the thigh.\n3.8-5.17 seconds: settle into exactly the original first-frame resting pose, holding the SAME coiled whip, and remain there. The final reference is the exact ending posture.\n\nLocked camera, original three-quarter right-facing direction, stable body size, uniform white background and generous empty space. Full character and whip remain in frame. One whip and one tip only. No stiff horizontal rod hold, extra limbs, rubber torso, growing rope, second strike or motion trails.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The same stocky undead mine foreman performs one quick leather-whip crack toward screen-right and returns to his original resting pose. Preserve the broad belly, short thick limbs, torn overalls, helmet lamp and bare feet exactly as in the reference. His feet stay planted; the solid torso only makes a small shoulder twist.\n\n0.0-1.0 seconds: lift the hand holding the brown coiled whip beside the shoulder. Release the coils naturally while drawing the elbow back. The free hand balances near the belly.\n1.0-1.8 seconds: swing the elbow and wrist forward once. A single travelling loop runs down the attached leather cord and the tip snaps forward. The fully extended pose is momentary, followed immediately by the rope bending and dropping under gravity. Total whip length stays about one and a half body heights.\n1.8-3.8 seconds: bend the whip arm back down, gather the relaxed cord with a brief assistance of the free hand, then let the single compact coil hang from the original holding hand beside the thigh.\n3.8-5.17 seconds: settle into exactly the original first-frame resting pose, holding the SAME coiled whip, and remain there. The final reference is the exact ending posture.\n\nLocked camera, original three-quarter right-facing direction, stable body size, uniform white background and generous empty space. Full character and whip remain in frame. One whip and one tip only. No stiff horizontal rod hold, extra limbs, rubber torso, growing rope, second strike or motion trails. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "be0c52419617fe8e06244f03c3cf8a3634d76a9151a82c9082bb8b8759d31eec",
+  "effectivePromptSha256": "be0c52419617fe8e06244f03c3cf8a3634d76a9151a82c9082bb8b8759d31eec",
+  "finalPromptSha256": "0a77a6c75f6eaf0ec842fbf1971697e2ff04d99afc02ff535172faac5508c5aa",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\prompts\\attack-v02.txt",
+      "bytes": 1492,
+      "sha256": "946c1de61f03d93b64e6e24be02f9526c8040aed019ab5f0dcbb859ac5a5e11f"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\references\\foreman-reference-wide.png",
+      "bytes": 80937,
+      "sha256": "cdc5e29dee4cf4c9cc09927db0793aeb7afc01afe7a36770dfe287504c3eaeb9"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\references\\foreman-reference-wide.png",
+      "bytes": 80937,
+      "sha256": "cdc5e29dee4cf4c9cc09927db0793aeb7afc01afe7a36770dfe287504c3eaeb9"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v02_contact.png",
+    "bytes": 139589,
+    "sha256": "f1128e05f62a78c607bf98a20a48329de0b6f3b5351964e96b02b2c00b19beaa"
+  },
+  "elapsedSeconds": 515.923
+}

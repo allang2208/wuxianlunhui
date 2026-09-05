@@ -1,0 +1,7 @@
+The same stocky undead mine foreman from the reference performs a slow, heavy walk in place, facing screen-right in the reference three-quarter view. His headlamp helmet, broad belly, torn ochre shirt, brown overalls, bare feet and the single coiled brown leather whip in his lowered hand stay recognizable. His body stays at the reference screen position and size.
+
+0.0-1.0 seconds: begin a measured step by lifting one foot from the hip and knee, rolling weight onto the other planted foot. The shoulders remain broad and the torso remains solid.
+1.0-3.8 seconds: continue two clear alternating walking cycles with bent knees, short steps and restrained natural arm swing. The supporting foot presses down and moves backward while the opposite foot lifts and swings forward. The whip remains coiled as one held object; it only sways slightly with the hand. Keep the belly, limbs and helmet dimensions constant.
+3.8-5.17 seconds: finish the second cycle naturally and return to the exact starting support pose for a seamless loop.
+
+Locked camera and uniform white background throughout. Full body and whip remain within the frame. No forward travel, body rotation toward the viewer, elastic limbs, sliding feet, extra limbs or changing equipment.

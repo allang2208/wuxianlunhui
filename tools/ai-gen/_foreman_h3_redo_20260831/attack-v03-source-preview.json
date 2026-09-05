@@ -1,0 +1,14 @@
+{
+  "fps": 24.0,
+  "frameCount": 124,
+  "sourceDurationMs": 5170,
+  "runtimeInstalled": false,
+  "prompt": "prompts/attack-v03.txt",
+  "review": "Source motion, not game footage.",
+  "formerSource": "videos/attack-v03.mp4",
+  "status": "rejected_archived_metadata_only",
+  "runtimeIntegrationActive": false,
+  "assetOnly": true,
+  "rejectedReason": "Long straight hold and whip tip clipped during recovery",
+  "recoveryManifest": "rejected-assets.json"
+}

@@ -1,0 +1,85 @@
+{
+  "status": "rejected_archived_metadata_only",
+  "archiveRoot": "_tmp_foreman_h3_rejected_20260831",
+  "gitIgnored": true,
+  "reasons": {
+    "attack-v01": "Long straight whip hold and incorrect return pose",
+    "attack-v02": "User rejected weak impact",
+    "attack-v03": "Long straight hold and whip tip clipped during recovery"
+  },
+  "retained": "Prompt text and MP4 provenance remain in the source folder; approved attack-v04 and unapproved walk-v01 are untouched.",
+  "moved": [
+    {
+      "formerPath": "videos/attack-v01.mp4",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/videos/attack-v01.mp4"
+    },
+    {
+      "formerPath": "videos/attack-v01_contact.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/videos/attack-v01_contact.png"
+    },
+    {
+      "formerPath": "videos/attack-v02.mp4",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/videos/attack-v02.mp4"
+    },
+    {
+      "formerPath": "videos/attack-v02_contact.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/videos/attack-v02_contact.png"
+    },
+    {
+      "formerPath": "videos/attack-v03.mp4",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/videos/attack-v03.mp4"
+    },
+    {
+      "formerPath": "videos/attack-v03_contact.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/videos/attack-v03_contact.png"
+    },
+    {
+      "formerPath": "previews/attack-v01-32-frames.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v01-32-frames.png"
+    },
+    {
+      "formerPath": "previews/attack-v01-source-speed.gif",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v01-source-speed.gif"
+    },
+    {
+      "formerPath": "previews/attack-v02-32-frames.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v02-32-frames.png"
+    },
+    {
+      "formerPath": "previews/attack-v02-source-speed.gif",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v02-source-speed.gif"
+    },
+    {
+      "formerPath": "previews/attack-v02-candidate-1500ms.gif",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v02-candidate-1500ms.gif"
+    },
+    {
+      "formerPath": "previews/attack-v02-candidate-frames.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v02-candidate-frames.png"
+    },
+    {
+      "formerPath": "previews/attack-v03-32-frames.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v03-32-frames.png"
+    },
+    {
+      "formerPath": "previews/attack-v03-source-speed.gif",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-v03-source-speed.gif"
+    },
+    {
+      "formerPath": "previews/attack-rife",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/previews/attack-rife"
+    },
+    {
+      "formerPath": "sheets/attack-v02-base.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/sheets/attack-v02-base.png"
+    },
+    {
+      "formerPath": "sheets/attack-v02-rife.png",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/sheets/attack-v02-rife.png"
+    },
+    {
+      "formerPath": "source-keyframes/attack-v02",
+      "recoverablePath": "_tmp_foreman_h3_rejected_20260831/source-keyframes/attack-v02"
+    }
+  ]
+}

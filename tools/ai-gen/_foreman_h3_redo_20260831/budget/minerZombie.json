@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "id": "minerZombie",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_miner_zombie_idle",
+      "path": "assets/enemies/miner_zombie/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 1,
+      "endFrame": 0,
+      "footX": 256,
+      "footY": 369.90870732642884,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_miner_zombie_walk",
+      "path": "assets/enemies/miner_zombie/walking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 14,
+      "endFrame": 13,
+      "footX": 256,
+      "footY": 369.90870732642884,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_miner_zombie_attack",
+      "path": "assets/enemies/miner_zombie/attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 24,
+      "endFrame": 23,
+      "footX": 256,
+      "footY": 369.90870732642884,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_miner_zombie_death",
+      "path": "assets/enemies/miner_zombie/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 13,
+      "endFrame": 12,
+      "footX": 256,
+      "footY": 369.90870732642884,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    }
+  ],
+  "dependencies": []
+}

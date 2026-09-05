@@ -5,13 +5,15 @@ import {
     canImpactBasicMelee,
     canStartBasicMelee,
     createBasicMeleeSnapshot,
+    rebaseBasicMeleeSnapshot,
 } from '../../combat/melee-attack-resolver.js';
 import { summonMonster } from './_shared/summon-helper.js';
+import { attackFrameAt, attackFrameStartMs } from './_shared/attack-timing.js';
 
 /**
  * 僵尸工头（领主，僵尸 family）
- * - 鞭击：方向性单目标判定 320px，1.5s 播放 31 帧（第 18 帧伤害判定，物理 ×2 + 1 层流血），
- *   深棕色弧线抽向目标（鞭子观感），冷却 4.5s，攻击时不可移动
+ * - 鞭击：方向性单目标判定 320px，1.5s 动作（逐帧时长/命中帧读配置，物理×2 + 1层流血），
+ *   完整攻击图或旧分层图均与伤害共用逻辑时钟和锁向，冷却4.5s，攻击时不可移动
  * - 号召：3s 播放 24 帧，释放后场上全体僵尸方怪物获得激励（移速 ×1.33、物攻 ×1.5，15s），冷却 30s
  * - 死亡：dying 14 帧 → 定格 1s → 淡出；死亡音效第 8 帧
  * 所有数值均来自 enemy-config.json foremanZombie.attackSkills，类内不硬编码
@@ -42,7 +44,11 @@ export class ForemanZombie extends Enemy {
         this._howlCd = 0;
         this._whipTarget = null;
         this._whipSnapshot = null;
-        this._whipAimPoint = null;
+        this._whipStrikeHeight = 0;
+        this._foremanActionSerial = 0;
+        this._foremanActionDuration = 0;
+        this._whipImpactPosePending = false;
+        this._petrifiedWhipPose = null;
 
         // 工头登场时建立一个全场唯一矿洞；安全落点失败时短间隔重试。
         // 已成功生成或已发现现存矿洞后，本工头不再补建，玩家摧毁矿洞不会无限刷新。
@@ -59,6 +65,7 @@ export class ForemanZombie extends Enemy {
         this._corpseTimer = 0;
         this._fadeTimer = 0;
         this._deathSoundDone = false;
+        this._syncVisualMetrics();
     }
 
     _getWhipConfig() {
@@ -83,7 +90,10 @@ export class ForemanZombie extends Enemy {
             return;
         }
 
+        const actionAtTickStart = this._attackType;
+        const serialAtTickStart = this._foremanActionSerial;
         super.update(dt, entities);
+        if (!this.active || this._isDead) return;
 
         this._ensureSingleMineCave(dt);
 
@@ -91,25 +101,19 @@ export class ForemanZombie extends Enemy {
         if (this._whipCd > 0) this._whipCd -= attackDt;
         if (this._howlCd > 0) this._howlCd -= attackDt;
 
-        // 眩晕/冻结时中断攻击动作
-        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
-            this._attackType = null;
-            this._attackTimer = 0;
-            this._attackAnimTimer = 0;
-            this._clearWhipLock();
-            this.vx = 0; this.vy = 0; this.isMoving = false;
+        if (this.isCombatActionBlocked()) {
+            if (this.hasStatusEffect?.('fear')) this._setVisualState('walk');
+            else if (!this.hasStatusEffect?.('petrified')) this._setVisualState('idle');
             return;
         }
-
-        // 恐惧时中断攻击决策（移动由 MovementSystem 恐惧分支接管逃跑）
-        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
-            return;
-        }
+        if (this._petrifiedWhipPose && !this._attackType) this._setVisualState('idle');
+        this._petrifiedWhipPose = null;
 
         // 攻击帧推进
-        if (this._attackType) {
+        // 预警可能在super.update内启动动作；新动作不能立即吃掉创建前的整段dt。
+        if (this._attackType && actionAtTickStart && serialAtTickStart === this._foremanActionSerial) {
             this._updateAttack(dt);
-        } else {
+        } else if (!this._attackType) {
             this._attackAnimTimer = 0;
         }
 
@@ -126,8 +130,7 @@ export class ForemanZombie extends Enemy {
         }
         this._animStateTimer = (this._animStateTimer || 0) + dt;
         if (nextState !== this._animState && this._animStateTimer >= 80) {
-            this._animState = nextState;
-            this._animStateTimer = 0;
+            this._setVisualState(nextState);
         }
 
         // 朝向
@@ -166,29 +169,34 @@ export class ForemanZombie extends Enemy {
     _startAttack(type) {
         const cfg = this._getWhipConfig();
         const target = this.target;
-        if (type === 'whip' && !this._canStartWhip(target)) return false;
+        if (this.isCombatActionBlocked() || this._attackType || type !== 'whip' || !this._canStartWhip(target)) return false;
         const duration = cfg.duration ?? 1500;
+        this._foremanActionSerial += 1;
+        this._foremanActionDuration = duration;
         this._attackType = type;
         this._attackTimer = duration;
         this._attackAnimTimer = duration; // MovementSystem 锁定（攻击时不可移动）
         this._hitDone = false;
         this._soundDone = false;
-        this._animState = type;
-        this._animStateTimer = 0;
+        this._whipImpactPosePending = false;
+        this._petrifiedWhipPose = null;
+        this._setVisualState(type);
         this.vx = 0; this.vy = 0; this.isMoving = false;
         this._whipCd = cfg.cooldown ?? 4500;
         this._whipTarget = target;
         this._whipSnapshot = createBasicMeleeSnapshot(this, target, this._getWhipAttackConfig());
-        this._whipAimPoint = {
-            x: target.collider?.x ?? target.x,
-            y: target.collider?.y ?? target.y,
-        };
+        // 高度在起手锁定，不随目标移动追踪；低矮目标不会被画成鞭子从头顶越过。
+        const handHeight = this.config?.attackSkills?.whip?.handHeight ?? 127.394366;
+        const targetHeight = target.collider?.height ?? target.collisionBodyHeight ?? target.config?.height ?? 80;
+        const relativeZ = (target.collider?.z ?? target.z ?? 0) - (this.collider?.z ?? this.z ?? 0);
+        this._whipStrikeHeight = Math.max(8, Math.min(handHeight, relativeZ + targetHeight * 0.6));
         this.rotation = this._whipSnapshot.worldAngle;
         return true;
     }
 
     _updateAttack(dt) {
-        this._attackTimer -= dt;
+        this._whipImpactPosePending = false;
+        this._attackTimer = Math.max(0, this._attackTimer - Math.max(0, dt));
         this._attackAnimTimer = Math.max(0, this._attackTimer);
         this.vx = 0; this.vy = 0; this.isMoving = false;
 
@@ -197,32 +205,38 @@ export class ForemanZombie extends Enemy {
                 this._attackTimer = 0;
                 this._attackType = null;
                 this._clearWhipLock();
+                this._setVisualState('idle');
             }
             return;
         }
 
         const cfg = this._getWhipConfig();
-        const duration = cfg.duration ?? 1500;
-        const frames = cfg.frames ?? 31;
+        const duration = this._foremanActionDuration || cfg.duration || 1500;
+        const layout = this._getFrameLayout('whip');
         const elapsed = duration - this._attackTimer;
 
         // 鞭击音效帧（配置 sounds.whipFrame）
         const soundFrame = this.config?.sounds?.whipFrame;
-        if (!this._soundDone && typeof soundFrame === 'number' && elapsed >= (soundFrame / frames) * duration) {
+        if (!this._soundDone && typeof soundFrame === 'number' && elapsed >= attackFrameStartMs(layout, soundFrame, duration)) {
             this._soundDone = true;
             playSoundFrom(this, 'whip');
         }
 
         // 第 hitFrame 帧伤害判定
-        if (!this._hitDone && elapsed >= ((cfg.hitFrame ?? 18) / frames) * duration) {
+        if (!this._hitDone && elapsed >= attackFrameStartMs(layout, cfg.hitFrame ?? 21, duration)) {
             this._hitDone = true;
+            this._whipImpactPosePending = true;
             this._dealWhipHit();
+            // 弹反/受击回调可能同步中断工头，不继续保留已取消的攻击画面。
+            if (this._attackType !== 'whip') return;
         }
 
-        if (this._attackTimer <= 0) {
+        // 长帧跨过整个接触窗口时，至少呈现一次接触姿势；下一逻辑帧再收尾。
+        if (this._attackTimer <= 0 && !this._whipImpactPosePending) {
             this._attackTimer = 0;
             this._attackType = null;
             this._clearWhipLock();
+            this._setVisualState('idle');
         }
     }
 
@@ -245,109 +259,38 @@ export class ForemanZombie extends Enemy {
     _clearWhipLock() {
         this._whipTarget = null;
         this._whipSnapshot = null;
-        this._whipAimPoint = null;
+        this._whipImpactPosePending = false;
     }
 
-    /** 鞭击：只结算起手锁定目标，物理 ×damageMul + 流血，深棕色弧线抽向目标 */
+    /** 只结算起手锁定目标；重锚当前脚点但绝不重新瞄准。鞭层由场景统一绘制。 */
     _dealWhipHit() {
         const cfg = this._getWhipConfig();
         const target = this._whipTarget;
         const atk = this.data?.atk || 0;
         const bleedStacks = cfg.bleedStacks ?? 1;
-        if (canImpactBasicMelee(this, target, this._whipSnapshot)) {
+        const snapshot = rebaseBasicMeleeSnapshot(this, this._whipSnapshot);
+        if (canImpactBasicMelee(this, target, snapshot)) {
             target.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
             const parried = target.shieldSystem && target.shieldSystem._lastParried;
             if (!parried && typeof target.applyBleeding === 'function') {
                 target.applyBleeding(bleedStacks);
             }
         }
-        // 鞭子视觉也使用起手锁定点，避免伤害方向不追踪但鞭梢仍追着移动目标转向。
-        if (this._whipAimPoint) this._fireWhipArc(this._whipAimPoint);
-    }
-
-    /**
-     * 鞭子扫掠特效（2026-07-25 重写）：
-     * - 扫掠：鞭梢以目标方向为中心扫过约 75° 扇面（先快后慢），不再"伸长"——真鞭子是甩不是长
-     * - 鞭身：二次贝塞尔采样分段，宽度柄粗梢细（5.5→1），中段角度滞后形成甩动弧度
-     * - 末梢爆点：扫掠到位瞬间亮斑扩散（鞭梢破空）
-     * - 总时长 220ms（75% 扫掠 + 25% 淡出），每次鞭击只出一条（由 _dealWhipHit 统一触发）
-     */
-    _fireWhipArc(target) {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add || !scene.tweens) return;
-        const g = scene.add.graphics();
-        g.setDepth(this.y + 50);
-        const sx = this.x;
-        const sy = this.y - (this.config?.render?.collisionHeight || 120) * 0.5;
-        const tx = target.x;
-        const ty = (target.collider ? target.collider.y : target.y) - 20;
-        const L = Math.hypot(tx - sx, ty - sy);
-        const theta = Math.atan2(ty - sy, tx - sx);
-        // 扫掠扇面：目标方向 -0.85rad 起扫，+0.45rad 收
-        const startA = theta - 0.85;
-        const endA = theta + 0.45;
-        const SEG = 14;
-        const state = { p: 0 };
-        scene.tweens.add({
-            targets: state,
-            p: 1,
-            duration: 220,
-            ease: 'Cubic.easeOut',
-            onUpdate() {
-                const p = state.p;
-                // 0~0.75 扫掠相位，0.75~1 淡出相位
-                const sweep = Math.min(1, p / 0.75);
-                const fade = p <= 0.75 ? 1 : 1 - (p - 0.75) / 0.25;
-                const tipA = startA + (endA - startA) * sweep;
-                // 鞭身中段角度滞后于鞭梢，形成甩动弧度
-                const lagA = startA + (endA - startA) * Math.max(0, sweep - 0.35);
-                const tipX = sx + Math.cos(tipA) * L;
-                const tipY = sy + Math.sin(tipA) * L;
-                const cx = sx + Math.cos(lagA) * L * 0.55;
-                const cy = sy + Math.sin(lagA) * L * 0.55;
-                // 贝塞尔采样点（宽度逐段渐变，Graphics 无原生粗细节曲线）
-                const pts = [];
-                for (let i = 0; i <= SEG; i++) {
-                    const t = i / SEG;
-                    const u = 1 - t;
-                    pts.push({
-                        x: u * u * sx + 2 * u * t * cx + t * t * tipX,
-                        y: u * u * sy + 2 * u * t * cy + t * t * tipY,
-                    });
-                }
-                g.clear();
-                // 双线描边：深棕外圈 + 亮棕内核，宽度均由柄到梢渐细
-                for (let pass = 0; pass < 2; pass++) {
-                    for (let i = 0; i < SEG; i++) {
-                        const t = i / (SEG - 1);
-                        const w = (pass === 0 ? 5.5 : 3) * (1 - t * 0.8);
-                        g.lineStyle(Math.max(0.8, w), pass === 0 ? 0x3a1f08 : 0x8a5526, (pass === 0 ? 0.8 : 0.95) * fade);
-                        g.lineBetween(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
-                    }
-                }
-                // 末梢爆点：扫掠到位瞬间亮斑，随淡出扩散
-                if (sweep >= 0.9 && fade > 0) {
-                    g.fillStyle(0xffd890, 0.9 * fade);
-                    g.fillCircle(tipX, tipY, 6 + (1 - fade) * 10);
-                }
-            },
-            onComplete() {
-                if (g.active) g.destroy();
-            }
-        });
     }
 
     // ========== 号召 ==========
 
     _startHowl(entities) {
+        if (this.isCombatActionBlocked() || this._attackType) return false;
         const cfg = this._getHowlConfig();
         this._clearWhipLock();
         const duration = cfg.duration ?? 3000;
+        this._foremanActionSerial += 1;
+        this._foremanActionDuration = duration;
         this._attackType = 'howl';
         this._attackTimer = duration;
         this._attackAnimTimer = duration; // MovementSystem 锁定
-        this._animState = 'howl';
-        this._animStateTimer = 0;
+        this._setVisualState('howl');
         this.vx = 0; this.vy = 0; this.isMoving = false;
         this._howlCd = cfg.cooldown ?? 30000;
         // 号召音效（直接播放）
@@ -364,6 +307,7 @@ export class ForemanZombie extends Enemy {
                 });
             }
         }
+        return true;
     }
 
     // ========== 死亡三段式（动画 → 定格 → 淡出；死亡音效在第 8 帧） ==========
@@ -371,12 +315,13 @@ export class ForemanZombie extends Enemy {
     _updateDeathSequence(dt) {
         const D = this._getDeathConfig();
         const animMs = D.animMs ?? 1400;
-        if (!this._deathSoundDone && this._deathAnimTimer > 0) {
+        const previousAnimTimer = this._deathAnimTimer;
+        if (this._deathAnimTimer > 0) this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
+        if (!this._deathSoundDone && previousAnimTimer > 0) {
             const soundFrame = this.config?.sounds?.deathFrame;
             if (typeof soundFrame === 'number') {
-                const frames = 14; // dying.png 帧数（与 BootScene endFrame 13 对齐）
                 const elapsed = animMs - this._deathAnimTimer;
-                if (elapsed >= (soundFrame / frames) * animMs) {
+                if (elapsed >= attackFrameStartMs(this._getFrameLayout('death'), soundFrame, animMs)) {
                     this._deathSoundDone = true;
                     playSoundFrom(this, 'death');
                 }
@@ -384,8 +329,7 @@ export class ForemanZombie extends Enemy {
                 this._deathSoundDone = true;
             }
         }
-        if (this._deathAnimTimer > 0) {
-            this._deathAnimTimer -= dt;
+        if (previousAnimTimer > 0) {
             if (this._deathAnimTimer <= 0) {
                 this._deathAnimTimer = 0;
                 this._corpseTimer = D.holdMs ?? 1000;
@@ -414,9 +358,10 @@ export class ForemanZombie extends Enemy {
 
     onDeath(source) {
         this.active = false;
-        this._animState = 'death';
+        this._setVisualState('death');
         this._attackType = null;
         this._clearWhipLock();
+        this._petrifiedWhipPose = null;
         this._deathAnimTimer = this._getDeathConfig().animMs ?? 1400;
         this._corpseTimer = 0;
         this._fadeTimer = 0;
@@ -490,6 +435,78 @@ export class ForemanZombie extends Enemy {
 
     // ========== 动画 ==========
 
+    _getFrameLayout(state = this._animState) {
+        const key = state === 'whip' ? 'attack' : state;
+        return this.config?.textures?.frameLayouts?.[key] || {
+            frameWidth: 512, frameHeight: 512, frameCount: 1, footX: 256, footY: 414,
+        };
+    }
+
+    _setVisualState(state) {
+        if (this._animState !== state) {
+            this._animState = state;
+            this._animStateTimer = 0;
+        }
+        // GameScene先同步位置再选帧，状态变化时立即换算脚点。
+        this._syncVisualMetrics();
+    }
+
+    _syncVisualMetrics(layout = this._getFrameLayout()) {
+        const scale = (this.config?.render?.spriteSize ?? 480) / (this.config?.textures?.referenceCell ?? 512);
+        const offsetY = this.colliderOffsetY ?? this.config?.render?.colliderOffsetY ?? 0;
+        this.footOffsetY = (layout.footY - layout.frameHeight / 2) * scale - offsetY;
+    }
+
+    _getWhipVisualFrame() {
+        if (this.hasStatusEffect?.('petrified') && this._petrifiedWhipPose) return this._petrifiedWhipPose.frame;
+        if (this._whipImpactPosePending) return this._getWhipConfig().hitFrame ?? 21;
+        const duration = this._foremanActionDuration || this._getWhipConfig().duration || 1500;
+        return attackFrameAt(this._getFrameLayout('whip'), duration - this._attackTimer, duration);
+    }
+
+    getWhipVisualState() {
+        if (this.hasStatusEffect?.('petrified') && this._petrifiedWhipPose) {
+            return { ...this._petrifiedWhipPose, petrified: true };
+        }
+        if (!this.active || this._attackType !== 'whip' || !this._whipSnapshot) return null;
+        return {
+            frame: this._getWhipVisualFrame(),
+            angle: this._whipSnapshot.angle,
+            reach: this._whipSnapshot.reach,
+            strikeHeight: this._whipStrikeHeight,
+            flipX: Math.cos(this._whipSnapshot.worldAngle) < 0,
+        };
+    }
+
+    _onCombatActionInterruptedByControl() {
+        const petrified = this.hasStatusEffect?.('petrified');
+        this._petrifiedWhipPose = petrified ? this.getWhipVisualState() : null;
+        // 石化冻结的是已经显示的帧；不能用本逻辑帧尚未渲染的进度替换。
+        const sprite = this._phaserSprite;
+        const visibleFrame = Number(sprite?.frame?.name);
+        if (this._petrifiedWhipPose && sprite?.texture?.key === 'enemy_foreman_attack'
+            && Number.isInteger(visibleFrame) && visibleFrame >= 0
+            && visibleFrame < this._getFrameLayout('whip').frameCount) {
+            this._petrifiedWhipPose.frame = visibleFrame;
+            this._petrifiedWhipPose.flipX = sprite.flipX;
+        }
+        super._onCombatActionInterruptedByControl();
+        this._attackType = null;
+        this._clearWhipLock();
+        if (!petrified) this._setVisualState(this.hasStatusEffect?.('fear') ? 'walk' : 'idle');
+    }
+
+    _syncPetrifiedBodyAnchor(sprite) {
+        const key = sprite.texture?.key?.replace('enemy_foreman_', '');
+        const layout = this._getFrameLayout(key === 'attack' ? 'whip' : key);
+        const scaleX = Math.abs(sprite.scaleX), scaleY = Math.abs(sprite.scaleY);
+        const mirror = sprite.flipX ? -1 : 1;
+        const offsetX = this.colliderOffsetX ?? this.config?.render?.colliderOffsetX ?? 0;
+        const offsetY = this.colliderOffsetY ?? this.config?.render?.colliderOffsetY ?? 0;
+        sprite.x += (layout.frameWidth / 2 - layout.footX) * scaleX * mirror + offsetX;
+        sprite.y += this.footOffsetY - (layout.footY - layout.frameHeight / 2) * scaleY + offsetY;
+    }
+
     _getTextureKey() {
         switch (this._animState) {
             case 'walk': return 'enemy_foreman_walk';
@@ -503,7 +520,11 @@ export class ForemanZombie extends Enemy {
     _getPhaserOptions() {
         // 原始素材面向右，目标/移动方向朝左时翻转
         let flipX = false;
-        if (this._attackType && this.target && this.target.active) {
+        if (this.hasStatusEffect?.('petrified') && this._petrifiedWhipPose) {
+            flipX = this._petrifiedWhipPose.flipX;
+        } else if (this._attackType === 'whip' && this._whipSnapshot) {
+            flipX = Math.cos(this._whipSnapshot.worldAngle) < 0;
+        } else if (this._attackType && this.target && this.target.active) {
             flipX = this.target.x < this.x;
         } else if (this.isMoving && Math.abs(this.vx) > 0.1) {
             flipX = this.vx < 0;
@@ -512,15 +533,28 @@ export class ForemanZombie extends Enemy {
         }
 
         const renderCfg = this.config?.render || {};
-        const spriteSize = renderCfg.spriteSize || 240;
+        const baseSize = renderCfg.spriteSize ?? 480;
+        const scale = baseSize / (this.config?.textures?.referenceCell ?? 512);
+        const layout = this._getFrameLayout();
+        const spriteSize = Math.max(layout.frameWidth, layout.frameHeight) * scale;
+        this._syncVisualMetrics(layout);
+        let frame;
+        if (this._animState === 'whip') frame = this._getWhipVisualFrame();
+        else if (this._animState === 'howl') frame = attackFrameAt(layout,
+            this._foremanActionDuration - this._attackTimer, this._foremanActionDuration);
+        else if (this._animState === 'death') frame = attackFrameAt(layout,
+            (this._getDeathConfig().animMs ?? 1400) - this._deathAnimTimer, this._getDeathConfig().animMs ?? 1400);
         // animState 映射：攻击/号召/死亡均为一次性动画（防重播）
         const animStateMap = { whip: 'attack', howl: 'attack', death: 'death' };
         const animState = animStateMap[this._animState] || this._animState;
         return {
             spriteSize,
+            dynamicSpriteSize: true,
+            frameAnchorX: layout.footX - (this.colliderOffsetX ?? renderCfg.colliderOffsetX ?? 0) / scale * (flipX ? -1 : 1),
+            ...(frame !== undefined ? { manualFrame: true, frame } : {}),
             collisionWidth: renderCfg.collisionWidth || 60,
             collisionHeight: renderCfg.collisionHeight || 120,
-            textOffsetY: -spriteSize / 2 - 10,
+            textOffsetY: -baseSize / 2 - 10,
             flipX,
             animState,
             animKey: this._getTextureKey(),

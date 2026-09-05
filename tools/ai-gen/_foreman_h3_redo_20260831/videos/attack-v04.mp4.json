@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T12:09:10.537965+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v04.mp4",
+    "bytes": 308890,
+    "sha256": "37ba5511fe0d25b8a97022c96ac6bea91ee7c5a6face3017e40862dae09a0998"
+  },
+  "promptId": "446f8837-eb66-4b20-837b-cdcbb386c40f",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 8315302,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The same stocky undead mine foreman makes ONE brutal full-body whip attack to screen-right, like a heavy fighter throwing a committed overhand punch. Preserve his solid broad belly, thick short limbs, torn shirt and overalls, bare feet and rigid helmet lamp from the reference.\n\nFirst he sinks into a wide bent-knee stance, puts weight on the rear leg and winds his chest backward. The whip hand pulls high behind his head while the free arm reaches forward to balance. The loose leather cord curves behind the shoulder. This loaded pose clearly stores force.\n\nThen he explodes forward: rear leg drives, hips and shoulders turn sharply, and the whip hand accelerates down and forward in one very fast diagonal stroke. His torso pitches forward as one solid mass and the front knee catches his weight. The hand stops sharply near hip height, sending a single fast cracking wave toward the unseen target on the right. The free arm punches backward. The attack is sudden and violent, much faster than its preparation.\n\nIMMEDIATELY after the snap, the elbow folds and the hand pulls back toward the belly. The cord visibly bends back into a slack curved loop at once; never pause in a straight outstretched whip pose. The foreman absorbs the recoil with bent knees, rises back up, gathers the loose cord beside his body and returns to the original coiled-whip resting pose by the end. Keep the recoiling tip near waist-to-knee height, then coil it before lowering the hand to the thigh.\n\nOne continuous brown leather whip of fixed length, approximately the character's standing height, with one connected tip. Keep it curved during recovery and completely inside the frame above the foot-level ground line. Stable character proportions and screen scale; locked original three-quarter right-facing camera, plain white background. Use the full 5.17 seconds for a readable windup, a very brief explosive strike, and a natural recovery. No slow motion, repeated attack, rigid straight-cord hold, rubber limbs, extra hands, glowing effects, target character or camera movement.",
+  "effectivePrompt": "The same stocky undead mine foreman makes ONE brutal full-body whip attack to screen-right, like a heavy fighter throwing a committed overhand punch. Preserve his solid broad belly, thick short limbs, torn shirt and overalls, bare feet and rigid helmet lamp from the reference.\n\nFirst he sinks into a wide bent-knee stance, puts weight on the rear leg and winds his chest backward. The whip hand pulls high behind his head while the free arm reaches forward to balance. The loose leather cord curves behind the shoulder. This loaded pose clearly stores force.\n\nThen he explodes forward: rear leg drives, hips and shoulders turn sharply, and the whip hand accelerates down and forward in one very fast diagonal stroke. His torso pitches forward as one solid mass and the front knee catches his weight. The hand stops sharply near hip height, sending a single fast cracking wave toward the unseen target on the right. The free arm punches backward. The attack is sudden and violent, much faster than its preparation.\n\nIMMEDIATELY after the snap, the elbow folds and the hand pulls back toward the belly. The cord visibly bends back into a slack curved loop at once; never pause in a straight outstretched whip pose. The foreman absorbs the recoil with bent knees, rises back up, gathers the loose cord beside his body and returns to the original coiled-whip resting pose by the end. Keep the recoiling tip near waist-to-knee height, then coil it before lowering the hand to the thigh.\n\nOne continuous brown leather whip of fixed length, approximately the character's standing height, with one connected tip. Keep it curved during recovery and completely inside the frame above the foot-level ground line. Stable character proportions and screen scale; locked original three-quarter right-facing camera, plain white background. Use the full 5.17 seconds for a readable windup, a very brief explosive strike, and a natural recovery. No slow motion, repeated attack, rigid straight-cord hold, rubber limbs, extra hands, glowing effects, target character or camera movement.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The same stocky undead mine foreman makes ONE brutal full-body whip attack to screen-right, like a heavy fighter throwing a committed overhand punch. Preserve his solid broad belly, thick short limbs, torn shirt and overalls, bare feet and rigid helmet lamp from the reference.\n\nFirst he sinks into a wide bent-knee stance, puts weight on the rear leg and winds his chest backward. The whip hand pulls high behind his head while the free arm reaches forward to balance. The loose leather cord curves behind the shoulder. This loaded pose clearly stores force.\n\nThen he explodes forward: rear leg drives, hips and shoulders turn sharply, and the whip hand accelerates down and forward in one very fast diagonal stroke. His torso pitches forward as one solid mass and the front knee catches his weight. The hand stops sharply near hip height, sending a single fast cracking wave toward the unseen target on the right. The free arm punches backward. The attack is sudden and violent, much faster than its preparation.\n\nIMMEDIATELY after the snap, the elbow folds and the hand pulls back toward the belly. The cord visibly bends back into a slack curved loop at once; never pause in a straight outstretched whip pose. The foreman absorbs the recoil with bent knees, rises back up, gathers the loose cord beside his body and returns to the original coiled-whip resting pose by the end. Keep the recoiling tip near waist-to-knee height, then coil it before lowering the hand to the thigh.\n\nOne continuous brown leather whip of fixed length, approximately the character's standing height, with one connected tip. Keep it curved during recovery and completely inside the frame above the foot-level ground line. Stable character proportions and screen scale; locked original three-quarter right-facing camera, plain white background. Use the full 5.17 seconds for a readable windup, a very brief explosive strike, and a natural recovery. No slow motion, repeated attack, rigid straight-cord hold, rubber limbs, extra hands, glowing effects, target character or camera movement. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "938a56ce705ecf092a28409667b224b88129eb66ac52cffb0ad17491feb7a103",
+  "effectivePromptSha256": "938a56ce705ecf092a28409667b224b88129eb66ac52cffb0ad17491feb7a103",
+  "finalPromptSha256": "f9f4dcbdeb9f4d265bc8a3e9b3b0267503ea1519f50229e3670e4656abb9b3b1",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\prompts\\attack-v04.txt",
+      "bytes": 2069,
+      "sha256": "949cb9d2c7dbb020b397f4e9747b2f5ec93ec8dc403ee64b0d6606d231d52c24"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\references\\foreman-reference-wide.png",
+      "bytes": 80937,
+      "sha256": "cdc5e29dee4cf4c9cc09927db0793aeb7afc01afe7a36770dfe287504c3eaeb9"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\references\\foreman-reference-wide.png",
+      "bytes": 80937,
+      "sha256": "cdc5e29dee4cf4c9cc09927db0793aeb7afc01afe7a36770dfe287504c3eaeb9"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v04_contact.png",
+    "bytes": 149650,
+    "sha256": "57d0787b5970b67bae37e4a1163087f693bfb58ffae5cf3e8cab36e5e6a17537"
+  },
+  "elapsedSeconds": 461.035
+}

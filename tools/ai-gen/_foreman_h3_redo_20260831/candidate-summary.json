@@ -1,0 +1,34 @@
+[
+  {
+    "action": "walk-v01",
+    "frameCount": 50,
+    "durationMs": 1500,
+    "sheetMiB": 16.69921875,
+    "preview": "previews/walk-v01-candidate-1500ms.gif",
+    "status": "candidate_not_installed",
+    "runtimeIntegrationActive": false
+  },
+  {
+    "action": "attack-v02",
+    "frameCount": 49,
+    "durationMs": 1500,
+    "sheetMiB": 52.63671875,
+    "status": "rejected_archived_metadata_only",
+    "runtimeIntegrationActive": false,
+    "formerPreview": "previews/attack-v02-candidate-1500ms.gif",
+    "assetOnly": true,
+    "rejectedReason": "User rejected weak impact",
+    "recoveryManifest": "rejected-assets.json"
+  },
+  {
+    "action": "attack-v04",
+    "frameCount": 39,
+    "durationMs": 1500,
+    "sheetMiB": 52.734375,
+    "preview": "previews/attack-v04-candidate-1500ms.gif",
+    "status": "runtime_integrated_user_validation_pending",
+    "assetApproved": true,
+    "runtimeIntegrationActive": true,
+    "assetOnly": false
+  }
+]

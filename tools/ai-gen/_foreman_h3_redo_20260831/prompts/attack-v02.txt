@@ -1,0 +1,8 @@
+The same stocky undead mine foreman performs one quick leather-whip crack toward screen-right and returns to his original resting pose. Preserve the broad belly, short thick limbs, torn overalls, helmet lamp and bare feet exactly as in the reference. His feet stay planted; the solid torso only makes a small shoulder twist.
+
+0.0-1.0 seconds: lift the hand holding the brown coiled whip beside the shoulder. Release the coils naturally while drawing the elbow back. The free hand balances near the belly.
+1.0-1.8 seconds: swing the elbow and wrist forward once. A single travelling loop runs down the attached leather cord and the tip snaps forward. The fully extended pose is momentary, followed immediately by the rope bending and dropping under gravity. Total whip length stays about one and a half body heights.
+1.8-3.8 seconds: bend the whip arm back down, gather the relaxed cord with a brief assistance of the free hand, then let the single compact coil hang from the original holding hand beside the thigh.
+3.8-5.17 seconds: settle into exactly the original first-frame resting pose, holding the SAME coiled whip, and remain there. The final reference is the exact ending posture.
+
+Locked camera, original three-quarter right-facing direction, stable body size, uniform white background and generous empty space. Full character and whip remain in frame. One whip and one tip only. No stiff horizontal rod hold, extra limbs, rubber torso, growing rope, second strike or motion trails.

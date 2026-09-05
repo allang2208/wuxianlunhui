@@ -3695,13 +3695,15 @@
   },
   "attackSkills": {
    "whip": {
-    "range": 320,
-    "duration": 1500,
-    "frames": 31,
-    "hitFrame": 18,
+   "range": 320,
+   "duration": 1500,
+    "frames": 39,
+    "hitFrame": 21,
     "damageMul": 2,
     "bleedStacks": 1,
-    "cooldown": 4500
+    "cooldown": 4500,
+    "width": 26,
+    "handHeight": 127.39436625
    },
    "howl": {
     "comment": "号召：3s 动画，释放后场上全体僵尸方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
@@ -3729,7 +3731,7 @@
    "walk": "assets/sounds/enemies/foreman_zombie/walking.mp3",
    "walkInterval": 700,
    "whip": "assets/sounds/enemies/foreman_zombie/attacking.mp3",
-   "whipFrame": 15,
+   "whipFrame": 8,
    "howl": "assets/sounds/enemies/foreman_zombie/howling.mp3",
    "death": "assets/sounds/enemies/foreman_zombie/dying.mp3",
    "deathFrame": 8
@@ -3743,7 +3745,7 @@
    "spriteSize": 480,
    "collisionWidth": 104,
    "collisionHeight": 254.6,
-   "footOffsetY": 148,
+   "footOffsetY": 168.125,
    "colliderOffsetY": -20,
    "projectileHitbox": {
     "width": 104,
@@ -3752,24 +3754,122 @@
     "bottom": -22
    },
    "capsuleHudAnchor": true,
-   "colliderOffsetX": 6
+   "colliderOffsetX": 6,
+   "visualCullRadius": 400
   },
   "textures": {
-   "idle": "assets/enemies/foreman_zombie/idle.png",
+   "idle": "assets/enemies/foreman_zombie/idle_single.png",
    "walk": "assets/enemies/foreman_zombie/walking.png",
-   "attack": "assets/enemies/foreman_zombie/attacking.png",
+   "attack": "assets/enemies/foreman_zombie/attacking_h3.png",
+   "attackWhipMode": "baked",
    "howl": "assets/enemies/foreman_zombie/howling.png",
    "death": "assets/enemies/foreman_zombie/dying.png",
    "idleFrameWidth": 512,
    "idleFrameHeight": 512,
    "idleFrameCount": 1,
-   "idleSheetColumns": 8
+   "idleSheetColumns": 1,
+   "referenceCell": 512,
+   "frameLayouts": {
+    "idle": {
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "frameCount": 1,
+     "endFrame": 0,
+     "footX": 256,
+     "footY": 414,
+     "duration": 1000,
+     "repeat": -1
+    },
+    "walk": {
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "frameCount": 15,
+     "endFrame": 14,
+     "footX": 256,
+     "footY": 414,
+     "duration": 1500,
+     "repeat": -1
+    },
+    "howl": {
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "frameCount": 24,
+     "endFrame": 23,
+     "footX": 256,
+     "footY": 414,
+     "duration": 3000,
+     "repeat": 0
+    },
+    "death": {
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "frameCount": 14,
+     "endFrame": 13,
+     "footX": 256,
+     "footY": 414,
+     "duration": 1400,
+     "repeat": 0
+    },
+    "attack": {
+     "frameWidth": 864,
+     "frameHeight": 400,
+     "footX": 432,
+     "footY": 360,
+     "frameCount": 39,
+     "endFrame": 38,
+     "cols": 4,
+     "rows": 10,
+     "duration": 1500,
+     "frameDurations": [
+      90.0,
+      90.0,
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      11.25,
+      55.0,
+      55.0,
+      114.375,
+      114.375,
+      76.25,
+      76.25,
+      76.25,
+      76.25,
+      38.125,
+      38.125,
+      15.0,
+      15.0,
+      10.0,
+      10.0,
+      100.0
+     ],
+     "repeat": 0
+    }
+   }
   },
   "description": "僵尸矿工的监工，手中的长鞭滴着血。鞭击造成流血，号召激励全场僵尸。",
   "skills": [
    {
     "name": "鞭击",
-    "desc": "距离判定 320px，1.5s 播放 31 帧动画，第 18 帧进行伤害判定，造成物理攻击 ×2 伤害并附加 1 层流血（每层每秒 1% 当前生命值，持续 10s，可叠加，到期减一层）；冷却 4.5s，攻击时不可移动"
+    "desc": "锁定方向的单目标鞭击，射程320px、宽26px；1.5秒39帧，第21帧（从0计，约596ms）命中，物理攻击×2并附加1层流血（每层每秒1%当前生命值，持续10s，可叠加，到期减一层）；冷却4.5秒，攻击时不可移动，目标离开或被墙隔断则空挥。"
    },
    {
     "name": "号召",

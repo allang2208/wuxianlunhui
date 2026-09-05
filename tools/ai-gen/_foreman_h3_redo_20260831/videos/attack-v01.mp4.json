@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T11:21:27.229838+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v01.mp4",
+    "bytes": 282049,
+    "sha256": "8dde79587b58c3df8fafae57a5caee186a0f58136f4e2a237250c0d4e229f275"
+  },
+  "promptId": "24133452-2758-4395-8c99-46764fc5e582",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 8315201,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The same stocky undead mine foreman from the reference performs ONE deliberate leather-whip strike toward screen-right, then recovers. Preserve his broad torso, headlamp helmet, torn ochre shirt, brown overalls, bare feet and gripping hand. The camera, body scale and three-quarter right-facing direction stay fixed.\n\n0.0-1.0 seconds: plant both feet and shift weight slightly backward. Raise the whip hand beside the shoulder while the single coil opens into one continuous leather cord. The free arm balances the body.\n1.0-3.0 seconds: drive the shoulder, elbow and wrist forward in sequence. One compact travelling loop runs along the whip and straightens into one crisp forward lash. The attached cord has a constant total length of about one and a half body heights and a clearly visible dark-brown thickness. The tip stays inside the large empty area on the right. The solid torso twists only slightly; both feet remain grounded.\n3.0-5.17 seconds: let the same whip relax into a loose downward loop while lowering the hand and settling back to the original neutral posture. No second strike.\n\nUniform white background, full character and full whip visible. The whip remains attached to the same hand, with one cord and one tip. No growing rope, branching whip, duplicated arm, rubber torso, camera motion or drawn motion trails.",
+  "effectivePrompt": "The same stocky undead mine foreman from the reference performs ONE deliberate leather-whip strike toward screen-right, then recovers. Preserve his broad torso, headlamp helmet, torn ochre shirt, brown overalls, bare feet and gripping hand. The camera, body scale and three-quarter right-facing direction stay fixed.\n\n0.0-1.0 seconds: plant both feet and shift weight slightly backward. Raise the whip hand beside the shoulder while the single coil opens into one continuous leather cord. The free arm balances the body.\n1.0-3.0 seconds: drive the shoulder, elbow and wrist forward in sequence. One compact travelling loop runs along the whip and straightens into one crisp forward lash. The attached cord has a constant total length of about one and a half body heights and a clearly visible dark-brown thickness. The tip stays inside the large empty area on the right. The solid torso twists only slightly; both feet remain grounded.\n3.0-5.17 seconds: let the same whip relax into a loose downward loop while lowering the hand and settling back to the original neutral posture. No second strike.\n\nUniform white background, full character and full whip visible. The whip remains attached to the same hand, with one cord and one tip. No growing rope, branching whip, duplicated arm, rubber torso, camera motion or drawn motion trails.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The same stocky undead mine foreman from the reference performs ONE deliberate leather-whip strike toward screen-right, then recovers. Preserve his broad torso, headlamp helmet, torn ochre shirt, brown overalls, bare feet and gripping hand. The camera, body scale and three-quarter right-facing direction stay fixed.\n\n0.0-1.0 seconds: plant both feet and shift weight slightly backward. Raise the whip hand beside the shoulder while the single coil opens into one continuous leather cord. The free arm balances the body.\n1.0-3.0 seconds: drive the shoulder, elbow and wrist forward in sequence. One compact travelling loop runs along the whip and straightens into one crisp forward lash. The attached cord has a constant total length of about one and a half body heights and a clearly visible dark-brown thickness. The tip stays inside the large empty area on the right. The solid torso twists only slightly; both feet remain grounded.\n3.0-5.17 seconds: let the same whip relax into a loose downward loop while lowering the hand and settling back to the original neutral posture. No second strike.\n\nUniform white background, full character and full whip visible. The whip remains attached to the same hand, with one cord and one tip. No growing rope, branching whip, duplicated arm, rubber torso, camera motion or drawn motion trails. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b4661b894421ec8e10b17af15da5bf8cf51b284b7a741007b8c5ae3b68968983",
+  "effectivePromptSha256": "b4661b894421ec8e10b17af15da5bf8cf51b284b7a741007b8c5ae3b68968983",
+  "finalPromptSha256": "19258e422ce3fe57313a22575cf0b5d7194ba2b66e69a665fc36d1bd5b142953",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\prompts\\attack-v01.txt",
+      "bytes": 1335,
+      "sha256": "42cac443863d51a91e4c4e9841c17e7bd00d2ce421b58fd72827c5e5eb64619b"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_whip_doubao_20260831\\references\\foreman-whip-wide-v01.png",
+      "bytes": 80937,
+      "sha256": "cdc5e29dee4cf4c9cc09927db0793aeb7afc01afe7a36770dfe287504c3eaeb9"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v01_contact.png",
+    "bytes": 153058,
+    "sha256": "9212667b7a97d2c82cd822b80374978e23c215d50e1e476013a548a00806bfb9"
+  },
+  "elapsedSeconds": 861.579
+}

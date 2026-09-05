@@ -1335,12 +1335,14 @@ export class BootScene extends Scene {
         // 晶石投射物贴图（单帧）
         this.load.image('enemy_ore_spider_projectile', 'assets/enemies/ore_spider/projective.png');
 
-        // 僵尸工头（领主）：512×512 切帧（idle 1 / walking 20（H3 循环动画，5列×4行，同相周期截取）/ attacking 31 / howling 24 / dying 14）
-        this.load.spritesheet('enemy_foreman_idle',   'assets/enemies/foreman_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
-        this.load.spritesheet('enemy_foreman_walk',   'assets/enemies/foreman_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 19 });
-        this.load.spritesheet('enemy_foreman_attack', 'assets/enemies/foreman_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 30 });
-        this.load.spritesheet('enemy_foreman_howl',   'assets/enemies/foreman_zombie/howling.png',   { frameWidth: 512, frameHeight: 512, endFrame: 23 });
-        this.load.spritesheet('enemy_foreman_death',  'assets/enemies/foreman_zombie/dying.png',     { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        // 固定人体比例；布局与路径读配置，完整鞭身图由 attackWhipMode 禁用旧附属层。
+        const foremanTextures = enemyConfigData.foremanZombie.textures;
+        for (const state of ['idle', 'walk', 'attack', 'howl', 'death']) {
+            const layout = foremanTextures.frameLayouts[state];
+            this.load.spritesheet(`enemy_foreman_${state}`, foremanTextures[state], {
+                frameWidth: layout.frameWidth, frameHeight: layout.frameHeight, endFrame: layout.frameCount - 1,
+            });
+        }
 
         // 矿洞（次级，静态贴图）
         this.load.image('enemy_mine_cave', 'assets/enemies/mine_cave/mine_cave.png');
@@ -2919,16 +2921,20 @@ export class BootScene extends Scene {
             frameRate: 1,
             repeat: -1,
         });
+        const foremanWalkLayout = enemyConfigData.foremanZombie.textures.frameLayouts.walk;
         this.anims.create({
             key: 'enemy_foreman_walk',
-            frames: this.anims.generateFrameNumbers('enemy_foreman_walk', { start: 0, end: 19 }),
-            frameRate: 8,
+            frames: this.anims.generateFrameNumbers('enemy_foreman_walk', { start: 0, end: foremanWalkLayout.frameCount - 1 }),
+            duration: foremanWalkLayout.duration,
             repeat: -1,
         });
+        const foremanAttackLayout = enemyConfigData.foremanZombie.textures.frameLayouts.attack;
         this.anims.create({
             key: 'enemy_foreman_attack',
-            frames: this.anims.generateFrameNumbers('enemy_foreman_attack', { start: 0, end: 30 }),
-            duration: 1500, // 与 whip.duration 对齐（31 帧 / 1.5s）
+            frames: this.anims.generateFrameNumbers('enemy_foreman_attack', { start: 0, end: foremanAttackLayout.frameCount - 1 })
+                .map((frame, index) => ({ ...frame, duration: foremanAttackLayout.frameDurations[index] })),
+            // 各帧使用绝对时长，基础时长保留有效值；实战由工头逻辑手动选帧。
+            duration: foremanAttackLayout.duration,
             repeat: 0,
         });
         this.anims.create({

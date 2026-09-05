@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T11:59:08.423271+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v03.mp4",
+    "bytes": 309080,
+    "sha256": "55617e3160c7f207954c2e49a7488597a3931c2bf3fbd71cb15079c14bdcf916"
+  },
+  "promptId": "c47d0388-7378-40ec-afbc-1fd35c53a4f5",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 8315301,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The stocky undead mine foreman in the reference delivers ONE vicious, full-body leather bullwhip strike toward screen-right. His heavy body gives the blow real weight: legs drive the hips, hips drive the shoulder, then the elbow and wrist whip forward. Keep his broad belly, short thick limbs, torn ochre shirt and overalls, bare feet and rigid helmet with lamp identical to the reference.\n\n0.0-1.4 seconds, strong anticipation: bend both knees and shift weight onto the rear leg. Turn the chest back and draw the whipping elbow high behind the shoulder, opening the coiled leather whip into a loose arc behind and above him. His free arm counterbalances. Clearly compress the stance and wind the shoulder back before striking; the belly remains a solid volume.\n\n1.4-1.7 seconds, explosive strike: drive from the rear foot, sharply rotate hips and shoulder forward, and throw the upper body forward into a powerful overhead-to-forward lash. The arm snaps from behind the head to forward extension in ONE abrupt burst, much faster than the anticipation and recovery. The wrist suddenly arrests and transfers force into one travelling loop down the cord. The whip tip cracks straight toward an unseen target at waist height on the right for only an instant. Show a distinct stretched attack silhouette with the free arm pulled backward and weight caught by the bent front knee. The feet pivot and bear weight at the original ground location; do not travel across the canvas.\n\n1.7-2.5 seconds, forceful follow-through: the torso and striking shoulder continue slightly forward, then visibly brake under the character's weight. The arm drops across the body as the whip recoils in a curved wave. The tip never hangs motionless as a horizontal stick.\n\n2.5-4.5 seconds, recovery: rise out of the loaded front leg, draw the loosened whip back and gather it into the original compact coil beside the thigh. Recover the original ready stance. 4.5-5.17 seconds: settle into the supplied ending reference pose.\n\nLocked camera, original three-quarter right-facing view and constant body scale on a uniform white background. Keep the complete body and the entire brown leather whip inside the frame, with cord length about one and a half body heights. One connected whip, one tip, two arms. Real-time aggressive combat motion with a sudden snap, not slow motion or a gentle arm wave. Preserve anatomy and equipment; no growing limbs, rubber torso, extra coils during full extension, second strike, glowing trails, impact effects, target character or camera shake.",
+  "effectivePrompt": "The stocky undead mine foreman in the reference delivers ONE vicious, full-body leather bullwhip strike toward screen-right. His heavy body gives the blow real weight: legs drive the hips, hips drive the shoulder, then the elbow and wrist whip forward. Keep his broad belly, short thick limbs, torn ochre shirt and overalls, bare feet and rigid helmet with lamp identical to the reference.\n\n0.0-1.4 seconds, strong anticipation: bend both knees and shift weight onto the rear leg. Turn the chest back and draw the whipping elbow high behind the shoulder, opening the coiled leather whip into a loose arc behind and above him. His free arm counterbalances. Clearly compress the stance and wind the shoulder back before striking; the belly remains a solid volume.\n\n1.4-1.7 seconds, explosive strike: drive from the rear foot, sharply rotate hips and shoulder forward, and throw the upper body forward into a powerful overhead-to-forward lash. The arm snaps from behind the head to forward extension in ONE abrupt burst, much faster than the anticipation and recovery. The wrist suddenly arrests and transfers force into one travelling loop down the cord. The whip tip cracks straight toward an unseen target at waist height on the right for only an instant. Show a distinct stretched attack silhouette with the free arm pulled backward and weight caught by the bent front knee. The feet pivot and bear weight at the original ground location; do not travel across the canvas.\n\n1.7-2.5 seconds, forceful follow-through: the torso and striking shoulder continue slightly forward, then visibly brake under the character's weight. The arm drops across the body as the whip recoils in a curved wave. The tip never hangs motionless as a horizontal stick.\n\n2.5-4.5 seconds, recovery: rise out of the loaded front leg, draw the loosened whip back and gather it into the original compact coil beside the thigh. Recover the original ready stance. 4.5-5.17 seconds: settle into the supplied ending reference pose.\n\nLocked camera, original three-quarter right-facing view and constant body scale on a uniform white background. Keep the complete body and the entire brown leather whip inside the frame, with cord length about one and a half body heights. One connected whip, one tip, two arms. Real-time aggressive combat motion with a sudden snap, not slow motion or a gentle arm wave. Preserve anatomy and equipment; no growing limbs, rubber torso, extra coils during full extension, second strike, glowing trails, impact effects, target character or camera shake.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The stocky undead mine foreman in the reference delivers ONE vicious, full-body leather bullwhip strike toward screen-right. His heavy body gives the blow real weight: legs drive the hips, hips drive the shoulder, then the elbow and wrist whip forward. Keep his broad belly, short thick limbs, torn ochre shirt and overalls, bare feet and rigid helmet with lamp identical to the reference.\n\n0.0-1.4 seconds, strong anticipation: bend both knees and shift weight onto the rear leg. Turn the chest back and draw the whipping elbow high behind the shoulder, opening the coiled leather whip into a loose arc behind and above him. His free arm counterbalances. Clearly compress the stance and wind the shoulder back before striking; the belly remains a solid volume.\n\n1.4-1.7 seconds, explosive strike: drive from the rear foot, sharply rotate hips and shoulder forward, and throw the upper body forward into a powerful overhead-to-forward lash. The arm snaps from behind the head to forward extension in ONE abrupt burst, much faster than the anticipation and recovery. The wrist suddenly arrests and transfers force into one travelling loop down the cord. The whip tip cracks straight toward an unseen target at waist height on the right for only an instant. Show a distinct stretched attack silhouette with the free arm pulled backward and weight caught by the bent front knee. The feet pivot and bear weight at the original ground location; do not travel across the canvas.\n\n1.7-2.5 seconds, forceful follow-through: the torso and striking shoulder continue slightly forward, then visibly brake under the character's weight. The arm drops across the body as the whip recoils in a curved wave. The tip never hangs motionless as a horizontal stick.\n\n2.5-4.5 seconds, recovery: rise out of the loaded front leg, draw the loosened whip back and gather it into the original compact coil beside the thigh. Recover the original ready stance. 4.5-5.17 seconds: settle into the supplied ending reference pose.\n\nLocked camera, original three-quarter right-facing view and constant body scale on a uniform white background. Keep the complete body and the entire brown leather whip inside the frame, with cord length about one and a half body heights. One connected whip, one tip, two arms. Real-time aggressive combat motion with a sudden snap, not slow motion or a gentle arm wave. Preserve anatomy and equipment; no growing limbs, rubber torso, extra coils during full extension, second strike, glowing trails, impact effects, target character or camera shake. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "7398403b51a22f248f5b6da6b8a94cf0efaecf2503edf8086728a4a5adddddfc",
+  "effectivePromptSha256": "7398403b51a22f248f5b6da6b8a94cf0efaecf2503edf8086728a4a5adddddfc",
+  "finalPromptSha256": "aec4fd7103d1b0e2266d02602526f9c956ed05413e341bbb68a3b4ae67651243",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\prompts\\attack-v03.txt",
+      "bytes": 2551,
+      "sha256": "f24dbaf2b3dfc89d906cea2ca42450e785d0f2b0a80361ee562a2238dddc9a96"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\references\\foreman-reference-wide.png",
+      "bytes": 80937,
+      "sha256": "cdc5e29dee4cf4c9cc09927db0793aeb7afc01afe7a36770dfe287504c3eaeb9"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\references\\foreman-reference-wide.png",
+      "bytes": 80937,
+      "sha256": "cdc5e29dee4cf4c9cc09927db0793aeb7afc01afe7a36770dfe287504c3eaeb9"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_h3_redo_20260831\\videos\\attack-v03_contact.png",
+    "bytes": 165393,
+    "sha256": "e62e3842723b60162afd9135b1920cf8cacbde0fbc680b1d59dab7ac0961944a"
+  },
+  "elapsedSeconds": 465.749
+}

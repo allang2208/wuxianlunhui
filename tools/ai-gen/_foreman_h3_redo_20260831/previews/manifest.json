@@ -1,0 +1,11 @@
+[
+  {
+    "action": "walk-v01",
+    "source": "videos\\walk-v01.mp4",
+    "fps": 24.0,
+    "frameCount": 124,
+    "durationMs": 5170,
+    "gif": "previews\\walk-v01-source-speed.gif",
+    "runtimeInstalled": false
+  }
+]

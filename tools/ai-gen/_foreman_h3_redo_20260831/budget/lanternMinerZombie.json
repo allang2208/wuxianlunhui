@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "id": "lanternMinerZombie",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_lantern_miner_idle",
+      "path": "assets/enemies/lantern_miner_zombie/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 1,
+      "endFrame": 0,
+      "footX": 256,
+      "footY": 385.024,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_lantern_miner_walk",
+      "path": "assets/enemies/lantern_miner_zombie/walking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 18,
+      "endFrame": 17,
+      "footX": 256,
+      "footY": 385.024,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_lantern_miner_attack",
+      "path": "assets/enemies/lantern_miner_zombie/attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 30,
+      "endFrame": 29,
+      "footX": 256,
+      "footY": 385.024,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_lantern_miner_attack2",
+      "path": "assets/enemies/lantern_miner_zombie/attacking-2.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 22,
+      "endFrame": 21,
+      "footX": 256,
+      "footY": 385.024,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_lantern_miner_death",
+      "path": "assets/enemies/lantern_miner_zombie/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 15,
+      "endFrame": 14,
+      "footX": 256,
+      "footY": 385.024,
+      "anchorSource": "Existing render footOffsetY; not newly visually calibrated"
+    },
+    {
+      "textureKey": "enemy_lantern_miner_projectile",
+      "kind": "image",
+      "path": "assets/enemies/lantern_miner_zombie/projective.png"
+    }
+  ],
+  "dependencies": []
+}

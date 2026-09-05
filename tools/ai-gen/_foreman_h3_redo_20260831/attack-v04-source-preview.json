@@ -1,0 +1,10 @@
+{
+  "source": "videos/attack-v04.mp4",
+  "fps": 24.0,
+  "frameCount": 124,
+  "sourceDurationMs": 5170,
+  "runtimeInstalled": false,
+  "prompt": "prompts/attack-v04.txt",
+  "review": "Source-speed preview is not installed as-is; the approved 39-frame derived sheet is integrated. Not game footage.",
+  "derivedRuntimeIntegrated": true
+}

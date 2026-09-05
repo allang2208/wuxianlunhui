@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "id": "mineCave",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_mine_cave",
+      "path": "assets/enemies/mine_cave/mine_cave.png",
+      "kind": "image"
+    }
+  ],
+  "dependencies": [
+    "tools/ai-gen/_foreman_h3_redo_20260831/budget/minerZombie.json",
+    "tools/ai-gen/_foreman_h3_redo_20260831/budget/lanternMinerZombie.json"
+  ]
+}
