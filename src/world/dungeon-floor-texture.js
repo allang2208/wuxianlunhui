@@ -12,6 +12,7 @@
  */
 import { CONFIG } from '../config/config.js';
 import { Renderer } from './renderer.js';
+import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 
 // 默认地板配置（非地牢/未设置时）：保持旧的 blackbrick5 + 发光层行为
 const DEFAULT_PROFILE = { tiles: ['blackbrick5'], glow: true };
@@ -799,6 +800,7 @@ export function applyDungeonFloorChunked(width, height, chunkSize = 2048, diamon
     }
     if (Renderer) {
         Renderer.terrainTexture = null;
+        Renderer.terrainRebuild = null;
         Renderer.terrainChunks = { chunkSize, mapW: width, mapH: height, diamond: diamond || null, pad };
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
@@ -1043,12 +1045,14 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
         // 墙根处最暗（约 40% 黑）→ 向内 64px 渐隐到 0。逐笔 alpha 递减叠加自然成梯度；
         // 旧版是 16 笔等 alpha(0.12) 平刷——整带只有约 15% 平黑，亮地砖上几乎不可见
         // （中级/初级"没有阴影"的根因：blackbrick-7/8 亮度 50 是高级砖 25 的两倍）
-        const fade = FLOOR_EDGE_FADE;
-        for (let i = 0; i < fade; i += 2) {
-            diamondPath(i);
-            ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
+        if (EnvironmentLightingSystem.isShadowEnabled()) {
+            const fade = FLOOR_EDGE_FADE;
+            for (let i = 0; i < fade; i += 2) {
+                diamondPath(i);
+                ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
         }
     } else {
         console.warn('[DungeonFloor] 地板贴图未加载，菱形房回退为纯黑 + 轮廓线');
@@ -1066,6 +1070,9 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
     if (Renderer) {
         Renderer.terrainTexture = canvas;
         Renderer.terrainChunks = null; // 离开分块模式
+        Renderer.terrainRebuild = () => applyDiamondFloor(
+            width, height, cx, cy, rx, ry, fallbackTerrain
+        );
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();
@@ -1168,7 +1175,9 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
 
         // 房间与通道共用同一连续纹理。冰原房间的整圈墙脚暗化会让未经过
         // 同等综合色调的通道显得更亮；配置化补偿只压通道，不改变贴图或相位。
-        const corridorToneAlpha = Math.max(0, Math.min(0.35, Number(profile.corridorToneAlpha) || 0));
+        const corridorToneAlpha = EnvironmentLightingSystem.isShadowEnabled()
+            ? Math.max(0, Math.min(0.35, Number(profile.corridorToneAlpha) || 0))
+            : 0;
         if (corridorToneAlpha > 0 && corridors.length > 0) {
             ctx.save();
             ctx.beginPath();
@@ -1187,48 +1196,50 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
         //    - 规则房保持原内缩描边；凹凸房在房型裁剪内叠加宽度递减的边界描边；
         //    - 走廊：只描两条长边（通道侧墙墙脚），不描端帽/补丁轮廓——
         //      描补丁轮廓会在门口画出尖锐黑三角边框（线上教训）
-        const fade = FLOOR_EDGE_FADE;
-        for (const d of diamonds) {
-            if (Array.isArray(d.floorPolygon) && d.floorPolygon.length >= 3) {
-                ctx.save();
-                ctx.beginPath();
-                appendPolygon(d.floorPolygon);
-                ctx.clip();
-                ctx.lineJoin = 'round';
-                for (let i = 0; i < fade; i += 2) {
+        if (EnvironmentLightingSystem.isShadowEnabled()) {
+            const fade = FLOOR_EDGE_FADE;
+            for (const d of diamonds) {
+                if (Array.isArray(d.floorPolygon) && d.floorPolygon.length >= 3) {
+                    ctx.save();
                     ctx.beginPath();
                     appendPolygon(d.floorPolygon);
-                    ctx.strokeStyle = 'rgba(0,0,0,0.014)';
-                    ctx.lineWidth = Math.max(2, (fade - i) * 2);
-                    ctx.stroke();
-                }
-                ctx.restore();
-            } else {
-                for (let i = 0; i < fade; i += 2) {
-                    ctx.beginPath();
-                const irx = d.rx - i, iry = d.ry - i * (d.ry / d.rx);
-                ctx.moveTo(d.cx, d.cy - iry);
-                ctx.lineTo(d.cx + irx, d.cy);
-                ctx.lineTo(d.cx, d.cy + iry);
-                ctx.lineTo(d.cx - irx, d.cy);
-                ctx.closePath();
-                    ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
-                    ctx.lineWidth = 2.5;
-                    ctx.stroke();
+                    ctx.clip();
+                    ctx.lineJoin = 'round';
+                    for (let i = 0; i < fade; i += 2) {
+                        ctx.beginPath();
+                        appendPolygon(d.floorPolygon);
+                        ctx.strokeStyle = 'rgba(0,0,0,0.014)';
+                        ctx.lineWidth = Math.max(2, (fade - i) * 2);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                } else {
+                    for (let i = 0; i < fade; i += 2) {
+                        ctx.beginPath();
+                        const irx = d.rx - i, iry = d.ry - i * (d.ry / d.rx);
+                        ctx.moveTo(d.cx, d.cy - iry);
+                        ctx.lineTo(d.cx + irx, d.cy);
+                        ctx.lineTo(d.cx, d.cy + iry);
+                        ctx.lineTo(d.cx - irx, d.cy);
+                        ctx.closePath();
+                        ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                    }
                 }
             }
-        }
-        for (const q of corridors) {
-            // 平行四边形 points: [a1+, a2+, a2-, a1-] —— 长边 = 0→1 与 3→2
-            for (const [lw, alpha] of [[30, 0.22], [18, 0.14], [9, 0.08]]) {
-                for (const [p0, p1] of [[q.points[0], q.points[1]], [q.points[3], q.points[2]]]) {
-                    ctx.beginPath();
-                    ctx.moveTo(p0.x, p0.y);
-                    ctx.lineTo(p1.x, p1.y);
-                    ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
-                    ctx.lineWidth = lw;
-                    ctx.lineCap = 'round';
-                    ctx.stroke();
+            for (const q of corridors) {
+                // 平行四边形 points: [a1+, a2+, a2-, a1-] —— 长边 = 0→1 与 3→2
+                for (const [lw, alpha] of [[30, 0.22], [18, 0.14], [9, 0.08]]) {
+                    for (const [p0, p1] of [[q.points[0], q.points[1]], [q.points[3], q.points[2]]]) {
+                        ctx.beginPath();
+                        ctx.moveTo(p0.x, p0.y);
+                        ctx.lineTo(p1.x, p1.y);
+                        ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
+                        ctx.lineWidth = lw;
+                        ctx.lineCap = 'round';
+                        ctx.stroke();
+                    }
                 }
             }
         }
@@ -1322,6 +1333,9 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
     if (Renderer) {
         Renderer.terrainTexture = canvas;
         Renderer.terrainChunks = null; // 离开分块模式
+        Renderer.terrainRebuild = () => applyArenaFloor(
+            width, height, diamonds, corridors, patches, fallbackTerrain, terrainOptions
+        );
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();
@@ -1345,6 +1359,7 @@ export function applyDungeonFloor(size, fallbackTerrain) {
     if (Renderer) {
         Renderer.terrainTexture = canvas;
         Renderer.terrainChunks = null; // 离开分块模式
+        Renderer.terrainRebuild = null;
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();

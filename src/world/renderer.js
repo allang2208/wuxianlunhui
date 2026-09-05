@@ -9,6 +9,8 @@ const Renderer = {
     canvas: null, ctx: null,
     // 场景特定的地形 Canvas 覆盖；若为空，由 GameScene 使用 Phaser Graphics 直接生成
     terrainTexture: null,
+    // 当前非分块地形的确定性重烘焙入口；阴影设置切换时用于剥离/恢复墙脚接触影。
+    terrainRebuild: null,
     init() { if (!this.canvas) this.canvas = getElement('gameCanvas'); if (!this.canvas) { console.error('gameCanvas not found'); return; } this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); },
     resize() { if (!this.canvas || !this.ctx) return; const defaultRes = GAME_CONFIG.display?.defaultResolution || { width: 1920, height: 1080 }; const w = window.innerWidth || defaultRes.width || 1920, h = window.innerHeight || defaultRes.height || 1080; if (w > 0 && h > 0) { this.canvas.width = w; this.canvas.height = h; } },
     generateWorld(targetSceneId = null) {
@@ -36,6 +38,7 @@ const Renderer = {
         }
         WallSystem.init(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
         this.terrainTexture = null;
+        this.terrainRebuild = null;
     },
 
     // ==================== 屏幕⇄世界坐标换算（2026-08-14 重写）====================
