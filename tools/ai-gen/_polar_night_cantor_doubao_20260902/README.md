@@ -11,7 +11,7 @@
 | attack | `videos/polar-night-cantor-attacking-doubao-v01.mp4` | 33 | 1500ms | 只保留源 f47-f95 的一次右向短杖直刺；f0-f46 正面过渡不入正式图集 |
 | death | `videos/polar-night-cantor-dying-doubao-v01.mp4` | 41 | 2500ms | 源 f12-f72 的单次不可逆倒地，f64 后稳定停尸 |
 
-本地生成归档中的正式图集位于 `spritesheets/formal-final/`，直接预览位于 `previews/sprites/formal-final/<action>/`；Git 只保存最终提示词、清单/构建脚本、源视频 sidecar 和 `assets/enemies/polar_night_cantor/` 运行时 PNG，MP4、GIF、联系图与可重建中间表按仓库整理规则不入库。四组图集解码合计 29.5039MiB，低于 crowd 32MiB 目标；无空帧、贴边帧或透明区脏 RGB，原始关键帧保留在 RIFE 输出偶数位。
+本地生成归档中的正式图集位于 `spritesheets/formal-final/`，直接预览位于 `previews/sprites/formal-final/<action>/`；Git 归档最终提示词、清单/构建脚本、获准 MP4 与 sidecar、正式图集、最终 GIF/联系图、RIFE 报告和 `assets/enemies/polar_night_cantor/` 运行时 PNG。四组图集解码合计 29.5039MiB，低于 crowd 32MiB 目标；无空帧、贴边帧或透明区脏 RGB，原始关键帧保留在 RIFE 输出偶数位。
 
 ## 方向与身份
 

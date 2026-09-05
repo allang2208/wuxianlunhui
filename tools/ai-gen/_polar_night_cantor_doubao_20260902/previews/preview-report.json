@@ -1,0 +1,54 @@
+{
+  "idle": {
+    "video": "videos/polar-night-cantor-idle-doubao-v01.mp4",
+    "gif": "previews/polar-night-cantor-idle-doubao-v01.gif",
+    "contact": "previews/polar-night-cantor-idle-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  },
+  "running": {
+    "video": "videos/polar-night-cantor-running-doubao-v02.mp4",
+    "gif": "previews/polar-night-cantor-running-doubao-v02.gif",
+    "contact": "previews/polar-night-cantor-running-doubao-v02-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  },
+  "attacking": {
+    "video": "videos/polar-night-cantor-attacking-doubao-v01.mp4",
+    "gif": "previews/polar-night-cantor-attacking-doubao-v01.gif",
+    "contact": "previews/polar-night-cantor-attacking-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  },
+  "dying": {
+    "video": "videos/polar-night-cantor-dying-doubao-v01.mp4",
+    "gif": "previews/polar-night-cantor-dying-doubao-v01.gif",
+    "contact": "previews/polar-night-cantor-dying-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  }
+}
