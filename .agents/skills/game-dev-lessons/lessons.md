@@ -1170,6 +1170,7 @@ this.ai = config.ai || {};
 
 - **不能再用一个 range 包办追击、刹停、起手和伤害**：`approachReach` 是 AI 愿意停下并承诺攻击的距离，
   `impactReach/width` 是精灵在接触姿态实际覆盖的伤害盒。后者通常更短；命中仍要包含目标 footprint，不能退回中心点量距。
+- **多技能领主不能用“当前可施放技能的最大距离”回写基础近战合同**：移动系统会把 `attackRange/attackDistance/basicMelee.approachReach` 当作持续刹车真源；远程、范围和位移技能的 `triggerRange/minTriggerRange` 只应留在动作选择器中。否则所有远程技能冷却时，领主会在最大施法距离提前停车，而选择器又返回无动作，形成“站住但不攻击”。
 - **伤害时钟跟动作帧，不跟通用武器摆动**：逐怪记录 `durationMs/frameCount/contactFrame/activeFrames`，帧号统一 0-based；
   更新时判断累计 dt 是否跨过或覆盖有效窗口，长帧一次跳过整个窗口也要补判，禁止依赖“恰好等于某毫秒”。
 - **锁定语义不变**：起手锁定方向和主目标，接触帧重查承载面、墙体和有向矩形；目标已退出就空挥，不能临时吸附、转身或伤害身后单位。

@@ -8,7 +8,7 @@
 - `runtimeIntegrationActive: false`
 - `userApproved: true`（五个身份母题获准继续制作动画候选）
 - `animationAuthorized: true`
-- V1 未删除、未覆盖；本批为当前推荐的独立创意方向。
+- V1 已被本批独立创意方向取代，不再作为正式归档内容保留。
 - 没有改 `enemy-config.json`、地牢池、怪物注册表或任何运行时代码。
 
 ## 五个独立母题
@@ -66,3 +66,9 @@ v02 定向修正另生成 3 条 H3：驮城兽把完整冲撞拆为原地 `plow_
 - 正式动作取源 `f0..f104` 的偶数帧，共 53 张 BiRefNet 透明原生键；排除 `f105..f120` 停留尾。一次性非回绕 RIFE 2× 后得到 105 帧、4333ms，单格 `384x256`、7 列 x 15 行、图集 `2688x3840`。
 - 0-based 相位为 `hold_prepare 0..12 -> spread_and_lock 13..32 -> tension_hold 33..50 -> cross_and_reel 51..58 -> hold_pull 59..78 -> release 79..96 -> recover 97..104`。`f32` 触发外部命线，`f58` 复查 LOS 并触发外部拉拽，两事件相隔 1083ms；1-based 消费者对应第 33/59 帧。
 - 正式包见 `animation/formal/aurora-fate-weaver/tether-body/spritesheet-manifest.json`。织命母目前三张正式本体表合计解码 RGBA 约 `94.7188 MiB`，仍低于 Boss 128 MiB 目标。至多三个目标的选择、命线 VFX、LOS 复查、140 单位位移和运行时状态机仍冻结。
+
+## 2026-09-05 归档清理
+
+- 保留五张获准母图、已通过门禁的正式动作包、正式源视频、主联系表/GIF和生成来源记录。
+- 删除六组 manifest 已明确判废的动画及其派生预览、两张失败拓扑参考、已被新版替代的方向源、BiRefNet 探针缓存和重复 RIFE 工具预览；这些内容均为拒绝稿或可由保留源重新生成的中间产物。
+- 拒绝原因仍保存在 `manifest.json` 的状态与审查文字中，并以 `rejectedMediaPruned` 标记对应实物已清理；地渊喉与冻日核骸继续冻结，不能因文件精简而越过动画门禁。
