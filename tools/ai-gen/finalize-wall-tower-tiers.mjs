@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Tight-crop the adopted wall-tower renders into runtime assets and thumbnails. */
+/** Tight-crop the five Blender wall-tower renders and derive panel previews. */
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -128,6 +128,36 @@ function contain(source, width, height, padding = 3) {
     return output;
 }
 
+function composeReview(images) {
+    const panelW = 240, panelH = 340, gap = 12;
+    const output = new PNG({ width: images.length * panelW + (images.length + 1) * gap,
+        height: panelH + gap * 2 });
+    for (let i = 0; i < output.data.length; i += 4) {
+        output.data[i] = 24; output.data[i + 1] = 27;
+        output.data[i + 2] = 31; output.data[i + 3] = 255;
+    }
+    images.forEach((image, index) => {
+        const panel = contain(image, panelW, panelH, 8);
+        const ox = gap + index * (panelW + gap);
+        const oy = gap;
+        for (let y = 0; y < panelH; y++) {
+            for (let x = 0; x < panelW; x++) {
+                const srcIndex = (y * panelW + x) * 4;
+                const dstIndex = ((oy + y) * output.width + ox + x) * 4;
+                const a = panel.data[srcIndex + 3] / 255;
+                for (let channel = 0; channel < 3; channel++) {
+                    output.data[dstIndex + channel] = Math.round(
+                        panel.data[srcIndex + channel] * a
+                        + output.data[dstIndex + channel] * (1 - a));
+                }
+            }
+        }
+    });
+    return output;
+}
+
+const reviewImages = [];
+const foregroundReviewImages = [];
 for (const tier of tiers) {
     const sourcePath = path.join(sourceDir, `wall_tower_${tier}_raw.png`);
     const source = readPng(sourcePath);
@@ -171,8 +201,15 @@ for (const tier of tiers) {
     };
     fs.writeFileSync(path.join(sourceDir, `wall_tower_${tier}_runtime.json`),
         `${JSON.stringify(metadata, null, 2)}\n`);
+    reviewImages.push(output);
+    foregroundReviewImages.push(foreground);
 }
 
+writePng(path.join(sourceDir, 'wall_tower_tier_review.png'), composeReview(reviewImages));
+writePng(path.join(sourceDir, 'wall_tower_foreground_review.png'),
+    composeReview(foregroundReviewImages));
 fs.copyFileSync(path.join(thumbnailDir, 'wall_tower_sand.png'),
     path.join(thumbnailDir, 'wall_tower.png'));
-console.log(JSON.stringify({ tiers, displayWidth, terrainDir, thumbnailDir }, null, 2));
+console.log(JSON.stringify({ tiers, displayWidth,
+    review: path.join(sourceDir, 'wall_tower_tier_review.png'),
+    foregroundReview: path.join(sourceDir, 'wall_tower_foreground_review.png') }, null, 2));

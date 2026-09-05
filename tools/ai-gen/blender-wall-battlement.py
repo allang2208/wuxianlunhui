@@ -61,22 +61,16 @@ def placeholder_materials(spec):
 
 
 def add_module(collection, parent, name, variant, dims, mats, location=(0, 0, 0)):
-    height = float(dims[f"{variant}Height"])
+    logical_height = float(dims[f"{variant}Height"])
+    height = float(dims.get(
+        f"visual{variant[0].upper() + variant[1:]}Height", logical_height))
     side = float(dims["segmentSide"])
     wall_height = float(dims["wallHeight"])
     base_h = min(float(dims["baseCourseHeight"]), height / 3)
     cap_h = min(float(dims["capCourseHeight"]), height / 3)
-    body_h = max(2.0, height - base_h - cap_h)
-    inset = float(dims["bodyInset"])
-    cap_outward = float(dims["capOutwardOverhang"])
     crown_band_h = float(dims["crownBandHeight"])
-    crown_band_outward = float(dims["crownBandOutwardOverhang"])
     datum_band_h = float(dims["wallDatumBandHeight"])
-    datum_band_outward = float(dims["wallDatumBandOutwardOverhang"])
     groove_h = float(dims["separationGrooveHeight"])
-    groove_outward = float(dims["separationGrooveOutwardOverhang"])
-    pilaster_w = float(dims["upperPilasterWidth"])
-    pilaster_projection = float(dims["upperPilasterProjection"])
 
     root = bpy.data.objects.new(name, None)
     collection.objects.link(root)
@@ -86,40 +80,43 @@ def add_module(collection, parent, name, variant, dims, mats, location=(0, 0, 0)
     root["footprintSide"] = side
     root["logicalFootprintAreaCells"] = (side * side) / float(dims["cell"] ** 2)
     root["totalHeight"] = height
-    root["heightAboveWall"] = height - wall_height
+    root["logicalCoverHeight"] = logical_height
+    root["heightAboveWall"] = logical_height - wall_height
+    root["visualHeightAboveWall"] = height - wall_height
     root["standardWallHeight"] = wall_height
 
     kit.box(collection, root, name + "_BaseCourse",
             (side, side, base_h), (0, 0, base_h / 2), mats["trim"],
             bevel_width=1.6)
-    kit.box(collection, root, name + "_Body",
-            (side - inset * 2, side - inset * 2, body_h),
-            (0, 0, base_h + body_h / 2), mats["body"],
+    # 高低段只允许 Z 高度不同。所有砌筑层共用完全相同的 64x64 横截面，
+    # 通过逐层堆叠而非重叠外挑表达横带，避免矮段顶帽在接缝处挤入相邻高段。
+    lower_body_top = wall_height - groove_h
+    lower_body_h = max(2.0, lower_body_top - base_h)
+    kit.box(collection, root, name + "_LowerBody",
+            (side, side, lower_body_h),
+            (0, 0, base_h + lower_body_h / 2), mats["body"],
             bevel_width=1.8)
     kit.box(collection, root, name + "_SeparationGroove",
-            (side, side + groove_outward * 2, groove_h),
+            (side, side, groove_h),
             (0, 0, wall_height - groove_h / 2), mats["groove"],
             bevel_width=0.35)
     kit.box(collection, root, name + "_WallDatumBand",
-            (side, side + datum_band_outward * 2, datum_band_h),
+            (side, side, datum_band_h),
             (0, 0, wall_height + datum_band_h / 2), mats["trim"],
             bevel_width=0.9)
     upper_start = wall_height + datum_band_h
     upper_end = height - cap_h - crown_band_h
-    pilaster_h = max(4.0, upper_end - upper_start)
-    front_y = -side / 2 - pilaster_projection / 2
-    for suffix, x in (("Left", -side / 2 + pilaster_w / 2),
-                      ("Right", side / 2 - pilaster_w / 2)):
-        kit.box(collection, root, name + f"_UpperPilaster{suffix}",
-                (pilaster_w, pilaster_projection, pilaster_h),
-                (x, front_y, upper_start + pilaster_h / 2), mats["trim"],
-                bevel_width=0.65)
+    upper_body_h = max(2.0, upper_end - upper_start)
+    kit.box(collection, root, name + "_UpperBody",
+            (side, side, upper_body_h),
+            (0, 0, upper_start + upper_body_h / 2), mats["body"],
+            bevel_width=1.25)
     kit.box(collection, root, name + "_CrownBand",
-            (side, side + crown_band_outward * 2, crown_band_h),
+            (side, side, crown_band_h),
             (0, 0, height - cap_h - crown_band_h / 2), mats["trim"],
             bevel_width=0.9)
     kit.box(collection, root, name + "_CapCourse",
-            (side, side + cap_outward * 2, cap_h),
+            (side, side, cap_h),
             (0, 0, height - cap_h / 2), mats["trim"],
             bevel_width=1.8)
     return root
