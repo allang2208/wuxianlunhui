@@ -1,0 +1,22 @@
+{
+  "source": "../_mine_wall_pbr_kit_v2_20260830/mine_wall_and_gate_pbr_v2.blend",
+  "camera": "IsometricCamera_2to1",
+  "groups": {
+    "b": [
+      "Sparse iron seam",
+      "Short mineral branch"
+    ],
+    "c": [
+      "Embedded pit prop",
+      "Restrained iron collar",
+      "Restrained iron collar.001",
+      "Embedded pit prop.001",
+      "Restrained iron collar.002",
+      "Restrained iron collar.003",
+      "Front lintel within crown",
+      "Short diagonal brace",
+      "Side pit prop",
+      "Side lintel"
+    ]
+  }
+}

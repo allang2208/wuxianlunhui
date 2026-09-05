@@ -1,0 +1,26 @@
+{
+  "date": "2026-08-30",
+  "batch": 4,
+  "request": "request.json",
+  "stage": "variant 02 approved by user for refinement, not runtime installation",
+  "refinementApproval": "同意入精修",
+  "refinementBatch": "../_mine_wall_a_dev_refine_20260830/request.json",
+  "recommendedVariant": 2,
+  "recommendedSeed": 122083041,
+  "approved": false,
+  "runtimeInstalled": false,
+  "viewed": ["all three raws", "wall_a_dev_candidates.png", "wall_a_structure_v02_seams.png", "original depth control"],
+  "variants": [
+    {"id": 1, "decision": "reject", "reason": "upper and lower rock relief reads as separate bands"},
+    {"id": 2, "decision": "retain for refinement, not final acceptance", "reason": "continuous mineral surfaces without masonry, wooden panels or engraved grids; source-color restoration reduces edge hue bands"},
+    {"id": 3, "decision": "reject", "reason": "upper and lower bands remain visually dominant"}
+  ],
+  "postprocess": "Exact source alpha and silhouette collar; per-channel masked low-frequency RGB restoration; native geometry/display/groundCenter unchanged",
+  "limitations": [
+    "Repeated mineral patches remain visible in a long single-variant wall",
+    "Raw contains a background shadow removed only by source alpha",
+    "Not 48-step refinement, not B/C or gate art, not runtime acceptance"
+  ],
+  "correctionToEarlierReview": "Authored depth already contains upper transitions and lower toe flare; AI exaggerates these. Not every visible band is invented from scratch.",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}

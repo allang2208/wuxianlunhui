@@ -1,0 +1,16 @@
+{
+  "status": "explicitly authorized; all four Dev48 candidates generated and processed; no material installation",
+  "blocker": null,
+  "destination": "192.168.3.142:8188",
+  "preparedPayloads": [
+    "supports/init_green.png",
+    "supports/depth_control.png",
+    "supports/prompt.txt",
+    "gate/init_green.png",
+    "gate/depth_control.png",
+    "gate/prompt.txt"
+  ],
+  "parameters": "flux2-dev-depth; 48 configured steps; denoise0.30; Depth0.75; two candidates per asset",
+  "excluded": "blend files, repository, credentials or unrelated material",
+  "safeWorkCompleted": "local accepted A-rock material continuation to B/C; native modeled components and gate retained; offline wall/gate previews"
+}

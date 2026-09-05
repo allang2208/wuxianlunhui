@@ -63,6 +63,10 @@ def gate_slice_image(image: Image.Image, x0: int, x1: int) -> Image.Image:
 
 
 def main():
+    manifest_path = SOURCE_DIR / "manifest.json"
+    previous = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    if previous.get("supersededBy"):
+        raise RuntimeError("Legacy wall installer retired; use tools/ai-gen/install-mine-wall-pbr-kit-v2.py")
     geometry_path = SOURCE_DIR / "geometry.json"
     if not geometry_path.exists():
         raise FileNotFoundError("run abandoned-mine-wall-kit-blender.py first")

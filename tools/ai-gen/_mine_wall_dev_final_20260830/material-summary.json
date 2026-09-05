@@ -1,0 +1,53 @@
+{
+  "method": "sRGB luminance over alpha > 200; output material metadata, not runtime lighting",
+  "walls": {
+    "a": {
+      "size": [
+        1024,
+        1024
+      ],
+      "alphaBBox": [
+        199,
+        100,
+        825,
+        918
+      ],
+      "bodyMedian": 0.15434117647058826,
+      "bodyMean": 0.17528419996692093
+    },
+    "b": {
+      "size": [
+        1024,
+        1024
+      ],
+      "alphaBBox": [
+        199,
+        100,
+        825,
+        918
+      ],
+      "bodyMedian": 0.15464470588235293,
+      "bodyMean": 0.17566613628282812
+    },
+    "c": {
+      "size": [
+        1024,
+        1024
+      ],
+      "alphaBBox": [
+        199,
+        100,
+        825,
+        918
+      ],
+      "bodyMedian": 0.1512737254901961,
+      "bodyMean": 0.17043012904233973
+    }
+  },
+  "medianSpread": 0.0033709803921568304,
+  "meanSpread": 0.005236007240488394,
+  "guideline": {
+    "medianSpread": 0.01,
+    "meanSpread": 0.015
+  }
+}

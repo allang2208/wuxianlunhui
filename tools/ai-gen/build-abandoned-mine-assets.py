@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Rebuild the accepted abandoned-mine continuous floor.
 
-Walls and the lift gate are owned by abandoned-mine-wall-kit-blender.py and
-the corresponding finalizer.  This script deliberately has no wall/gate
+Walls and the lift gate are owned by build-mine-wall-pbr-kit-v2.py and
+install-mine-wall-pbr-kit-v2.py. This script deliberately has no wall/gate
 outputs, so rerunning the floor pipeline cannot overwrite modeled assets.
 """
 
@@ -79,7 +79,7 @@ def main() -> None:
                 "sha256": sha256(FLOOR_OUTPUT),
             }
         },
-        "modeledWallKit": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/manifest.json",
+        "modeledWallKit": "tools/ai-gen/_mine_wall_pbr_kit_v2_20260830/manifest.json",
     }
     MANIFEST_OUTPUT.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

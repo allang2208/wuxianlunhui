@@ -1,0 +1,119 @@
+{
+  "stage": "historical v2 source; rock materials superseded, native wood/gate retained by successor",
+  "runtimeInstalled": false,
+  "model": "mine_wall_and_gate_pbr_v2.blend",
+  "geometry": "geometry.json",
+  "materialSummary": "material-summary.json",
+  "walls": {
+    "a": {
+      "beauty": "wall_a.png",
+      "alpha": "wall_a_alpha.png",
+      "bodyDepth": "wall_a_body_depth.png"
+    },
+    "b": {
+      "beauty": "wall_b.png",
+      "alpha": "wall_b_alpha.png",
+      "bodyDepth": "wall_b_body_depth.png"
+    },
+    "c": {
+      "beauty": "wall_c.png",
+      "alpha": "wall_c_alpha.png",
+      "bodyDepth": "wall_c_body_depth.png"
+    }
+  },
+  "gate": {
+    "sheet": "abandoned_mine_gate.png",
+    "frameSize": [
+      640,
+      640
+    ],
+    "frames": 16,
+    "frameDir": "gate_frames",
+    "alphaDir": "gate_alpha",
+    "depthDir": "gate_depth",
+    "motion": "geometry.json gateMotion",
+    "animationMs": 900,
+    "hideWhenOpen": true
+  },
+  "albedo": {
+    "file": "slate_albedo_imagegen.png",
+    "provider": "built-in imagegen",
+    "actualSize": [
+      1254,
+      1254
+    ],
+    "promptFile": "slate-albedo-prompt.txt",
+    "generatedSource": "C:/Users/allan/.codex/generated_images/01a0503a-ea76-7b41-93cb-8be0380b0688/exec-84ba1c3b-4700-48cb-a8f4-a149e293fb44.png",
+    "use": "Base Color only, shared shader mirror period; not AI wall-image refinement or displacement",
+    "reusedFrom": "../_mine_wall_pbr_kit_20260830/slate_albedo_imagegen.png",
+    "newImageGeneration": false
+  },
+  "previews": [
+    "wall-gate-contact.png",
+    "wall-revision-comparison.png",
+    "wall-gate-seams.png",
+    "wall-gate-animation.gif"
+  ],
+  "knownLimits": [
+    "A finite three-variant set remains recognizable at long distances",
+    "Original 640px gate canvas clips the raised leaf as before; fully open state hides it",
+    "Gate negative axis uses existing flipX mapping, not a newly rendered camera view",
+    "No game tests or runtime acceptance performed; original raised-gate cropping remains."
+  ],
+  "acceptedOn": "2026-08-30",
+  "approval": "User approved the displayed v2 kit and requested continuation to installation.",
+  "installer": "tools/ai-gen/install-mine-wall-pbr-kit-v2.py",
+  "installed": {
+    "abandoned_mine_wall_block_a": {
+      "path": "assets/terrain/abandoned_mine_wall_block_a.png",
+      "source": "wall_a.png",
+      "sha256": "7deab43fc74a38e6237c8d1194499291b47bf36ec2b4c7cda40a11f1bc705ad5",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "abandoned_mine_wall_block_b": {
+      "path": "assets/terrain/abandoned_mine_wall_block_b.png",
+      "source": "wall_b.png",
+      "sha256": "937257bbd9c21b48278d39bda4fcd5ee636fc7d0254eeb3df80dba7739631527",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "abandoned_mine_wall_block_c": {
+      "path": "assets/terrain/abandoned_mine_wall_block_c.png",
+      "source": "wall_c.png",
+      "sha256": "0115e3df046d5ac028f8e845f6b4e5ce2ad59c54e5efb43b0d4055dc9f0eb131",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "abandoned_mine_gate": {
+      "path": "assets/terrain/abandoned_mine_gate.png",
+      "source": "abandoned_mine_gate.png",
+      "sha256": "9d00d2e8b7ba0fb128b02d5044ccc67e77402a5a95f752cbd55a8c1ccee381ca",
+      "sheetSize": [
+        2560,
+        2560
+      ],
+      "frameSize": [
+        640,
+        640
+      ],
+      "frames": 16
+    }
+  },
+  "installationRecord": "Last explicit installation; rebuilding source PNGs does not update runtime files.",
+  "previousSource": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/final_12step/manifest.json",
+  "variantPolicy": {
+    "selection": "existing deterministic grid-coordinate selection",
+    "allowBlockFlipX": false,
+    "positionJitter": false,
+    "scaleJitter": false,
+    "rotationJitter": false
+  },
+  "supersededBy": "tools/ai-gen/_mine_wall_dev_final_20260830/manifest.json"
+}

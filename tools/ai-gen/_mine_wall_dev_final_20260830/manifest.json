@@ -1,0 +1,68 @@
+{
+  "stage": "Historical Dev v2 installation, superseded by Dev v3 wall/gate PNGs",
+  "runtimeInstalled": false,
+  "approvedRockSource": "../_mine_wall_a_dev_refine_20260830/wall_a_refine_v01_candidate.png",
+  "approval": "同意，然后继续",
+  "model": "../_mine_wall_pbr_kit_v2_20260830/mine_wall_and_gate_pbr_v2.blend",
+  "geometry": "geometry.json",
+  "stoneMapping": "stone-source.json",
+  "componentMasks": "component-mask-source.json",
+  "materialSummary": "material-summary.json",
+  "walls": {
+    "a": "wall_a.png",
+    "b": "wall_b.png",
+    "c": "wall_c.png"
+  },
+  "gate": {
+    "sheet": "abandoned_mine_gate.png",
+    "source": "../_mine_wall_pbr_kit_v2_20260830/abandoned_mine_gate.png",
+    "unchangedNativePBR": true,
+    "frameSize": [
+      640,
+      640
+    ],
+    "frames": 16
+  },
+  "pending": "wood/gate final material selection; runtime animation fix already implemented independently",
+  "previews": [
+    "wall-gate-contact.png",
+    "wall-gate-seams.png",
+    "wall-gate-animation.gif"
+  ],
+  "knownLimits": [
+    "Finite three-variant material and modeled relief repeat",
+    "Legacy gate sheet raised frames remain clipped but runtime now moves complete frame0 with a top fade",
+    "Offline rendering is not runtime acceptance"
+  ],
+  "tests": "未运行测试或运行时验证，按约定由用户测试。",
+  "installed": {
+    "abandoned_mine_wall_block_a": {
+      "path": "assets/terrain/abandoned_mine_wall_block_a.png",
+      "source": "wall_a.png",
+      "sha256": "f2ef04f64da5f0a214437a6edc6276074ffd6b0fe7f01b5f6dbca07f50491d2d",
+      "nativeGateUnchanged": false
+    },
+    "abandoned_mine_wall_block_b": {
+      "path": "assets/terrain/abandoned_mine_wall_block_b.png",
+      "source": "wall_b.png",
+      "sha256": "e9fd069da492cce8a711b7688dbcbd51215c7fc6104dbfc02ec66c772e12943a",
+      "nativeGateUnchanged": false
+    },
+    "abandoned_mine_wall_block_c": {
+      "path": "assets/terrain/abandoned_mine_wall_block_c.png",
+      "source": "wall_c.png",
+      "sha256": "80330d394c49921c4dd3a33afa77036a9315382bd96859fe040ff91314700319",
+      "nativeGateUnchanged": false
+    },
+    "abandoned_mine_gate": {
+      "path": "assets/terrain/abandoned_mine_gate.png",
+      "source": "abandoned_mine_gate.png",
+      "sha256": "9d00d2e8b7ba0fb128b02d5044ccc67e77402a5a95f752cbd55a8c1ccee381ca",
+      "nativeGateUnchanged": true
+    }
+  },
+  "installer": "tools/ai-gen/mine-dev-finish-kit.py install",
+  "acceptedOn": "2026-08-30",
+  "currentGateMotion": "../_mine_gate_fade_20260830/manifest.json",
+  "supersededBy": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/installation.json"
+}

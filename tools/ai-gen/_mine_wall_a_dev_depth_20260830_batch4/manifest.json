@@ -1,0 +1,52 @@
+{
+  "stage": "variant 02 approved by user for refinement; not approved for installation",
+  "refinementApproval": "同意入精修",
+  "refinementBatch": "../_mine_wall_a_dev_refine_20260830/request.json",
+  "review": "review.json",
+  "recommendedVariant": 2,
+  "runtimeInstalled": false,
+  "approved": false,
+  "request": "request.json",
+  "provider": "remote ComfyUI",
+  "model": "flux2-dev-depth",
+  "controlNetUsed": true,
+  "exactAlphaSource": "../_mine_wall_pbr_kit_v2_20260830/wall_a.png",
+  "size": [
+    1024,
+    1024
+  ],
+  "preserveGeometry": true,
+  "postprocess": "exact authored alpha; native masked low-frequency RGB; original silhouette RGB collar; 0.85 material blend",
+  "nativeColorMatched": true,
+  "lowFrequencyChannels": "RGB",
+  "preview": "wall_a_dev_candidates.png",
+  "variants": [
+    {
+      "id": 1,
+      "seed": 122083040,
+      "raw": "wall_a_structure_v01_raw.png",
+      "candidate": "wall_a_structure_v01_candidate.png",
+      "seams": "wall_a_structure_v01_seams.png"
+    },
+    {
+      "id": 2,
+      "seed": 122083041,
+      "raw": "wall_a_structure_v02_raw.png",
+      "candidate": "wall_a_structure_v02_candidate.png",
+      "seams": "wall_a_structure_v02_seams.png"
+    },
+    {
+      "id": 3,
+      "seed": 122083042,
+      "raw": "wall_a_structure_v03_raw.png",
+      "candidate": "wall_a_structure_v03_candidate.png",
+      "seams": "wall_a_structure_v03_seams.png"
+    }
+  ],
+  "limitations": [
+    "No 48-step refinement or B/C/gate generation in this batch",
+    "Offline assemblies are not runtime evidence; finite repeats remain",
+    "Original alpha fixes outline, not any internal material hallucination"
+  ],
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}

@@ -1,0 +1,26 @@
+{
+  "stage": "two Dev48 candidates produced; pending final material selection",
+  "runtimeInstalled": false,
+  "approved": false,
+  "source": "_mine_wall_dev_final_20260830/wall_c_stone_base.png",
+  "model": "flux2-dev-depth",
+  "configuredSteps": 48,
+  "denoise": 0.3,
+  "method": "authored alpha and component boundaries; low-frequency RGB matching; 85% interior material",
+  "variants": [
+    {
+      "id": 1,
+      "raw": "supports_v01_raw.png",
+      "candidate": "supports_v01_candidate.png"
+    },
+    {
+      "id": 2,
+      "raw": "supports_v02_raw.png",
+      "candidate": "supports_v02_candidate.png"
+    }
+  ],
+  "preview": "material-review.png",
+  "limits": "Only material refinement; modeled relief and timber shape unchanged. No runtime validation.",
+  "recommendedVariant": 1,
+  "visualReview": "Reviewed both raw and processed candidates: restrained but subtle wood-grain changes; 01 preferred, no final user selection yet. Model geometry unchanged."
+}

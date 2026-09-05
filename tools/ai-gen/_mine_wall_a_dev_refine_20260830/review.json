@@ -1,0 +1,26 @@
+{
+  "date": "2026-08-30",
+  "stage": "variant 01 accepted; periodic material continuation installed as A/B/C rock family",
+  "finalSelectionApproval": "同意，然后继续",
+  "selectedVariant": 1,
+  "derivedKit": "../_mine_wall_dev_final_20260830/manifest.json",
+  "selectedInput": "../_mine_wall_a_dev_depth_20260830_batch4/wall_a_structure_v02_raw.png",
+  "selectedInputSeed": 122083041,
+  "sourceApproval": "同意入精修",
+  "recommendedVariant": 1,
+  "approved": true,
+  "runtimeInstalled": false,
+  "viewed": ["selected 12-step raw", "both 48-step raws", "wall_a_dev_candidates.png", "both dual-axis seam sheets"],
+  "variants": [
+    {"id": 1, "seed": 122083050, "decision": "recommended for final visual selection", "observation": "softer mineral patch transitions; calmer appearance in the offline continuous wall"},
+    {"id": 2, "seed": 122083051, "decision": "alternative", "observation": "more prominent local mineral highlights and stronger surface contrast"}
+  ],
+  "preserved": "source alpha, silhouette collar, canvas, groundCenter, display, wall height and native low-frequency RGB lighting/color",
+  "limitations": [
+    "Repeated material motifs remain in long walls made from one variant",
+    "Source raw shadows are excluded only by authored alpha in the candidate output",
+    "No B/C or gate refinement in this batch",
+    "Offline previews are not runtime, corner or gate-end acceptance"
+  ],
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}
