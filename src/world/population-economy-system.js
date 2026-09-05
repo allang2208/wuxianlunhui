@@ -28,6 +28,7 @@ import {
     getBuildingUpgradeAbility,
 } from './building-upgrade-projects.js';
 import { getFoodProductionWeatherEffect } from './food-production-weather.js';
+import { getGeothermalPowerProfile } from './geothermal-power-profile.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -268,6 +269,21 @@ export const PopulationEconomySystem = {
                 remainMs: Math.max(0, Number(saved.solarPowerUpgrade.remainMs) || 0),
             } : null;
         }
+        if (building._economyType === 'geothermal_power_plant') {
+            building.modules = { ...(saved.geothermalPowerModules || saved.modules || {}) };
+            for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
+                building.modules[moduleId] = clamp(
+                    Math.floor(Number(building.modules[moduleId]) || 0),
+                    0,
+                    Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+                );
+            }
+            building._geothermalPowerUpgrade = saved.geothermalPowerUpgrade ? {
+                moduleId: saved.geothermalPowerUpgrade.moduleId,
+                totalMs: Math.max(1, Number(saved.geothermalPowerUpgrade.totalMs) || 1),
+                remainMs: Math.max(0, Number(saved.geothermalPowerUpgrade.remainMs) || 0),
+            } : null;
+        }
         if (building._economyType === 'computing_center') {
             building.modules = { ...(saved.computingCenterModules || saved.modules || {}) };
             for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
@@ -356,7 +372,7 @@ export const PopulationEconomySystem = {
                 || saved.grandMallModules
                 || saved.workshopModules || saved.armoryModules
                 || saved.resonatorModules || saved.windPowerModules || saved.solarPowerModules
-                || saved.computingCenterModules
+                || saved.geothermalPowerModules || saved.computingCenterModules
                 || saved.hospitalModules || saved.steamModules
                 || saved.tavernModules || saved.oilPowerModules
                 || saved.canneryModules || saved.tradingModules);
@@ -2044,6 +2060,83 @@ export const PopulationEconomySystem = {
         };
     },
 
+    getGeothermalPowerModuleLevel(building, moduleId) {
+        return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
+    },
+
+    getGeothermalPowerUpgradeCost(building, moduleId) {
+        return getBuildingModuleUpgradeCost(building?._cfg, moduleId,
+            this.getGeothermalPowerModuleLevel(building, moduleId));
+    },
+
+    startGeothermalPowerUpgrade(building, moduleId) {
+        if (building?._economyType !== 'geothermal_power_plant' || !building.active || building._sinking) {
+            return { ok: false, reason: '地热电站不可用' };
+        }
+        const module = building._cfg.modules?.[moduleId];
+        if (!module) return { ok: false, reason: '未知升级项目' };
+        if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            return { ok: false, reason: `需要先完成科技：${TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId) || '对应建筑研究'}` };
+        }
+        if (this.getGeothermalPowerModuleLevel(building, moduleId) >= module.maxLevel) {
+            return { ok: false, reason: '升级项目已满级' };
+        }
+        if (building._geothermalPowerUpgrade) return { ok: false, reason: '已有地热项目正在升级' };
+        const cost = this.getGeothermalPowerUpgradeCost(building, moduleId);
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
+        building._geothermalPowerUpgrade = {
+            moduleId,
+            totalMs: Math.max(1, Number(cost.timeMs) || 1),
+            remainMs: Math.max(1, Number(cost.timeMs) || 1),
+        };
+        return { ok: true, cost, moduleId };
+    },
+
+    _updateGeothermalPowerUpgrade(building, dt) {
+        const upgrade = building?._geothermalPowerUpgrade;
+        if (!upgrade) return;
+        upgrade.remainMs = Math.max(0, upgrade.remainMs - Math.max(0, Number(dt) || 0));
+        if (upgrade.remainMs > 0) return;
+        const module = building._cfg.modules?.[upgrade.moduleId];
+        if (module) {
+            building.modules[upgrade.moduleId] = clamp(
+                this.getGeothermalPowerModuleLevel(building, upgrade.moduleId) + 1,
+                0,
+                Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+            );
+        }
+        building._geothermalPowerUpgrade = null;
+    },
+
+    getGeothermalPowerSnapshot(building) {
+        const profile = getGeothermalPowerProfile(building?.modules, building?._assignedWorkers);
+        const laborEfficiency = this.getLaborEfficiency();
+        const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
+        const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('geothermal_power_plant');
+        const productionMultiplier = getProductionResourceMul();
+        const actualEnergyPerSecond = profile.configuredEnergyPerSecond * profile.staffFactor
+            * laborEfficiency * workshopMultiplier * tavernMultiplier;
+        const hasWarehouse = !!EnergyManager?.hasWarehouse?.();
+        const freeEnergyCapacity = (EnergyManager?.getWarehouses?.() || []).reduce((sum, warehouse) =>
+            sum + Math.floor(EnergyManager.getWarehouseFreeCapacity(warehouse)
+                / EnergyManager.getWarehouseEnergyFactor(warehouse)), 0);
+        const warehouseFull = freeEnergyCapacity <= 0;
+        const blockedReason = !hasWarehouse ? '等待当前位面仓库'
+            : profile.staffedCount <= 0 ? '等待地热技师上岗'
+                : laborEfficiency <= 0 ? '人口容量不足'
+                    : warehouseFull ? '仓库已满，能源暂存本栋' : '';
+        return { ...profile, laborEfficiency, workshopMultiplier, tavernMultiplier,
+            productionMultiplier, actualEnergyPerSecond, weatherMultiplier: 1,
+            theoreticalEnergyPerSecond: actualEnergyPerSecond * productionMultiplier,
+            availableEnergyPerSecond: blockedReason ? 0 : actualEnergyPerSecond * productionMultiplier,
+            hasWarehouse, warehouseFull, blockedReason,
+            pendingEnergy: Math.max(0, Number(building?._workProductionRemainder) || 0),
+            storedEnergy: Math.max(0, EnergyManager?.getEnergy?.() || 0),
+            freeEnergyCapacity,
+        };
+    },
+
     updateBuilding(building, dt) {
         if (!building?._economyType || !building.active) return;
         this._updateEconomyLevelUpgrade(building, dt);
@@ -2059,11 +2152,16 @@ export const PopulationEconomySystem = {
         }
         if (building._economyType === 'weather_forecast') return;
         if (building._economyType === 'wind_power_plant'
-            || building._economyType === 'solar_power_plant') {
+            || building._economyType === 'solar_power_plant'
+            || building._economyType === 'geothermal_power_plant') {
             const isSolar = building._economyType === 'solar_power_plant';
-            if (isSolar) this._updateSolarPowerUpgrade(building, elapsedDt);
+            const isGeothermal = building._economyType === 'geothermal_power_plant';
+            if (isGeothermal) this._updateGeothermalPowerUpgrade(building, elapsedDt);
+            else if (isSolar) this._updateSolarPowerUpgrade(building, elapsedDt);
             else this._updateWindPowerUpgrade(building, elapsedDt);
-            const snapshot = isSolar
+            const snapshot = isGeothermal
+                ? this.getGeothermalPowerSnapshot(building)
+                : isSolar
                 ? this.getSolarPowerSnapshot(building)
                 : this.getWindPowerSnapshot(building);
             building._economyWorking = snapshot.actualEnergyPerSecond > 0;

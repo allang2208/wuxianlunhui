@@ -22,6 +22,7 @@ import { TechnologyGate } from '../ui/technology-gate.js';
 import { CONFIG } from '../config/config.js';
 import { buildingArtUrl } from '../config/building-art-revision.js';
 import { SceneManager } from './scene-manager.js';
+import { hasNaturalSunlight } from './scene-sunlight.js';
 import { Renderer } from './renderer.js';
 import { Camera } from './camera.js';
 import { World122TributeSystem } from './world122-tribute-system.js';
@@ -311,7 +312,7 @@ const ECONOMY_BUILD_SECTIONS = Object.freeze([
         label: '能源建筑',
         itemIds: [
             'hamster_hut', 'mining_guild', 'deep_drill', 'steam_power_plant',
-            'wind_power_plant', 'solar_power_plant', 'planar_resonator',
+            'wind_power_plant', 'solar_power_plant', 'geothermal_power_plant', 'planar_resonator',
         ],
     },
     {
@@ -701,6 +702,9 @@ export const BuildingSystem = {
     _featureBuildingBlockReason(item) {
         const cfg = isProducerKind(item) ? PRODUCER_BUILDINGS[item.id] : null;
         if (!cfg) return '';
+        if (cfg.requiresNaturalSunlight && !hasNaturalSunlight(SceneManager.currentScene)) {
+            return '需要有自然阳光的位面；地牢、矿洞不可建造光伏电站（普通夜晚不受影响）';
+        }
         if (Array.isArray(cfg.allowedSceneIds) && !cfg.allowedSceneIds.includes(SceneManager.currentScene)) {
             const worldName = cfg.featureWorldId
                 ? (SceneManager.scenes?.[cfg.featureWorldId]?.name || cfg.featureWorldId)

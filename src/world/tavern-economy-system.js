@@ -15,7 +15,7 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const TARGET_ECONOMY_TYPES = new Set([
     'windmill', 'bakery', 'desert_cookhouse', 'frost_smokehouse', 'chain_restaurant', 'cheese_farm',
-    'miner_camp', 'deep_drill', 'steam_power_plant', 'oil_power_plant', 'wind_power_plant', 'solar_power_plant', 'planar_resonator',
+    'miner_camp', 'deep_drill', 'steam_power_plant', 'oil_power_plant', 'wind_power_plant', 'solar_power_plant', 'geothermal_power_plant', 'planar_resonator',
     'cannery', 'trading_company',
     'bank', 'royal_mint', 'grand_mall',
     'research', 'weather_forecast', 'advanced_research',

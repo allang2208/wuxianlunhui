@@ -45,6 +45,7 @@
     "stock_exchange": "gold",
     "steam_power_plant": "energy",
     "oil_power_plant": "energy",
+    "geothermal_power_plant": "energy",
     "deep_drill": "energy",
     "planar_resonator": "energy",
     "research": "energy",

@@ -23,6 +23,7 @@ import {
 import { ResearchSystem } from './research-system.js';
 import { RECRUIT_MODE, normalizeRecruitMode } from './recruit-mode.js';
 import { resolveRecruitmentUnitType } from './recruitment-tier.js';
+import { getGeothermalPowerProfile } from './geothermal-power-profile.js';
 import { getProductionResourceMul } from '../config/tribute-effects.js';
 import {
     getBuildingUpgradeAbility,
@@ -262,6 +263,7 @@ function _economyModuleValue(structure, economyType, moduleId) {
         trading_company: structure?.tradingModules,
         wind_power_plant: structure?.windPowerModules,
         solar_power_plant: structure?.solarPowerModules,
+        geothermal_power_plant: structure?.geothermalPowerModules,
         computing_center: structure?.computingCenterModules,
         tavern: structure?.tavernModules,
         armory: structure?.armoryModules,
@@ -457,7 +459,7 @@ function _workshopEfficiencyMultiplier(target, economyStructures) {
 
 const TAVERN_OUTPUT_TARGETS = new Set([
     'windmill', 'bakery', 'desert_cookhouse', 'frost_smokehouse', 'chain_restaurant', 'cheese_farm',
-    'miner_camp', 'deep_drill', 'steam_power_plant', 'oil_power_plant', 'wind_power_plant', 'solar_power_plant', 'planar_resonator',
+    'miner_camp', 'deep_drill', 'steam_power_plant', 'oil_power_plant', 'wind_power_plant', 'solar_power_plant', 'geothermal_power_plant', 'planar_resonator',
     'cannery', 'trading_company',
     'bank', 'royal_mint', 'grand_mall',
     'research', 'weather_forecast', 'advanced_research',
@@ -1080,6 +1082,7 @@ const LOCAL_MODULE_UPGRADES = [
     ['resonator', 'planar_resonator_economy'],
     ['windPower', 'wind_power_plant_economy'],
     ['solarPower', 'solar_power_plant_economy'],
+    ['geothermalPower', 'geothermal_power_plant_economy'],
     ['computingCenter', 'computing_center_economy'],
     ['weather', 'weather_forecast_analysis'],
 ];
@@ -1144,7 +1147,7 @@ function _createSettlementReport(elapsedMs) {
     return {
         elapsedMs, wavesCleared: [], victory: false, defeated: false,
         energyMined: 0, deepDrillEnergyMined: 0, passiveEnergy: 0, titheEnergy: 0, resonatorEnergyProduced: 0,
-        oilEnergyProduced: 0, windEnergyProduced: 0, solarEnergyProduced: 0,
+        oilEnergyProduced: 0, windEnergyProduced: 0, solarEnergyProduced: 0, geothermalEnergyProduced: 0,
         steamEnergyProduced: 0,
         goldProduced: 0, foodProduced: 0, unitsProduced: 0,
         goldSpentOnOil: 0, energySpentOnCannery: 0, foodSpentOnTrading: 0,
@@ -1710,6 +1713,22 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                     }
                 }
             }
+        } else if (economyType === 'geothermal_power_plant') {
+            const profile = getGeothermalPowerProfile(structure.geothermalPowerModules, assigned);
+            const perCycle = profile.energyPerCycle * profile.conversionRate * profile.staffFactor
+                * laborEfficiency * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * tavernWeightedMultiplier;
+            const tickTotal = perCycle > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs : 0;
+            const cycles = Math.floor(tickTotal / profile.cycleMs);
+            structure.economyTickMs = tickTotal - cycles * profile.cycleMs;
+            const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
+                + perCycle * cycles * getProductionResourceMul();
+            const produced = Math.floor(total);
+            structure.workProductionRemainder = total - produced;
+            const stored = _depositToWarehouses(warehouses, produced);
+            structure.workProductionRemainder += Math.max(0, produced - stored);
+            report.geothermalEnergyProduced += stored;
         } else if (economyType === 'wind_power_plant'
             || economyType === 'solar_power_plant') {
             const isSolar = economyType === 'solar_power_plant';

@@ -62,7 +62,8 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
-import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
+import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon, formatBuildingUpgradeRequirement } from '../ui/panels/building-upgrade-card.js';
+import { renderGeothermalPowerDetails, updateGeothermalPowerDetails, geothermalUpgradeSummary } from '../ui/panels/geothermal-power-details.js';
 import { releaseLightweightProjectImages } from '../ui/dom-project-image.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { TechnologyGate } from '../ui/technology-gate.js';
@@ -252,6 +253,12 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     jungle_priest: '丛林祭司',
     desert_priest: '沙漠僧侣',
 });
+
+function resolveUpgradeTechnologyName(config, fallback = '对应建筑研究') {
+    const moduleId = Object.keys(config?.modules || {})[0];
+    if (!moduleId) return fallback;
+    return TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId) || fallback;
+}
 
 function renderTroopUnitIcon(unitKind, modifier = '') {
     const iconPath = getHamsterUnitIcon(unitKind);
@@ -2182,6 +2189,19 @@ class ProducerBuildingPanel extends BasePanel {
                     if (bar) bar.style.width = `${pct}%`;
                     if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(b._upgrade.remainMs / 1000)}s）`;
                 }
+            } else if (b._economyType === 'geothermal_power_plant') {
+                updateGeothermalPowerDetails(el, PopulationEconomySystem.getGeothermalPowerSnapshot(b), b._cfg);
+                const upgrade = b._geothermalPowerUpgrade;
+                if (upgrade) {
+                    const pct = Math.max(0, Math.min(100,
+                        Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)));
+                    const bar = el.querySelector(`#pbUpgradeBar_${upgrade.moduleId}`);
+                    const text = el.querySelector(`#pbUpgradeText_${upgrade.moduleId}`);
+                    if (bar) bar.style.width = `${pct}%`;
+                    if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(upgrade.remainMs / 1000)}s）`;
+                } else if (el.querySelector('[data-geothermal-upgrading="true"]')) {
+                    this.refresh();
+                }
             } else if (b._economyType === 'oil_power_plant'
                 || b._economyType === 'cannery'
                 || b._economyType === 'trading_company') {
@@ -3064,6 +3084,7 @@ class ProducerBuildingPanel extends BasePanel {
             trading_company: '消耗仓库食物，通过外贸合同结算金币',
             wind_power_plant: '无燃料风力能源生产',
             solar_power_plant: '无燃料光伏能源生产',
+            geothermal_power_plant: '无日照、无燃料的地热能源生产',
             deep_drill: '矿脉覆盖建造与范围自动采掘',
             tavern: '酒保取粮与全位面宴饮增效',
             grand_mall: '覆盖人口商业产金与按秒能源消耗',
@@ -3749,6 +3770,8 @@ class ProducerBuildingPanel extends BasePanel {
                     row.addEventListener('mouseleave', () => this._hideAbilityTip());
                 });
                 TechnologyGate.bindTree(modBox);
+            } else if (cfg.economyType === 'geothermal_power_plant') {
+                this._renderGeothermalPowerEconomy(st, modBox, b, cfg);
             } else if (cfg.economyType === 'oil_power_plant'
                 || cfg.economyType === 'cannery'
                 || cfg.economyType === 'trading_company') {
@@ -5050,6 +5073,13 @@ class ProducerBuildingPanel extends BasePanel {
 
     _getEconomySecondaryProgress(building, workforce) {
         if (!building || !workforce) return { label: '本轮生产', pct: 0, text: '0%' };
+        if (building._economyType === 'geothermal_power_plant') {
+            const snapshot = PopulationEconomySystem.getGeothermalPowerSnapshot(building);
+            const efficiency = snapshot.configuredEnergyPerSecond > 0
+                ? snapshot.availableEnergyPerSecond / snapshot.configuredEnergyPerSecond : 0;
+            return { label: '发电效率', pct: Math.round(Math.min(1, efficiency) * 100),
+                text: snapshot.blockedReason || `${(efficiency * 100).toFixed(1)}% · ${snapshot.availableEnergyPerSecond.toFixed(2)} 能源/秒` };
+        }
         if (building._economyType === 'weather_forecast') {
             const snapshot = PopulationEconomySystem.getWeatherForecastResearchSnapshot(building);
             const configured = Math.max(0,
@@ -5427,6 +5457,68 @@ class ProducerBuildingPanel extends BasePanel {
             <div style="margin-top:4px;color:#5a4a2a;">${description}</div>
             <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '天气预测'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
+    }
+
+    _renderGeothermalPowerEconomy(st, modBox, building, cfg) {
+        st.innerHTML = renderGeothermalPowerDetails(
+            PopulationEconomySystem.getGeothermalPowerSnapshot(building), cfg);
+        const upgrade = building._geothermalPowerUpgrade;
+        const rows = Object.entries(cfg.modules || {}).map(([id, module]) => {
+            const level = PopulationEconomySystem.getGeothermalPowerModuleLevel(building, id);
+            const maxed = level >= module.maxLevel;
+            const inProgress = upgrade?.moduleId === id;
+            const unlocked = TechnologySystem.isUnlocked('upgrade', id);
+            return renderBuildingUpgradeCard({
+                economyOwner: building,
+                rowAttribute: 'data-geothermal-row',
+                projectId: id,
+                icon: module.icon,
+                iconImage: module.iconImage,
+                name: module.name,
+                level,
+                maxLevel: module.maxLevel,
+                maxed,
+                cost: PopulationEconomySystem.getGeothermalPowerUpgradeCost(building, id),
+                inProgress,
+                progressPct: inProgress ? (1 - upgrade.remainMs / upgrade.totalMs) * 100 : 0,
+                remainMs: inProgress ? upgrade.remainMs : 0,
+                statusText: geothermalUpgradeSummary(module, level),
+                barId: `pbUpgradeBar_${id}`,
+                textId: `pbUpgradeText_${id}`,
+                actionsHtml: `<button type="button" class="troop-panel-upgrade-button" data-geothermal-upgrade="${id}" data-technology-gate-type="upgrade" data-technology-gate-id="${id}" ${upgrade || maxed || !unlocked ? 'disabled' : ''}>${unlocked ? '升级' : '科技未解锁'}</button>`,
+            }).replace('class="building-upgrade-card"',
+                `class="building-upgrade-card" data-geothermal-upgrading="${inProgress}"`);
+        }).join('');
+        modBox.innerHTML = `${this._renderWorkforceControls(building)}
+            <div class="economy-panel-heading"><span>地热电站升级项目</span><span class="economy-panel-meta">需要科技“${resolveUpgradeTechnologyName(cfg)}”</span></div>${rows}`;
+        this._bindWorkforceControls(modBox);
+        modBox.querySelectorAll('[data-geothermal-upgrade]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const id = button.dataset.geothermalUpgrade;
+                const result = PopulationEconomySystem.startGeothermalPowerUpgrade(building, id);
+                this._notify(result.ok
+                    ? `${cfg.modules[id].name}开始升级（${Math.round(result.cost.timeMs / 1000)}秒）`
+                    : result.reason, result.ok ? '#62bfe8' : '#ff5555');
+                this.refresh();
+            });
+        });
+        modBox.querySelectorAll('[data-geothermal-row]').forEach((row) => {
+            row.addEventListener('mouseenter', (event) => {
+                const id = row.dataset.geothermalRow;
+                const module = cfg.modules[id];
+                const level = PopulationEconomySystem.getGeothermalPowerModuleLevel(building, id);
+                const unlocked = TechnologySystem.isUnlocked('upgrade', id);
+                const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', id);
+                const cost = PopulationEconomySystem.getGeothermalPowerUpgradeCost(building, id);
+                showBuildingUpgradeTooltip(`<div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name} · Lv.${level}/${module.maxLevel}</span></div>
+                    <div>${geothermalUpgradeSummary(module, level)}</div><div>${module.desc}</div>
+                    <div>${unlocked ? (level >= module.maxLevel ? '已满级' : formatBuildingUpgradeRequirement(cost)) : `需要科技：${technologyName || '对应建筑研究'}`}</div>
+                    <div>${level >= module.maxLevel ? '' : `读条时间：${Math.round(cost.timeMs / 1000)}秒；本栋独立生效`}</div>`, event);
+            });
+            row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
+            row.addEventListener('mouseleave', () => this._hideAbilityTip());
+        });
+        TechnologyGate.bindTree(modBox);
     }
 
     _renderIndustrialEconomy(st, modBox, building, cfg, population) {

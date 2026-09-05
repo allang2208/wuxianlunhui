@@ -523,6 +523,13 @@
     "workerEfficiencyShare": 0.2,
     "fullEfficiencyWorkerCount": 5
   },
+  "geothermal_power_plant": {
+    "workerSlots": 3,
+    "workerSlotsModule": "geothermal_maintenance_staff",
+    "workerLabel": "地热技师",
+    "workerEfficiencyShare": 0.2,
+    "fullEfficiencyWorkerCount": 5
+  },
   "armory": {
     "workerSlots": 5,
     "workerSlotsModule": "armory_staff",

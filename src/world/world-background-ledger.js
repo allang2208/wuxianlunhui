@@ -30,6 +30,7 @@ const UPGRADE_FIELDS = Object.freeze([
     'chainRestaurantUpgrade',
     'cheeseFarmUpgrade',
     'windPowerUpgrade',
+    'geothermalPowerUpgrade',
     'resonatorUpgrade',
     'weatherUpgrade',
     'warehouseUpgrade',

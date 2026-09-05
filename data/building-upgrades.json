@@ -386,6 +386,15 @@
       "solar_maintenance_staff": { "name": "光伏编制", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/solar-maintenance-staff.png", "effect": "solarStaffCapacity", "mode": "add", "base": 3, "per": 1, "maxLevel": 2, "goldByLevel": [5200, 8200], "energyByLevel": [4800, 7600], "timeByLevel": [90000, 120000], "desc": "光伏技师岗位 {value} 名" }
     }
   },
+  "geothermal_power_plant_economy": {
+    "moduleUpgrade": { "goldByLevel": [900, 1200, 1600, 2100, 2750, 3550, 4550, 5800, 7400, 9400], "energyByLevel": [1400, 1850, 2400, 3100, 4000, 5100, 6500, 8250, 10400, 13100], "timeBaseMs": 60000, "timeGrowthMs": 6000 },
+    "modules": {
+      "geothermal_closed_loop": { "name": "闭式循环", "icon": "♻️", "iconImage": "assets/ui/building-upgrades/geothermal-closed-loop.png", "effect": "geothermalCycleMs", "mode": "add", "base": 4000, "per": -100, "maxLevel": 10, "desc": "结算周期由4秒缩短至3秒，每级减少0.1秒；不改变岗位效率或单轮产能。" },
+      "geothermal_deep_exchanger": { "name": "深井换热", "icon": "♨️", "iconImage": "assets/ui/building-upgrades/geothermal-deep-exchanger.png", "effect": "geothermalEnergyPerCycle", "mode": "add", "base": 510, "per": 17, "maxLevel": 10, "desc": "单轮原始产能由510提升至680能源，每级增加17；同级保持晴好光伏原始产能的85%。" },
+      "geothermal_heat_recovery": { "name": "余热回收", "icon": "🔋", "iconImage": "assets/ui/building-upgrades/geothermal-heat-recovery.png", "effect": "geothermalConversionRate", "mode": "add", "base": 0.9, "per": 0.01, "maxLevel": 10, "desc": "可用能源转换率由90%提升至100%，每级增加1个百分点；不消耗燃料。" },
+      "geothermal_maintenance_staff": { "name": "地热编制", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/geothermal-maintenance-staff.png", "effect": "geothermalStaffCapacity", "mode": "add", "base": 3, "per": 1, "maxLevel": 2, "goldByLevel": [5200, 8200], "energyByLevel": [4800, 7600], "timeByLevel": [90000, 120000], "desc": "技师岗位由3名扩至5名，每级增加1名；每人固定发挥20%配置产能，扩编后仍需安排人口。" }
+    }
+  },
   "computing_center_economy": {
     "moduleUpgrade": { "goldByLevel": [1200, 1600, 2150, 2850, 3750, 4900, 6350, 8200, 10500, 13400], "energyByLevel": [1800, 2400, 3150, 4100, 5300, 6800, 8700, 11100, 14100, 17900], "timeBaseMs": 75000, "timeGrowthMs": 7500 },
     "modules": {

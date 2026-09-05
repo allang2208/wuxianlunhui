@@ -801,6 +801,13 @@ export function captureWorld(sceneId = 'scene8') {
                 totalMs: p._solarPowerUpgrade.totalMs,
                 remainMs: p._solarPowerUpgrade.remainMs,
             } : null,
+            geothermalPowerModules: p._economyType === 'geothermal_power_plant'
+                ? { ...(p.modules || {}) } : undefined,
+            geothermalPowerUpgrade: p._geothermalPowerUpgrade ? {
+                moduleId: p._geothermalPowerUpgrade.moduleId,
+                totalMs: p._geothermalPowerUpgrade.totalMs,
+                remainMs: p._geothermalPowerUpgrade.remainMs,
+            } : null,
             tavernModules: p._economyType === 'tavern'
                 ? { ...(p.modules || {}) } : undefined,
             tavernUpgrade: p._tavernUpgrade ? {
@@ -1351,6 +1358,10 @@ function _restoreProducer(s, sceneId) {
         tradingUpgrade: s.tradingUpgrade,
         windPowerModules: s.windPowerModules,
         windPowerUpgrade: s.windPowerUpgrade,
+        solarPowerModules: s.solarPowerModules,
+        solarPowerUpgrade: s.solarPowerUpgrade,
+        geothermalPowerModules: s.geothermalPowerModules,
+        geothermalPowerUpgrade: s.geothermalPowerUpgrade,
         tavernModules: s.tavernModules,
         tavernUpgrade: s.tavernUpgrade,
         tavernJob: s.tavernJob,
