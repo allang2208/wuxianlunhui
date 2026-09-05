@@ -45,19 +45,1007 @@
   },
   "scenes": {
     "mainHub": {
+      "walkableArea": {
+        "enabled": true,
+        "version": 1,
+        "comment": "R16：保留现有菱形砖地，按 backdrop.baselineWorldY 切除背景；后排露台石面接入，实体半径与边缘留量共同收缩通行范围。",
+        "edgeInset": 8,
+        "rearTerrace": {
+          "leftX": 4384,
+          "rightX": 7904,
+          "backY": 3302.634
+        }
+      },
       "origin": {
         "x": 6144,
         "y": 4096
       },
+      "playerSpawn": {
+        "x": 6144,
+        "y": 4390
+      },
       "wallThickness": 20,
+      "backdrop": {
+        "enabled": true,
+        "version": 22,
+        "textureKey": "main_hub_summit_backdrop_v01",
+        "assetPath": "assets/scenes/main_hub_summit_backdrop_v01.png",
+        "baselineWorldY": 3396,
+        "baselineRatioFallback": 0.44,
+        "depthOffsetFromTerrain": 0.01,
+        "alpha": 1,
+        "comment": "R22 同构昼暮夜远景；世界基线裁切与 R21 主体位置保持一致。",
+        "variants": {
+          "dusk": {
+            "textureKey": "main_hub_r22_dusk",
+            "assetPath": "assets/scenes/main_hub_atmosphere_r22/dusk.png"
+          },
+          "night": {
+            "textureKey": "main_hub_r22_night",
+            "assetPath": "assets/scenes/main_hub_atmosphere_r22/night.png"
+          }
+        }
+      },
+      "atmosphere": {
+        "enabled": true,
+        "version": 22,
+        "comment": "R22：共用世界昼夜时钟；云雾/远鸟仅在背景裁切内，灯具/台阶微光独立排序，不改变占格和通行。",
+        "clouds": {
+          "enabled": true,
+          "alpha": 0.26
+        },
+        "birds": {
+          "enabled": true,
+          "intervalMs": 64000,
+          "flightMs": 18000
+        },
+        "lights": [
+          {
+            "id": "lamp_01",
+            "x": 5764,
+            "y": 4251,
+            "groundY": 4416,
+            "depth": 4434.01,
+            "radius": 43,
+            "emitterRadius": 18,
+            "alpha": 0.72,
+            "color": 16766362,
+            "poolRadius": 135,
+            "poolAlpha": 0.19,
+            "pulseMs": 1830
+          },
+          {
+            "id": "lamp_02",
+            "x": 6524,
+            "y": 4251,
+            "groundY": 4416,
+            "depth": 4434.01,
+            "radius": 43,
+            "emitterRadius": 18,
+            "alpha": 0.72,
+            "color": 16766362,
+            "poolRadius": 135,
+            "poolAlpha": 0.19,
+            "pulseMs": 1960
+          },
+          {
+            "id": "lamp_03",
+            "x": 4674,
+            "y": 3991,
+            "groundY": 4156,
+            "depth": 4174.01,
+            "radius": 43,
+            "emitterRadius": 18,
+            "alpha": 0.72,
+            "color": 16766362,
+            "poolRadius": 135,
+            "poolAlpha": 0.19,
+            "pulseMs": 2090
+          },
+          {
+            "id": "lamp_04",
+            "x": 7614,
+            "y": 3991,
+            "groundY": 4156,
+            "depth": 4174.01,
+            "radius": 43,
+            "emitterRadius": 18,
+            "alpha": 0.72,
+            "color": 16766362,
+            "poolRadius": 135,
+            "poolAlpha": 0.19,
+            "pulseMs": 2220
+          },
+          {
+            "id": "altar",
+            "x": 6144,
+            "y": 3563,
+            "groundY": 3650,
+            "depth": 3650.01,
+            "radius": 63,
+            "alpha": 0.2,
+            "color": 14733735,
+            "poolRadius": 110,
+            "poolAlpha": 0.09,
+            "pulseMs": 2400
+          },
+          {
+            "id": "portal",
+            "x": 5208,
+            "y": 3915,
+            "groundY": 4085,
+            "depth": 4095.01,
+            "radius": 87,
+            "alpha": 0.29,
+            "color": 7917535,
+            "poolRadius": 145,
+            "poolAlpha": 0.13,
+            "pulseMs": 2100
+          }
+        ],
+        "edgeHighlights": [
+          {
+            "to": [
+              6421,
+              3904.4345
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3904.4345
+            ]
+          },
+          {
+            "to": [
+              6421,
+              3878.1762
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3878.1762
+            ]
+          },
+          {
+            "to": [
+              6421,
+              3851.9178
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3851.9178
+            ]
+          },
+          {
+            "to": [
+              6421,
+              3825.6595
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3825.6595
+            ]
+          },
+          {
+            "to": [
+              6421,
+              3799.4012
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3799.4012
+            ]
+          },
+          {
+            "to": [
+              6421,
+              3773.1428
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3773.1428
+            ]
+          },
+          {
+            "to": [
+              6421,
+              3746.8845
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3746.8845
+            ]
+          },
+          {
+            "to": [
+              6421,
+              3720.6262
+            ],
+            "width": 1.5,
+            "alpha": 0.25,
+            "color": 14083318,
+            "from": [
+              5867,
+              3720.6262
+            ]
+          },
+          {
+            "to": [
+              5770,
+              3480.4092
+            ],
+            "width": 1.4,
+            "alpha": 0.19,
+            "color": 15849377,
+            "from": [
+              5770,
+              3699.9092
+            ]
+          },
+          {
+            "to": [
+              6518,
+              3480.4092
+            ],
+            "width": 1.4,
+            "alpha": 0.19,
+            "color": 15849377,
+            "from": [
+              6518,
+              3699.9092
+            ]
+          },
+          {
+            "to": [
+              6518,
+              3480.4092
+            ],
+            "width": 1.4,
+            "alpha": 0.19,
+            "color": 15849377,
+            "from": [
+              5770,
+              3480.4092
+            ]
+          }
+        ]
+      },
+      "architecture": {
+        "enabled": true,
+        "version": 21,
+        "comment": "R21：R20微抛光白石推广到全场；8格周期、逐块矿物纹方向和光泽差异，均匀天空反光避免重复亮斑。保留R19站位、R16通行范围及独立碰撞/遮挡深度。",
+        "underlay": {
+          "textureKey": "main_hub_v21_terrace",
+          "assetPath": "assets/terrain/main_hub_v21/terrace.png",
+          "displayW": 3529.699883,
+          "displayH": 616.528705,
+          "x": 6144.0,
+          "y": 3609.849585
+        },
+        "occluders": [
+          {
+            "id": "rear_columns",
+            "textureKey": "main_hub_v21_rear_columns",
+            "assetPath": "assets/terrain/main_hub_v21/rear_columns.png",
+            "screenCenterX": 6144.0,
+            "screenCenterY": 3148.914025,
+            "displayW": 3038.814468,
+            "displayH": 585.848366,
+            "depthY": 3443.82932
+          },
+          {
+            "id": "lamp_01",
+            "textureKey": "main_hub_v21_lamp_01",
+            "assetPath": "assets/terrain/main_hub_v21/lamp_01.png",
+            "screenCenterX": 5763.417707,
+            "screenCenterY": 4304.540104,
+            "displayW": 109.572637,
+            "displayH": 252.74755,
+            "depthY": 4434.0
+          },
+          {
+            "id": "lamp_02",
+            "textureKey": "main_hub_v21_lamp_02",
+            "assetPath": "assets/terrain/main_hub_v21/lamp_02.png",
+            "screenCenterX": 6523.851809,
+            "screenCenterY": 4304.540104,
+            "displayW": 111.033606,
+            "displayH": 252.74755,
+            "depthY": 4434.0
+          },
+          {
+            "id": "lamp_03",
+            "textureKey": "main_hub_v21_lamp_03",
+            "assetPath": "assets/terrain/main_hub_v21/lamp_03.png",
+            "screenCenterX": 4673.53521,
+            "screenCenterY": 4044.487712,
+            "displayW": 109.572637,
+            "displayH": 252.74755,
+            "depthY": 4174.0
+          },
+          {
+            "id": "lamp_04",
+            "textureKey": "main_hub_v21_lamp_04",
+            "assetPath": "assets/terrain/main_hub_v21/lamp_04.png",
+            "screenCenterX": 7613.734305,
+            "screenCenterY": 4043.026743,
+            "displayW": 108.111669,
+            "displayH": 252.74755,
+            "depthY": 4174.0
+          },
+          {
+            "id": "return_-1_post_0",
+            "textureKey": "main_hub_v21_return_-1_post_0",
+            "assetPath": "assets/terrain/main_hub_v21/return_-1_post_0.png",
+            "screenCenterX": 4662.577947,
+            "screenCenterY": 3496.624526,
+            "displayW": 70.126488,
+            "displayH": 290.73273,
+            "depthY": 3640.63432
+          },
+          {
+            "id": "return_-1_post_1",
+            "textureKey": "main_hub_v21_return_-1_post_1",
+            "assetPath": "assets/terrain/main_hub_v21/return_-1_post_1.png",
+            "screenCenterX": 4661.847462,
+            "screenCenterY": 3517.078085,
+            "displayW": 68.665519,
+            "displayH": 51.133897,
+            "depthY": 3540.63432
+          },
+          {
+            "id": "return_-1_overhead",
+            "textureKey": "main_hub_v21_return_-1_overhead",
+            "assetPath": "assets/terrain/main_hub_v21/return_-1_overhead.png",
+            "screenCenterX": 4662.577947,
+            "screenCenterY": 3229.267292,
+            "displayW": 113.955543,
+            "displayH": 252.74755,
+            "depthY": 3641.63432
+          },
+          {
+            "id": "return_1_post_1",
+            "textureKey": "main_hub_v21_return_1_post_1",
+            "assetPath": "assets/terrain/main_hub_v21/return_1_post_1.png",
+            "screenCenterX": 7626.152538,
+            "screenCenterY": 3517.078085,
+            "displayW": 68.665519,
+            "displayH": 51.133897,
+            "depthY": 3540.63432
+          },
+          {
+            "id": "return_1_post_2",
+            "textureKey": "main_hub_v21_return_1_post_2",
+            "assetPath": "assets/terrain/main_hub_v21/return_1_post_2.png",
+            "screenCenterX": 7625.422053,
+            "screenCenterY": 3496.624526,
+            "displayW": 70.126488,
+            "displayH": 290.73273,
+            "depthY": 3640.63432
+          },
+          {
+            "id": "return_1_overhead",
+            "textureKey": "main_hub_v21_return_1_overhead",
+            "assetPath": "assets/terrain/main_hub_v21/return_1_overhead.png",
+            "screenCenterX": 7625.422053,
+            "screenCenterY": 3229.267292,
+            "displayW": 113.955543,
+            "displayH": 252.74755,
+            "depthY": 3641.63432
+          },
+          {
+            "id": "rear_edge",
+            "textureKey": "main_hub_v21_rear_edge",
+            "assetPath": "assets/terrain/main_hub_v21/rear_edge.png",
+            "screenCenterX": 6144.0,
+            "screenCenterY": 3275.2878,
+            "displayW": 3482.948891,
+            "displayH": 87.65811,
+            "depthY": 3321.63432
+          },
+          {
+            "id": "outer_edge_-1",
+            "textureKey": "main_hub_v21_outer_edge_-1",
+            "assetPath": "assets/terrain/main_hub_v21/outer_edge_-1.png",
+            "screenCenterX": 4403.986523,
+            "screenCenterY": 3495.894042,
+            "displayW": 70.126488,
+            "displayH": 502.573162,
+            "depthY": 3760.0
+          },
+          {
+            "id": "outer_edge_1",
+            "textureKey": "main_hub_v21_outer_edge_1",
+            "assetPath": "assets/terrain/main_hub_v21/outer_edge_1.png",
+            "screenCenterX": 7884.013477,
+            "screenCenterY": 3495.894042,
+            "displayW": 70.126488,
+            "displayH": 502.573162,
+            "depthY": 3760.0
+          }
+        ],
+        "pieces": [
+          {
+            "id": "v12_shadow_central",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "central",
+                "x": 6144,
+                "y": 3423.829
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 610,
+              "contactPolygon": [
+                [
+                  -500.0,
+                  -40.0
+                ],
+                [
+                  500.0,
+                  -40.0
+                ],
+                [
+                  500.0,
+                  40.0
+                ],
+                [
+                  -500.0,
+                  40.0
+                ]
+              ]
+            }
+          },
+          {
+            "id": "v12_shadow_wings",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "-1",
+                "x": 4974,
+                "y": 3423.829
+              },
+              {
+                "id": "1",
+                "x": 7314,
+                "y": 3423.829
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 350,
+              "contactPolygon": [
+                [
+                  -351.0,
+                  -32.5
+                ],
+                [
+                  351.0,
+                  -32.5
+                ],
+                [
+                  351.0,
+                  32.5
+                ],
+                [
+                  -351.0,
+                  32.5
+                ]
+              ]
+            }
+          },
+          {
+            "id": "v12_shadow_links",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "-1",
+                "x": 5520,
+                "y": 3423.829
+              },
+              {
+                "id": "1",
+                "x": 6768,
+                "y": 3423.829
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 350,
+              "contactPolygon": [
+                [
+                  -234.0,
+                  -20.0
+                ],
+                [
+                  234.0,
+                  -20.0
+                ],
+                [
+                  234.0,
+                  20.0
+                ],
+                [
+                  -234.0,
+                  20.0
+                ]
+              ]
+            }
+          },
+          {
+            "id": "v12_shadow_returns",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "-1",
+                "x": 4662,
+                "y": 3524.634
+              },
+              {
+                "id": "1",
+                "x": 7626,
+                "y": 3524.634
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 345,
+              "contactPolygon": [
+                [
+                  -33.0,
+                  -115.0
+                ],
+                [
+                  33.0,
+                  -115.0
+                ],
+                [
+                  33.0,
+                  115.0
+                ],
+                [
+                  -33.0,
+                  115.0
+                ]
+              ]
+            }
+          },
+          {
+            "id": "v12_shadow_lamps",
+            "shadowOnly": true,
+            "textureKey": "main_hub_v11_shadow_proxy",
+            "assetPath": "assets/terrain/main_hub_v11_shadow_proxy.png",
+            "displayW": 2,
+            "displayH": 2,
+            "footOffsetY": 0,
+            "footprintW": 2,
+            "footprintD": 1,
+            "placements": [
+              {
+                "id": "1",
+                "x": 5764,
+                "y": 4416.0
+              },
+              {
+                "id": "2",
+                "x": 6524,
+                "y": 4416.0
+              },
+              {
+                "id": "3",
+                "x": 4674,
+                "y": 4156.0
+              },
+              {
+                "id": "4",
+                "x": 7614,
+                "y": 4156.0
+              }
+            ],
+            "collision": {
+              "type": "none"
+            },
+            "shadowCaster": {
+              "height": 298,
+              "contactPolygon": [
+                [
+                  -18.0,
+                  -18.0
+                ],
+                [
+                  18.0,
+                  -18.0
+                ],
+                [
+                  18.0,
+                  18.0
+                ],
+                [
+                  -18.0,
+                  18.0
+                ]
+              ]
+            }
+          }
+        ],
+        "collisionProxies": [
+          {
+            "id": "dais_side_-1",
+            "shape": "rect",
+            "x": 5724,
+            "y": 3676.317,
+            "width": 8,
+            "height": 243.366
+          },
+          {
+            "id": "return_inner_side_-1",
+            "shape": "rect",
+            "x": 4784,
+            "y": 3651.317,
+            "width": 8,
+            "height": 193.366
+          },
+          {
+            "id": "dais_side_1",
+            "shape": "rect",
+            "x": 6564,
+            "y": 3676.317,
+            "width": 8,
+            "height": 243.366
+          },
+          {
+            "id": "return_inner_side_1",
+            "shape": "rect",
+            "x": 7504,
+            "y": 3651.317,
+            "width": 8,
+            "height": 193.366
+          },
+          {
+            "id": "rear_boundary",
+            "shape": "rect",
+            "x": 6144,
+            "y": 3304.634,
+            "width": 3520,
+            "height": 30
+          },
+          {
+            "id": "outer_wall_-1",
+            "shape": "rect",
+            "x": 4404,
+            "y": 3479.634,
+            "width": 52,
+            "height": 350
+          },
+          {
+            "id": "rear_post_-1_234",
+            "shape": "circle",
+            "x": 5910,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_390",
+            "shape": "circle",
+            "x": 5754,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_546",
+            "shape": "circle",
+            "x": 5598,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_702",
+            "shape": "circle",
+            "x": 5442,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_858",
+            "shape": "circle",
+            "x": 5286,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_1014",
+            "shape": "circle",
+            "x": 5130,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_1170",
+            "shape": "circle",
+            "x": 4974,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_1326",
+            "shape": "circle",
+            "x": 4818,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_-1_1482",
+            "shape": "circle",
+            "x": 4662,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "return_post_-1_760",
+            "shape": "circle",
+            "x": 4662,
+            "y": 3624.634,
+            "radius": 31
+          },
+          {
+            "id": "return_post_-1_960",
+            "shape": "circle",
+            "x": 4662,
+            "y": 3524.634,
+            "radius": 31
+          },
+          {
+            "id": "wing_front_-1",
+            "shape": "rect",
+            "x": 5254,
+            "y": 3600.317,
+            "width": 940,
+            "height": 91
+          },
+          {
+            "id": "return_front_-1",
+            "shape": "rect",
+            "x": 4584,
+            "y": 3702.317,
+            "width": 400,
+            "height": 91
+          },
+          {
+            "id": "dais_front_cheek_-1",
+            "shape": "rect",
+            "x": 5794,
+            "y": 3752.317,
+            "width": 140,
+            "height": 91
+          },
+          {
+            "id": "stair_side_-1",
+            "shape": "rect",
+            "x": 5828.5,
+            "y": 3811,
+            "width": 75,
+            "height": 210
+          },
+          {
+            "id": "outer_wall_1",
+            "shape": "rect",
+            "x": 7884,
+            "y": 3479.634,
+            "width": 52,
+            "height": 350
+          },
+          {
+            "id": "rear_post_1_234",
+            "shape": "circle",
+            "x": 6378,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_390",
+            "shape": "circle",
+            "x": 6534,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_546",
+            "shape": "circle",
+            "x": 6690,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_702",
+            "shape": "circle",
+            "x": 6846,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_858",
+            "shape": "circle",
+            "x": 7002,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_1014",
+            "shape": "circle",
+            "x": 7158,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_1170",
+            "shape": "circle",
+            "x": 7314,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_1326",
+            "shape": "circle",
+            "x": 7470,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "rear_post_1_1482",
+            "shape": "circle",
+            "x": 7626,
+            "y": 3423.829,
+            "radius": 31
+          },
+          {
+            "id": "return_post_1_760",
+            "shape": "circle",
+            "x": 7626,
+            "y": 3624.634,
+            "radius": 31
+          },
+          {
+            "id": "return_post_1_960",
+            "shape": "circle",
+            "x": 7626,
+            "y": 3524.634,
+            "radius": 31
+          },
+          {
+            "id": "wing_front_1",
+            "shape": "rect",
+            "x": 7034,
+            "y": 3600.317,
+            "width": 940,
+            "height": 91
+          },
+          {
+            "id": "return_front_1",
+            "shape": "rect",
+            "x": 7704,
+            "y": 3702.317,
+            "width": 400,
+            "height": 91
+          },
+          {
+            "id": "dais_front_cheek_1",
+            "shape": "rect",
+            "x": 6494,
+            "y": 3752.317,
+            "width": 140,
+            "height": 91
+          },
+          {
+            "id": "stair_side_1",
+            "shape": "rect",
+            "x": 6459.5,
+            "y": 3811,
+            "width": 75,
+            "height": 210
+          },
+          {
+            "id": "lamp_1",
+            "shape": "circle",
+            "x": 5764,
+            "y": 4416.0,
+            "radius": 24
+          },
+          {
+            "id": "lamp_2",
+            "shape": "circle",
+            "x": 6524,
+            "y": 4416.0,
+            "radius": 24
+          },
+          {
+            "id": "lamp_3",
+            "shape": "circle",
+            "x": 4674,
+            "y": 4156.0,
+            "radius": 24
+          },
+          {
+            "id": "lamp_4",
+            "shape": "circle",
+            "x": 7614,
+            "y": 4156.0,
+            "radius": 24
+          }
+        ]
+      },
       "floor": {
         "tiles": [
-          "hub_brick"
+          "main_hub_v21_plaza"
         ],
         "glow": false,
-        "overlapX": 12,
-        "overlapY": 8,
-        "backgroundColor": "#f4f3ee"
+        "overlapX": 0,
+        "overlapY": 0,
+        "backgroundColor": "#f4f3ee",
+        "continuous": true,
+        "textureScaleY": 1,
+        "textureSources": [
+          {
+            "key": "main_hub_v21_plaza",
+            "path": "assets/terrain/main_hub_v21/plaza.png"
+          }
+        ]
       }
     },
     "main": {
@@ -611,11 +1599,11 @@
   },
   "portals": {
     "mainHub": {
-      "comment": "主神空间使用单座实体传送门建筑；祭坛位于 (5938,3759)，传送门向左间隔 480px，贴图与碰撞均不重叠。",
+      "comment": "R10布局：左前传送门与中央台阶、引导NPC分开，原传送业务保持不变。",
       "building": {
         "cfgKey": "portal",
-        "x": 5458,
-        "y": 3759
+        "x": 5208,
+        "y": 4095
       },
       "cooldownMs": 2000,
       "triggerDistance": 30,
@@ -682,8 +1670,8 @@
   "npcs": {
     "shopMouseKing": {
       "offset": {
-        "x": 120,
-        "y": -150
+        "x": -510,
+        "y": -96
       },
       "name": "小鼠大王",
       "size": 20,
@@ -706,7 +1694,7 @@
       },
       "wander": {
         "comment": "随机移动：以生成点为中心 radius 范围内游走；每次移动后停留 idleMs，移动时长 moveMinMs~moveMaxMs",
-        "radius": 300,
+        "radius": 120,
         "speed": 90,
         "idleMs": 7000,
         "moveMinMs": 2000,
@@ -722,8 +1710,8 @@
     "mouseAttendant": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": -195,
-        "y": -11
+        "x": 1020,
+        "y": 0
       },
       "name": "小鼠侍从",
       "size": 20,
@@ -747,8 +1735,8 @@
     "warehouse": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": 142,
-        "y": -132
+        "x": 1400,
+        "y": -20
       },
       "name": "仓库",
       "size": 20,
@@ -794,8 +1782,8 @@
     "altar": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": -326,
-        "y": -187
+        "x": 510,
+        "y": -350
       },
       "name": "祭坛",
       "size": 24,
@@ -820,8 +1808,8 @@
     "mouseBlacksmith": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": 473,
-        "y": -48
+        "x": 1710,
+        "y": 10
       },
       "name": "小鼠铁匠",
       "size": 20,

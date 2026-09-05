@@ -120,6 +120,7 @@ import {
     CivilianVisualSettings,
 } from '../../world/civilian-visual-runtime.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
+import { MainHubAtmosphere } from '../../world/main-hub-atmosphere.js';
 import { RainWeatherSystem } from '../../world/rain-weather-system.js';
 import { WindblownSandSystem } from '../../world/windblown-sand-system.js';
 import { World122SandstormSystem } from '../../world/world122-sandstorm-system.js';
@@ -478,6 +479,11 @@ export class GameScene extends Scene {
         this._terrainWorldHeight = 0;
         this._mainHubBackdrop = null;
         this._mainHubBackdropKey = null;
+        this._mainHubAtmosphere = new MainHubAtmosphere(this);
+        this.events.once('shutdown', () => {
+            this._mainHubAtmosphere?.destroy();
+            this._mainHubAtmosphere = null;
+        });
         // 2048² 分块地板（世界-122 惰性加载）：key -> Phaser image；待烘焙队列
         this._terrainChunkSprites = new Map();
         this._terrainChunkQueue = [];
@@ -606,7 +612,7 @@ export class GameScene extends Scene {
         const _dms = DungeonMapSystem;
         const isMapMode = SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map';
         this._syncAmbientOverlay(isMapMode);
-        this._syncMainHubBackdrop(isMapMode);
+        this._syncMainHubBackdrop(isMapMode, worldDelta);
         if (isMapMode) {
             this._clearRenderScratchSets();
             // 地图模式下 Phaser 相机背景透明，露出下方 Canvas 绘制的路线地图
@@ -3530,8 +3536,19 @@ export class GameScene extends Scene {
             // 正常：从 Phaser 同步位置到 Player
             // 注意：只同步位置，不同步速度！
             // 把贴图中心坐标转回逻辑脚底坐标
-            Game.player.x = this.playerSprite.x;
-            Game.player.y = this.playerSprite.y + playerShift;
+            if (WallSystem.walkableArea) {
+                const targetX = this.playerSprite.x, targetY = this.playerSprite.y + playerShift;
+                const point = WallSystem.resolveEntityMove(Game.player,
+                    Game.player.x, Game.player.y, targetX, targetY, Game.player.groundRadius);
+                Game.player.x = point.x;
+                Game.player.y = point.y;
+                if (point.x !== targetX || point.y !== targetY) {
+                    this.playerSprite.body.reset(point.x, point.y - playerShift);
+                }
+            } else {
+                Game.player.x = this.playerSprite.x;
+                Game.player.y = this.playerSprite.y + playerShift;
+            }
             this._syncPlayerHandLayer();
             // 边界检查
             if (Game.player.x < -CONFIG.WORLD_WIDTH || Game.player.x > CONFIG.WORLD_WIDTH * 2 ||
@@ -13952,7 +13969,7 @@ export class GameScene extends Scene {
      * 背景以屏幕 cover 方式显示，但裁切底边由世界坐标基线换算，因此玩家移动/缩放时
      * 切口仍跟随后排建筑。它只压在地形上方、道路和所有实体下方，不接收或制造阴影。
      */
-    _syncMainHubBackdrop(isMapMode = false) {
+    _syncMainHubBackdrop(isMapMode = false, deltaMs = 0) {
         const cfg = GAME_CONFIG.scenes?.mainHub?.backdrop;
         const textureKey = cfg?.textureKey;
         const shouldShow = cfg?.enabled === true
@@ -13963,6 +13980,7 @@ export class GameScene extends Scene {
 
         if (!shouldShow) {
             this._mainHubBackdrop?.setVisible(false);
+            this._mainHubAtmosphere?.hide();
             return;
         }
 
@@ -14007,6 +14025,12 @@ export class GameScene extends Scene {
             .setDepth(WORLD_RENDER_LAYERS.TERRAIN + depthOffset)
             .setAlpha(alpha)
             .setVisible(cropH > 0);
+        this._mainHubAtmosphere?.update({
+            backdrop: cfg,
+            config: GAME_CONFIG.scenes?.mainHub?.atmosphere,
+            camera, baselineScreenY, alpha, deltaMs,
+            depth: WORLD_RENDER_LAYERS.TERRAIN + depthOffset,
+        });
     }
 
     /**

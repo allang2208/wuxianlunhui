@@ -1,0 +1,19 @@
+{
+  "material": "R20_PlazaMicroPolished",
+  "runtimeWorldPeriod": [
+    2896,
+    1448
+  ],
+  "sourceWorldPeriod": 2896.309375740099,
+  "worldOriginPhase": [
+    0,
+    0
+  ],
+  "groundProjectionY": 0.5,
+  "periodicColorCells": 8,
+  "quarterTurnMineralSamples": true,
+  "reflection": "uniform angular sky source; no repeated local area-light patch",
+  "microBumpPeriodic": true,
+  "existing5080Seed": 906514,
+  "newAiGenerations": 0
+}

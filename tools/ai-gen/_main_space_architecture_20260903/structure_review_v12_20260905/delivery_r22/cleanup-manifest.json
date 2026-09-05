@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-05",
+  "scope": "Only rejected first-layout presentation images",
+  "deleted": [
+    {
+      "path": "01-overall-preview.png",
+      "bytes": 2088091,
+      "reason": "Superseded rejected first-layout preview; model and source renders retained"
+    },
+    {
+      "path": "02-structure-preview.png",
+      "bytes": 1883460,
+      "reason": "Superseded rejected first-layout preview; model and source renders retained"
+    },
+    {
+      "path": "03-circulation-preview.png",
+      "bytes": 2143818,
+      "reason": "Superseded rejected first-layout preview; model and source renders retained"
+    },
+    {
+      "path": "04-structure-details.png",
+      "bytes": 1634561,
+      "reason": "Superseded rejected first-layout preview; model and source renders retained"
+    },
+    {
+      "path": "context-full-frame.png",
+      "bytes": 3079136,
+      "reason": "Superseded rejected first-layout preview; model and source renders retained"
+    },
+    {
+      "path": "structure-context-full-frame.png",
+      "bytes": 2855426,
+      "reason": "Superseded rejected first-layout preview; model and source renders retained"
+    }
+  ],
+  "preserved": "All editable models, source textures, Depth and subsequent editing inputs; latest R22 preview remains local",
+  "totalBytes": 13684492.0
+}

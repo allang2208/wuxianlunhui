@@ -1,0 +1,305 @@
+{
+  "stage": "development-assets-integrated",
+  "sourceModel": "main-hub-r21-stone.blend",
+  "materialSource": "R20 native materials; existing RTX 5080 seed 906514",
+  "worldPerPixel": 1.4609684944152832,
+  "originPixel": [
+    1536.0,
+    960.759
+  ],
+  "assets": [
+    {
+      "id": "lamp_01",
+      "visual": {
+        "textureKey": "main_hub_v21_lamp_01",
+        "assetPath": "assets/terrain/main_hub_v21/lamp_01.png",
+        "screenCenterX": 5763.417707,
+        "screenCenterY": 4304.540104,
+        "displayW": 109.572637,
+        "displayH": 252.74755
+      },
+      "canvasBounds": [
+        1238,
+        1017,
+        1313,
+        1190
+      ],
+      "source": "raw/lamp_01.png"
+    },
+    {
+      "id": "lamp_02",
+      "visual": {
+        "textureKey": "main_hub_v21_lamp_02",
+        "assetPath": "assets/terrain/main_hub_v21/lamp_02.png",
+        "screenCenterX": 6523.851809,
+        "screenCenterY": 4304.540104,
+        "displayW": 111.033606,
+        "displayH": 252.74755
+      },
+      "canvasBounds": [
+        1758,
+        1017,
+        1834,
+        1190
+      ],
+      "source": "raw/lamp_02.png"
+    },
+    {
+      "id": "lamp_03",
+      "visual": {
+        "textureKey": "main_hub_v21_lamp_03",
+        "assetPath": "assets/terrain/main_hub_v21/lamp_03.png",
+        "screenCenterX": 4673.53521,
+        "screenCenterY": 4044.487712,
+        "displayW": 109.572637,
+        "displayH": 252.74755
+      },
+      "canvasBounds": [
+        492,
+        839,
+        567,
+        1012
+      ],
+      "source": "raw/lamp_03.png"
+    },
+    {
+      "id": "lamp_04",
+      "visual": {
+        "textureKey": "main_hub_v21_lamp_04",
+        "assetPath": "assets/terrain/main_hub_v21/lamp_04.png",
+        "screenCenterX": 7613.734305,
+        "screenCenterY": 4043.026743,
+        "displayW": 108.111669,
+        "displayH": 252.74755
+      },
+      "canvasBounds": [
+        2505,
+        838,
+        2579,
+        1011
+      ],
+      "source": "raw/lamp_04.png"
+    },
+    {
+      "id": "outer_edge_-1",
+      "visual": {
+        "textureKey": "main_hub_v21_outer_edge_-1",
+        "assetPath": "assets/terrain/main_hub_v21/outer_edge_-1.png",
+        "screenCenterX": 4403.986523,
+        "screenCenterY": 3495.894042,
+        "displayW": 70.126488,
+        "displayH": 502.573162
+      },
+      "canvasBounds": [
+        321,
+        378,
+        369,
+        722
+      ],
+      "source": "raw/outer_edge_-1.png"
+    },
+    {
+      "id": "outer_edge_1",
+      "visual": {
+        "textureKey": "main_hub_v21_outer_edge_1",
+        "assetPath": "assets/terrain/main_hub_v21/outer_edge_1.png",
+        "screenCenterX": 7884.013477,
+        "screenCenterY": 3495.894042,
+        "displayW": 70.126488,
+        "displayH": 502.573162
+      },
+      "canvasBounds": [
+        2703,
+        378,
+        2751,
+        722
+      ],
+      "source": "raw/outer_edge_1.png"
+    },
+    {
+      "id": "return_-1_overhead",
+      "visual": {
+        "textureKey": "main_hub_v21_return_-1_overhead",
+        "assetPath": "assets/terrain/main_hub_v21/return_-1_overhead.png",
+        "screenCenterX": 4662.577947,
+        "screenCenterY": 3229.267292,
+        "displayW": 113.955543,
+        "displayH": 252.74755
+      },
+      "canvasBounds": [
+        483,
+        281,
+        561,
+        454
+      ],
+      "source": "raw/return_-1_overhead.png"
+    },
+    {
+      "id": "return_1_overhead",
+      "visual": {
+        "textureKey": "main_hub_v21_return_1_overhead",
+        "assetPath": "assets/terrain/main_hub_v21/return_1_overhead.png",
+        "screenCenterX": 7625.422053,
+        "screenCenterY": 3229.267292,
+        "displayW": 113.955543,
+        "displayH": 252.74755
+      },
+      "canvasBounds": [
+        2511,
+        281,
+        2589,
+        454
+      ],
+      "source": "raw/return_1_overhead.png"
+    },
+    {
+      "id": "return_-1_post_0",
+      "visual": {
+        "textureKey": "main_hub_v21_return_-1_post_0",
+        "assetPath": "assets/terrain/main_hub_v21/return_-1_post_0.png",
+        "screenCenterX": 4662.577947,
+        "screenCenterY": 3496.624526,
+        "displayW": 70.126488,
+        "displayH": 290.73273
+      },
+      "canvasBounds": [
+        498,
+        451,
+        546,
+        650
+      ],
+      "source": "raw/return_-1_post_0.png"
+    },
+    {
+      "id": "return_1_post_2",
+      "visual": {
+        "textureKey": "main_hub_v21_return_1_post_2",
+        "assetPath": "assets/terrain/main_hub_v21/return_1_post_2.png",
+        "screenCenterX": 7625.422053,
+        "screenCenterY": 3496.624526,
+        "displayW": 70.126488,
+        "displayH": 290.73273
+      },
+      "canvasBounds": [
+        2526,
+        451,
+        2574,
+        650
+      ],
+      "source": "raw/return_1_post_2.png"
+    },
+    {
+      "id": "return_-1_post_1",
+      "visual": {
+        "textureKey": "main_hub_v21_return_-1_post_1",
+        "assetPath": "assets/terrain/main_hub_v21/return_-1_post_1.png",
+        "screenCenterX": 4661.847462,
+        "screenCenterY": 3517.078085,
+        "displayW": 68.665519,
+        "displayH": 51.133897
+      },
+      "canvasBounds": [
+        498,
+        547,
+        545,
+        582
+      ],
+      "source": "raw/return_-1_post_1.png"
+    },
+    {
+      "id": "return_1_post_1",
+      "visual": {
+        "textureKey": "main_hub_v21_return_1_post_1",
+        "assetPath": "assets/terrain/main_hub_v21/return_1_post_1.png",
+        "screenCenterX": 7626.152538,
+        "screenCenterY": 3517.078085,
+        "displayW": 68.665519,
+        "displayH": 51.133897
+      },
+      "canvasBounds": [
+        2527,
+        547,
+        2574,
+        582
+      ],
+      "source": "raw/return_1_post_1.png"
+    },
+    {
+      "id": "rear_columns",
+      "visual": {
+        "textureKey": "main_hub_v21_rear_columns",
+        "assetPath": "assets/terrain/main_hub_v21/rear_columns.png",
+        "screenCenterX": 6144.0,
+        "screenCenterY": 3148.914025,
+        "displayW": 3038.814468,
+        "displayH": 585.848366
+      },
+      "canvasBounds": [
+        496,
+        112,
+        2576,
+        513
+      ],
+      "source": "raw/rear_columns.png"
+    },
+    {
+      "id": "rear_edge",
+      "visual": {
+        "textureKey": "main_hub_v21_rear_edge",
+        "assetPath": "assets/terrain/main_hub_v21/rear_edge.png",
+        "screenCenterX": 6144.0,
+        "screenCenterY": 3275.2878,
+        "displayW": 3482.948891,
+        "displayH": 87.65811
+      },
+      "canvasBounds": [
+        344,
+        369,
+        2728,
+        429
+      ],
+      "source": "raw/rear_edge.png"
+    },
+    {
+      "id": "terrace",
+      "visual": {
+        "textureKey": "main_hub_v21_terrace",
+        "assetPath": "assets/terrain/main_hub_v21/terrace.png",
+        "screenCenterX": 6144.0,
+        "screenCenterY": 3609.849585,
+        "displayW": 3529.699883,
+        "displayH": 616.528705
+      },
+      "canvasBounds": [
+        328,
+        417,
+        2744,
+        839
+      ],
+      "source": "raw/terrace.png"
+    }
+  ],
+  "plaza": {
+    "path": "assets/terrain/main_hub_v21/plaza.png",
+    "size": [
+      2896,
+      1448
+    ],
+    "textureScaleY": 1,
+    "worldPhase": [
+      0,
+      0
+    ],
+    "alreadyProjected": true
+  },
+  "preserved": [
+    "R19 NPC anchors",
+    "walkableArea",
+    "collisionProxies",
+    "pieces",
+    "depthY",
+    "playerSpawn",
+    "backdrop"
+  ],
+  "runtimeValidation": "not-run"
+}

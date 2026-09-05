@@ -109,6 +109,7 @@ import { resetUnitUpgrades } from './world/unit-upgrade-store.js';
 import { resetAbilityLevels } from './world/ability-store.js';
 import { resetWorld122Snapshot } from './world/world122-snapshot.js';
 import { TechnologySystem } from './world/technology-system.js';
+import { ensureMainHubArchitecture } from './world/main-hub-architecture.js';
 
 // 同心单位没有可归一化的法线：按固定顺序尝试地面八方向，不引入逐帧随机方向。
 const COINCIDENT_SEPARATION_DIRECTIONS = [
@@ -232,6 +233,7 @@ export const Game = {
             SceneManager._inMainHub = true;
             SoundManager.playBgmForScene('main');
             Renderer.generateWorld();
+            ensureMainHubArchitecture(this);
             SceneManager.setProgress(26);
             // 初始化 Phaser 渲染系统（渐进式迁移）
             if (PhaserGame && !PhaserGame.isReady) {
@@ -352,10 +354,14 @@ export const Game = {
         this.entities.set(portal.id, portal);
     },
     async spawnPlayer() {
-        const startX = CONFIG.WORLD_WIDTH / 2 + 120 - 200;
-        const startY = CONFIG.WORLD_HEIGHT / 2 - 150;
+        const spawn = GAME_CONFIG.scenes?.mainHub?.playerSpawn;
+        const startX = Number.isFinite(Number(spawn?.x))
+            ? Number(spawn.x) : CONFIG.WORLD_WIDTH / 2 + 120 - 200;
+        const startY = Number.isFinite(Number(spawn?.y))
+            ? Number(spawn.y) : CONFIG.WORLD_HEIGHT / 2 - 150;
         this.player = new Player(startX, startY);
         this.entities.set('player', this.player);
+        SceneManager._repairMainHubUnitPosition(this.player);
         // 修复：player 创建后才初始化 GameUIManager，否则 updateUI 会因 player 为 null 而直接返回
         GameUIManager.init(this.player);
         Camera.follow(this.player);

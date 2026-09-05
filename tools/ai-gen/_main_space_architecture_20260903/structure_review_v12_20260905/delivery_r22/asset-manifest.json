@@ -1,0 +1,261 @@
+{
+  "stage": "development-integrated",
+  "version": 22,
+  "generationTool": "image_gen.imagegen",
+  "reference": "assets/scenes/main_hub_summit_backdrop_v01.png",
+  "assets": [
+    {
+      "variant": "dusk",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a06f8d-d686-78a2-9c87-094009912c97\\exec-877e6678-7c3f-420b-b8bc-963e2e20af32.png",
+      "textureKey": "main_hub_r22_dusk",
+      "assetPath": "assets/scenes/main_hub_atmosphere_r22/dusk.png"
+    },
+    {
+      "variant": "night",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a06f8d-d686-78a2-9c87-094009912c97\\exec-514c1575-e217-4fb8-a0bd-4167862360eb.png",
+      "textureKey": "main_hub_r22_night",
+      "assetPath": "assets/scenes/main_hub_atmosphere_r22/night.png"
+    }
+  ],
+  "generation": "Two sequential edits, one dusk and one night, no retries. Local 5080 not used this round.",
+  "constraints": "Preserve mountain silhouettes, ridges, camera, crop and painted style; no objects, moon or sun discs. Dusk peach/lavender; night silver-blue snow and sparse stars.",
+  "proceduralEffects": "Native Canvas wisps, Graphics bird silhouettes, shared radial glow texture; no video/unit sheets.",
+  "retained": [
+    "R21 stone assets and projection",
+    "R19 NPC positions",
+    "R16 movement and collision",
+    "existing world clock and shadow system"
+  ],
+  "lights": [
+    {
+      "id": "lamp_01",
+      "x": 5764,
+      "y": 4251,
+      "groundY": 4416,
+      "depth": 4434.01,
+      "radius": 43,
+      "emitterRadius": 18,
+      "alpha": 0.72,
+      "color": 16766362,
+      "poolRadius": 135,
+      "poolAlpha": 0.19,
+      "pulseMs": 1830
+    },
+    {
+      "id": "lamp_02",
+      "x": 6524,
+      "y": 4251,
+      "groundY": 4416,
+      "depth": 4434.01,
+      "radius": 43,
+      "emitterRadius": 18,
+      "alpha": 0.72,
+      "color": 16766362,
+      "poolRadius": 135,
+      "poolAlpha": 0.19,
+      "pulseMs": 1960
+    },
+    {
+      "id": "lamp_03",
+      "x": 4674,
+      "y": 3991,
+      "groundY": 4156,
+      "depth": 4174.01,
+      "radius": 43,
+      "emitterRadius": 18,
+      "alpha": 0.72,
+      "color": 16766362,
+      "poolRadius": 135,
+      "poolAlpha": 0.19,
+      "pulseMs": 2090
+    },
+    {
+      "id": "lamp_04",
+      "x": 7614,
+      "y": 3991,
+      "groundY": 4156,
+      "depth": 4174.01,
+      "radius": 43,
+      "emitterRadius": 18,
+      "alpha": 0.72,
+      "color": 16766362,
+      "poolRadius": 135,
+      "poolAlpha": 0.19,
+      "pulseMs": 2220
+    },
+    {
+      "id": "altar",
+      "x": 6144,
+      "y": 3563,
+      "groundY": 3650,
+      "depth": 3650.01,
+      "radius": 63,
+      "alpha": 0.2,
+      "color": 14733735,
+      "poolRadius": 110,
+      "poolAlpha": 0.09,
+      "pulseMs": 2400
+    },
+    {
+      "id": "portal",
+      "x": 5208,
+      "y": 3915,
+      "groundY": 4085,
+      "depth": 4095.01,
+      "radius": 87,
+      "alpha": 0.29,
+      "color": 7917535,
+      "poolRadius": 145,
+      "poolAlpha": 0.13,
+      "pulseMs": 2100
+    }
+  ],
+  "edgeHighlights": [
+    {
+      "to": [
+        6421,
+        3904.4345
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3904.4345
+      ]
+    },
+    {
+      "to": [
+        6421,
+        3878.1762
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3878.1762
+      ]
+    },
+    {
+      "to": [
+        6421,
+        3851.9178
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3851.9178
+      ]
+    },
+    {
+      "to": [
+        6421,
+        3825.6595
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3825.6595
+      ]
+    },
+    {
+      "to": [
+        6421,
+        3799.4012
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3799.4012
+      ]
+    },
+    {
+      "to": [
+        6421,
+        3773.1428
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3773.1428
+      ]
+    },
+    {
+      "to": [
+        6421,
+        3746.8845
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3746.8845
+      ]
+    },
+    {
+      "to": [
+        6421,
+        3720.6262
+      ],
+      "width": 1.5,
+      "alpha": 0.25,
+      "color": 14083318,
+      "from": [
+        5867,
+        3720.6262
+      ]
+    },
+    {
+      "to": [
+        5770,
+        3480.4092
+      ],
+      "width": 1.4,
+      "alpha": 0.19,
+      "color": 15849377,
+      "from": [
+        5770,
+        3699.9092
+      ]
+    },
+    {
+      "to": [
+        6518,
+        3480.4092
+      ],
+      "width": 1.4,
+      "alpha": 0.19,
+      "color": 15849377,
+      "from": [
+        6518,
+        3699.9092
+      ]
+    },
+    {
+      "to": [
+        6518,
+        3480.4092
+      ],
+      "width": 1.4,
+      "alpha": 0.19,
+      "color": 15849377,
+      "from": [
+        5770,
+        3480.4092
+      ]
+    }
+  ],
+  "preview": "Offline composition of delivery assets; ambient tint and native effects approximated, not a runtime capture.",
+  "runtimeValidation": "not-run",
+  "exePublished": false
+}

@@ -1,0 +1,27 @@
+{
+  "altar": "assets/terrain/defense_base.png",
+  "altarSurfaceQuad": [
+    414,
+    335,
+    414,
+    411,
+    566,
+    334,
+    566,
+    258
+  ],
+  "rectifiedStoneCrop": [
+    28,
+    115,
+    480,
+    450
+  ],
+  "floor": "assets/terrain/hub_brick.png",
+  "floorCrop": [
+    153,
+    185,
+    347,
+    304
+  ],
+  "use": "local material appearance references; no production asset mutation"
+}

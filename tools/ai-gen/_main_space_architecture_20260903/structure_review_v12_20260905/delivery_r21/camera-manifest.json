@@ -1,0 +1,28 @@
+{
+  "renderSize": [
+    3072,
+    1728
+  ],
+  "worldPerPixel": 1.4609684944152832,
+  "originPixel": [
+    1536.0,
+    960.759
+  ],
+  "camera": {
+    "name": "MainHub_Master_Ortho_30deg",
+    "type": "ORTHO",
+    "location": [
+      0.0,
+      -4623.169434,
+      2832.418945
+    ],
+    "rotationEuler": [
+      1.047198,
+      -0.0,
+      0.0
+    ],
+    "orthoScale": 4488.095215
+  },
+  "backdropBaselineWorldY": 3396,
+  "source": "Final R21 packed scene uses this locked camera; old revision status is not part of the current contract."
+}

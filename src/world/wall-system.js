@@ -1,4 +1,5 @@
 import { CONFIG } from '../config/config.js';
+import { containsWalkableCircle } from './walkable-area.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
 import {
@@ -255,6 +256,7 @@ const WallSystem = {
         return ISO_WALL_STYLES[this._wallStyleKey] || ISO_WALL_STYLES.default;
     },
     init(_ww, _wh) {
+        this.walkableArea = null;
         this.walls = [];
         this.isoVisuals = [];
         this.isoSegments = []; // 新场景全清（门闸线段由门实体放置后重新注册）
@@ -357,6 +359,7 @@ const WallSystem = {
 
     /** 线性版 canMoveTo（_collisionAccel=false 时使用，与历史实现逐行一致） */
     _linearCanMoveTo(x, y, radius, ignore = null) {
+        if (!this.isInsideWalkableArea(x, y, radius)) return false;
         for (const w of this.walls) {
             if (ignore && ignore.rects && ignore.rects.has(w)) continue;
             if (this.circleRect(x, y, radius, w)) return false;
@@ -1789,7 +1792,11 @@ const WallSystem = {
             ? { segs, rects, surfaceEntity: entity }
             : null;
     },
+    isInsideWalkableArea(x, y, radius = 0) {
+        return containsWalkableCircle(this.walkableArea, x, y, radius);
+    },
     canMoveTo(x, y, radius, ignore = null) {
+        if (!this.isInsideWalkableArea(x, y, radius)) return false;
         if (this._collisionAccel) {
             const g = this._getCollisionGrid();
             if (!g) return this._linearCanMoveTo(x, y, radius, ignore);
@@ -1833,7 +1840,7 @@ const WallSystem = {
     },
     /** 楼梯边界位于等距地面：Y先逆压缩，按真实groundRadius判定；普通墙保持屏幕距离。 */
     _groundPointSegDist(px, py, segment) {
-        if (!segment?._stairEdge) {
+        if (!segment?._stairEdge && !segment?._mainHubStructureEdge) {
             return this._pointSegDist(
                 px,
                 py,

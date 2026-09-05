@@ -720,6 +720,18 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
     const profile = _getProfile();
     ctx.fillStyle = diamond ? '#000000' : (profile.backgroundColor || '#000000');
     ctx.fillRect(0, 0, cw, ch);
+    // Clip details and the missing-texture fallback at the backdrop baseline too.
+    const floorPolygon = diamond?.floorPolygon;
+    if (floorPolygon) {
+        ctx.save();
+        ctx.beginPath();
+        floorPolygon.forEach((p, i) => {
+            if (i === 0) ctx.moveTo(p.x - ox, p.y - oy);
+            else ctx.lineTo(p.x - ox, p.y - oy);
+        });
+        ctx.closePath();
+        ctx.clip();
+    }
     const tiles = _collectTiles(profile);
     if (tiles.length > 0) {
         ctx.save();
@@ -783,6 +795,7 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
         ctx.lineWidth = 2;
         ctx.strokeRect(0, 0, cw, ch);
     }
+    if (floorPolygon) ctx.restore();
     return canvas;
 }
 

@@ -1,6 +1,9 @@
 import { Game } from '../game.js';
 import { EventBus } from '../core/event-bus.js';
 import { WallSystem } from '../world/wall-system.js';
+import { createMainHubWalkableArea, walkableBoundarySegments } from './walkable-area.js';
+import { pathFinder } from '../ai/pathfinder.js';
+import { circleIntersectsBuildingRect } from './spawn-placement.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 
@@ -58,6 +61,7 @@ import { QuestRegistry } from '../quest/quest-registry.js';
 import { QuestStore } from '../quest/quest-store.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { rebuildWallBattlementRegistry } from './wall-battlement.js';
+import { ensureMainHubArchitecture } from './main-hub-architecture.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -192,6 +196,7 @@ export const SceneManager = {
             worldHeight: CONFIG.WORLD_HEIGHT,
             walls: [...(WallSystem.walls || [])],
             isoSegments: [...(WallSystem.isoSegments || [])],
+            walkableArea: WallSystem.walkableArea,
             isoVisuals: [...(WallSystem.isoVisuals || [])],
             trees: [...(WallSystem.trees || [])],
             wallStyleKey: WallSystem._wallStyleKey,
@@ -227,6 +232,8 @@ export const SceneManager = {
         CONFIG.WORLD_HEIGHT = state.worldHeight;
         WallSystem.walls = [...state.walls];
         WallSystem.isoSegments = [...state.isoSegments];
+        WallSystem.walkableArea = state.walkableArea || null;
+        pathFinder.invalidateCache();
         WallSystem.isoVisuals = [...state.isoVisuals];
         WallSystem.trees = [...state.trees];
         WallSystem.setWallStyle(state.wallStyleKey);
@@ -645,7 +652,9 @@ export const SceneManager = {
             // 清除裂隙系统
             if (RiftSystem) RiftSystem.clear();
 
-            // 分块惰性地板只属于世界-122：离场统一清空，避免残留块覆盖其他场景
+            // 地形范围属于当前场景；观察模式/战略场景也必须清掉主城约束。
+            WallSystem.walkableArea = null;
+            // 分块惰性地板离场统一清空，避免残留块覆盖其他场景
             Renderer.terrainChunks = null;
             Renderer.terrainRebuild = null;
 
@@ -888,6 +897,7 @@ export const SceneManager = {
             // 分块只保存尺寸/范围；后续烘焙仍读取全局 profile，回滚必须一并恢复。
             floorProfile: getDungeonFloorProfile(),
             isoSegments: [...(WallSystem.isoSegments || [])],
+            walkableArea: WallSystem.walkableArea,
             isoVisuals: [...(WallSystem.isoVisuals || [])],
             trees: [...(WallSystem.trees || [])],
             wallStyleKey: WallSystem._wallStyleKey,
@@ -968,6 +978,8 @@ export const SceneManager = {
             WallSystem.init(world.width, world.height);
             WallSystem.walls = world.walls.slice();
             WallSystem.isoSegments = world.isoSegments.slice();
+            WallSystem.walkableArea = world.walkableArea || null;
+            pathFinder.invalidateCache();
             WallSystem.isoVisuals = world.isoVisuals.slice();
             WallSystem.trees = world.trees.slice();
             WallSystem._wallStyleKey = world.wallStyleKey;
@@ -1106,9 +1118,12 @@ export const SceneManager = {
     _setupMainHubTerrain() {
         const hubCfg = (GAME_CONFIG.scenes && GAME_CONFIG.scenes.mainHub) || {};
         setDungeonFloorProfile(hubCfg.floor || null);
-        // 菱形地块（2026-08-21 对齐世界-122 口径）：分块惰性地板按菱形裁剪烘焙，区外全黑
+        // 实际砖地按远景分界裁切；后方露台作为独立石面接入可移动范围。
         const diamond = this._scene8Diamond(this.scenes.main);
-        applyDungeonFloorChunked(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT, 2048, diamond);
+        const area = createMainHubWalkableArea(diamond, hubCfg, Game.entities.values());
+        WallSystem.walkableArea = area;
+        const floorRegion = area ? { ...diamond, floorPolygon: area.floorPolygon } : diamond;
+        applyDungeonFloorChunked(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT, 2048, floorRegion);
         // 场地边界墙（厚度走 mainHub.wallThickness 配置）：同世界-122 改隐形兜底，不再硬拉伸视觉
         const wt = hubCfg.wallThickness ?? 20;
         const w = CONFIG.WORLD_WIDTH;
@@ -1119,8 +1134,12 @@ export const SceneManager = {
             { x: 0, y: 0, w: wt, h, height: 60, noVisual: true },
             { x: w - wt, y: 0, w: wt, h, height: 60, noVisual: true },
         ];
-        // 菱形四边注册不可见 _boundary 阻挡段（区外黑地不可通行，与世界-122 同一真源）
-        this._registerScene8Boundary(diamond);
+        // 幂等重建：移除旧菱形/旧主城边界，不能叠加两套封闭线。
+        WallSystem.isoSegments = (WallSystem.isoSegments || []).filter(s => !s._boundary);
+        if (area) WallSystem.isoSegments.push(...walkableBoundarySegments(area));
+        else this._registerScene8Boundary(diamond);
+        // 这是整场景地形重建，旧路线/半径格子缓存必须一起失效。
+        pathFinder.invalidateCache();
 
         // 测试房间：已移除代码默认菱形房间——用户用墙壁编辑器（HUD 摆墙）自行摆放
         // 仅当预制库存在 hub_diamond 时按预制渲染；否则无房间（isoVisuals 为空）
@@ -1188,6 +1207,47 @@ export const SceneManager = {
         }
     },
 
+    /** Only scene-entry recovery may relocate an invalid saved unit. Ordinary
+     * movement stops/slides at the boundary and never teleports back to spawn. */
+    _repairMainHubUnitPosition(unit) {
+        if (!unit || !WallSystem.walkableArea) return false;
+        const radius = unit.groundRadius || 20;
+        const offset = WallSystem.getEntityMoveOffset(unit);
+        const isFree = (x, y, checkUnits = false) => {
+            const cx = x + offset.x, cy = y + offset.y;
+            if (!WallSystem.canMoveTo(cx, cy, radius)) return false;
+            for (const other of Game.entities.values()) {
+                if (!other?.active || other === unit || other.noCollision || other._isMainHubArchitecture) continue;
+                if ((other.collisionShape === 'rect' || other.collisionShape === 'iso_rect')
+                    && circleIntersectsBuildingRect(cx, cy, radius, other)) return false;
+                if (checkUnits && Math.hypot(cx - other.x, cy - other.y)
+                    < radius + (other.groundRadius || 0) + 8) return false;
+            }
+            return true;
+        };
+        if (isFree(unit.x, unit.y)) return false;
+        const spawn = GAME_CONFIG.scenes.mainHub.playerSpawn;
+        let target = isFree(spawn.x, spawn.y, true) ? spawn : null;
+        for (let distance = 48; !target && distance <= 480; distance += 48) {
+            for (let i = 0; i < 32; i++) {
+                const angle = i * Math.PI / 16;
+                const x = spawn.x + Math.cos(angle) * distance;
+                const y = spawn.y + Math.sin(angle) * distance;
+                if (isFree(x, y, true)) { target = { x, y }; break; }
+            }
+        }
+        if (!target) return false;
+        unit.x = target.x;
+        unit.y = target.y;
+        unit.vx = 0;
+        unit.vy = 0;
+        unit.isMoving = false;
+        unit._rtsController?.hold?.();
+        unit._pathManager?._clearPath?.();
+        unit.rebuildCollider?.();
+        return true;
+    },
+
     _loadMainScene(player) {
         const mainSize = this._resolveWorldSize(this.scenes.main);
         CONFIG.WORLD_WIDTH = mainSize.width;
@@ -1218,6 +1278,9 @@ export const SceneManager = {
             }
         }
 
+        // 主神空间建筑群与首启共用同一幂等入口；旧快照中的版本会在这里按配置升级。
+        ensureMainHubArchitecture(Game);
+
         // 地板与边界墙：统一入口（与 Game.init 首启同一路径）
         this._setupMainHubTerrain();
 
@@ -1231,18 +1294,12 @@ export const SceneManager = {
             } else if (this._mainPlayerPos) {
                 player.x = this._mainPlayerPos.x;
                 player.y = this._mainPlayerPos.y;
+            } else {
+                const spawn = GAME_CONFIG.scenes.mainHub.playerSpawn;
+                player.x = spawn.x;
+                player.y = spawn.y;
             }
-            // 菱形落点守卫（2026-08-21 主神空间菱形化）：旧档/旧缓存坐标可能落在新菱形外，回退主城原点
-            const hubDiamond = this._scene8Diamond(this.scenes.main);
-            if (hubDiamond) {
-                const ratio = Math.abs(player.x - hubDiamond.cx) / hubDiamond.rx
-                    + Math.abs(player.y - hubDiamond.cy) / hubDiamond.ry;
-                if (ratio > 0.95) {
-                    const o = (this.scenes.main && this.scenes.main.origin) || { x: hubDiamond.cx, y: hubDiamond.cy };
-                    player.x = o.x;
-                    player.y = o.y;
-                }
-            }
+            this._repairMainHubUnitPosition(player);
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
         } else if (observing) {
@@ -1255,6 +1312,9 @@ export const SceneManager = {
 
         // 地牢期间暂存的仓鼠兵种回到原友军注册表；实体对象来自主神空间快照，坐标保持离场值。
         this._restoreFriendlyUnitsAfterDungeon();
+        for (const unit of Game.friendlyUnits || []) {
+            if (unit?.active && Game.entities.get(unit.id) === unit) this._repairMainHubUnitPosition(unit);
+        }
 
         // 确保关键实体（靶子）存在，如果不存在则重新生成
         if (Game && Game.spawnTargets && Game.spawnEnemy) {
