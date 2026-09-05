@@ -36,7 +36,7 @@ function parseArgs(argv) {
     const token = argv[i];
     if (!token.startsWith('--')) fail(`unexpected argument: ${token}`);
     const key = token.slice(2);
-    if (['attach-only', 'inspect', 'download-latest', 'fill-only', 'submit-filled', 'wait-current', 'keep-open', 'loop', 'new-chat', 'confirm-paid', 'scroll-latest', 'play-latest', 'help', 'h'].includes(key)) {
+    if (['attach-only', 'inspect', 'download-latest', 'fill-only', 'submit-filled', 'wait-current', 'keep-open', 'loop', 'new-chat', 'confirm-paid', 'scroll-latest', 'play-latest', 'close-browser', 'help', 'h'].includes(key)) {
       out[key] = true;
       continue;
     }
@@ -58,6 +58,7 @@ Usage:
     --download-latest --out output.mp4
   node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
     --play-latest --completed-offset 1 --download-latest --out previous.mp4
+  node doubao-seedance-gen.mjs --attach-only --cdp-port 9333 --close-browser
   node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
     --submit-filled --confirm-paid --out output.mp4
 
@@ -621,6 +622,16 @@ function ratioFromSize(size) {
 }
 
 async function setParameters(session, ratio, duration) {
+  // Selecting the already-active model can leave Doubao's model popover open.
+  // Close any stale popover before opening the ratio/duration control; otherwise
+  // the click lands behind the model menu and the ratio options never appear.
+  await session.send('Input.dispatchKeyEvent', {
+    type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27,
+  });
+  await session.send('Input.dispatchKeyEvent', {
+    type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27,
+  });
+  await sleep(250);
   const selector = await waitUntil(() => pointByText(session, {
     regex: '^(自动|3:4|4:3|9:16|16:9|1:1|21:9)\\s*[·・]\\s*\\d+s$', bottom: true,
   }), 10000, 500);
@@ -1144,7 +1155,7 @@ async function main() {
     prompt += '\nThe motion forms one complete cycle and returns to the exact starting pose, position, scale, and camera framing at the end.';
   }
 
-  if (!args.inspect && !args['download-latest'] && !args['submit-filled'] && !args['wait-current']) {
+  if (!args.inspect && !args['download-latest'] && !args['submit-filled'] && !args['wait-current'] && !args['close-browser']) {
     if (!ref || !fs.existsSync(ref)) fail('provide an existing --ref image');
     if (!prompt) fail('provide --prompt or --prompt-file');
     if (!out) fail('provide --out');
@@ -1157,7 +1168,17 @@ async function main() {
   const targets = bootstrap.targets;
   const { session, state } = await selectDoubaoPage(targets);
   let completed = false;
+  let selectedCompletedVideo = null;
   try {
+    if (args['scroll-latest'] || args['play-latest']) {
+      await session.send('Page.bringToFront');
+      await sleep(750);
+    }
+    if (args['close-browser']) {
+      await session.send('Browser.close');
+      console.log('[doubao] closed the attached automation client through CDP');
+      return;
+    }
     if (args['open-conversation']) {
       const opened = await clickText(session, { text: String(args['open-conversation']), exact: true });
       if (!opened) fail(`conversation not found: ${args['open-conversation']}`);
@@ -1169,14 +1190,46 @@ async function main() {
     }
     if (args['play-latest']) {
       const completedOffset = Math.max(0, Number.parseInt(args['completed-offset'] || '0', 10) || 0);
-      await session.evaluate(`(() => {
+      const selectedCard = await session.evaluate(`(() => {
         document.querySelector('#to-bottom-button')?.click();
-        const cards=[...document.querySelectorAll('[data-container-type="block-v1"]')]
-          .filter(el=>String(el.innerText||'').includes('你的视频生成好了'));
+        const matching=[...document.querySelectorAll('[data-container-type="block-v1"]')]
+          .filter(el=>String(el.innerText||'').includes('你的视频生成好了')
+            && el.querySelector('[class*="block-video-"]'));
+        const cards=matching.filter(card=>!matching.some(other=>other!==card && card.contains(other)));
         const card=cards.at(-1-${completedOffset}); card?.scrollIntoView({block:'end'});
-        card?.querySelector('[class*="block-video-"]')?.click(); return !!card;
+        card?.querySelector('[class*="block-video-"]')?.click();
+        const video=card?.querySelector('video');
+        return {
+          found:!!card,count:cards.length,offset:${completedOffset},
+          src:video?.currentSrc||video?.src||video?.querySelector('source')?.src||'',
+          readyState:video?.readyState||0,
+        };
       })()`);
-      await sleep(1500);
+      if (!selectedCard?.found) {
+        fail(`completed video card offset ${completedOffset} not found (${selectedCard?.count || 0} cards)`);
+      }
+      console.log(`[doubao] selected completed video card offset=${completedOffset} of ${selectedCard.count}`);
+      // Background completions may not update the conversation text or player until
+      // the completed card is brought into view and opened. Wait for that foreground
+      // player instead of reusing a stale hidden resource URL captured before click.
+      selectedCompletedVideo = await waitUntil(async () => {
+        const sources = await videoSources(session);
+        const visible = [...sources].reverse().find(item => (
+          item.readyState >= 1 && !item.resource && item.visible && /^https?:/i.test(item.src)
+        ));
+        return visible ? { ...visible, selectedCard: true } : null;
+      }, 10000, 500);
+      if (!selectedCompletedVideo && selectedCard.src) {
+        selectedCompletedVideo = {
+          src: selectedCard.src,
+          readyState: selectedCard.readyState || 1,
+          selectedCard: true,
+          fallbackBeforeForegroundReady: true,
+        };
+      }
+      if (selectedCompletedVideo) {
+        console.log(`[doubao] activated completed-card player readyState=${selectedCompletedVideo.readyState}`);
+      }
     }
     if (args.inspect) {
       const text = await bodyText(session);
@@ -1282,6 +1335,32 @@ async function main() {
         }) : [];
       })()`);
       const videos = await videoSources(session);
+      const completedCardDiagnostics = await session.evaluate(`(() => {
+        const allBlocks=[...document.querySelectorAll('[data-container-type="block-v1"]')];
+        const leafBlocks=allBlocks.filter(block=>!block.querySelector('[data-container-type="block-v1"]'));
+        const matching=[...document.querySelectorAll('[data-container-type="block-v1"]')]
+          .filter(el=>String(el.innerText||'').includes('你的视频生成好了')
+            && el.querySelector('[class*="block-video-"]'));
+        return matching.filter(card=>!matching.some(other=>other!==card && card.contains(other)))
+          .map((card,index)=>{
+            const leafIndex=leafBlocks.indexOf(card);
+            return {
+              index,
+              leafIndex,
+              previousLeafTexts:leafBlocks.slice(Math.max(0,leafIndex-6),leafIndex)
+                .map(el=>String(el.innerText||'').replace(/\s+/g,' ').trim().slice(0,360)),
+              text:String(card.innerText||'').replace(/\s+/g,' ').trim().slice(0,240),
+              videos:[...card.querySelectorAll('video')].map(video=>({
+                src:video.currentSrc||video.src||video.querySelector('source')?.src||'',
+                readyState:video.readyState,
+              })),
+              videoBlocks:[...card.querySelectorAll('[class*="block-video-"]')].map(el=>({
+                className:String(el.className||''),
+                html:String(el.outerHTML||'').slice(0,1200),
+              })),
+            };
+          });
+      })()`);
       let pointState = null;
       if (args.point) {
         const [x, y] = String(args.point).split(',').map(Number);
@@ -1305,14 +1384,16 @@ async function main() {
         editor: editor ? { tag: editor.tag, placeholder: editor.placeholder, valueLength: editor.value.length } : null,
         controls, composerImages, abstractedVideoSkill, abstractedSkillDebug,
         sendButtonDebug, editorDebug, composerLocalDebug, attachmentDebug,
-        videos, visibleText: text.slice(-6000) }, null, 2));
+        videos, completedCardDiagnostics, visibleText: text.slice(-6000) }, null, 2));
+      completed = true;
       return;
     }
     if (args['download-latest']) {
       const videos = await videoSources(session);
       const completedText = await bodyText(session);
       const hasCompletedVideo = completedText.includes('你的视频生成好了');
-      const video = [...videos].reverse().find(item => item.readyState >= 1 && !item.resource && item.visible) ||
+      const video = selectedCompletedVideo ||
+        [...videos].reverse().find(item => item.readyState >= 1 && !item.resource && item.visible) ||
         [...videos].reverse().find(item => item.readyState >= 1 && !item.resource) ||
         [...videos].reverse().find(item => item.readyState >= 1) ||
         (hasCompletedVideo ? [...videos].reverse().find(item => /^https?:/i.test(item.src)) : null);

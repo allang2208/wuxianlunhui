@@ -38,6 +38,25 @@ def largest_component(mask: np.ndarray) -> np.ndarray:
     return labels == keep
 
 
+def sample_chroma_plate(rgb: np.ndarray, bg: np.ndarray, matte: np.ndarray) -> np.ndarray:
+    """Measure the decoded plate; a requested #0000FF is rarely 255 in video."""
+    height, width = matte.shape
+    margin = max(8, min(height, width) // 15)
+    corners = np.zeros_like(matte, dtype=bool)
+    for rows in (slice(0, margin), slice(-margin, None)):
+        for cols in (slice(0, margin), slice(-margin, None)):
+            corners[rows, cols] = True
+    key = int(np.argmax(bg))
+    other = [channel for channel in range(3) if channel != key]
+    work = rgb.astype(np.float32)
+    samples = corners & (matte < 2) & (
+        work[..., key] - work[..., other].max(axis=2) > 128
+    )
+    if int(samples.sum()) < 128:
+        raise ValueError("not enough unambiguous background corners to calibrate chroma")
+    return np.median(work[samples], axis=0).astype(np.float32)
+
+
 def remove_blue_chroma_spill(
     foreground: np.ndarray,
     alpha: np.ndarray,
@@ -98,6 +117,42 @@ def remove_blue_chroma_spill(
     return foreground, alpha, stats
 
 
+def remove_magenta_chroma_spill(
+    foreground: np.ndarray,
+    alpha: np.ndarray,
+    radius: int,
+    threshold: int,
+) -> tuple[np.ndarray, np.ndarray, dict[str, int]]:
+    """Remove semi-transparent purple fringing from blue-screen YUV bleed."""
+    stats = {"magentaDetected": 0, "magentaRecolored": 0, "magentaCleared": 0}
+    if radius <= 0:
+        return foreground, alpha, stats
+    work = foreground.astype(np.int16)
+    red, green, blue = work[..., 0], work[..., 1], work[..., 2]
+    magenta_hue = (red > green + threshold) & (blue > green + threshold)
+    contaminated = (alpha > 3) & (alpha < 240) & magenta_hue
+    reliable = (alpha > 16) & ~magenta_hue
+    stats["magentaDetected"] = int(contaminated.sum())
+    if contaminated.any() and reliable.any():
+        size = radius * 2 + 1
+        near_subject = cv2.dilate(
+            reliable.astype(np.uint8),
+            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size)),
+        ) > 0
+        recolor = contaminated & near_subject
+        clear = contaminated & ~near_subject
+        _, nearest = ndimage.distance_transform_edt(~reliable, return_indices=True)
+        foreground[recolor] = foreground[
+            nearest[0][recolor], nearest[1][recolor]
+        ]
+        foreground[clear] = 0
+        alpha[clear] = 0
+        stats["magentaRecolored"] = int(recolor.sum())
+        stats["magentaCleared"] = int(clear.sum())
+    foreground[alpha == 0] = 0
+    return foreground, alpha, stats
+
+
 def recover_rgba(
     rgb: np.ndarray, bg: np.ndarray, birefnet: np.ndarray,
     clear_rect: tuple[float, float, float, float] | None = None,
@@ -105,18 +160,35 @@ def recover_rgba(
     support_dilate: int = 0,
     blue_spill_radius: int = 0,
     blue_spill_threshold: int = 20,
+    magenta_spill_radius: int = 0,
+    magenta_spill_threshold: int = 18,
+    calibrated_plate: bool = False,
 ) -> tuple[np.ndarray, dict[str, int]]:
     key_channel = int(np.argmax(bg))
-    if bg[key_channel] < 245 or np.max(np.delete(bg, key_channel)) > 10:
+    if (bg[key_channel] < (160 if calibrated_plate else 245)
+            or np.max(np.delete(bg, key_channel)) > (20 if calibrated_plate else 10)):
         raise ValueError("soft chroma recovery requires a saturated primary plate")
     other_channels = [index for index in range(3) if index != key_channel]
     spill = rgb[..., key_channel].astype(np.float32) - np.max(
         rgb[..., other_channels].astype(np.float32), axis=2
     )
-    alpha = 255.0 - np.clip(spill, 0.0, 255.0)
+    if calibrated_plate:
+        plate_spill = float(bg[key_channel] - np.max(bg[other_channels]))
+        alpha = 255.0 * (1.0 - np.clip(spill / plate_spill, 0.0, 1.0))
+    else:
+        alpha = 255.0 - np.clip(spill, 0.0, 255.0)
     # BiRefNet is a support gate, not a replacement alpha: replacing the matte
     # with its mostly opaque silhouette would destroy glass-like wing membranes.
     alpha[(birefnet < 2) & (alpha < 20)] = 0
+    if calibrated_plate:
+        # Use semantic support independently of chroma strength. Otherwise a
+        # darker-than-requested blue plate becomes the largest "foreground".
+        # This caps only the uncertain rim; opaque BiRefNet wing silhouettes
+        # still receive the soft chroma alpha, never opaque replacement masks.
+        semantic = largest_component(birefnet > 2)
+        semantic = cv2.dilate(semantic.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+        alpha[~semantic] = 0
+        alpha = np.minimum(alpha, birefnet.astype(np.float32) * 16.0)
     alpha[alpha < 5] = 0
     alpha[alpha > 240] = 255
     if clear_rect:
@@ -154,8 +226,35 @@ def recover_rgba(
     else:
         spill_stats = {"detected": 0, "recolored": 0, "cleared": 0,
                        "blueCapped": 0, "disconnectedCleared": 0}
+    foreground, alpha, magenta_stats = remove_magenta_chroma_spill(
+        foreground, alpha, magenta_spill_radius, magenta_spill_threshold,
+    )
+    spill_stats.update(magenta_stats)
+    spill_stats["greenYellowRecolored"] = 0
+    if calibrated_plate:
+        foreground, spill_stats["greenYellowRecolored"] = remove_green_yellow_fringe(foreground, alpha)
     foreground[alpha == 0] = 0
     return np.dstack([foreground, alpha.astype(np.uint8)]), spill_stats
+
+
+def remove_green_yellow_fringe(foreground: np.ndarray, alpha: np.ndarray) -> tuple[np.ndarray, int]:
+    """Repair inverse-blue-matte RGB spill without removing soft wing alpha.
+
+    Calibrated neutral/brown insects can retain green codec specks and yellow
+    fringing in translucent pixels. Opaque bronze highlights are not yellow
+    fringe; only green dominance or a translucent yellow edge is recolored.
+    """
+    work = foreground.astype(np.int16)
+    red, green, blue = work[..., 0], work[..., 1], work[..., 2]
+    green_spill = (green > red + 12) & (green > blue + 12)
+    yellow_hue = (red > blue + 50) & (green > blue + 50) & (green > red - 25)
+    yellow_edge = (alpha < 240) & yellow_hue
+    contaminated = (alpha > 3) & (green_spill | yellow_edge)
+    reliable = (alpha > 16) & (work.max(axis=2) >= 24) & ~(green_spill | yellow_hue)
+    if contaminated.any() and reliable.any():
+        _, nearest = ndimage.distance_transform_edt(~reliable, return_indices=True)
+        foreground[contaminated] = foreground[nearest[0][contaminated], nearest[1][contaminated]]
+    return foreground, int(contaminated.sum())
 
 
 def body_core(rgba: np.ndarray) -> tuple[float, float]:
@@ -205,6 +304,10 @@ def main() -> None:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--frames", default="6,8,10,12")
     ap.add_argument("--bg-color", default="#0000FF")
+    ap.add_argument("--calibrate-chroma", action="store_true",
+                    help="sample decoded background and use BiRefNet semantic support")
+    ap.add_argument("--placement-report", type=Path,
+                    help="reuse accepted source-frame scale/core transforms exactly")
     ap.add_argument("--cell", type=int, default=512)
     ap.add_argument("--cell-width", type=int,
                     help="optional non-square cell width; defaults to --cell")
@@ -231,6 +334,10 @@ def main() -> None:
                     help="retain/recolor cyan spill only this many pixels from clean subject support")
     ap.add_argument("--blue-spill-threshold", type=int, default=20,
                     help="minimum cyan excess over red treated as blue-plate contamination")
+    ap.add_argument("--magenta-spill-radius", type=int, default=0,
+                    help="recolor semi-transparent purple YUV fringe this many pixels from clean support")
+    ap.add_argument("--magenta-spill-threshold", type=int, default=18,
+                    help="minimum red+blue excess over green treated as purple plate contamination")
     ap.add_argument("--clear-output-rect",
                     help="normalized cell x0,y0,x1,y1 rectangle cleared after anchoring")
     ap.add_argument("--clear-output-rect-start", type=int, default=0,
@@ -250,7 +357,8 @@ def main() -> None:
     if cell_width <= 0 or cell_height <= 0:
         raise SystemExit("cell dimensions must be positive")
     if (not 1 <= args.support_alpha_threshold <= 255 or args.support_dilate < 0
-            or args.blue_spill_radius < 0 or args.blue_spill_threshold < 0):
+            or args.blue_spill_radius < 0 or args.blue_spill_threshold < 0
+            or args.magenta_spill_radius < 0 or args.magenta_spill_threshold < 0):
         raise SystemExit("support alpha threshold/dilation is outside its valid range")
     clear_rect = None
     if args.clear_rect:
@@ -283,25 +391,43 @@ def main() -> None:
     if not selected or min(selected) < 0 or max(selected) >= len(decoded):
         raise SystemExit(f"selected frames {selected} outside decoded range 0..{len(decoded) - 1}")
 
+    placement = None
+    if args.placement_report:
+        placement = json.loads(args.placement_report.read_text(encoding="utf-8"))
+        if placement["sourceFrames"] != selected or len(placement["coreCenters"]) != len(selected):
+            raise SystemExit("placement report must describe the exact selected source frames")
+        prior_width = placement.get("cellWidth", placement["cell"])
+        prior_height = placement.get("cellHeight", placement["cell"])
+        if (prior_width, prior_height) != (cell_width, cell_height):
+            raise SystemExit("placement report cell dimensions do not match the output")
+
     model = get_model()
     bg = parse_hex(args.bg_color)
     recovered: list[np.ndarray] = []
     spill_stats: list[dict[str, int]] = []
     cores: list[tuple[float, float]] = []
     bboxes: list[tuple[int, int, int, int]] = []
+    sampled_backgrounds: list[list[float]] = []
     for index in selected:
         rgb = decoded[index]
         matte = predict_alpha(model, Image.fromarray(rgb, "RGB"))
+        frame_bg = sample_chroma_plate(rgb, bg, matte) if args.calibrate_chroma else bg
+        sampled_backgrounds.append(frame_bg.tolist())
         rgba, frame_spill_stats = recover_rgba(
-            rgb, bg, matte, clear_rect,
+            rgb, frame_bg, matte, clear_rect,
             args.support_alpha_threshold, args.support_dilate,
             args.blue_spill_radius, args.blue_spill_threshold,
+            args.magenta_spill_radius, args.magenta_spill_threshold,
+            args.calibrate_chroma,
         )
         recovered.append(rgba)
         spill_stats.append(frame_spill_stats)
         cores.append(body_core(rgba))
         bboxes.append(alpha_bbox(rgba))
 
+    if placement:
+        cores = [tuple(core) for core in placement["coreCenters"]]
+        args.anchor_mode = placement["anchorMode"]
     anchor_cores = cores if args.anchor_mode == "per-frame" else [cores[0]] * len(cores)
     min_dx = min(box[0] - core[0] for box, core in zip(bboxes, anchor_cores))
     min_dy = min(box[1] - core[1] for box, core in zip(bboxes, anchor_cores))
@@ -316,6 +442,9 @@ def main() -> None:
     scale = args.fixed_scale if args.fixed_scale is not None else fit_scale
     target_x = args.target_core_x if args.target_core_x is not None else args.padding - min_dx * scale
     target_y = args.target_core_y if args.target_core_y is not None else args.padding - min_dy * scale
+    if placement:
+        scale = placement["scale"]
+        target_x, target_y = placement["targetCore"]
 
     cells: list[np.ndarray] = []
     for position, (rgba, core) in enumerate(zip(recovered, anchor_cores)):
@@ -339,6 +468,15 @@ def main() -> None:
             )
             for key, value in placed_spill_stats.items():
                 spill_stats[position][key] += value
+        if args.magenta_spill_radius > 0:
+            rgb, alpha, placed_magenta_stats = remove_magenta_chroma_spill(
+                rgb, alpha, args.magenta_spill_radius, args.magenta_spill_threshold,
+            )
+            for key, value in placed_magenta_stats.items():
+                spill_stats[position][key] += value
+        if args.calibrate_chroma:
+            rgb, recolored = remove_green_yellow_fringe(rgb, alpha)
+            spill_stats[position]["greenYellowRecolored"] += recolored
         output_rects = []
         if clear_output_rect and position >= args.clear_output_rect_start:
             output_rects.append(clear_output_rect)
@@ -389,11 +527,16 @@ def main() -> None:
         "decodedFrameCount": len(decoded),
         "sourceFrames": selected,
         "background": args.bg_color,
+        "calibratedChroma": args.calibrate_chroma,
+        "sampledBackgrounds": sampled_backgrounds,
+        "placementReport": str(args.placement_report) if args.placement_report else None,
         "clearRect": clear_rect,
         "supportAlphaThreshold": args.support_alpha_threshold,
         "supportDilate": args.support_dilate,
         "blueSpillRadius": args.blue_spill_radius,
         "blueSpillThreshold": args.blue_spill_threshold,
+        "magentaSpillRadius": args.magenta_spill_radius,
+        "magentaSpillThreshold": args.magenta_spill_threshold,
         "blueSpillPixels": {
             key: sum(item[key] for item in spill_stats)
             for key in spill_stats[0]

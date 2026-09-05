@@ -173,6 +173,11 @@ def main():
     ap.add_argument("--keep-dx", action="store_true",
                     help="保留相对首帧的水平位移（腿部区域中心锚定，dx×scale 平移；"
                          "center-x 为首帧锚点，攻击跨步前移用）")
+    ap.add_argument("--motion-anchor", choices=["legs", "bbox"], default="legs",
+                    help="keep-dx 水平运动锚点：legs 适合地面攻击；bbox 适合腾空飞扑")
+    ap.add_argument("--keep-dy", action="store_true",
+                    help="保留相对首帧的向上垂直位移（alpha 底边 dy×scale 平移，"
+                         "向下漂移钳制在 feet-y；腾空/落地动作使用）")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
@@ -211,7 +216,8 @@ def main():
             print(f"[rebuild] fixed bbox={bb}", flush=True)
 
     out_cells = []
-    ref_leg_cx = None  # --keep-dx 首帧腿部中心锚点
+    ref_motion_cx = None  # --keep-dx 首帧运动锚点
+    ref_bottom_y = None  # --keep-dy 首帧 alpha 底边锚点
     bg_rgb = parse_hex_color(args.bg_color)
     bg_is_white = float(bg_rgb.mean()) > 250
     for k in idxs:
@@ -283,18 +289,26 @@ def main():
             x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
         ch = y1 - y0 + 1
         cw = x1 - x0 + 1
-        # --keep-dx：保留相对首帧的水平位移（狼系 pounce dx×scale 口径）。
-        # 锚 = 腿部区域（bbox 底部 35%）中心 x——手臂挥动不改变腿部中心，
-        # 只有真实跨步/前移才产生 dx；首帧即锚，dx=0。
+        # --keep-dx：地面攻击默认用腿部中心；腾空飞扑改用完整 bbox 中心，
+        # 避免双腿收起时腿部带中心瞬间跳变，制造错误的前后折返。
         dx_px = 0.0
         if args.keep_dx:
-            band = alpha[y0 + int(ch * 0.65):y1 + 1, :] > 30
-            bxs = np.where(band.any(axis=0))[0]
-            leg_cx = (bxs.min() + bxs.max()) / 2.0 if len(bxs) else (x0 + x1) / 2.0
-            if ref_leg_cx is None:
-                ref_leg_cx = leg_cx
-            dx_px = (leg_cx - ref_leg_cx) * fixed_scale
-            print(f"[rebuild] keep-dx k={k} dx={dx_px:.1f}px", flush=True)
+            if args.motion_anchor == "bbox":
+                motion_cx = (x0 + x1) / 2.0
+            else:
+                band = alpha[y0 + int(ch * 0.65):y1 + 1, :] > 30
+                bxs = np.where(band.any(axis=0))[0]
+                motion_cx = (bxs.min() + bxs.max()) / 2.0 if len(bxs) else (x0 + x1) / 2.0
+            if ref_motion_cx is None:
+                ref_motion_cx = motion_cx
+            dx_px = (motion_cx - ref_motion_cx) * fixed_scale
+            print(f"[rebuild] keep-dx anchor={args.motion_anchor} k={k} dx={dx_px:.1f}px", flush=True)
+        dy_px = 0.0
+        if args.keep_dy:
+            if ref_bottom_y is None:
+                ref_bottom_y = y1
+            dy_px = min(0.0, (y1 - ref_bottom_y) * fixed_scale)
+            print(f"[rebuild] keep-dy k={k} dy={dy_px:.1f}px", flush=True)
         if args.uniform_h:
             fscale = args.target_h / max(1, ch)
             nh = args.target_h
@@ -308,7 +322,7 @@ def main():
         a = cv2.resize(alpha[y0:y1+1, x0:x1+1], (nw, nh), interpolation=cv2.INTER_AREA)
         cell = np.zeros((args.cell, args.cell, 4), np.uint8)
         ox = args.center_x + int(round(dx_px)) - nw // 2
-        oy = args.feet_y - nh + 1
+        oy = args.feet_y + int(round(dy_px)) - nh + 1
         if oy >= 0 and oy + nh <= args.cell and ox >= 0 and ox + nw <= args.cell:
             cell[oy:oy+nh, ox:ox+nw] = np.dstack([crop, a])
         else:

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "profiles": {
+    "crowd": { "targetMiB": 32, "reviewLimitMiB": 64 },
+    "specialist": { "targetMiB": 64, "reviewLimitMiB": 128 },
+    "boss": { "targetMiB": 128, "reviewLimitMiB": 256 }
+  },
+  "maxTextureSide": 4096,
+  "maxUnusedCellFraction": 0.125,
+  "sceneManagedSteadyTargetMiB": 512,
+  "sceneManagedTransitionTargetMiB": 640
+}

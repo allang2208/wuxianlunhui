@@ -4,6 +4,8 @@
 > 提示词一律从 [`prompts/`](prompts/README.md) 取用**固化模板**，禁止现场自由发挥。
 > SKILL.md 文首「本地 AI 出图工作流」为本节的摘要速查，本文档为准。
 >
+> **提示词最小化（2026-08-27）**：固化公共模板只注入一次，单个资产只补充模板没有覆盖的新信息。相同主体、结构、材质、视角或禁止项不得用同义词跨多个块反复堆叠；Depth、参考图或遮罩已经提供的控制不再长篇复述。提交前删除所有不增加新约束的句子，并与同类已接受提示词比较；明显更长或重复时必须先压缩。提示词越长不代表控制越强，优先级稀释和风格漂移属于提示词失格。
+>
 > **入口优先级（2026-08-04 二轮调整）**：双机 ComfyUI 自建生图系统（远程 5080 主力 +
 > 本机 3080 Ti 兜底）→ **本地零成本**；智谱 API 降级为第三兜底（双机都不可用/特殊场景）；
 > ithinkai 中转站 gpt-image-2 为云端第四途径（按 token 计费、无水印）。
@@ -112,10 +114,12 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
 单栋建筑只在 manifest 中描述结构、功能细节和局部配色，不能覆盖共同的材质尺度、光照、边缘处理或渲染语言。
 禁止为正式建筑直接手写 `comfyui-gen.py` 命令；通用客户端只作为该入口的内部后端或明确标记的实验工具。
 生成脚本会同时校验版本号与模板路径：正式候选只接受 `world122-building-v5` 与
-`prompts/world122-building-style.md`。旧 `world122-building-v1/v2`、天气塔实验用
+`prompts/world122-building-style.md`。旧 `world122-building-v1/v2/v4`、天气塔实验用
 `world122-building-runtime-settlement-v2` 仅允许作为旧候选元数据中的历史版本标记；旧模板文件和任何建筑私有画风模板不能继续提交正式候选。
-V5 统一简洁低饱和PBR、连续大色块、稀疏中尺度磨损和柔和左上顶侧光，不强制半木石、哥特、现代、工业或未来建筑语法；主体语法、层数、轮廓和组件位置完全服从白模与资产级 manifest。地台只注入当前资产实际选择的一种；显式 `foundationStyle:none` 的自然结构、贴地矿床、便携道具和开放牧场复合物不描述建筑地台。
-资产级提示词只补充该建筑独有的身份、组件数量、局部配色和公共合同尚未覆盖的高风险项；相同结构、材质或负面约束不得换同义词跨多个块重复堆叠。Depth 已锁定的视角、轮廓和占格无需用长篇文字重复加强。提交前删除所有不增加约束的句子；明显长于同类已接受提示词或出现多块重复时，先压缩再出图。
+V5 统一简洁低饱和的游戏向PBR、连续大材质面、稀疏中尺度磨损和柔和左上顶侧光，不强制半木石、哥特、现代、工业或未来建筑语法；主体语法、层数、轮廓和组件位置完全服从白模与资产级 manifest。公共合同不再同时描述所有地台子类，生成时只注入当前资产实际选择的 `foundationStyle`。
+
+**建筑提示词精简门禁**：公共 `world122-building-v5` 必须完整且只注入一次；`primaryRequest` 用一句话说明建筑身份，`structureRequest` 只列白模中需要计数或防误解的独有体块，`detailRequest` 只写48步需要增强的表面差异，`negativeRequest` 只补公共/类别合同尚未覆盖的高风险误生成项。一个事实只能出现在最合适的一个块中，禁止把“无塔、对称、低饱和”等要求在阶段合同、类别合同和资产合同中逐层改写重复；正向提示不得堆砌希望排除的建筑名词，优先写目标拓扑。生成前逐句检查：不能说明其新增了哪条控制的句子必须删除；生成后的总提示词若明显长于同类已接受版本，或同一关键词组跨多个块重复，停止提交并先压缩。12步 raw 若仍出现高饱和、亮金描边、密集微噪点、霓虹/泛光或不符合公共PBR语言的强风格漂移，整张淘汰，不得用48步补救。
+
 标准流程拆成两段，并始终保持主体逻辑占格与运行时道路铺地分离；已建模的视觉地台属于主体贴图，不改变碰撞、寻路或 `visualFootprint`：
 
 1. **结构粗筛（12 步，默认每批 3 张）**：Blender 白模深度图锁定体块、视角和年代化地台；由同一深度图派生边缘图，用于检查屋脊、塔楼接缝和遮挡边界。多层建筑必须把每层承重壳拆成可计数对象，在白模中锁死层数、逐层宽深和上下对齐；若设计要求三层对接，就不允许一层缩进或上层漂移。敞开的门扇、暖暗门洞、无文字功能招牌和视觉地台属于轮廓/识别结构，必须建模并进入 Body Depth，不能只写进提示词。远端插件确认支持 Hook 链后可加 `--edge-control` 启用第二路 ControlNet；当前默认只提交深度控制，避免旧版 `HooksContainer` 链式报错。提示词只描述白模已经表达的主体和结构边界；只有用户明确要求或已标记实验时才用 `--variants` 覆盖默认数量。
@@ -150,7 +154,7 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
   --prompt-file refine-prompt.txt --out refined.png
 ```
 
-默认参数在 `world122-building-candidate-manifest.json`：`flux2-dev-depth`、1024²、CFG 3.5、Euler/simple；结构阶段 12 步/3 张、Depth 0.78；精修阶段 48 步/2 张、denoise 0.30、Depth 0.75；边缘约束登记为0.38但默认关闭。公共画风合同为 `world122-building-v5`：使用简洁、低饱和、低颗粒的游戏向PBR，以连续大色块、稀疏中尺度变化和柔和顶侧光保持小尺寸可读性；实际地台只由当前 `foundationStyle` 注入。脚本会把画风版本、模板、模型、`foundationStyle`和全部生成参数写入每张 raw 对应的 `_generation.json`。改变步数或 denoise 必须显式增加 `--allow-nonstandard`，并会在元数据中留下非标准记录；非标准实验不得和正式候选混放或直接入库。结构不完整时先改白模体块，不能靠提高精修步数修复缺墙、断塔或错误屋顶。
+默认参数在 `world122-building-candidate-manifest.json`：`flux2-dev-depth`、1024²、CFG 3.5、Euler/simple；结构阶段 12 步/3 张、Depth 0.78；精修阶段 48 步/2 张、denoise 0.30、Depth 0.75；边缘约束登记为0.38但默认关闭。公共画风合同为 `world122-building-v5`：以简洁低饱和游戏向PBR为主，大块连续材质面先于纹理，只允许稀疏中尺度磨损，并采用柔和顶侧光；实际石质或混凝土地台只由当前资产的 `foundationStyle` 注入。脚本会把画风版本、模板、模型、`foundationStyle`和全部生成参数写入每张 raw 对应的 `_generation.json`。改变步数或 denoise 必须显式增加 `--allow-nonstandard`，并会在元数据中留下非标准记录；非标准实验不得和正式候选混放或直接入库。结构不完整时先改白模体块，不能靠提高精修步数修复缺墙、断塔或错误屋顶。
 
 消耗资源后开启全位面增效的功能建筑，入库不仅是贴图替换：业务状态机必须保存物流阶段、当前位置、目标仓库、携带资源、服务剩余时间和批次数，派生道路路线只在运行时重算；增效只能进入明确白名单的最终产出乘算，市场压力、价格、输入成本、处理速度和概率系统默认排除。前台与后台位面必须使用同一模块数值、同一批次消耗和同一服务有效时长口径，后台按实际生效时长加权且不得改变输入批次数。
 
@@ -207,8 +211,8 @@ SDXL / 智谱；视频仍使用MiniMax H3。
 - **固定视角/方向（默认路径）**：FLUX.2 Dev + Depth ControlNet（`flux2-dev-depth`，
   深度图经 `--control-image` 传入），同系列直接复用已定稿图的深度；视角/方向由深度图锁定，
   提示词不用反复强调视角。
-- **旧模型对照（仅显式指定）**：Dev / Dev Depth / Mesh 不参与默认流程；Mesh 不支持
-  ControlNet，不能替代 Klein Depth 的锁视角路径（§1.6）。
+- **旧模型对照（仅显式指定）**：Klein / Klein Depth / Mesh 不参与默认流程；Mesh 不支持
+  ControlNet，不能替代 Dev Depth 的锁视角路径（§1.6）。
 - **模板锁定 img2img（同系列图标必用）**：参考图先压白底再上传
   （透明角直传会被合成黑底 → 出黑角图）；提示词强调 `same template/size/position as reference`。
 - 候选批量：不同 seed × 多档 denoise（如 0.62/0.68/0.74/0.80），产出 4~8 张候选后统一粗筛。
@@ -323,6 +327,8 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 
 ### 3.6 视频（MiniMax H3 / 本地豆包 Seedance）
 
+**提交前必做，不分模型**：先读 `skill/16b-animation-alignment-and-timing.md` 第1.1节，查看已认可同类单位的实际动作帧，记录相机、头/胸/胯/脚方向、步轴与根点策略。身份母图和方向参考分开；展示母图方向不符时先制作同角色动作关键帧，核对通过才提交H3/豆包视频。用户已确认方向或同意继续时由助手核对并记录，不重复索要相同许可。生成后先检查原视频方向，再抠图/RIFE；不把武器朝右当作身体朝右。
+
 提示词模板：H3/VFX 用 `prompts/video.md`，豆包人物动作使用
 `prompts/doubao-character-action-standard.md`；客户端 `python tools/ai-gen/minimax-h3-gen.py`；
 输出 MP4 直入 `assets/videos/` 或 PyAV 抽帧转 sprite sheet（动作动画截帧路线）。
@@ -330,12 +336,37 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 `run-player-attack-sword.py` → `analyze-player-attack-sword.py` →
 `build-player-attack-sheet.py`（详见 SKILL.md「主角一段攻击关键帧→H3 两段式挥砍重生」）。
 
+H3 正式动作默认使用 5.17 秒/124 帧、1024×576、20 步和1个候选；每个结果自动生成24点`_contact.png`并写
+`.mp4.json`，记录模型、seed、提示词全文与哈希、参考素材哈希和采样参数。不满意时更换seed重抽；只有用户明确要求比较时才用
+`--candidates N`，多候选会复用同一次参考上传并输出`_c01..cNN.mp4`。待机/奔跑由动作类型自动走 `loop` 并锁同图尾帧；
+攻击/嚎叫走 `recover`，死亡/坍塌走 `one-way`，不再为了方便统一强锁回首姿。通用入口可显式使用
+`--motion-mode recover|one-way`；只有真正循环的动作才加 `--loop`。
+
+H3 默认以 `--h3-prompt-format h3` 把资产级原文封装成官方字段结构：Base模式严格使用
+`integrated_multimodal_description / overall_soundscape / non_diegetic_music`三段，Ref2VA严格使用
+`subject_definitions / summary / retention_analysis / detailed_description / overall_soundscape / non_diegetic_music`六段。
+原文仍须遵循
+`prompts/minimax-h3-action-template.txt`：用可观察的时间路径描述起势、峰值和恢复/最终态，减少同义否定词堆叠；原文超过2200字符
+或出现超过14个否定条款时客户端会告警。`--h3-prompt-format raw` 仅用于复现旧母版。困难动作可改用
+`--reference-mode reference --ref-video <motion.mp4>`，此时参考图只负责身份，参考视频只负责动作；`--ref-size max` 为正式默认，
+`match` 只用于明确的速度实验。Reference 模式不能与像素级首尾帧锁同时使用。怪物/人形精灵入口自动使用
+`--h3-audio-mode visual-only`和`--h3-visual-profile character-asset`：不靠堆叠否定词，额外锁定材质纹理、轮廓、
+刚性装备拓扑、面部标记以及毛发/布料的跨帧细节；通用VFX入口默认使用`general`并保留提示词中的音效要求。
+
+```powershell
+python tools/ai-gen/ai-asset.py video generate --provider h3 `
+  --ref Y:\素材库\first-frame.png --prompt tools\ai-gen\prompts\my-action.txt `
+  --motion-mode recover --candidates 1 --steps 20 `
+  --duration 5.17 --size 1024x576 `
+  --out Y:\工作\无尽轮回\scratch\h3_action.mp4
+```
+
 视频候选**默认先走本地豆包免费额度**；只有当页面明确显示当日额度耗尽、会员/权限阻断，或用户明确指定 H3、任务有豆包无法满足的特殊质量需求时，才追加 `--provider h3` 切远程 5080。豆包当前默认 `Seedance 2.0 Mini`，模型名称、倍率和免费状态以每次提交前页面实际显示为准：
 
 ```powershell
 python tools/ai-gen/ai-asset.py video generate --provider doubao `
   --ref Y:\素材库\first-frame.png --prompt tools\ai-gen\prompts\video.md `
-  --duration 5 --size 1024x576 --candidates 3 `
+  --duration 5 --size 1024x576 --candidates 1 `
   --out Y:\工作\无尽轮回\scratch\seedance_candidate.mp4
 ```
 
@@ -345,8 +376,11 @@ python tools/ai-gen/ai-asset.py video generate --provider doubao `
 若明确反馈“肖像保护/暂不支持真实人脸参考”，则按 `prompts/doubao-character-action-standard.md` 的肖像降级规则处理：
 删除提示词中的角色名和身份专名，统一改称“参考图中的原创游戏角色”、明确不涉及真人肖像，仅允许再提交一次；
 仍被拦截时停止图生视频，改走无专名文生视频或更换明显非真人风格的参考图。
-若页面已显示“你的视频生成好了”但自动等待超时，先用 `--inspect` 只读确认当前会话，再运行
-`--attach-only --download-latest --out <目标.mp4>` 恢复最后一个可播放结果；该恢复入口不上传、不提交、不消耗新额度。
+豆包在后台完成时可能不会主动刷新“你的视频生成好了”，不能只靠当前页提示文本或 `--inspect` 的未滚动状态判断未完成。等待超时或用户确认已生成后，先前置查看最新完成卡：运行
+`--attach-only --scroll-latest --play-latest --completed-offset 0 --inspect`，确认完成卡属于当前对话且已出现可见、非缓存、`readyState>=1` 的播放器；再单独运行
+`--attach-only --download-latest --out <目标.mp4>`。恢复后必须把文件哈希与本任务旧候选及同目录视频逐一比对；命中旧哈希时判为缓存误取，重新激活完成卡后恢复，不得重提。以上恢复入口都不上传、不提交、不消耗新额度。
+`--scroll-latest` 或 `--play-latest` 会先通过 CDP `Page.bringToFront` 激活当前对话页；只有页面 `visibility=visible` 后出现的完成卡和可见播放器才可作为后台恢复依据。不要把“CDP可连接”误当作页面已经前置。
+如果单次视频明显超过通常生成时间，或等待脚本已经超时但完成卡仍未出现，不能继续静默等待：先按上一段前置当前对话并检查最新卡；确认目标任务仍在生成后，通过当前已登录豆包会话的程序化入口主动发送准确文本`汇报进度`。每个超时检查阶段最多发送一次，收到状态回复或进入下一检查窗口后再前置查看，禁止连续刷问。该问询只用于查询已经提交的任务，不得重新上传参考图、重填视频提示词、点击生成提交、改变参数或消耗新额度；禁止用仿人工点击代替程序化入口。若脚本尚无可确认不会触发视频提交的安全问询入口，先补该入口再发送，不得把视频编辑器的提交按钮当作进度问询。
 
 豆包人物动作提交与入库硬门槛（伊莉丝奔跑实测）：
 
