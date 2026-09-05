@@ -24,6 +24,8 @@ const ENEMY_DEPENDENCIES = {
     tombstone: ['zombie', 'spitterZombie'],
     witch: ['cauldron'],
     zombieWizard: ['zombieDog'],
+    rotbogRhinocerosBeetleKing: ['smallRotbogRhinocerosBeetle'],
+    rotTideToadAncestor: ['smallRotbogRhinocerosBeetle'],
 };
 
 function rankMatchesTier(rank, tier) {
