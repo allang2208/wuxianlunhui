@@ -126,6 +126,9 @@ export function buildingContinuousTargetMatches(target, kind, projectId, unitTyp
 export function getBuildingContinuousCategory(building) {
     if (!building) return null;
     if (building._continuousUpgradeCategory) return building._continuousUpgradeCategory;
+    if (building._isHamsterHut || building.kind === 'hut') {
+        return building.cfgKey === 'mining_guild' ? 'hut:mining_guild' : 'hut';
+    }
     // 旧存档的 barracks 也归入迁移后的通用出兵建筑升级互斥域。
     if (building._isHamsterBarracks || building.kind === 'barracks') return 'producer:hamster_barracks';
     if (building._isProducerBuilding || building.kind === 'producer') {
@@ -140,7 +143,8 @@ export function isBuildingContinuousUpgradeOccupied(owner, entities = null) {
     const activeEntities = entities || ((typeof window !== 'undefined' && window.Game?.entities) || null);
     if (!activeEntities || typeof activeEntities.values !== 'function') return false;
     for (const entity of activeEntities.values()) {
-        if (!entity || entity === owner || entity.active === false || !entity._continuous) continue;
+        if (!entity || entity === owner || entity.active === false || entity._sinking
+            || Number(entity.hp ?? 1) <= 0 || !(entity._continuous || entity._economyContinuous)) continue;
         if (getBuildingContinuousCategory(entity) === category) return true;
     }
     return false;
