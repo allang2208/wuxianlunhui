@@ -175,6 +175,7 @@ export class SealedShaftRockWraith extends Enemy {
             && distance <= (Number(borequake.triggerRange) || 320)) {
             action = 'borequake';
         } else if (this._cooldowns.drillRush <= 0
+            && !this.hasStatusEffect('bind')
             && distance >= (Number(rush.minTriggerRange) || 260)
             && distance <= (Number(rush.triggerRange) || 760)) {
             action = 'drillRush';
@@ -186,6 +187,7 @@ export class SealedShaftRockWraith extends Enemy {
     }
 
     _startAction(action, target) {
+        if (action === 'drillRush' && this.hasStatusEffect('bind')) return false;
         const cfg = this._skill(action);
         const sourceX = this.collider?.x ?? this.x;
         const sourceY = this.collider?.y ?? this.y;
@@ -259,6 +261,10 @@ export class SealedShaftRockWraith extends Enemy {
     }
 
     _updateDrillRushMotion(elapsedBefore, elapsedAfter) {
+        if (this.hasStatusEffect('bind')) {
+            this._stopChargeMotion();
+            return;
+        }
         const cfg = this._actionCfg || {};
         const prepareMs = Math.max(0, Number(cfg.prepareMs) || 1500);
         const chargeMs = Math.max(1, Number(cfg.chargeMs) || 1100);

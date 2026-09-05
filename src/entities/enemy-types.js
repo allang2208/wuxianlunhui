@@ -4219,6 +4219,7 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
         this._pounceDir = { x: 0, y: 0 };
         this._pounceSpeed = 0;
         this._pounceDamaged = false;
+        this._pounceMotionCancelled = false;
         this._pounceGhostTimer = 0;
 
         this._stealthCooldown = Math.max(0, Number(this._stealthCfg.initialCooldownMs) || 0);
@@ -4573,7 +4574,8 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
 
     _canStartPounce(target) {
         if (!this._isReadyForSkill() || !target?.active || target._isDead
-            || target.hittable === false || !(target.hp > 0)) return false;
+            || target.hittable === false || !(target.hp > 0)
+            || this.hasStatusEffect('bind')) return false;
         const range = Math.max(1, Number(this._pounceCfg.triggerRange) || 500);
         return distanceToEntityShape(target, this.x, this.y) <= range;
     }
@@ -4590,6 +4592,7 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
         this._pounceTarget = target;
         this._pounceTargetPos = null;
         this._pounceDamaged = false;
+        this._pounceMotionCancelled = false;
         this._pounceGhostTimer = 0;
         this._pounceCooldown = Math.max(0, Number(this._pounceCfg.cooldown) || 12000);
         this._frozenForCast = true;
@@ -4610,6 +4613,13 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
     }
 
     _updatePounce(dt) {
+        if (this.hasStatusEffect('bind')) {
+            // 束缚只取消本次位移/冲击，剩余动作原地播完；解控后也不补冲。
+            this._pounceMotionCancelled = true;
+            this._pounceSpeed = 0;
+            this._pounceDamaged = true;
+            this._pendingStealthStrike = null;
+        }
         this._frozenForCast = true;
         this._animState = 'pounce';
         if (this._pounceState === 'prepare') {
@@ -4617,7 +4627,7 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
             this.vx = 0;
             this.vy = 0;
             this.isMoving = false;
-            if (this._pounceTarget?.active) {
+            if (!this._pounceMotionCancelled && this._pounceTarget?.active) {
                 this.rotation = Math.atan2(
                     this._pounceTarget.y - this.y,
                     this._pounceTarget.x - this.x
@@ -4625,6 +4635,15 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
                 this._lastHorizontalFacing = Math.cos(this.rotation) < 0 ? 'left' : 'right';
             }
             if (this._pounceTimer <= 0) this._startPounceCharge();
+            return;
+        }
+
+        if (this._pounceMotionCancelled) {
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+            this._pounceTimer = Math.max(0, this._pounceTimer - dt);
+            if (this._pounceTimer <= 0) this._endPounce();
             return;
         }
 
@@ -4703,6 +4722,16 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
 
     _startPounceCharge() {
         const target = this._pounceTarget;
+        const chargeMs = Math.max(1, Number(this._pounceCfg.chargeMs) || 1000);
+        if (this._pounceMotionCancelled || this.hasStatusEffect('bind')) {
+            this._pounceMotionCancelled = true;
+            this._pounceState = 'charge';
+            this._pounceTimer = chargeMs;
+            this._pounceSpeed = 0;
+            this._pounceDamaged = true;
+            this._pendingStealthStrike = null;
+            return;
+        }
         if (!target?.active || target._isDead || !(target.hp > 0)) {
             this._endPounce();
             return;
@@ -4717,7 +4746,6 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
         const maxDistance = Math.max(1, Number(this._pounceCfg.maxDistance) || 1200);
         const overshoot = Math.max(0, Number(this._pounceCfg.overshoot) || 300);
         const chargeDistance = Math.min(distance + overshoot, maxDistance);
-        const chargeMs = Math.max(1, Number(this._pounceCfg.chargeMs) || 1000);
         this._pounceState = 'charge';
         this._pounceTimer = chargeMs;
         this._pounceDir = { x: dx / distance, y: dy / distance };
@@ -4761,6 +4789,7 @@ class WerewolfKingEnemy extends ZombieDogEnemy {
         this._pounceTargetPos = null;
         this._pounceSpeed = 0;
         this._pounceDamaged = false;
+        this._pounceMotionCancelled = false;
         this._pounceGhostTimer = 0;
         this._frozenForCast = false;
         this._attackTimer = 0;
