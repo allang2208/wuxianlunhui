@@ -71,14 +71,14 @@
     "spawnRadius": 90,
     "defaultUnitType": "militia",
     "unitTypes": [
-      { "key": "militia", "name": "仓鼠民兵", "roleLabel": "长枪兵 · 反骑兵", "spawnFoodCost": 50 },
-      { "key": "halberd", "name": "仓鼠长戟", "roleLabel": "长戟卫士 · 反骑兵", "spawnFoodCost": 95 },
-      { "key": "anti_tank_rifleman", "name": "仓鼠反坦克步枪兵", "roleLabel": "冲锋枪点射 · 周期反坦克手榴弹", "spawnIntervalMs": 65000, "spawnFoodCost": 155 },
-      { "key": "anti_vehicle", "name": "仓鼠反载", "roleLabel": "冲锋枪突击 · 周期反载火箭", "spawnFoodCost": 180 },
-      { "key": "scout", "name": "仓鼠斥候", "roleLabel": "视野及增益", "spawnFoodCost": 75 },
-      { "key": "ranger", "name": "仓鼠游侠", "roleLabel": "手弩游侠 · 远程输出", "spawnFoodCost": 110 },
-      { "key": "industrial_recon_rifleman", "name": "仓鼠近代侦察步枪兵", "roleLabel": "栓动步枪 · 高视野弱化标记", "spawnIntervalMs": 68000, "spawnFoodCost": 180 },
-      { "key": "sniper", "name": "仓鼠狙击手", "roleLabel": "特战狙击 · 高伤高视野", "spawnIntervalMs": 25000, "spawnFoodCost": 210 }
+      { "key": "militia", "name": "仓鼠民兵", "roleLabel": "长枪兵 · 反骑兵", "spawnIntervalMs": 25000, "spawnFoodCost": 50, "spawnEnergyCost": 10 },
+      { "key": "halberd", "name": "仓鼠长戟", "roleLabel": "长戟卫士 · 反骑兵", "spawnIntervalMs": 42000, "spawnFoodCost": 90, "spawnEnergyCost": 20 },
+      { "key": "anti_tank_rifleman", "name": "仓鼠反坦克步枪兵", "roleLabel": "冲锋枪点射 · 周期反坦克手榴弹", "spawnIntervalMs": 65000, "spawnFoodCost": 155, "spawnEnergyCost": 70 },
+      { "key": "anti_vehicle", "name": "仓鼠反载", "roleLabel": "冲锋枪突击 · 周期反载火箭", "spawnIntervalMs": 75000, "spawnFoodCost": 180, "spawnEnergyCost": 90 },
+      { "key": "scout", "name": "仓鼠斥候", "roleLabel": "视野及增益", "spawnIntervalMs": 30000, "spawnFoodCost": 70, "spawnEnergyCost": 15 },
+      { "key": "ranger", "name": "仓鼠游侠", "roleLabel": "手弩游侠 · 远程输出", "spawnIntervalMs": 42000, "spawnFoodCost": 95, "spawnEnergyCost": 25 },
+      { "key": "industrial_recon_rifleman", "name": "仓鼠近代侦察步枪兵", "roleLabel": "栓动步枪 · 高视野弱化标记", "spawnIntervalMs": 68000, "spawnFoodCost": 180, "spawnEnergyCost": 80 },
+      { "key": "sniper", "name": "仓鼠狙击手", "roleLabel": "特战狙击 · 高伤高视野", "spawnIntervalMs": 80000, "spawnFoodCost": 210, "spawnEnergyCost": 100 }
     ],
     "recruitmentTiers": [
       { "id": "thatch_hut_level_1", "level": 1, "name": "仓鼠草屋", "baseline": true, "lines": [
@@ -118,14 +118,14 @@
     "spawnRadius": 90,
     "defaultUnitType": "warrior",
     "unitTypes": [
-      { "key": "warrior", "name": "仓鼠战士", "roleLabel": "双手剑士 · 输出", "spawnFoodCost": 125 },
-      { "key": "champion", "name": "仓鼠冠军", "roleLabel": "板甲冠军 · 重装输出", "spawnIntervalMs": 48000, "spawnFoodCost": 190 },
-      { "key": "trench_assault", "name": "战壕突击兵", "roleLabel": "A10霰弹枪 · 近距扇压", "spawnIntervalMs": 62000, "spawnFoodCost": 210 },
-      { "key": "steel_shield_assault", "name": "仓鼠钢盾突击兵", "roleLabel": "钢盾短枪 · 重装防御", "spawnIntervalMs": 68000, "spawnFoodCost": 230 },
-      { "key": "special_forces", "name": "仓鼠特战", "roleLabel": "泵动霰弹枪 · 近距爆发", "spawnIntervalMs": 65000, "spawnFoodCost": 260 },
-      { "key": "guard", "name": "仓鼠盾卫", "roleLabel": "防御", "spawnFoodCost": 150 },
-      { "key": "phalanx", "name": "仓鼠方阵", "roleLabel": "军团盾阵 · 重装防御", "spawnIntervalMs": 50000, "spawnFoodCost": 210 },
-      { "key": "riot_special", "name": "仓鼠防暴队", "roleLabel": "防暴盾枪 · 近距扇压", "spawnIntervalMs": 60000, "spawnFoodCost": 260 }
+      { "key": "warrior", "name": "仓鼠战士", "roleLabel": "双手剑士 · 输出", "spawnIntervalMs": 38000, "spawnFoodCost": 100, "spawnEnergyCost": 25 },
+      { "key": "champion", "name": "仓鼠冠军", "roleLabel": "板甲冠军 · 重装输出", "spawnIntervalMs": 50000, "spawnFoodCost": 165, "spawnEnergyCost": 50 },
+      { "key": "trench_assault", "name": "战壕突击兵", "roleLabel": "A10霰弹枪 · 近距扇压", "spawnIntervalMs": 62000, "spawnFoodCost": 210, "spawnEnergyCost": 80 },
+      { "key": "steel_shield_assault", "name": "仓鼠钢盾突击兵", "roleLabel": "钢盾短枪 · 重装防御", "spawnIntervalMs": 68000, "spawnFoodCost": 230, "spawnEnergyCost": 95 },
+      { "key": "special_forces", "name": "仓鼠特战", "roleLabel": "泵动霰弹枪 · 近距爆发", "spawnIntervalMs": 75000, "spawnFoodCost": 260, "spawnEnergyCost": 110 },
+      { "key": "guard", "name": "仓鼠盾卫", "roleLabel": "防御", "spawnIntervalMs": 42000, "spawnFoodCost": 140, "spawnEnergyCost": 40 },
+      { "key": "phalanx", "name": "仓鼠方阵", "roleLabel": "军团盾阵 · 重装防御", "spawnIntervalMs": 55000, "spawnFoodCost": 185, "spawnEnergyCost": 60 },
+      { "key": "riot_special", "name": "仓鼠防暴队", "roleLabel": "防暴盾枪 · 近距扇压", "spawnIntervalMs": 80000, "spawnFoodCost": 260, "spawnEnergyCost": 110 }
     ],
     "recruitmentTiers": [
       { "id": "hamster_barracks_level_1", "level": 1, "name": "军营一级编制", "baseline": true, "lines": [
@@ -195,7 +195,7 @@
     "spawnRadius": 90,
     "defaultUnitType": "priest",
     "unitTypes": [
-      { "key": "priest", "name": "仓鼠牧师", "roleLabel": "法术", "spawnFoodCost": 240 }
+      { "key": "priest", "name": "仓鼠牧师", "roleLabel": "一级法术 · 单体圣光", "spawnIntervalMs": 90000, "spawnFoodCost": 240, "spawnEnergyCost": 90 }
     ],
     "recruitmentTiers": [
       { "id": "church_level_1", "level": 1, "name": "教堂一级编制", "baseline": true, "lines": [
@@ -316,8 +316,8 @@
     "upgradeProject": "snow_samurai_standard",
     "defaultUnitType": "samurai",
     "unitTypes": [
-      { "key": "samurai", "name": "仓鼠武士", "spawnIntervalMs": 30000, "spawnFoodCost": 220 },
-      { "key": "ninja", "name": "仓鼠忍者", "spawnIntervalMs": 24000, "spawnFoodCost": 260 }
+      { "key": "samurai", "name": "仓鼠武士", "spawnIntervalMs": 30000, "spawnFoodCost": 220, "spawnEnergyCost": 70 },
+      { "key": "ninja", "name": "仓鼠忍者", "spawnIntervalMs": 24000, "spawnFoodCost": 260, "spawnEnergyCost": 90 }
     ],
     "panelDescription": "完成“雪原城堡营造术”后可在世界-123建造的雪原城堡，默认训练仓鼠武士；完成后续“雪原忍术”研究还可切换招募仓鼠忍者。特色编制最多维持4名单位，并同时占用全局军事人口。"
   },
@@ -606,14 +606,14 @@
     "spawnRadius": 90,
     "defaultUnitType": "crossbow",
     "unitTypes": [
-      { "key": "crossbow", "name": "仓鼠弩手", "roleLabel": "重弩 · 贯穿与穿甲", "spawnIntervalMs": 55000, "spawnFoodCost": 150 },
-      { "key": "musketeer", "name": "仓鼠火枪", "roleLabel": "远程", "spawnIntervalMs": 60000, "spawnFoodCost": 180 },
-      { "key": "shooter", "name": "仓鼠射手", "roleLabel": "远程", "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
-      { "key": "longbow", "name": "仓鼠长弓", "roleLabel": "长弓 · 远射高单发", "spawnIntervalMs": 65000, "spawnFoodCost": 200 },
-      { "key": "service_rifleman", "name": "仓鼠制式步枪兵", "roleLabel": "三级射手 · SVT制式步枪单发", "spawnIntervalMs": 65000, "spawnFoodCost": 185 },
-      { "key": "emplaced_machine_gun_crew", "name": "仓鼠BAR自动步枪兵", "roleLabel": "三级重火力 · 三发点射、贯穿与穿甲", "spawnIntervalMs": 78000, "spawnFoodCost": 235 },
-      { "key": "assault", "name": "仓鼠突击", "roleLabel": "突击步枪 · 高机动单发压制", "spawnIntervalMs": 65000, "spawnFoodCost": 220 },
-      { "key": "heavy_machine_gunner", "name": "仓鼠重机枪", "roleLabel": "重机枪 · 三连击、贯穿与穿甲", "spawnIntervalMs": 80000, "spawnFoodCost": 280 }
+      { "key": "crossbow", "name": "仓鼠弩手", "roleLabel": "重弩 · 贯穿与穿甲", "spawnIntervalMs": 45000, "spawnFoodCost": 110, "spawnEnergyCost": 30 },
+      { "key": "musketeer", "name": "仓鼠火枪", "roleLabel": "远程", "spawnIntervalMs": 58000, "spawnFoodCost": 150, "spawnEnergyCost": 50 },
+      { "key": "shooter", "name": "仓鼠射手", "roleLabel": "远程", "spawnIntervalMs": 36000, "spawnFoodCost": 90, "spawnEnergyCost": 25 },
+      { "key": "longbow", "name": "仓鼠长弓", "roleLabel": "长弓 · 远射高单发", "spawnIntervalMs": 55000, "spawnFoodCost": 150, "spawnEnergyCost": 50 },
+      { "key": "service_rifleman", "name": "仓鼠制式步枪兵", "roleLabel": "三级射手 · SVT制式步枪单发", "spawnIntervalMs": 65000, "spawnFoodCost": 185, "spawnEnergyCost": 80 },
+      { "key": "emplaced_machine_gun_crew", "name": "仓鼠BAR自动步枪兵", "roleLabel": "三级重火力 · 三发点射、贯穿与穿甲", "spawnIntervalMs": 78000, "spawnFoodCost": 235, "spawnEnergyCost": 100 },
+      { "key": "assault", "name": "仓鼠突击", "roleLabel": "突击步枪 · 高机动单发压制", "spawnIntervalMs": 75000, "spawnFoodCost": 220, "spawnEnergyCost": 100 },
+      { "key": "heavy_machine_gunner", "name": "仓鼠重机枪", "roleLabel": "重机枪 · 三连击、贯穿与穿甲", "spawnIntervalMs": 90000, "spawnFoodCost": 280, "spawnEnergyCost": 120 }
     ],
     "supplementalUnitUnlocks": [{ "key": "musketeer", "untilTierLevel": 3 }],
     "recruitmentTiers": [
@@ -657,14 +657,14 @@
     "spawnRadius": 90,
     "defaultUnitType": "knight",
     "unitTypes": [
-      { "key": "knight", "name": "仓鼠骑士", "roleLabel": "骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 300 },
-      { "key": "light_cavalry", "name": "仓鼠轻骑", "roleLabel": "骑兵", "spawnIntervalMs": 60000, "spawnFoodCost": 220 },
-      { "key": "cavalry", "name": "仓鼠骑兵", "roleLabel": "二级轻骑 · 高速长枪近战", "spawnIntervalMs": 70000, "spawnFoodCost": 260 },
-      { "key": "winged_hussar", "name": "仓鼠翼骑兵", "roleLabel": "二级重骑 · 长枪冲锋", "spawnIntervalMs": 100000, "spawnFoodCost": 360 },
-      { "key": "industrial_carbine_cavalry", "name": "仓鼠近代骑枪兵", "roleLabel": "三级轻骑 · 高速停步单发", "spawnIntervalMs": 80000, "spawnFoodCost": 300 },
-      { "key": "gunpowder_explosive_lancer", "name": "仓鼠传统长矛重骑兵", "roleLabel": "三级重骑 · 传统长矛强化冲锋", "spawnIntervalMs": 115000, "spawnFoodCost": 420 },
-      { "key": "scout_rifle_skirmisher", "name": "仓鼠侦察游骑兵", "roleLabel": "三级轻骑 · 移动单发步枪", "spawnIntervalMs": 75000, "spawnFoodCost": 300 },
-      { "key": "powered_eod_explosive_lancer", "name": "仓鼠动力爆矛重骑兵", "roleLabel": "三级重骑 · 助推冲锋爆炸", "spawnIntervalMs": 120000, "spawnFoodCost": 440 }
+      { "key": "knight", "name": "仓鼠骑士", "roleLabel": "骑兵", "spawnIntervalMs": 80000, "spawnFoodCost": 740, "spawnEnergyCost": 240 },
+      { "key": "light_cavalry", "name": "仓鼠轻骑", "roleLabel": "骑兵", "spawnIntervalMs": 55000, "spawnFoodCost": 580, "spawnEnergyCost": 180 },
+      { "key": "cavalry", "name": "仓鼠骑兵", "roleLabel": "二级轻骑 · 高速长枪近战", "spawnIntervalMs": 70000, "spawnFoodCost": 750, "spawnEnergyCost": 270 },
+      { "key": "winged_hussar", "name": "仓鼠翼骑兵", "roleLabel": "二级重骑 · 长枪冲锋", "spawnIntervalMs": 100000, "spawnFoodCost": 950, "spawnEnergyCost": 330 },
+      { "key": "industrial_carbine_cavalry", "name": "仓鼠近代骑枪兵", "roleLabel": "三级轻骑 · 高速停步单发", "spawnIntervalMs": 80000, "spawnFoodCost": 780, "spawnEnergyCost": 280 },
+      { "key": "gunpowder_explosive_lancer", "name": "仓鼠传统长矛重骑兵", "roleLabel": "三级重骑 · 传统长矛强化冲锋", "spawnIntervalMs": 115000, "spawnFoodCost": 1080, "spawnEnergyCost": 420 },
+      { "key": "scout_rifle_skirmisher", "name": "仓鼠侦察游骑兵", "roleLabel": "三级轻骑 · 移动单发步枪", "spawnIntervalMs": 90000, "spawnFoodCost": 900, "spawnEnergyCost": 340 },
+      { "key": "powered_eod_explosive_lancer", "name": "仓鼠动力爆矛重骑兵", "roleLabel": "三级重骑 · 助推冲锋爆炸", "spawnIntervalMs": 125000, "spawnFoodCost": 1200, "spawnEnergyCost": 480 }
     ],
     "recruitmentTiers": [
       { "id": "cavalry_school_level_1", "level": 1, "name": "骑兵学院一级编制", "baseline": true, "lines": [
@@ -939,8 +939,8 @@
     "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
     "defaultUnitType": "explorer",
     "unitTypes": [
-      { "key": "explorer", "name": "仓鼠探险家", "unitCap": 3, "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
-      { "key": "bounty_hunter", "name": "仓鼠赏金猎人", "unitCap": 3, "spawnIntervalMs": 75000, "spawnFoodCost": 240 }
+      { "key": "explorer", "name": "仓鼠探险家", "unitCap": 3, "spawnIntervalMs": 45000, "spawnFoodCost": 120, "spawnEnergyCost": 40 },
+      { "key": "bounty_hunter", "name": "仓鼠赏金猎人", "unitCap": 3, "spawnIntervalMs": 75000, "spawnFoodCost": 240, "spawnEnergyCost": 90 }
     ]
   },
   "dungeon_candle": {
@@ -986,8 +986,8 @@
     "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
     "defaultUnitType": "jaguar_warrior",
     "unitTypes": [
-      { "key": "jaguar_warrior", "name": "美洲豹战士", "unitCap": 3, "spawnIntervalMs": 55000, "spawnFoodCost": 220 },
-      { "key": "jungle_priest", "name": "丛林祭司", "unitCap": 3, "spawnIntervalMs": 85000, "spawnFoodCost": 360 }
+      { "key": "jaguar_warrior", "name": "美洲豹战士", "unitCap": 3, "spawnIntervalMs": 55000, "spawnFoodCost": 220, "spawnEnergyCost": 70 },
+      { "key": "jungle_priest", "name": "丛林祭司", "unitCap": 3, "spawnIntervalMs": 85000, "spawnFoodCost": 360, "spawnEnergyCost": 120 }
     ]
   },
   "desert_mansion": {
@@ -1020,8 +1020,8 @@
     "unitCap": 5,
     "defaultUnitType": "camel_cavalry",
     "unitTypes": [
-      { "key": "camel_cavalry", "name": "骆驼骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 300 },
-      { "key": "desert_priest", "name": "沙漠僧侣", "spawnIntervalMs": 85000, "spawnFoodCost": 360 }
+      { "key": "camel_cavalry", "name": "骆驼骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 900, "spawnEnergyCost": 340 },
+      { "key": "desert_priest", "name": "沙漠僧侣", "spawnIntervalMs": 85000, "spawnFoodCost": 360, "spawnEnergyCost": 120 }
     ]
   },
   "economic_workshop": {
@@ -1596,17 +1596,17 @@
         "key": "hamster_catapult_crew",
         "name": "仓鼠投石组",
         "roleLabel": "工程器械 · 抛射范围火力",
-        "spawnIntervalMs": 75000,
-        "spawnFoodCost": 240,
-        "spawnEnergyCost": 90
+        "spawnIntervalMs": 65000,
+        "spawnFoodCost": 200,
+        "spawnEnergyCost": 65
       },
       {
         "key": "hamster_field_cannon_crew",
         "name": "仓鼠野战炮组",
         "roleLabel": "工程器械 · 古典野战火炮",
-        "spawnIntervalMs": 95000,
-        "spawnFoodCost": 360,
-        "spawnEnergyCost": 170
+        "spawnIntervalMs": 85000,
+        "spawnFoodCost": 300,
+        "spawnEnergyCost": 135
       },
       {
         "key": "industrial_artillery_crew",

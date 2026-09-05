@@ -490,12 +490,14 @@ export function captureWorld(sceneId = 'scene8') {
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0, recruitMode: normalizeRecruitMode(p._recruitMode),
             populationBlocked: !!p._spawnPopulationBlocked,
             foodBlocked: !!p._spawnFoodBlocked,
+            energyBlocked: !!p._spawnEnergyBlocked,
             parallelQueues: p._parallelProduction ? Object.fromEntries(
                 Object.entries(p._parallelQueues || {}).map(([kind, queue]) => [kind, {
                     recruitMode: normalizeRecruitMode(queue.recruitMode),
                     timer: Math.max(0, Number(queue.timer) || 0),
                     blocked: !!queue.blocked,
                     foodBlocked: !!queue.foodBlocked,
+                    energyBlocked: !!queue.energyBlocked,
                     populationBlocked: !!queue.populationBlocked,
                 }])
             ) : undefined,
@@ -1383,6 +1385,7 @@ function _restoreProducer(s, sceneId) {
     producer._recruitMode = normalizeRecruitMode(s.recruitMode);
     producer._spawnPopulationBlocked = !!s.populationBlocked;
     producer._spawnFoodBlocked = !!s.foodBlocked;
+    producer._spawnEnergyBlocked = !!s.energyBlocked;
     // 科技在离场期间完成时，按当前槽位换代，并以新兵种完整周期重新计时。
     producer.refreshRecruitmentTier?.();
     if (producer._parallelProduction) {
@@ -1393,6 +1396,7 @@ function _restoreProducer(s, sceneId) {
             queue.timer = Math.max(0, Number(savedQueue.timer) || 0);
             queue.blocked = !!savedQueue.blocked;
             queue.foodBlocked = !!savedQueue.foodBlocked;
+            queue.energyBlocked = !!savedQueue.energyBlocked;
             queue.populationBlocked = !!savedQueue.populationBlocked;
         }
     }

@@ -97,6 +97,7 @@ import {
     isMilitaryPopulationIgnored,
     skipBuildingUpgradeWait,
 } from '../config/dev-cheats.js';
+import { getMilitaryPopulationCost } from './military-population-system.js';
 import { getFoodProductionWeatherEffect } from './food-production-weather.js';
 
 /** 抽象结算估算常量（调整平衡只改这里） */
@@ -927,6 +928,21 @@ function _rosterCount(roster) {
     return Object.values(roster || {}).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0);
 }
 
+function _rosterMilitaryPopulation(roster) {
+    return Object.entries(roster || {}).reduce((sum, [kind, count]) => (
+        sum + Math.max(0, Math.floor(Number(count) || 0)) * getMilitaryPopulationCost(kind)
+    ), 0);
+}
+
+function _deployedMilitaryPopulation(structure) {
+    const roster = structure?.troopLineDeployedRoster;
+    if (roster && typeof roster === 'object' && Object.keys(roster).length > 0) {
+        return _rosterMilitaryPopulation(roster);
+    }
+    const count = Math.max(0, Math.floor(Number(structure?.troopLineDeployed) || 0));
+    return count * getMilitaryPopulationCost(structure?.unitType);
+}
+
 function _rosterDps(roster, levelOverrides = null) {
     return Object.entries(roster || {}).reduce(
         (sum, [kind, count]) => sum
@@ -1153,6 +1169,7 @@ function _createSettlementReport(elapsedMs) {
         goldSpentOnOil: 0, energySpentOnCannery: 0, foodSpentOnTrading: 0,
         energySpentOnMiners: 0, energySpentOnMinting: 0, energySpentOnGrandMall: 0,
         energySpentOnStockExchange: 0, energySpentOnComputing: 0,
+        energySpentOnUnits: 0,
         foodSpentOnMinting: 0, foodSpentOnSteam: 0, foodSpentOnTavern: 0,
         foodSpentOnUnits: 0,
         abilitiesCompleted: [], modulesCompleted: [], structuresLost: 0, baseDamage: 0,
@@ -2434,8 +2451,8 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         if (structure.kind !== 'barracks' && structure.kind !== 'producer') return sum;
         const cfg = _producerConfigOf(structure);
         if (!(cfg?.unitTypes || []).some((unit) => !!unit?.key)) return sum;
-        return sum + _rosterCount(_normalizedRoster(structure))
-            + Math.max(0, Math.floor(Number(structure.troopLineDeployed) || 0));
+        return sum + _rosterMilitaryPopulation(_normalizedRoster(structure))
+            + _deployedMilitaryPopulation(structure);
     }, 0);
     for (const s of target.structures || []) {
         if (s.kind !== 'barracks' && s.kind !== 'producer') continue;
@@ -2455,6 +2472,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                     || Number(producerCfg.spawnIntervalMs) || 0;
                 s.populationBlocked = false;
                 s.foodBlocked = false;
+                s.energyBlocked = false;
             }
         }
         if (producerCfg?.parallelProduction) {
@@ -2469,6 +2487,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             for (const unitCfg of producerCfg.unitTypes || []) {
                 const kind = unitCfg.key;
                 if (!kind) continue;
+                const populationCost = getMilitaryPopulationCost(kind);
                 const queue = s.parallelQueues[kind] || {
                     recruitMode: RECRUIT_MODE.PAUSED,
                     timer: Number(unitCfg.spawnIntervalMs) || Number(producerCfg.spawnIntervalMs) || 0,
@@ -2477,6 +2496,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                 const recruitMode = normalizeRecruitMode(queue.recruitMode);
                 if (recruitMode === RECRUIT_MODE.PAUSED) continue;
                 queue.foodBlocked = false;
+                queue.energyBlocked = false;
                 queue.populationBlocked = false;
                 const baseInterval = Math.max(0,
                     Number(unitCfg.spawnIntervalMs) || Number(producerCfg.spawnIntervalMs) || 0);
@@ -2508,27 +2528,37 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                     ));
                     const populationRoom = ignoreMilitaryPopulation
                         ? Number.POSITIVE_INFINITY
-                        : Math.max(0, populationCapacity - militaryPopulationUsed);
-                    const spawnCost = Math.max(0, Math.ceil(
-                        (Number(unitCfg.spawnFoodCost) || 0)
-                            * _armoryResourceCostMultiplier(s, economyStructures)
+                        : Math.floor(Math.max(0, populationCapacity - militaryPopulationUsed)
+                            / populationCost);
+                    const costMultiplier = _armoryResourceCostMultiplier(s, economyStructures);
+                    const foodCost = Math.max(0, Math.ceil(
+                        (Number(unitCfg.spawnFoodCost) || 0) * costMultiplier
                     ));
-                    const foodRoom = spawnCost > 0
-                        ? Math.floor(_foodInWarehouses(warehouses) / spawnCost)
+                    const energyCost = Math.max(0, Math.ceil(
+                        (Number(unitCfg.spawnEnergyCost) || 0) * costMultiplier
+                    ));
+                    const foodRoom = foodCost > 0
+                        ? Math.floor(_foodInWarehouses(warehouses) / foodCost)
+                        : Number.POSITIVE_INFINITY;
+                    const energyRoom = energyCost > 0
+                        ? Math.floor(_energyInWarehouses(warehouses) / energyCost)
                         : Number.POSITIVE_INFINITY;
                     const singleRoom = recruitMode === RECRUIT_MODE.SINGLE ? 1 : Number.POSITIVE_INFINITY;
                     const produced = Math.max(0, Math.min(
-                        ready, producerRoom, populationRoom, foodRoom, singleRoom
+                        ready, producerRoom, populationRoom, foodRoom, energyRoom, singleRoom
                     ));
                     if (produced > 0) {
-                        const totalCost = produced * spawnCost;
-                        if (totalCost > 0) _deductFoodFromWarehouses(warehouses, totalCost);
+                        const totalFoodCost = produced * foodCost;
+                        const totalEnergyCost = produced * energyCost;
+                        if (totalFoodCost > 0) _deductFoodFromWarehouses(warehouses, totalFoodCost);
+                        if (totalEnergyCost > 0) _deductFromWarehouses(warehouses, totalEnergyCost);
                         warehouseFree = _energyStorableInWarehouses(warehouses);
-                        report.foodSpentOnUnits += totalCost;
+                        report.foodSpentOnUnits += totalFoodCost;
+                        report.energySpentOnUnits += totalEnergyCost;
                         localAlive += produced;
                         assigned += produced;
                         producerAssigned += produced;
-                        militaryPopulationUsed += produced;
+                        militaryPopulationUsed += produced * populationCost;
                         roster[kind] = localAlive;
                         report.unitsProduced += produced;
                     }
@@ -2540,6 +2570,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                         timer = 0;
                         if (populationRoom <= produced) queue.populationBlocked = true;
                         else if (foodRoom <= produced) queue.foodBlocked = true;
+                        else if (energyRoom <= produced) queue.energyBlocked = true;
                         stop = true;
                     } else if (produced >= producerRoom) {
                         timer = interval;
@@ -2582,8 +2613,10 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         );
         let previousInterval = baseInterval * _recruitMult(initialRecruitLevel);
         let foodBlocked = false;
+        let energyBlocked = false;
         let militaryPopulationBlocked = false;
         let singleCompleted = false;
+        const populationCost = getMilitaryPopulationCost(s.unitType);
         for (const segment of segments) {
             const interval = baseInterval * _recruitMult(segment.level);
             if (previousInterval > 0 && interval !== previousInterval) {
@@ -2599,22 +2632,29 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             const unitRoom = Math.max(0, cap - alive);
             const populationRoom = ignoreMilitaryPopulation
                 ? Number.POSITIVE_INFINITY
-                : Math.max(0, populationCapacity - militaryPopulationUsed);
-            const spawnCost = _unitSpawnFoodCost(s, economyStructures);
-            const foodRoom = spawnCost > 0
-                ? Math.floor(_foodInWarehouses(warehouses) / spawnCost)
+                : Math.floor(Math.max(0, populationCapacity - militaryPopulationUsed)
+                    / populationCost);
+            const spawnCost = _unitSpawnResourceCost(s, economyStructures);
+            const foodRoom = spawnCost.food > 0
+                ? Math.floor(_foodInWarehouses(warehouses) / spawnCost.food)
+                : Number.POSITIVE_INFINITY;
+            const energyRoom = spawnCost.energy > 0
+                ? Math.floor(_energyInWarehouses(warehouses) / spawnCost.energy)
                 : Number.POSITIVE_INFINITY;
             const singleRoom = recruitMode === RECRUIT_MODE.SINGLE ? 1 : Number.POSITIVE_INFINITY;
             const produced = Math.max(0, Math.min(
-                ready, unitRoom, populationRoom, foodRoom, singleRoom
+                ready, unitRoom, populationRoom, foodRoom, energyRoom, singleRoom
             ));
             if (produced > 0) {
-                const totalCost = produced * spawnCost;
-                if (totalCost > 0) _deductFoodFromWarehouses(warehouses, totalCost);
+                const totalFoodCost = produced * spawnCost.food;
+                const totalEnergyCost = produced * spawnCost.energy;
+                if (totalFoodCost > 0) _deductFoodFromWarehouses(warehouses, totalFoodCost);
+                if (totalEnergyCost > 0) _deductFromWarehouses(warehouses, totalEnergyCost);
                 warehouseFree = _energyStorableInWarehouses(warehouses);
-                report.foodSpentOnUnits += totalCost;
+                report.foodSpentOnUnits += totalFoodCost;
+                report.energySpentOnUnits += totalEnergyCost;
                 alive += produced;
-                militaryPopulationUsed += produced;
+                militaryPopulationUsed += produced * populationCost;
                 roster[s.unitType] = (roster[s.unitType] || 0) + produced;
                 report.unitsProduced += produced;
             }
@@ -2626,6 +2666,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                 timer = 0;
                 if (populationRoom <= produced) militaryPopulationBlocked = true;
                 else if (foodRoom <= produced) foodBlocked = true;
+                else if (energyRoom <= produced) energyBlocked = true;
             } else if (produced >= unitRoom) {
                 timer = interval;
             } else {
@@ -2633,7 +2674,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                 timer = Math.max(0, interval - Math.max(0, timeLeft - consumedMs));
             }
             previousInterval = interval;
-            if (foodBlocked || militaryPopulationBlocked || singleCompleted) break;
+            if (foodBlocked || energyBlocked || militaryPopulationBlocked || singleCompleted) break;
             if (alive >= cap) {
                 timer = interval;
                 break;
@@ -2646,6 +2687,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         s.spawnTimer = Math.max(0, timer * finalInterval / previousInterval);
         s.populationBlocked = militaryPopulationBlocked;
         s.foodBlocked = foodBlocked;
+        s.energyBlocked = energyBlocked;
         // 混编部队逐兵种结算，切换生产类型不会把旧兵种整体转换。
         s.unitDps = _rosterDps(roster);
     }
@@ -2823,6 +2865,10 @@ function _foodInWarehouses(warehouses) {
     return warehouses.reduce((sum, w) => sum + Math.max(0, Number(w.storedFood) || 0), 0);
 }
 
+function _energyInWarehouses(warehouses) {
+    return warehouses.reduce((sum, w) => sum + Math.max(0, Number(w.storedEnergy) || 0), 0);
+}
+
 function _warehouseFree(warehouse) {
     return Math.max(
         0,
@@ -2910,13 +2956,14 @@ function _hasIndividualUnitCap(cfg) {
     return !!(cfg?.featureWorldId && (cfg.unitTypes || []).some((unit) => !!unit?.key));
 }
 
-function _unitSpawnFoodCost(s, economyStructures = []) {
+function _unitSpawnResourceCost(s, economyStructures = []) {
     const cfg = _producerConfigOf(s);
     const unit = (cfg?.unitTypes || []).find((entry) => entry.key === s.unitType);
-    return Math.max(0, Math.ceil(
-        (Number(unit?.spawnFoodCost) || 0)
-            * _armoryResourceCostMultiplier(s, economyStructures)
-    ));
+    const multiplier = _armoryResourceCostMultiplier(s, economyStructures);
+    return {
+        food: Math.max(0, Math.ceil((Number(unit?.spawnFoodCost) || 0) * multiplier)),
+        energy: Math.max(0, Math.ceil((Number(unit?.spawnEnergyCost) || 0) * multiplier)),
+    };
 }
 
 function _deductFoodFromWarehouses(warehouses, amount) {

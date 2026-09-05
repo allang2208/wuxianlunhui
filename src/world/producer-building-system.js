@@ -167,6 +167,7 @@ import {
 } from './recruitment-tier.js';
 import { hasBackgroundBuildingUpgrade, hasBackgroundContinuousUpgrade } from './world122-snapshot.js';
 import { PopulationEconomySystem, populationEconomyConfig } from './population-economy-system.js';
+import { getMilitaryPopulationCost } from './military-population-system.js';
 import { HamsterFarmerVisualSystem } from './hamster-farmer-visual-system.js';
 import { HamsterBankerVisualSystem } from './hamster-banker-visual-system.js';
 import { HamsterBakerVisualSystem } from './hamster-baker-visual-system.js';
@@ -761,6 +762,7 @@ export class ProducerBuilding extends DamageableEntity {
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
         this._spawnFoodBlocked = false;
+        this._spawnEnergyBlocked = false;
         this._spawnPopulationBlocked = false;
         this.spawnEnabled = cfg.spawnEnabled !== false; // 铁匠铺等能力建筑不产兵
         this._isTroopProducer = this.spawnEnabled && (cfg.unitTypes || []).some((unit) => !!unit?.key);
@@ -793,6 +795,7 @@ export class ProducerBuilding extends DamageableEntity {
                     retryTimer: 0,
                     blocked: false,
                     foodBlocked: false,
+                    energyBlocked: false,
                     populationBlocked: false,
                 };
                 this._parallelQueues[unit.key].timer = this.recruitIntervalMs(unit.key);
@@ -940,6 +943,7 @@ export class ProducerBuilding extends DamageableEntity {
                 this._spawnBlocked = false;
                 this._spawnPopulationBlocked = false;
                 this._spawnFoodBlocked = false;
+                this._spawnEnergyBlocked = false;
             }
         }
         if (changed) scheduleFriendlyAssetResidencyRefresh();
@@ -961,6 +965,15 @@ export class ProducerBuilding extends DamageableEntity {
         return TroopLineSystem.countAssignedToProducer(this, kind);
     }
 
+    /** 本建筑完整编制的加权军事人口；外派与跨位面途中单位仍由兵线系统计入。 */
+    militaryPopulationUsed() {
+        return (this._cfg.unitTypes || []).reduce((sum, unit) => {
+            const kind = unit?.key;
+            if (!kind) return sum;
+            return sum + this.aliveUnitCount(kind) * getMilitaryPopulationCost(kind);
+        }, 0);
+    }
+
     /** 配置里该单位 key 的展示名 */
     unitName(key) {
         const u = (this._cfg.unitTypes || []).find((t) => t.key === key);
@@ -974,9 +987,29 @@ export class ProducerBuilding extends DamageableEntity {
     }
 
     _unitSpawnFoodCost(kind = this.unitType) {
+        return this._unitSpawnResourceCost(kind).food;
+    }
+
+    _unitSpawnEnergyCost(kind = this.unitType) {
+        return this._unitSpawnResourceCost(kind).energy;
+    }
+
+    _unitSpawnResourceCost(kind = this.unitType) {
         const unit = (this._cfg.unitTypes || []).find((entry) => entry.key === kind);
-        const base = Math.max(0, Number(unit?.spawnFoodCost) || 0);
-        return Math.max(0, Math.ceil(base * ArmoryEconomySystem.getResourceCostMultiplier(this)));
+        const multiplier = ArmoryEconomySystem.getResourceCostMultiplier(this);
+        return {
+            food: Math.max(0, Math.ceil((Number(unit?.spawnFoodCost) || 0) * multiplier)),
+            energy: Math.max(0, Math.ceil((Number(unit?.spawnEnergyCost) || 0) * multiplier)),
+        };
+    }
+
+    _quotedUnitSpawnCost(kind = this.unitType) {
+        return CrossPlaneResourceSystem.quote(this._unitSpawnResourceCost(kind));
+    }
+
+    _unitSpawnCostText(kind = this.unitType) {
+        const cost = this._quotedUnitSpawnCost(kind);
+        return `${cost.food} 粮食 · ${cost.energy} 能源 · ${getMilitaryPopulationCost(kind)} 人口`;
     }
 
     /** 切换生成的单位类型；下一次生成生效（key 必须在配置 unitTypes 里）。
@@ -993,6 +1026,8 @@ export class ProducerBuilding extends DamageableEntity {
         this._spawnTimer = this.recruitIntervalMs();
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
+        this._spawnFoodBlocked = false;
+        this._spawnEnergyBlocked = false;
         this._spawnPopulationBlocked = false;
         scheduleFriendlyAssetResidencyRefresh();
         return true;
@@ -1005,12 +1040,15 @@ export class ProducerBuilding extends DamageableEntity {
             if (this._hasIndividualUnitCap && this.aliveUnitCount() >= this.unitCount()) {
                 return { ok: false, reason: '该特色建筑的兵种数量已达上限' };
             }
-            if (!PopulationEconomySystem.canRecruitMilitary(1)) {
+            if (!PopulationEconomySystem.canRecruitMilitary(getMilitaryPopulationCost(this.unitType))) {
                 return { ok: false, reason: '军事人口已达上限，请建造或升级房屋' };
             }
-            const cost = CrossPlaneResourceSystem.quote({ food: this._unitSpawnFoodCost() }).food;
-            if (cost > 0 && CrossPlaneResourceSystem.getAvailable('food') < cost) {
-                return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
+            const cost = this._quotedUnitSpawnCost();
+            if (cost.food > 0 && CrossPlaneResourceSystem.getAvailable('food') < cost.food) {
+                return { ok: false, reason: `粮食不足，单次招募需要 ${cost.food} 粮食` };
+            }
+            if (cost.energy > 0 && CrossPlaneResourceSystem.getAvailable('energy') < cost.energy) {
+                return { ok: false, reason: `能源不足，单次招募需要 ${cost.energy} 能源` };
             }
         }
         this._recruitMode = next;
@@ -1020,6 +1058,7 @@ export class ProducerBuilding extends DamageableEntity {
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
         this._spawnFoodBlocked = false;
+        this._spawnEnergyBlocked = false;
         this._spawnPopulationBlocked = false;
         if (next === RECRUIT_MODE.SINGLE || !(this._spawnTimer > 0)) {
             this._spawnTimer = this.recruitIntervalMs();
@@ -1048,12 +1087,15 @@ export class ProducerBuilding extends DamageableEntity {
             if (this.aliveUnitCount(kind) >= this.parallelUnitCap(kind)) {
                 return { ok: false, reason: '该特色兵种数量已达上限' };
             }
-            if (!PopulationEconomySystem.canRecruitMilitary(1)) {
+            if (!PopulationEconomySystem.canRecruitMilitary(getMilitaryPopulationCost(kind))) {
                 return { ok: false, reason: '军事人口已达上限，请建造或升级房屋' };
             }
-            const cost = CrossPlaneResourceSystem.quote({ food: this._unitSpawnFoodCost(kind) }).food;
-            if (cost > 0 && CrossPlaneResourceSystem.getAvailable('food') < cost) {
-                return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
+            const cost = this._quotedUnitSpawnCost(kind);
+            if (cost.food > 0 && CrossPlaneResourceSystem.getAvailable('food') < cost.food) {
+                return { ok: false, reason: `粮食不足，单次招募需要 ${cost.food} 粮食` };
+            }
+            if (cost.energy > 0 && CrossPlaneResourceSystem.getAvailable('energy') < cost.energy) {
+                return { ok: false, reason: `能源不足，单次招募需要 ${cost.energy} 能源` };
             }
         }
         queue.recruitMode = next;
@@ -1063,6 +1105,7 @@ export class ProducerBuilding extends DamageableEntity {
         queue.retryTimer = 0;
         queue.blocked = false;
         queue.foodBlocked = false;
+        queue.energyBlocked = false;
         queue.populationBlocked = false;
         if (next === RECRUIT_MODE.SINGLE || !(queue.timer > 0)) queue.timer = this.recruitIntervalMs(kind);
         scheduleFriendlyAssetResidencyRefresh();
@@ -1105,7 +1148,7 @@ export class ProducerBuilding extends DamageableEntity {
     }
 
     /** 生成一个军事单位（当前 unitType），应用模块倍率 */
-    spawnUnit(payFood = false, options = {}) {
+    spawnUnit(payResources = false, options = {}) {
         if (!Game || !Game.entities) return null;
         if (!TechnologySystem.isUnlocked('unit', this.unitType)) return null;
         if (!options.restoring) {
@@ -1116,7 +1159,7 @@ export class ProducerBuilding extends DamageableEntity {
                 ? this.aliveUnitCount(this.unitType)
                 : this.aliveUnitCount();
             if (this._hasIndividualUnitCap && individualCount >= individualCap) return null;
-            if (!PopulationEconomySystem.canRecruitMilitary(1)) {
+            if (!PopulationEconomySystem.canRecruitMilitary(getMilitaryPopulationCost(this.unitType))) {
                 this._spawnPopulationBlocked = true;
                 return null;
             }
@@ -1131,13 +1174,17 @@ export class ProducerBuilding extends DamageableEntity {
         const patch = getUnitUpgradePatch(this.unitType, this._cfg.modules);
         const spot = this._findUnitSpawn();
         if (!spot) return null;
-        const spawnCost = this._unitSpawnFoodCost();
-        if (payFood && spawnCost > 0
-            && !CrossPlaneResourceSystem.pay({ food: spawnCost }, { allowDevFree: false }).ok) {
-            this._spawnFoodBlocked = true;
-            return null;
+        const spawnCost = this._unitSpawnResourceCost();
+        if (payResources && (spawnCost.food > 0 || spawnCost.energy > 0)) {
+            const payment = CrossPlaneResourceSystem.pay(spawnCost, { allowDevFree: false });
+            if (!payment.ok) {
+                this._spawnFoodBlocked = payment.reason?.startsWith('粮食') || false;
+                this._spawnEnergyBlocked = payment.reason?.startsWith('能源') || false;
+                return null;
+            }
         }
         this._spawnFoodBlocked = false;
+        this._spawnEnergyBlocked = false;
         const id = `${this.id}_unit_${++this._unitSeq}`;
         const ai = {
             ...baseAi,
@@ -1532,6 +1579,7 @@ export class ProducerBuilding extends DamageableEntity {
                     this._spawnRetryTimer = 0;
                     this._spawnBlocked = false;
                     this._spawnFoodBlocked = false;
+                    this._spawnEnergyBlocked = false;
                     this._spawnPopulationBlocked = false;
                     if (!restoring && this._recruitMode === RECRUIT_MODE.SINGLE) {
                         this._recruitMode = RECRUIT_MODE.PAUSED;
@@ -1542,6 +1590,7 @@ export class ProducerBuilding extends DamageableEntity {
                     this._spawnRetryTimer = 1000;
                     this._spawnBlocked = false;
                     this._spawnFoodBlocked = false;
+                    this._spawnEnergyBlocked = false;
                     if (!populationWasBlocked && EffectManager) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - 66,
                             '军事人口已满，请建造或升级房屋', '#c7a7ff'));
@@ -1550,9 +1599,18 @@ export class ProducerBuilding extends DamageableEntity {
                     this._spawnTimer = 0;
                     this._spawnRetryTimer = 1000;
                     this._spawnBlocked = false;
+                    this._spawnEnergyBlocked = false;
                     if (EffectManager) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - 66,
                             `粮食不足，生产暂停（需 ${this._unitSpawnFoodCost()}）`, '#ffcc55'));
+                    }
+                } else if (this._spawnEnergyBlocked) {
+                    this._spawnTimer = 0;
+                    this._spawnRetryTimer = 1000;
+                    this._spawnBlocked = false;
+                    if (EffectManager) {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - 66,
+                            `能源不足，生产暂停（需 ${this._unitSpawnEnergyCost()}）`, '#7fd4ff'));
                     }
                 } else {
                     this._spawnTimer = 0;
@@ -1572,6 +1630,7 @@ export class ProducerBuilding extends DamageableEntity {
             this._spawnRetryTimer = 0;
             this._spawnBlocked = false;
             this._spawnFoodBlocked = false;
+            this._spawnEnergyBlocked = false;
             this._spawnPopulationBlocked = false;
         }
     }
@@ -1589,6 +1648,7 @@ export class ProducerBuilding extends DamageableEntity {
             if (this.aliveUnitCount(kind) >= this.parallelUnitCap(kind)) {
                 queue.timer = this.recruitIntervalMs(kind);
                 queue.retryTimer = 0; queue.blocked = false; queue.foodBlocked = false;
+                queue.energyBlocked = false;
                 queue.populationBlocked = false;
                 continue;
             }
@@ -1597,12 +1657,15 @@ export class ProducerBuilding extends DamageableEntity {
             queue.retryTimer -= dt;
             if (queue.retryTimer > 0) continue;
             this._spawnFoodBlocked = false;
+            this._spawnEnergyBlocked = false;
             const unit = this.spawnUnitFor(kind, !restoring, { restoring });
             queue.foodBlocked = !!this._spawnFoodBlocked;
+            queue.energyBlocked = !!this._spawnEnergyBlocked;
             queue.populationBlocked = !!this._spawnPopulationBlocked;
             if (unit) {
                 queue.timer = restoring ? 800 : this.recruitIntervalMs(kind);
                 queue.retryTimer = 0; queue.blocked = false; queue.foodBlocked = false;
+                queue.energyBlocked = false;
                 queue.populationBlocked = false;
                 if (restoring) {
                     const index = this._restoreRosterQueue.indexOf(kind);
@@ -1614,9 +1677,9 @@ export class ProducerBuilding extends DamageableEntity {
                 EffectManager?.add?.(new FloatingTextEffect(this.x, this.y - 56, `${this.unitName(kind)} 报到！`, '#8ad0ff'));
             } else {
                 queue.timer = 0;
-                queue.retryTimer = (queue.foodBlocked || queue.populationBlocked)
+                queue.retryTimer = (queue.foodBlocked || queue.energyBlocked || queue.populationBlocked)
                     ? 1000 : SpawnPlacement.retryMs;
-                queue.blocked = !queue.foodBlocked && !queue.populationBlocked;
+                queue.blocked = !queue.foodBlocked && !queue.energyBlocked && !queue.populationBlocked;
             }
         }
     }
@@ -2920,7 +2983,8 @@ class ProducerBuildingPanel extends BasePanel {
                     next.textContent = unlocked
                         ? (normalizeRecruitMode(queue.recruitMode) === RECRUIT_MODE.PAUSED
                             ? '已暂停' : queue.populationBlocked ? '军事人口已满'
-                                : queue.foodBlocked ? '粮食不足' : queue.blocked ? '出口阻塞'
+                                : queue.foodBlocked ? '粮食不足'
+                                    : queue.energyBlocked ? '能源不足' : queue.blocked ? '出口阻塞'
                                 : `${Math.max(0, Math.ceil(queue.timer / 1000))}s`)
                         : `需要科技：${technologyName || kind}`;
                 }
@@ -2947,7 +3011,7 @@ class ProducerBuildingPanel extends BasePanel {
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
         const spawnBarColor = paused ? '#727981' : (b._spawnPopulationBlocked ? '#c7a7ff'
-            : (b._spawnFoodBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
+            : (b._spawnFoodBlocked || b._spawnEnergyBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
                 : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8')))));
         const bar = el.querySelector('#pbSpawnBar');
         const pct = el.querySelector('#pbSpawnPct');
@@ -2963,7 +3027,7 @@ class ProducerBuildingPanel extends BasePanel {
         if (next) next.textContent = paused
             ? '已暂停'
             : (b._spawnPopulationBlocked ? '军事人口已满'
-                : (b._spawnFoodBlocked ? '粮食不足'
+                : (b._spawnFoodBlocked ? '粮食不足' : b._spawnEnergyBlocked ? '能源不足'
                     : (b._spawnBlocked ? '出口阻塞' : `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`)));
         const modeText = el.querySelector('#pbRecruitMode');
         if (modeText) modeText.textContent = `${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}`;
@@ -3211,6 +3275,7 @@ class ProducerBuildingPanel extends BasePanel {
                     ? (mode === RECRUIT_MODE.PAUSED ? '已暂停'
                         : queue.populationBlocked ? '军事人口已满'
                             : queue.foodBlocked ? '粮食不足'
+                                : queue.energyBlocked ? '能源不足'
                                 : queue.blocked ? '出口阻塞' : `${Math.ceil(queue.timer / 1000)}s`)
                     : `需要科技：${technologyName || unit.key}`;
                 const lockedStyle = unlocked ? '' : 'opacity:.72;';
@@ -3218,7 +3283,7 @@ class ProducerBuildingPanel extends BasePanel {
                 return `<div style="padding:9px 0;border-bottom:1px solid rgba(127,224,200,.18);${lockedStyle}">
                     <div class="troop-panel-unit-summary">
                         <span class="troop-panel-unit-name">${renderTroopUnitIcon(unit.key)}<b>${unit.name}</b></span>
-                        <span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost(unit.key) }).food} 粮食</span>
+                        <span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${b._unitSpawnCostText(unit.key)}</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;margin-top:5px;"><span data-parallel-next="${unit.key}" style="color:${unlocked ? 'inherit' : '#ffcc55'};">${statusText}</span><span data-parallel-pct="${unit.key}">${pct}%</span></div>
                     <div style="height:9px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;"><div data-parallel-bar="${unit.key}" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#ffd700,#7fe0c8);transition:width .2s linear;"></div></div>
@@ -3351,11 +3416,12 @@ class ProducerBuildingPanel extends BasePanel {
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
         const spawnBarColor = paused ? '#727981' : (b._spawnPopulationBlocked ? '#c7a7ff'
-            : (b._spawnFoodBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
+            : (b._spawnFoodBlocked || b._spawnEnergyBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
                 : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8')))));
         const nextText = paused ? '已暂停'
             : (b._spawnPopulationBlocked ? '军事人口已满'
-                : (b._spawnFoodBlocked ? '粮食不足' : (b._spawnBlocked ? '出口阻塞' : `${nextIn}s`)));
+                : (b._spawnFoodBlocked ? '粮食不足' : b._spawnEnergyBlocked ? '能源不足'
+                    : (b._spawnBlocked ? '出口阻塞' : `${nextIn}s`)));
         const individualLimit = b._hasIndividualUnitCap
             ? ` · 本建筑特色编制 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span>`
             : '';
@@ -3366,7 +3432,7 @@ class ProducerBuildingPanel extends BasePanel {
             </div>
             <div class="troop-panel-copy">
                 军事人口 <span id="pbMilitaryPopulation" style="color:#c7a7ff;">${military.used}/${military.capacity}</span>${individualLimit} ·
-                当前生成 <span class="troop-panel-inline-unit">${renderTroopUnitIcon(b.unitType, 'inline')}<b>${curType}</b></span>（每名 ${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost() }).food} 粮食）<br>
+                当前生成 <span class="troop-panel-inline-unit">${renderTroopUnitIcon(b.unitType, 'inline')}<b>${curType}</b></span>（每名 ${b._unitSpawnCostText()}）<br>
                 招募状态 <b id="pbRecruitMode" style="color:${paused ? '#aab0b6' : '#7fe0c8'};">${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}</b> ·
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）<br>
                 ${upgradeSummary}
@@ -3390,7 +3456,7 @@ class ProducerBuildingPanel extends BasePanel {
                 style="flex:1;cursor:var(--bp-cursor-pointer, pointer);">
                     <span class="troop-panel-unit-button-main">
                         ${renderTroopUnitIcon(u.key)}
-                        <span class="troop-panel-unit-button-copy"><span>${u.name}</span><small>${u.roleLabel ? `${u.roleLabel} · ` : ''}${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost(u.key) }).food} 粮食</small></span>
+                        <span class="troop-panel-unit-button-copy"><span>${u.name}</span><small>${u.roleLabel ? `${u.roleLabel} · ` : ''}${b._unitSpawnCostText(u.key)}</small></span>
                     </span>
                 </button>`;
         };
