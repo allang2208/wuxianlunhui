@@ -17,6 +17,10 @@ import { ReedMantisSweepEffect } from '../effects/reed-mantis-sweep-effect.js';
 import { MedusaPetrifyingGazeFx } from '../effects/medusa-petrifying-gaze-fx.js';
 import { VineEntangleEffect } from '../effects/vine-entangle-effect.js';
 import { DamagePipeline } from '../combat/damage-pipeline.js';
+import {
+    ensureRotbogBroodVisuals,
+    findRotbogBroodPoint,
+} from './enemy-types/_shared/rotbog-brood.js';
 import { canInvasionSummon, invasionSummonSlotsLeft, inheritInvasionSummon } from '../world/invasion-summon-budget.js';
 import { isFriendlyFire } from './damageable-entity.js';
 import { PartySystem } from '../systems/party-system.js';
@@ -49,7 +53,6 @@ export { HollowOvum } from './enemy-types/hollow-ovum.js';
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';
 import { loadImage } from '../utils/image-loader.js';
-import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { ZombieWizard } from './enemy-types/zombie-wizard.js';
 import { Mutant3 } from './enemy-types/mutant-3.js';
 import { SpitterZombie } from './enemy-types/spitter-zombie.js';
@@ -5464,27 +5467,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
 
     _ensureBroodVisuals() {
         const type = this._summonCfg.summonType || 'smallRotbogRhinocerosBeetle';
-        const config = enemyConfigData[type];
-        if (!config) return false;
-        if (!this._broodVisualKeys?.length) {
-            this._broodVisualKeys = RuntimeAssetManager.getEnemyVisualKeysForContent(type, config);
-        }
-        const keys = this._broodVisualKeys;
-        const ready = keys.length > 0 && keys.every(key => RuntimeAssetManager.isTextureReady(key))
-            && Object.keys(config.textures.frameLayouts).every(state => RuntimeAssetManager.isAnimationReady(
-                `enemy_small_rotbog_rhinoceros_beetle_${state}_v1`));
-        if (ready) return true;
-        if (!this.active || this._deathStarted || this._broodLoadPending
-            || Date.now() < this._broodLoadRetryAt || !keys.length) return false;
-        // 只预热，异步回调不生成实体；释放仍由可中断的技能时钟完成。
-        this._broodLoadPending = RuntimeAssetManager.ensureEnemyVisualKeys(keys, {
-            required: false,
-            shouldLoad: () => this.active && !this._deathStarted,
-        }).catch(() => {}).finally(() => {
-            this._broodLoadPending = null;
-            this._broodLoadRetryAt = Date.now() + 2000;
-        });
-        return false;
+        return ensureRotbogBroodVisuals(this, type);
     }
 
     _startSummon() {
@@ -5518,16 +5501,9 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._summonTimer = Math.max(0, this._summonTimer - dt);
         const elapsed = duration - this._summonTimer;
         if (!this._summonReleased && elapsed >= duration * releaseFrame / frameCount) {
-            if (!this._ensureBroodVisuals()) {
-                // 常规路径已预热并驻留；加载被中断时停在释放点，不生成占位怪或异步补发。
-                this._summonTimer = duration * (1 - releaseFrame / frameCount);
-                this._attackTimer = this._summonTimer;
-                this._attackAnimTimer = this._summonTimer;
-                this._setRotbogAnimation('summon');
-                return;
-            }
             this._summonReleased = true;
-            this._releaseSummons();
+            // 释放时资源失效则消费本次事件并正常收势，不生成占位怪或异步补发。
+            if (this._ensureBroodVisuals()) this._releaseSummons();
         }
         if (!this.active || this._deathStarted || !this._summonActive || this._rotbogControlled()) return;
         this._frozenForCast = true;
@@ -5556,10 +5532,8 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         for (let index = 0; index < count; index++) {
             const angle = this.rotation + (index === 0 ? 2.15 : -2.15);
             const distance = 130 + index * 35;
-            const desiredX = (this.collider?.x ?? this.x) + Math.cos(angle) * distance;
-            const desiredY = (this.collider?.y ?? this.y) + Math.sin(angle) * distance;
-            const safe = WallSystem.findSafeSpawn(desiredX, desiredY, radius, 16);
-            if (!WallSystem.canMoveTo(safe.x, safe.y, radius)) continue;
+            const safe = findRotbogBroodPoint(this, registry, radius, angle, distance);
+            if (!safe) continue;
             const summon = createSmallRotbogRhinocerosBeetle(safe.x, safe.y);
             summon._summoned = true;
             summon._rotbogSummoner = this;
@@ -5837,12 +5811,15 @@ class RotTideToadAncestorEnemy extends ZombieDogEnemy {
         if (skill === 'summonCroak') {
             const cap = Math.max(0, Number(cfg.aliveCap) || 6);
             if (this._toadSummons.size >= cap) return false;
+            if (!ensureRotbogBroodVisuals(this, cfg.summonType)) return false;
         }
         return true;
     }
 
     _startToadAction(skill, target, phaseUp = false) {
         const cfg = this._toadSkillCfg[skill] || {};
+        // 阶段转换照常播放；幼虫资源失败不能把 Boss 卡在转换门槛。
+        if (skill === 'summonCroak') ensureRotbogBroodVisuals(this, cfg.summonType);
         const duration = Math.max(100, Number(cfg.durationMs) || 1000);
         const targetX = target?.collider?.x ?? target?.x ?? (this.x + 1);
         const targetY = target?.collider?.y ?? target?.y ?? this.y;
@@ -6073,6 +6050,7 @@ class RotTideToadAncestorEnemy extends ZombieDogEnemy {
     }
 
     _releaseToadSummons() {
+        if (!ensureRotbogBroodVisuals(this, this._toadActionCfg?.summonType)) return;
         this._pruneToadSummons();
         const registry = this._lastToadEntities?.set
             ? this._lastToadEntities
@@ -6103,45 +6081,14 @@ class RotTideToadAncestorEnemy extends ZombieDogEnemy {
     }
 
     _findToadSummonPoint(registry, summonRadius, index, count) {
-        const originX = this.collider?.x ?? this.x;
-        const originY = this.collider?.y ?? this.y;
         const baseAngle = this._toadActionAngle + Math.PI * 2 * index / Math.max(1, count);
-        const candidates = registry?.values ? [...registry.values()] : [];
-        if (!candidates.includes(this)) candidates.push(this);
-        if (this.target && !candidates.includes(this.target)) candidates.push(this.target);
-        for (const member of PartySystem.members || []) {
-            if (!candidates.includes(member)) candidates.push(member);
-        }
-        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
-            if (!candidates.includes(friendly)) candidates.push(friendly);
-        }
-        const padding = 8;
-        const isOccupied = (x, y) => candidates.some((entity) => {
-            if (!entity || !entity.active || entity._isDead) return false;
-            const entityX = entity.collider?.x ?? entity.x;
-            const entityY = entity.collider?.y ?? entity.y;
-            if (!Number.isFinite(entityX) || !Number.isFinite(entityY)) return false;
-            const entityRadius = Math.max(
-                0,
-                Number(entity.collider?.radius ?? entity.groundRadius ?? entity.collisionRadius) || 0
-            );
-            return Math.hypot(x - entityX, (y - entityY) / PERSPECTIVE_SCALE_Y)
-                < summonRadius + entityRadius + padding;
-        });
-
-        // Alternate nearby rings and angles. Each accepted summon is inserted
-        // into registry immediately, so later summons in the same cast avoid it.
-        for (let attempt = 0; attempt < 16; attempt++) {
-            const ring = Math.floor(attempt / 8);
-            const angle = baseAngle + (attempt % 8) * Math.PI / 4;
-            const distance = 150 + (index % 2) * 42 + ring * 56;
-            const desiredX = originX + Math.cos(angle) * distance;
-            const desiredY = originY + Math.sin(angle) * distance * PERSPECTIVE_SCALE_Y;
-            const safe = WallSystem.findSafeSpawn(desiredX, desiredY, summonRadius, 16);
-            if (!safe || !WallSystem.canMoveTo(safe.x, safe.y, summonRadius)) continue;
-            if (!isOccupied(safe.x, safe.y)) return safe;
-        }
-        return null;
+        return findRotbogBroodPoint(
+            this,
+            registry,
+            summonRadius,
+            baseAngle,
+            150 + (index % 2) * 42
+        );
     }
 
     _getToadPhaseSummonCount(cfg) {
