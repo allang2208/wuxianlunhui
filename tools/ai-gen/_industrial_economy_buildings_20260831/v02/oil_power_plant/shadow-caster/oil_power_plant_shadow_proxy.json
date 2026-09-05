@@ -1,0 +1,613 @@
+{
+  "algorithmVersion": 2,
+  "assetId": "oil_power_plant",
+  "sourceKind": "semantic_shadow_proxy_v2",
+  "generator": "tools/ai-gen/building-shadow-proxy.py",
+  "sourceBlend": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/oil_power_plant_model.blend",
+  "sourceBlendSha256": "2d75d7f9a6150cde821270c3740f8626847faa5b41e7e1095a5276ea1957db3b",
+  "sourceManifest": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/manifest.json",
+  "foundation": {
+    "width": 800.0,
+    "depth": 800.0,
+    "groundZ": 28.0,
+    "excluded": true,
+    "exclusionMode": "semantic-role-or-exact-authored-name",
+    "groundObjects": [
+      "oil_power_plant_Foundation_Core",
+      "oil_power_plant_Foundation_Edge_0_-1_0",
+      "oil_power_plant_Foundation_Edge_0_-1_1",
+      "oil_power_plant_Foundation_Edge_0_-1_2",
+      "oil_power_plant_Foundation_Edge_0_-1_3",
+      "oil_power_plant_Foundation_Edge_0_-1_4",
+      "oil_power_plant_Foundation_Edge_0_-1_5",
+      "oil_power_plant_Foundation_Edge_0_-1_6",
+      "oil_power_plant_Foundation_Edge_0_-1_7",
+      "oil_power_plant_Foundation_Edge_0_-1_8",
+      "oil_power_plant_Foundation_Edge_0_-1_9",
+      "oil_power_plant_Foundation_Edge_0_1_0",
+      "oil_power_plant_Foundation_Edge_0_1_1",
+      "oil_power_plant_Foundation_Edge_0_1_2",
+      "oil_power_plant_Foundation_Edge_0_1_3",
+      "oil_power_plant_Foundation_Edge_0_1_4",
+      "oil_power_plant_Foundation_Edge_0_1_5",
+      "oil_power_plant_Foundation_Edge_0_1_6",
+      "oil_power_plant_Foundation_Edge_0_1_7",
+      "oil_power_plant_Foundation_Edge_0_1_8",
+      "oil_power_plant_Foundation_Edge_0_1_9",
+      "oil_power_plant_Foundation_Edge_1_-1_0",
+      "oil_power_plant_Foundation_Edge_1_-1_1",
+      "oil_power_plant_Foundation_Edge_1_-1_2",
+      "oil_power_plant_Foundation_Edge_1_-1_3",
+      "oil_power_plant_Foundation_Edge_1_-1_4",
+      "oil_power_plant_Foundation_Edge_1_-1_5",
+      "oil_power_plant_Foundation_Edge_1_-1_6",
+      "oil_power_plant_Foundation_Edge_1_-1_7",
+      "oil_power_plant_Foundation_Edge_1_-1_8",
+      "oil_power_plant_Foundation_Edge_1_-1_9",
+      "oil_power_plant_Foundation_Edge_1_1_0",
+      "oil_power_plant_Foundation_Edge_1_1_1",
+      "oil_power_plant_Foundation_Edge_1_1_2",
+      "oil_power_plant_Foundation_Edge_1_1_3",
+      "oil_power_plant_Foundation_Edge_1_1_4",
+      "oil_power_plant_Foundation_Edge_1_1_5",
+      "oil_power_plant_Foundation_Edge_1_1_6",
+      "oil_power_plant_Foundation_Edge_1_1_7",
+      "oil_power_plant_Foundation_Edge_1_1_8",
+      "oil_power_plant_Foundation_Edge_1_1_9"
+    ]
+  },
+  "ignoredObjects": [],
+  "modelHeight": 630.0,
+  "contactPolygon": [
+    [
+      -0.43375,
+      0.19125
+    ],
+    [
+      -0.429375,
+      -0.3925
+    ],
+    [
+      -0.4275,
+      -0.394375
+    ],
+    [
+      -0.235,
+      -0.394375
+    ],
+    [
+      0.218125,
+      -0.3225
+    ],
+    [
+      0.4,
+      -0.26625
+    ],
+    [
+      0.405,
+      -0.24125
+    ],
+    [
+      0.405,
+      0.37875
+    ],
+    [
+      0.39125,
+      0.3925
+    ],
+    [
+      -0.2225,
+      0.4025
+    ],
+    [
+      -0.4275,
+      0.4025
+    ],
+    [
+      -0.43375,
+      0.39625
+    ]
+  ],
+  "parts": [
+    {
+      "id": "band_01_cluster_01",
+      "polygon": [
+        [
+          -0.43375,
+          0.19125
+        ],
+        [
+          -0.429375,
+          -0.3925
+        ],
+        [
+          -0.4275,
+          -0.394375
+        ],
+        [
+          -0.235,
+          -0.394375
+        ],
+        [
+          0.218125,
+          -0.3225
+        ],
+        [
+          0.4,
+          -0.26625
+        ],
+        [
+          0.405,
+          -0.24125
+        ],
+        [
+          0.405,
+          0.37875
+        ],
+        [
+          0.39125,
+          0.3925
+        ],
+        [
+          -0.2225,
+          0.4025
+        ],
+        [
+          -0.4275,
+          0.4025
+        ],
+        [
+          -0.43375,
+          0.39625
+        ]
+      ],
+      "baseRatio": 0.0,
+      "topRatio": 0.25
+    },
+    {
+      "id": "band_02_cluster_02",
+      "polygon": [
+        [
+          -0.408129,
+          0.259317
+        ],
+        [
+          -0.190076,
+          -0.259451
+        ],
+        [
+          -0.12775,
+          -0.2725
+        ],
+        [
+          0.057855,
+          -0.28625
+        ],
+        [
+          0.166283,
+          -0.28625
+        ],
+        [
+          0.408125,
+          -0.265625
+        ],
+        [
+          0.405,
+          0.37875
+        ],
+        [
+          0.39125,
+          0.3925
+        ],
+        [
+          -0.18875,
+          0.3975
+        ],
+        [
+          -0.336745,
+          0.382959
+        ],
+        [
+          -0.379775,
+          0.365135
+        ],
+        [
+          -0.414209,
+          0.305495
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_02_cluster_03",
+      "polygon": [
+        [
+          -0.414125,
+          -0.32875
+        ],
+        [
+          -0.40875,
+          -0.36875
+        ],
+        [
+          -0.351308,
+          -0.385968
+        ],
+        [
+          -0.264133,
+          -0.377663
+        ],
+        [
+          -0.25375,
+          -0.36875
+        ],
+        [
+          -0.248375,
+          -0.32875
+        ],
+        [
+          -0.248375,
+          -0.20875
+        ],
+        [
+          -0.25375,
+          -0.16875
+        ],
+        [
+          -0.276449,
+          -0.156146
+        ],
+        [
+          -0.351308,
+          -0.151532
+        ],
+        [
+          -0.40875,
+          -0.16875
+        ],
+        [
+          -0.414125,
+          -0.20875
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_02_cluster_04",
+      "polygon": [
+        [
+          -0.414125,
+          -0.0725
+        ],
+        [
+          -0.40875,
+          -0.1125
+        ],
+        [
+          -0.37,
+          -0.127937
+        ],
+        [
+          -0.2925,
+          -0.127937
+        ],
+        [
+          -0.25375,
+          -0.1125
+        ],
+        [
+          -0.248375,
+          -0.0725
+        ],
+        [
+          -0.248375,
+          0.0475
+        ],
+        [
+          -0.25375,
+          0.0875
+        ],
+        [
+          -0.276449,
+          0.100104
+        ],
+        [
+          -0.351308,
+          0.104718
+        ],
+        [
+          -0.40875,
+          0.0875
+        ],
+        [
+          -0.414125,
+          0.0475
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_03_cluster_05",
+      "polygon": [
+        [
+          -0.402924,
+          0.248761
+        ],
+        [
+          -0.34875,
+          0.189766
+        ],
+        [
+          -0.30125,
+          0.189766
+        ],
+        [
+          -0.247076,
+          0.248761
+        ],
+        [
+          -0.235791,
+          0.282005
+        ],
+        [
+          -0.235791,
+          0.305495
+        ],
+        [
+          -0.247076,
+          0.338739
+        ],
+        [
+          -0.290567,
+          0.376879
+        ],
+        [
+          -0.336745,
+          0.382959
+        ],
+        [
+          -0.379775,
+          0.365135
+        ],
+        [
+          -0.402924,
+          0.338739
+        ],
+        [
+          -0.414209,
+          0.305495
+        ]
+      ],
+      "baseRatio": 0.5,
+      "topRatio": 1.0
+    },
+    {
+      "id": "band_03_cluster_06",
+      "polygon": [
+        [
+          -0.1975,
+          -0.138708
+        ],
+        [
+          -0.190625,
+          -0.258125
+        ],
+        [
+          -0.183125,
+          -0.265625
+        ],
+        [
+          -0.090054,
+          -0.2725
+        ],
+        [
+          0.315054,
+          -0.2725
+        ],
+        [
+          0.361475,
+          -0.27
+        ],
+        [
+          0.41,
+          -0.26375
+        ],
+        [
+          0.41,
+          0.382099
+        ],
+        [
+          0.408125,
+          0.396418
+        ],
+        [
+          -0.18875,
+          0.3975
+        ],
+        [
+          -0.195,
+          0.339825
+        ],
+        [
+          -0.1975,
+          0.276208
+        ]
+      ],
+      "baseRatio": 0.5,
+      "topRatio": 0.75
+    }
+  ],
+  "bodyObjectCount": 176,
+  "excludedObjectCount": 41,
+  "excludedObjects": [
+    {
+      "name": "oil_power_plant_Foundation_Core",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_0",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_1",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_2",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_3",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_4",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_5",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_6",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_7",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_8",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_-1_9",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_0",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_1",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_2",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_3",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_4",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_5",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_6",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_7",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_8",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_0_1_9",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_0",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_1",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_2",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_3",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_4",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_5",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_6",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_7",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_8",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_-1_9",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_0",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_1",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_2",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_3",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_4",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_5",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_6",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_7",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_8",
+      "role": "ground"
+    },
+    {
+      "name": "oil_power_plant_Foundation_Edge_1_1_9",
+      "role": "ground"
+    }
+  ],
+  "bandCount": 4,
+  "clusterGapRatio": 0.0125
+}

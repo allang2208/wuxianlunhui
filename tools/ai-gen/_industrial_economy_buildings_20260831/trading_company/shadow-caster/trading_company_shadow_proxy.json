@@ -1,0 +1,503 @@
+{
+  "algorithmVersion": 2,
+  "assetId": "trading_company",
+  "sourceKind": "semantic_shadow_proxy_v2",
+  "generator": "tools/ai-gen/building-shadow-proxy.py",
+  "sourceBlend": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/trading_company_model.blend",
+  "sourceBlendSha256": "9ab851b4c57e5010273c948c652d0934405cad29bfc6e830933ebfa6f0ffeacb",
+  "sourceManifest": "tools/ai-gen/_industrial_economy_buildings_20260831/manifest.json",
+  "foundation": {
+    "width": 800.0,
+    "depth": 800.0,
+    "groundZ": 28.0,
+    "excluded": true,
+    "exclusionMode": "semantic-role-or-exact-authored-name",
+    "groundObjects": [
+      "trading_company_Foundation_Core",
+      "trading_company_Foundation_Edge_0_-1_0",
+      "trading_company_Foundation_Edge_0_-1_1",
+      "trading_company_Foundation_Edge_0_-1_2",
+      "trading_company_Foundation_Edge_0_-1_3",
+      "trading_company_Foundation_Edge_0_-1_4",
+      "trading_company_Foundation_Edge_0_-1_5",
+      "trading_company_Foundation_Edge_0_-1_6",
+      "trading_company_Foundation_Edge_0_-1_7",
+      "trading_company_Foundation_Edge_0_-1_8",
+      "trading_company_Foundation_Edge_0_-1_9",
+      "trading_company_Foundation_Edge_0_1_0",
+      "trading_company_Foundation_Edge_0_1_1",
+      "trading_company_Foundation_Edge_0_1_2",
+      "trading_company_Foundation_Edge_0_1_3",
+      "trading_company_Foundation_Edge_0_1_4",
+      "trading_company_Foundation_Edge_0_1_5",
+      "trading_company_Foundation_Edge_0_1_6",
+      "trading_company_Foundation_Edge_0_1_7",
+      "trading_company_Foundation_Edge_0_1_8",
+      "trading_company_Foundation_Edge_0_1_9",
+      "trading_company_Foundation_Edge_1_-1_0",
+      "trading_company_Foundation_Edge_1_-1_1",
+      "trading_company_Foundation_Edge_1_-1_2",
+      "trading_company_Foundation_Edge_1_-1_3",
+      "trading_company_Foundation_Edge_1_-1_4",
+      "trading_company_Foundation_Edge_1_-1_5",
+      "trading_company_Foundation_Edge_1_-1_6",
+      "trading_company_Foundation_Edge_1_-1_7",
+      "trading_company_Foundation_Edge_1_-1_8",
+      "trading_company_Foundation_Edge_1_-1_9",
+      "trading_company_Foundation_Edge_1_1_0",
+      "trading_company_Foundation_Edge_1_1_1",
+      "trading_company_Foundation_Edge_1_1_2",
+      "trading_company_Foundation_Edge_1_1_3",
+      "trading_company_Foundation_Edge_1_1_4",
+      "trading_company_Foundation_Edge_1_1_5",
+      "trading_company_Foundation_Edge_1_1_6",
+      "trading_company_Foundation_Edge_1_1_7",
+      "trading_company_Foundation_Edge_1_1_8",
+      "trading_company_Foundation_Edge_1_1_9"
+    ]
+  },
+  "ignoredObjects": [],
+  "modelHeight": 527.0,
+  "contactPolygon": [
+    [
+      -0.50375,
+      -0.082125
+    ],
+    [
+      -0.4925,
+      -0.20375
+    ],
+    [
+      -0.471875,
+      -0.335625
+    ],
+    [
+      -0.029375,
+      -0.42
+    ],
+    [
+      0.266875,
+      -0.42
+    ],
+    [
+      0.430701,
+      -0.304451
+    ],
+    [
+      0.43,
+      0.37875
+    ],
+    [
+      0.41625,
+      0.3925
+    ],
+    [
+      -0.17875,
+      0.3925
+    ],
+    [
+      -0.47875,
+      0.355
+    ],
+    [
+      -0.4925,
+      0.34125
+    ],
+    [
+      -0.50375,
+      0.019625
+    ]
+  ],
+  "parts": [
+    {
+      "id": "band_01_cluster_01",
+      "polygon": [
+        [
+          -0.50375,
+          -0.082125
+        ],
+        [
+          -0.4925,
+          -0.20375
+        ],
+        [
+          -0.471875,
+          -0.335625
+        ],
+        [
+          -0.029375,
+          -0.42
+        ],
+        [
+          0.266875,
+          -0.42
+        ],
+        [
+          0.430701,
+          -0.304451
+        ],
+        [
+          0.43,
+          0.37875
+        ],
+        [
+          0.41625,
+          0.3925
+        ],
+        [
+          -0.17875,
+          0.3925
+        ],
+        [
+          -0.47875,
+          0.355
+        ],
+        [
+          -0.4925,
+          0.34125
+        ],
+        [
+          -0.50375,
+          0.019625
+        ]
+      ],
+      "baseRatio": 0.0,
+      "topRatio": 0.25
+    },
+    {
+      "id": "band_02_cluster_02",
+      "polygon": [
+        [
+          -0.4925,
+          -0.20375
+        ],
+        [
+          -0.489375,
+          -0.215163
+        ],
+        [
+          0.055627,
+          -0.449041
+        ],
+        [
+          0.180116,
+          -0.44625
+        ],
+        [
+          0.260623,
+          -0.410749
+        ],
+        [
+          0.430701,
+          -0.304451
+        ],
+        [
+          0.43125,
+          -0.279375
+        ],
+        [
+          0.43,
+          0.37875
+        ],
+        [
+          0.41625,
+          0.3925
+        ],
+        [
+          -0.17875,
+          0.3925
+        ],
+        [
+          -0.47875,
+          0.355
+        ],
+        [
+          -0.4925,
+          0.34125
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_03_cluster_03",
+      "polygon": [
+        [
+          -0.20875,
+          -0.224625
+        ],
+        [
+          -0.20125,
+          -0.288125
+        ],
+        [
+          -0.191875,
+          -0.305
+        ],
+        [
+          -0.1265,
+          -0.30875
+        ],
+        [
+          0.364,
+          -0.30875
+        ],
+        [
+          0.429375,
+          -0.305
+        ],
+        [
+          0.43125,
+          -0.279375
+        ],
+        [
+          0.41875,
+          0.3775
+        ],
+        [
+          0.415,
+          0.38125
+        ],
+        [
+          -0.18,
+          0.39
+        ],
+        [
+          -0.20125,
+          0.388125
+        ],
+        [
+          -0.20875,
+          0.324625
+        ]
+      ],
+      "baseRatio": 0.5,
+      "topRatio": 0.75
+    },
+    {
+      "id": "band_04_cluster_04",
+      "polygon": [
+        [
+          -0.20875,
+          -0.1736
+        ],
+        [
+          -0.200458,
+          -0.295813
+        ],
+        [
+          -0.191875,
+          -0.305
+        ],
+        [
+          -0.08235,
+          -0.30875
+        ],
+        [
+          0.31985,
+          -0.30875
+        ],
+        [
+          0.429375,
+          -0.305
+        ],
+        [
+          0.43875,
+          -0.28289
+        ],
+        [
+          0.43875,
+          0.38289
+        ],
+        [
+          0.436875,
+          0.400163
+        ],
+        [
+          -0.199375,
+          0.400163
+        ],
+        [
+          -0.20625,
+          0.3325
+        ],
+        [
+          -0.20875,
+          0.2736
+        ]
+      ],
+      "baseRatio": 0.75,
+      "topRatio": 1.0
+    }
+  ],
+  "bodyObjectCount": 203,
+  "excludedObjectCount": 41,
+  "excludedObjects": [
+    {
+      "name": "trading_company_Foundation_Core",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_0",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_1",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_2",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_3",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_4",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_5",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_6",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_7",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_8",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_-1_9",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_0",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_1",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_2",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_3",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_4",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_5",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_6",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_7",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_8",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_0_1_9",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_0",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_1",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_2",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_3",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_4",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_5",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_6",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_7",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_8",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_-1_9",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_0",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_1",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_2",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_3",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_4",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_5",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_6",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_7",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_8",
+      "role": "ground"
+    },
+    {
+      "name": "trading_company_Foundation_Edge_1_1_9",
+      "role": "ground"
+    }
+  ],
+  "bandCount": 4,
+  "clusterGapRatio": 0.0125
+}

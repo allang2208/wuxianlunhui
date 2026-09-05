@@ -1,0 +1,746 @@
+{
+  "algorithmVersion": 2,
+  "assetId": "cannery",
+  "sourceKind": "semantic_shadow_proxy_v2",
+  "generator": "tools/ai-gen/building-shadow-proxy.py",
+  "sourceBlend": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_model.blend",
+  "sourceBlendSha256": "4cbd71781d054600eb753bdb0e3f6f9b9852ee7a8748cd368e367f766c8573d3",
+  "sourceManifest": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/manifest.json",
+  "foundation": {
+    "width": 800.0,
+    "depth": 800.0,
+    "groundZ": 28.0,
+    "excluded": true,
+    "exclusionMode": "semantic-role-or-exact-authored-name",
+    "groundObjects": [
+      "cannery_Foundation_Core",
+      "cannery_Foundation_Edge_0_-1_0",
+      "cannery_Foundation_Edge_0_-1_1",
+      "cannery_Foundation_Edge_0_-1_2",
+      "cannery_Foundation_Edge_0_-1_3",
+      "cannery_Foundation_Edge_0_-1_4",
+      "cannery_Foundation_Edge_0_-1_5",
+      "cannery_Foundation_Edge_0_-1_6",
+      "cannery_Foundation_Edge_0_-1_7",
+      "cannery_Foundation_Edge_0_-1_8",
+      "cannery_Foundation_Edge_0_-1_9",
+      "cannery_Foundation_Edge_0_1_0",
+      "cannery_Foundation_Edge_0_1_1",
+      "cannery_Foundation_Edge_0_1_2",
+      "cannery_Foundation_Edge_0_1_3",
+      "cannery_Foundation_Edge_0_1_4",
+      "cannery_Foundation_Edge_0_1_5",
+      "cannery_Foundation_Edge_0_1_6",
+      "cannery_Foundation_Edge_0_1_7",
+      "cannery_Foundation_Edge_0_1_8",
+      "cannery_Foundation_Edge_0_1_9",
+      "cannery_Foundation_Edge_1_-1_0",
+      "cannery_Foundation_Edge_1_-1_1",
+      "cannery_Foundation_Edge_1_-1_2",
+      "cannery_Foundation_Edge_1_-1_3",
+      "cannery_Foundation_Edge_1_-1_4",
+      "cannery_Foundation_Edge_1_-1_5",
+      "cannery_Foundation_Edge_1_-1_6",
+      "cannery_Foundation_Edge_1_-1_7",
+      "cannery_Foundation_Edge_1_-1_8",
+      "cannery_Foundation_Edge_1_-1_9",
+      "cannery_Foundation_Edge_1_1_0",
+      "cannery_Foundation_Edge_1_1_1",
+      "cannery_Foundation_Edge_1_1_2",
+      "cannery_Foundation_Edge_1_1_3",
+      "cannery_Foundation_Edge_1_1_4",
+      "cannery_Foundation_Edge_1_1_5",
+      "cannery_Foundation_Edge_1_1_6",
+      "cannery_Foundation_Edge_1_1_7",
+      "cannery_Foundation_Edge_1_1_8",
+      "cannery_Foundation_Edge_1_1_9"
+    ]
+  },
+  "ignoredObjects": [],
+  "modelHeight": 357.5,
+  "contactPolygon": [
+    [
+      -0.42375,
+      0.15625
+    ],
+    [
+      -0.415625,
+      -0.22375
+    ],
+    [
+      -0.393826,
+      -0.245838
+    ],
+    [
+      -0.125623,
+      -0.390916
+    ],
+    [
+      0.049625,
+      -0.445
+    ],
+    [
+      0.187875,
+      -0.445
+    ],
+    [
+      0.363416,
+      -0.377498
+    ],
+    [
+      0.42375,
+      -0.190625
+    ],
+    [
+      0.42375,
+      0.35375
+    ],
+    [
+      0.41,
+      0.3675
+    ],
+    [
+      -0.16875,
+      0.41125
+    ],
+    [
+      -0.41875,
+      0.41125
+    ]
+  ],
+  "parts": [
+    {
+      "id": "band_01_cluster_01",
+      "polygon": [
+        [
+          -0.423082,
+          0.153753
+        ],
+        [
+          -0.185701,
+          -0.191951
+        ],
+        [
+          0.048564,
+          -0.444561
+        ],
+        [
+          0.11875,
+          -0.44875
+        ],
+        [
+          0.187875,
+          -0.445
+        ],
+        [
+          0.363416,
+          -0.377498
+        ],
+        [
+          0.42375,
+          -0.190625
+        ],
+        [
+          0.42375,
+          0.35375
+        ],
+        [
+          0.41,
+          0.3675
+        ],
+        [
+          -0.16875,
+          0.41125
+        ],
+        [
+          -0.41875,
+          0.41125
+        ],
+        [
+          -0.42375,
+          0.40625
+        ]
+      ],
+      "baseRatio": 0.0,
+      "topRatio": 0.25
+    },
+    {
+      "id": "band_01_cluster_02",
+      "polygon": [
+        [
+          -0.415625,
+          -0.22375
+        ],
+        [
+          -0.415076,
+          -0.225076
+        ],
+        [
+          -0.393826,
+          -0.245838
+        ],
+        [
+          -0.353659,
+          -0.253079
+        ],
+        [
+          -0.296341,
+          -0.253079
+        ],
+        [
+          -0.256174,
+          -0.245838
+        ],
+        [
+          -0.234924,
+          -0.225076
+        ],
+        [
+          -0.234375,
+          -0.22375
+        ],
+        [
+          -0.234375,
+          0.06125
+        ],
+        [
+          -0.23625,
+          0.063125
+        ],
+        [
+          -0.41375,
+          0.063125
+        ],
+        [
+          -0.415625,
+          0.06125
+        ]
+      ],
+      "baseRatio": 0.0,
+      "topRatio": 0.25
+    },
+    {
+      "id": "band_01_cluster_03",
+      "polygon": [
+        [
+          -0.126875,
+          -0.38875
+        ],
+        [
+          -0.124375,
+          -0.39125
+        ],
+        [
+          -0.107625,
+          -0.393125
+        ],
+        [
+          -0.037375,
+          -0.393125
+        ],
+        [
+          -0.020625,
+          -0.39125
+        ],
+        [
+          -0.018125,
+          -0.38875
+        ],
+        [
+          -0.018125,
+          -0.29875
+        ],
+        [
+          -0.020625,
+          -0.29625
+        ],
+        [
+          -0.037375,
+          -0.294375
+        ],
+        [
+          -0.107625,
+          -0.294375
+        ],
+        [
+          -0.124375,
+          -0.29625
+        ],
+        [
+          -0.126875,
+          -0.29875
+        ]
+      ],
+      "baseRatio": 0.0,
+      "topRatio": 0.25
+    },
+    {
+      "id": "band_02_cluster_04",
+      "polygon": [
+        [
+          -0.40092,
+          0.236859
+        ],
+        [
+          -0.185701,
+          -0.191951
+        ],
+        [
+          -0.002317,
+          -0.373254
+        ],
+        [
+          0.10375,
+          -0.444731
+        ],
+        [
+          0.137013,
+          -0.442551
+        ],
+        [
+          0.42375,
+          -0.190625
+        ],
+        [
+          0.42375,
+          0.35375
+        ],
+        [
+          0.41,
+          0.3675
+        ],
+        [
+          -0.29375,
+          0.39725
+        ],
+        [
+          -0.338141,
+          0.38842
+        ],
+        [
+          -0.375774,
+          0.363274
+        ],
+        [
+          -0.40092,
+          0.325641
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_02_cluster_05",
+      "polygon": [
+        [
+          -0.401625,
+          -0.154375
+        ],
+        [
+          -0.394375,
+          -0.244512
+        ],
+        [
+          -0.353659,
+          -0.253079
+        ],
+        [
+          -0.296341,
+          -0.253079
+        ],
+        [
+          -0.255625,
+          -0.244512
+        ],
+        [
+          -0.248375,
+          -0.154375
+        ],
+        [
+          -0.248375,
+          -0.008125
+        ],
+        [
+          -0.25375,
+          0.040625
+        ],
+        [
+          -0.306559,
+          0.056454
+        ],
+        [
+          -0.375381,
+          0.052213
+        ],
+        [
+          -0.39625,
+          0.040625
+        ],
+        [
+          -0.401625,
+          -0.008125
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_02_cluster_06",
+      "polygon": [
+        [
+          0.02875,
+          -0.085
+        ],
+        [
+          0.20875,
+          -0.085
+        ],
+        [
+          0.20875,
+          -0.0775
+        ],
+        [
+          0.02875,
+          -0.0775
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_02_cluster_07",
+      "polygon": [
+        [
+          0.250214,
+          -0.333263
+        ],
+        [
+          0.255166,
+          -0.345219
+        ],
+        [
+          0.275,
+          -0.355
+        ],
+        [
+          0.3325,
+          -0.355
+        ],
+        [
+          0.342067,
+          -0.353097
+        ],
+        [
+          0.352334,
+          -0.345219
+        ],
+        [
+          0.3575,
+          -0.33
+        ],
+        [
+          0.352334,
+          -0.314781
+        ],
+        [
+          0.3325,
+          -0.305
+        ],
+        [
+          0.275,
+          -0.305
+        ],
+        [
+          0.2625,
+          -0.308349
+        ],
+        [
+          0.253349,
+          -0.3175
+        ]
+      ],
+      "baseRatio": 0.25,
+      "topRatio": 0.5
+    },
+    {
+      "id": "band_03_cluster_08",
+      "polygon": [
+        [
+          -0.407521,
+          0.25862
+        ],
+        [
+          -0.343456,
+          -0.097832
+        ],
+        [
+          -0.185701,
+          -0.191951
+        ],
+        [
+          -0.043748,
+          -0.255956
+        ],
+        [
+          0.137733,
+          -0.29625
+        ],
+        [
+          0.281248,
+          -0.255956
+        ],
+        [
+          0.43406,
+          -0.1825
+        ],
+        [
+          0.43406,
+          0.37
+        ],
+        [
+          0.429898,
+          0.37425
+        ],
+        [
+          -0.29375,
+          0.39725
+        ],
+        [
+          -0.338141,
+          0.38842
+        ],
+        [
+          -0.40092,
+          0.325641
+        ]
+      ],
+      "baseRatio": 0.5,
+      "topRatio": 0.75
+    },
+    {
+      "id": "band_04_cluster_09",
+      "polygon": [
+        [
+          -0.416875,
+          0.28125
+        ],
+        [
+          -0.400379,
+          0.219688
+        ],
+        [
+          -0.189981,
+          -0.18
+        ],
+        [
+          0.100877,
+          -0.29625
+        ],
+        [
+          0.137733,
+          -0.29625
+        ],
+        [
+          0.427481,
+          -0.18
+        ],
+        [
+          0.427481,
+          0.3675
+        ],
+        [
+          0.410858,
+          0.37425
+        ],
+        [
+          -0.29375,
+          0.404375
+        ],
+        [
+          -0.355312,
+          0.387879
+        ],
+        [
+          -0.391432,
+          0.356204
+        ],
+        [
+          -0.407503,
+          0.328368
+        ]
+      ],
+      "baseRatio": 0.75,
+      "topRatio": 1.0
+    }
+  ],
+  "bodyObjectCount": 344,
+  "excludedObjectCount": 41,
+  "excludedObjects": [
+    {
+      "name": "cannery_Foundation_Core",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_0",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_1",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_2",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_3",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_4",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_5",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_6",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_7",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_8",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_-1_9",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_0",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_1",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_2",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_3",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_4",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_5",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_6",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_7",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_8",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_0_1_9",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_0",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_1",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_2",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_3",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_4",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_5",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_6",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_7",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_8",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_-1_9",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_0",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_1",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_2",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_3",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_4",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_5",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_6",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_7",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_8",
+      "role": "ground"
+    },
+    {
+      "name": "cannery_Foundation_Edge_1_1_9",
+      "role": "ground"
+    }
+  ],
+  "bandCount": 4,
+  "clusterGapRatio": 0.0125
+}
