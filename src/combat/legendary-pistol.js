@@ -3,6 +3,7 @@ import { hasRangedLineOfSight } from './ranged-line-of-sight.js';
 import { isFriendlyFire } from '../entities/damageable-entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { LightningBoltEffect } from '../effects/lightning-bolt.js';
+import { combatNowMs } from './combat-clock.js';
 
 const LEGENDARY_PISTOL_STATES = new WeakMap();
 
@@ -102,7 +103,7 @@ function handleSettlementHit(source, weapon, entities, hitTarget, projectile, co
     const state = getWeaponState(weapon)?.settlement;
     if (!params || !state || !hitTarget || hitTarget.shieldSystem?._lastParried) return;
     const effects = weapon._craftEffects || {};
-    const now = Date.now();
+    const now = combatNowMs();
     const resetMs = Math.max(500,
         (Number(params.resetMs) || 1800) + (Number(effects.settlementResetMsDelta) || 0));
     const requiredHits = Math.max(2, Math.round(
@@ -154,7 +155,7 @@ function handleCorridorHit(source, weapon, entities, hitTarget, projectile, conf
     const state = getWeaponState(weapon)?.corridor;
     if (!params || !state || !hitTarget || hitTarget.shieldSystem?._lastParried) return;
     const effects = weapon._craftEffects || {};
-    const now = Date.now();
+    const now = combatNowMs();
     const resetMs = Math.max(700,
         (Number(params.resetMs) || 2400) + (Number(effects.corridorResetMsDelta) || 0));
     if (now - state.lastHitAt > resetMs) state.targets.length = 0;
