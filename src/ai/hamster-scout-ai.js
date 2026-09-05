@@ -19,6 +19,8 @@ import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
     canUseWallTopModelException,
+    projectileMuzzleOrigin,
+    projectileTargetZ,
     projectileWallContext,
     wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
@@ -316,29 +318,31 @@ export class HamsterScoutAI {
         const target = m.target;
         if (!target || !target.active || target.hp <= 0) return;
         if (!this._canShootTarget(target)) return;
-        const startZ = (Number(m.z) || 0) + 45;
-        const targetZ = target.collider?.centerZ ?? ((Number(target.z) || 0) + 24);
+        const origin = projectileMuzzleOrigin(m, target, { height: 45 });
+        const { x: startX, y: startY, z: startZ } = origin;
+        const targetZ = projectileTargetZ(target);
         const lead = AimHelper.lead(
-            m.x, m.y,
+            startX, startY,
             target.x, target.y,
             target.vx || 0, target.vy || 0,
             this._projectileSpeed
         );
-        const ang = Math.atan2(lead.y - m.y, lead.x - m.x);
-        const targetDist = Math.max(1, Math.hypot(lead.x - m.x, lead.y - m.y));
-        const visualAngle = Math.atan2((lead.y - targetZ) - (m.y - startZ), lead.x - m.x);
+        const ang = Math.atan2(lead.y - startY, lead.x - startX);
+        const targetDist = Math.max(1, Math.hypot(lead.x - startX, lead.y - startY));
+        const visualAngle = Math.atan2(
+            (lead.y - targetZ) - (startY - startZ), lead.x - startX);
         // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染投射物）
         m._basic = {
             active: true,
-            x: m.x,
-            y: m.y,
+            x: startX,
+            y: startY,
             z: startZ,
             vz: (targetZ - startZ) / Math.max(0.001, targetDist / this._projectileSpeed),
             angle: ang,
             visualAngle,
             dist: 0,
             maxDist: applyElevatedRangedRange(m, this._attackRange + 150),
-            wallContext: projectileWallContext(m),
+            wallContext: projectileWallContext(m, null, origin),
             target,
             remainingHits: Math.max(1, Math.floor(Number(this.cfg.projectileMaxHits) || 1)),
             hitIds: new Set(),
@@ -351,7 +355,10 @@ export class HamsterScoutAI {
         const m = this.m;
         const path = m && m.sounds && m.sounds[key];
         if (!path || !SoundManager) return;
-        if (typeof SoundManager.playWorld === 'function') {
+        if (key === 'attack' && this.cfg.attackSoundIsGunshot
+            && typeof SoundManager.playGunshotAt === 'function') {
+            SoundManager.playGunshotAt(path, m.x, m.y);
+        } else if (typeof SoundManager.playWorld === 'function') {
             SoundManager.playWorld(path, m.x, m.y);
         } else if (typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(path);

@@ -7,7 +7,7 @@ import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
     canUseWallTopModelException,
-    projectileSourceZ,
+    projectileMuzzleOrigin,
     projectileTargetZ,
     projectileWallContext,
     wallHitSupportsTarget,
@@ -217,13 +217,12 @@ export class HamsterMusketeerAI {
         const t = m.target;
         if (!t?.active || t.hp <= 0) return;
         if (!this._canShootTarget(t)) return;
-        const faceSign = t.x >= m.x ? 1 : -1;
-        const startX = m.x + faceSign * (Number(this.cfg.muzzleOffsetX) || 0);
-        const startY = m.y + (Number(this.cfg.muzzleOffsetY) || 0);
-        const configuredMuzzleHeight = Number(this.cfg.muzzleHeight);
-        const startZ = Number.isFinite(configuredMuzzleHeight)
-            ? (Number(m.z) || 0) + configuredMuzzleHeight
-            : projectileSourceZ(m);
+        const origin = projectileMuzzleOrigin(m, t, {
+            offsetX: this.cfg.muzzleOffsetX,
+            offsetY: this.cfg.muzzleOffsetY,
+            height: this.cfg.muzzleHeight,
+        });
+        const { x: startX, y: startY, z: startZ } = origin;
         const targetZ = projectileTargetZ(t);
         const lead = AimHelper.lead(
             startX,
@@ -251,7 +250,7 @@ export class HamsterMusketeerAI {
             visualAngle,
             dist: 0,
             maxDist: applyElevatedRangedRange(m, this._attackRange + 180),
-            wallContext: projectileWallContext(m, null, { x: startX, y: startY, z: startZ }),
+            wallContext: projectileWallContext(m, null, origin),
             target: t,
             musketTracer: true,
         };
