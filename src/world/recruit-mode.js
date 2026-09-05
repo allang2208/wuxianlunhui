@@ -17,7 +17,7 @@ export function recruitModeLabel(value) {
     return '暂停招募';
 }
 
-export function recruitStatusText(producer) {
+export function recruitStatusText(producer, { countdown = false } = {}) {
     const mode = normalizeRecruitMode(producer?._recruitMode);
     if (mode === RECRUIT_MODE.PAUSED) return '已暂停';
     if (producer?._spawnPopulationBlocked) return '军事人口已满';
@@ -26,5 +26,6 @@ export function recruitStatusText(producer) {
     if (producer?._spawnBlocked) return '出口阻塞';
     if (producer?._hasIndividualUnitCap
         && producer?.aliveUnitCount?.() >= producer?.unitCount?.()) return '特色编制已满';
+    if (countdown) return `${Math.max(0, Math.ceil((Number(producer?._spawnTimer) || 0) / 1000))}s`;
     return mode === RECRUIT_MODE.SINGLE ? '单次招募中' : '持续招募中';
 }
