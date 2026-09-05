@@ -240,6 +240,7 @@ function getUniversalEventConfig(type) {
         cfg._tributeChance = g.tributeChance || 0;
     } else if (type === 'supplyPile') {
         cfg.searchReward = { ...(cfg.searchReward || {}), count: g.potions };
+        cfg.materialItems = _gradeGiftItems(g.materialStone, g.materialTicket, g.materialDust);
         if (g.inspectGold && Array.isArray(cfg.successRewards?.inspect)) {
             cfg.successRewards.inspect = cfg.successRewards.inspect.map((reward) => (
                 reward?.type === 'gold'
@@ -667,6 +668,19 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
         if (legacyRewardConfig) {
             for (const reward of legacyRewardConfig) {
                 if (Math.random() < reward.chance) {
+                    if (reward.type === 'material') {
+                        const pool = config.materialItems;
+                        const item = pool[Math.floor(Math.random() * pool.length)];
+                        if (item) {
+                            const rewardKey = SPECIAL_ITEM_KEY_MAP[item.type];
+                            const special = DUNGEON_EVENT_CONFIG.specialItems[item.type];
+                            if (rewardKey && special && item.count > 0) {
+                                rewards[rewardKey] = (rewards[rewardKey] || 0) + item.count;
+                                text += `\n获得 ${special.name} x${item.count}！`;
+                            }
+                        }
+                        continue;
+                    }
                     const amount = reward.min + Math.floor(Math.random() * (reward.max - reward.min + 1));
                     if (reward.type === 'gold') {
                         rewards.gold = amount;
@@ -677,12 +691,6 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
                     } else if (reward.type === 'mpPotion') {
                         const potion = appendPotionReward(rewards, 'mp', dungeonGrade, reward.count || 1);
                         if (potion) text += `\n获得 ${potion.name} x${potion.count}！`;
-                    } else if (reward.type === 'material') {
-                        const materialType = DUNGEON_EVENT_CONFIG.materialTypes[
-                            Math.floor(Math.random() * DUNGEON_EVENT_CONFIG.materialTypes.length)
-                        ];
-                        rewards.material = { type: materialType, count: amount };
-                        text += `\n获得 ${materialType} x${amount}！`;
                     }
                 }
             }

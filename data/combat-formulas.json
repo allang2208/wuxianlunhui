@@ -423,40 +423,46 @@
   },
     "supplyPile": {
       "F": {
-        "hp": 20,
-        "mp": 15,
         "potions": 1,
-        "inspectGold": { "min": 80, "max": 120 }
+        "inspectGold": { "min": 80, "max": 120 },
+        "materialStone": 1,
+        "materialTicket": 1,
+        "materialDust": 50
       },
       "E": {
-        "hp": 25,
-        "mp": 20,
         "potions": 1,
-        "inspectGold": { "min": 140, "max": 220 }
+        "inspectGold": { "min": 140, "max": 220 },
+        "materialStone": 1,
+        "materialTicket": 1,
+        "materialDust": 100
       },
       "D": {
-        "hp": 30,
-        "mp": 25,
-        "potions": 2,
-        "inspectGold": { "min": 240, "max": 360 }
+        "potions": 1,
+        "inspectGold": { "min": 240, "max": 360 },
+        "materialStone": 1,
+        "materialTicket": 1,
+        "materialDust": 150
       },
       "C": {
-        "hp": 40,
-        "mp": 30,
-        "potions": 2,
-        "inspectGold": { "min": 400, "max": 600 }
+        "potions": 1,
+        "inspectGold": { "min": 400, "max": 600 },
+        "materialStone": 2,
+        "materialTicket": 1,
+        "materialDust": 250
       },
       "B": {
-        "hp": 50,
-        "mp": 40,
-        "potions": 3,
-        "inspectGold": { "min": 650, "max": 950 }
+        "potions": 1,
+        "inspectGold": { "min": 650, "max": 950 },
+        "materialStone": 2,
+        "materialTicket": 2,
+        "materialDust": 400
       },
       "A": {
-        "hp": 60,
-        "mp": 50,
-        "potions": 3,
-        "inspectGold": { "min": 1000, "max": 1400 }
+        "potions": 1,
+        "inspectGold": { "min": 1000, "max": 1400 },
+        "materialStone": 3,
+        "materialTicket": 2,
+        "materialDust": 600
       }
     }
   },
