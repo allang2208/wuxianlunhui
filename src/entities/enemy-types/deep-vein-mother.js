@@ -1,3 +1,4 @@
+import { getAttackLineOfSightIgnore, hasAttackLineOfSight } from '../../combat/melee-reach.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { DamagePipeline } from '../../combat/damage-pipeline.js';
@@ -158,6 +159,7 @@ export class DeepVeinMother extends Enemy {
         this._setState(state);
         if (state !== 'pressure_release') this._cooldowns[state] = cfg.cooldown;
         if (state === 'pipe_blast') {
+            this._actionSnapshot.wallIgnore = getAttackLineOfSightIgnore(this, target);
             // 起手预判一次并锁定整组落点，三发不会各自追踪躲闪后的玩家。
             let dx = tx + (target.vx || 0)*cfg.leadMs/1000 - x;
             let dy = ty + (target.vy || 0)*cfg.leadMs/1000 - y;
@@ -225,6 +227,7 @@ export class DeepVeinMother extends Enemy {
         const cfg = this._skill('pipe_blast');
         const landing = snap.landings[index];
         const shot = { ...landing, radius: cfg.impactRadius, surface: snap.surface, age: initialAge,
+            wallIgnore: snap.wallIgnore,
             originX: snap.x, originY: snap.y,
             sx: snap.x+Math.cos(snap.angle)*cfg.muzzleForward,
             sy: snap.y, height: cfg.muzzleHeight,
@@ -259,7 +262,7 @@ export class DeepVeinMother extends Enemy {
         if (p < 1) return;
         this._removeProjectile(shot);
         // 物理落点与爆炸各检查一次遮挡，不能隔墙空降伤害。
-        if (!WallSystem.blocked(shot.originX, shot.originY, shot.x, shot.y)) {
+        if (!WallSystem.blocked(shot.originX, shot.originY, shot.x, shot.y, shot.wallIgnore)) {
             this._impact(shot, cfg, 'pipe_blast', false);
         }
     }
@@ -300,8 +303,7 @@ export class DeepVeinMother extends Enemy {
     }
 
     _wallBlocked(x, y, target) {
-        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
-        return WallSystem.blocked(x, y, target.collider?.x ?? target.x, target.collider?.y ?? target.y, ignore);
+        return !hasAttackLineOfSight(this, target, x, y);
     }
 
     _finishAction(completed) {
