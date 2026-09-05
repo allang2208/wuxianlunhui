@@ -567,10 +567,19 @@ export const GameUIManager = {
             || expeditionSnapshots.some((snapshot) => Array.isArray(snapshot?.structures)
                 && snapshot.structures.some((structure) => structure?.kind === 'producer'
                     && structure.cfgKey === 'expedition_camp'));
-        TechnologySystem.restore(data.technologyTree, {
-            legacyUnlockAll: !data.technologyTree,
-            legacyExpeditionEstablished,
-        });
+        const savedTechnology = data.technologyTree;
+        const savedTouchedTechnologyIds = new Set([
+            ...(savedTechnology?.completed || []),
+            ...(savedTechnology?.researchQueue || []),
+            ...Object.entries(savedTechnology?.progressById || {})
+                .filter(([, progress]) => Number(progress) > 0).map(([id]) => id),
+            savedTechnology?.activeTechId,
+            savedTechnology?.targetTechId,
+        ].filter(Boolean));
+        const legacyCapturedWorldIds = TechnologySystem.getPlaneResearchNodes()
+            .filter((node) => !savedTechnology || savedTouchedTechnologyIds.has(node.id))
+            .map((node) => node.requiredWorldId)
+            .filter(Boolean);
         WarehouseSystem.restore(data.warehouseStorage || { pageCount: 5, items: [] });
         MailStore.restorePrepared(restoredMail);
         QuestStore.restore(data.quests);
@@ -581,6 +590,17 @@ export const GameUIManager = {
         else restoreWorld122Scene(data.world122?.scene);
         window.WorldProgressionSystem?.setStrategicSiteCells?.(data.worlds?.strategy?.sites || []);
         window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
+        // 旧档只要已经触碰过位面科技，就视为早已取得对应特色建筑控制权。
+        // 新版存档以自己的事件状态为准，不能再从科技结果反向覆盖。
+        if (!data.worlds?.progression?.specialBuildingEvents) {
+            window.WorldProgressionSystem?.grandfatherSpecialBuildingEvents?.(legacyCapturedWorldIds);
+        }
+        // 科技恢复必须晚于事件进度，否则合法的位面研究会被未就绪门槛移出队列。
+        TechnologySystem.restore(savedTechnology, {
+            legacyUnlockAll: !savedTechnology,
+            legacyExpeditionEstablished,
+        });
+        TechnologySystem.notifyWorldRequirementChanged('world-special-building-restore');
         window.WorldProgressionSystem?.ensureConstructedWorldSnapshots?.();
         reconcileWorldContinuousUpgrades();
         PartySystem.restoreState(data.party);

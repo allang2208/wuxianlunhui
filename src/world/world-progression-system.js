@@ -29,10 +29,11 @@ export const WORLD_LIFECYCLE_STATUS = Object.freeze({
 });
 
 const VALID_STATUS = new Set(Object.values(WORLD_LIFECYCLE_STATUS));
-const VERSION = 10;
+const VERSION = 11;
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const RUN_OUTCOMES = new Set(['success', 'failed', 'abandoned', 'safe_evac']);
 const FOUNDING_STATUSES = new Set(['locked', 'awaiting_king', 'selecting', 'founded']);
+const SPECIAL_BUILDING_EVENT_STATUSES = new Set(['pending', 'active', 'completed']);
 export const DUNGEON_GRADE_ORDER = Object.freeze(['F', 'E', 'D', 'C', 'B', 'A']);
 const FIRST_DUNGEON_ID = 'abandonedMineBeginner';
 let strategicSiteCells = new Set(); // Restored from strategy sites; never another saved authority.
@@ -74,6 +75,33 @@ function initialWorldMap(portals) {
         else reservations[sceneId] = createMapReservation(sceneId, portal);
     }
     return { discoveries, reservations, securedSignals: {}, trackedWorldId: null, nextRunId: 1, lastExpedition: null };
+}
+
+function initialSpecialBuildingEvents() {
+    return Object.fromEntries(Object.entries(worldSystemConfig.worlds || {})
+        .filter(([, cfg]) => cfg?.featureBuilding?.cfgKey && cfg.featureBuilding.eventId)
+        .map(([worldId, cfg]) => [worldId, {
+            eventId: cfg.featureBuilding.eventId,
+            status: 'pending',
+            attempts: 0,
+            worldEpoch: 0,
+            completedAt: 0,
+        }]));
+}
+
+function normalizeSpecialBuildingEvent(worldId, incoming = null) {
+    const feature = resolveWorldConfig(worldId)?.featureBuilding;
+    if (!feature?.cfgKey || !feature.eventId) return null;
+    const status = SPECIAL_BUILDING_EVENT_STATUSES.has(incoming?.status)
+        ? incoming.status : 'pending';
+    return {
+        eventId: feature.eventId,
+        status,
+        attempts: Math.max(0, Math.floor(Number(incoming?.attempts) || 0)),
+        worldEpoch: Math.max(0, Math.floor(Number(incoming?.worldEpoch) || 0)),
+        completedAt: status === 'completed'
+            ? Math.max(0, Number(incoming?.completedAt) || 0) : 0,
+    };
 }
 
 function resolveWorldConfig(worldId) {
@@ -197,6 +225,7 @@ function initialState() {
         portals,
         worldMap: initialWorldMap(portals),
         worldNames: {},
+        specialBuildingEvents: initialSpecialBuildingEvents(),
     };
 }
 
@@ -218,6 +247,8 @@ function deriveUnlockedDungeonGrade(completedDungeons = {}) {
 let state = initialState();
 // 交互开发工具的临时直连覆盖：只在当前会话生效，序列化时恢复正式传送门状态。
 const debugPortalOriginals = new Map();
+// 测试直连和临时预览的夺取进度只存在于本次运行，不写入正式存档。
+const debugSpecialBuildingEvents = new Map();
 
 function portalState(worldId) {
     if (!state.portals[worldId]) {
@@ -348,6 +379,7 @@ export const WorldProgressionSystem = {
 
     reset() {
         WorldInstanceSystem.reset();
+        debugSpecialBuildingEvents.clear();
         state = initialState();
         for (const sceneId of Object.keys(state.portals)) resetWorldSnapshot(sceneId);
         const initialInstance = this.ensureInitialStoryWorldInstance();
@@ -375,6 +407,7 @@ export const WorldProgressionSystem = {
             }
         }
         debugPortalOriginals.clear();
+        debugSpecialBuildingEvents.clear();
         const next = initialState();
         if (data && typeof data === 'object') {
             next.completedDungeons = { ...(data.completedDungeons || {}) };
@@ -390,6 +423,17 @@ export const WorldProgressionSystem = {
                 const incoming = data.portals?.[sceneId];
                 if (!incoming) continue;
                 next.portals[sceneId] = migratePortal(sceneId, incoming, next.portals[sceneId]);
+            }
+            for (const worldId of Object.keys(next.portals)) {
+                const normalized = normalizeSpecialBuildingEvent(
+                    worldId, data.specialBuildingEvents?.[worldId]
+                );
+                if (normalized) next.specialBuildingEvents[worldId] = normalized;
+            }
+            for (const worldId of Object.keys(next.specialBuildingEvents)) {
+                next.specialBuildingEvents[worldId] = normalizeSpecialBuildingEvent(
+                    worldId, data.specialBuildingEvents?.[worldId]
+                );
             }
         }
         // 仅兼容仍把 scene8 配成正式锚点的旧数据；模板预览模式不创建应急固定入口。
@@ -411,12 +455,10 @@ export const WorldProgressionSystem = {
     ensureConstructedWorldSnapshots() {
         for (const [sceneId, portal] of Object.entries(state.portals)) {
             if (portal.constructed && !portal.destroyed && this.canPersistWorld(sceneId)) {
-                const worldConfig = this.getWorldConfig(sceneId);
                 ensureWorldBaseSnapshot(sceneId, {
                     portalHp: portal.hp,
                     worldEpoch: portal.worldEpoch,
                     generation: this.getWorldGenerationContext(sceneId),
-                    includeInitialFeatureBuilding: portal.worldEpoch === 1 && !!worldConfig?.featureBuilding,
                 });
             } else if (!this.isWorldAnchored(sceneId) && this.shouldClearWorldScope(sceneId, 'snapshot')) {
                 // 旧档若残留“未建门世界”的快照，也必须按当前生命周期契约清除。
@@ -553,6 +595,106 @@ export const WorldProgressionSystem = {
             .map((instance) => instance.instanceId);
     },
 
+    /** 位面特色建筑事件是正式进度；测试直连与临时实例使用独立会话态。 */
+    getSpecialBuildingEvent(worldId) {
+        const world = this.getWorldConfig(worldId);
+        const feature = world?.featureBuilding;
+        if (!feature?.cfgKey || !feature.eventId) return null;
+        const testOnly = this.isDevWorldUnlocked(worldId) || WorldInstanceSystem.isDevPreview(worldId);
+        let progress;
+        if (testOnly) {
+            if (!debugSpecialBuildingEvents.has(worldId)) {
+                debugSpecialBuildingEvents.set(worldId, normalizeSpecialBuildingEvent(worldId));
+            }
+            progress = debugSpecialBuildingEvents.get(worldId);
+        } else {
+            progress = state.specialBuildingEvents[worldId]
+                || (state.specialBuildingEvents[worldId] = normalizeSpecialBuildingEvent(worldId));
+        }
+        if (!progress) return null;
+        return {
+            sceneId: worldId,
+            runtimeSceneId: this.getRuntimeSceneId(worldId),
+            worldName: this.getWorldDisplayName(worldId),
+            cfgKey: feature.cfgKey,
+            eventId: feature.eventId,
+            name: feature.eventName || '夺取特色建筑控制权',
+            sourceDungeonType: feature.sourceDungeonType || null,
+            enemyComposition: clone(feature.enemyComposition || { lord: 1, elite: 2, normal: 8 }),
+            status: progress.status,
+            attempts: progress.attempts,
+            worldEpoch: progress.worldEpoch,
+            completedAt: progress.completedAt,
+            testOnly,
+        };
+    },
+
+    activateSpecialBuildingEvent(worldId) {
+        const event = this.getSpecialBuildingEvent(worldId);
+        if (!event || event.status === 'completed' || !this.isPortalConstructed(worldId)) return event;
+        const target = event.testOnly
+            ? debugSpecialBuildingEvents.get(worldId) : state.specialBuildingEvents[worldId];
+        target.status = 'active';
+        target.attempts = Math.max(0, Number(target.attempts) || 0) + 1;
+        target.worldEpoch = this.getWorldEpoch(worldId);
+        target.completedAt = 0;
+        const updated = this.getSpecialBuildingEvent(worldId);
+        try { EventBus.emit('world:special-building-event-changed', updated); }
+        catch (error) { console.warn('[WorldProgression] 特色建筑事件激活通知失败:', error); }
+        return updated;
+    },
+
+    completeSpecialBuildingEvent(worldId, worldEpoch = this.getWorldEpoch(worldId)) {
+        const event = this.getSpecialBuildingEvent(worldId);
+        if (!event || event.status === 'completed') return event;
+        if (!this.isWorldEpochCurrent(worldId, worldEpoch)) return null;
+        const target = event.testOnly
+            ? debugSpecialBuildingEvents.get(worldId) : state.specialBuildingEvents[worldId];
+        target.status = 'completed';
+        target.worldEpoch = worldEpoch;
+        target.completedAt = Date.now();
+        const updated = this.getSpecialBuildingEvent(worldId);
+        try { EventBus.emit('world:special-building-event-changed', updated); }
+        catch (error) { console.warn('[WorldProgression] 特色建筑事件完成通知失败:', error); }
+        return updated;
+    },
+
+    /** requiredWorldId 使用模板场景ID；任一正式同模板位面完成夺取即可解除科技门槛。 */
+    isSpecialBuildingCaptured(requiredWorldId) {
+        const runtimeSceneId = this.getRuntimeSceneId(requiredWorldId);
+        return Object.entries(state.specialBuildingEvents || {}).some(([worldId, progress]) =>
+            progress?.status === 'completed'
+            && this.getRuntimeSceneId(worldId) === runtimeSceneId
+            && !this.isDevWorldUnlocked(worldId)
+            && !WorldInstanceSystem.isDevPreview(worldId));
+    },
+
+    /** 旧档已触碰过位面科技时视为早已完成对应夺取，避免读档倒退。 */
+    grandfatherSpecialBuildingEvents(requiredWorldIds = []) {
+        const completed = [];
+        for (const requiredWorldId of new Set(requiredWorldIds)) {
+            const runtimeSceneId = this.getRuntimeSceneId(requiredWorldId);
+            const matchingIds = new Set([requiredWorldId,
+                ...Object.keys(state.specialBuildingEvents || {}).filter((worldId) =>
+                    this.getRuntimeSceneId(worldId) === runtimeSceneId)]);
+            for (const worldId of matchingIds) {
+                const target = state.specialBuildingEvents[worldId]
+                    || normalizeSpecialBuildingEvent(worldId);
+                if (!target || target.status === 'completed') continue;
+                state.specialBuildingEvents[worldId] = target;
+                target.status = 'completed';
+                target.worldEpoch = this.getWorldEpoch(worldId);
+                target.completedAt = Date.now();
+                completed.push(worldId);
+            }
+        }
+        if (completed.length) {
+            try { EventBus.emit('world:special-building-event-migrated', { sceneIds: completed }); }
+            catch (error) { console.warn('[WorldProgression] 特色建筑旧档迁移通知失败:', error); }
+        }
+        return completed;
+    },
+
     /**
      * 当前战略地图模块尚未落地主调用点时，为新局/旧档提供一个可游玩的正式位面。
      * 后续战略格事件创建任意正式实例后，本入口自动停止补位。
@@ -582,12 +724,15 @@ export const WorldProgressionSystem = {
         const worldId = result.instance.instanceId;
         const portal = portalState(worldId);
         if (!result.reused) setPortalProtection(portal, worldId);
+        const specialEvent = normalizeSpecialBuildingEvent(worldId);
+        if (specialEvent && !state.specialBuildingEvents[worldId]) {
+            state.specialBuildingEvents[worldId] = specialEvent;
+        }
         ensureWorldBaseSnapshot(worldId, {
             portalHp: portal.hp,
             worldEpoch: portal.worldEpoch,
             generation: this.getWorldGenerationContext(worldId),
             replace: !result.reused,
-            includeInitialFeatureBuilding: !!this.getWorldConfig(worldId)?.featureBuilding,
         });
         return {
             ...result,
@@ -620,6 +765,8 @@ export const WorldProgressionSystem = {
         if (!WorldInstanceSystem.isInstanceId(worldId)) return false;
         resetWorldSnapshot(worldId);
         delete state.portals[worldId];
+        delete state.specialBuildingEvents[worldId];
+        debugSpecialBuildingEvents.delete(worldId);
         return WorldInstanceSystem.removeInstance(worldId);
     },
 
@@ -827,6 +974,7 @@ export const WorldProgressionSystem = {
             };
         }
         if (!alreadyDebug) debugPortalOriginals.set(sceneId, clone(portal));
+        if (!alreadyDebug) debugSpecialBuildingEvents.set(sceneId, normalizeSpecialBuildingEvent(sceneId));
         const firstActivation = !alreadyDebug;
         const reactivating = alreadyDebug;
         portal.worldEpoch = Math.max(1, portal.worldEpoch || 0);
@@ -860,6 +1008,7 @@ export const WorldProgressionSystem = {
         portal.protectedUntilGameTimeMs = 0;
         setPortalStatus(portal, WORLD_LIFECYCLE_STATUS.ACTIVE);
         resetWorldSnapshot(sceneId);
+        debugSpecialBuildingEvents.set(sceneId, normalizeSpecialBuildingEvent(sceneId));
         return {
             ok: true,
             changed: true,
@@ -1062,7 +1211,6 @@ export const WorldProgressionSystem = {
             worldEpoch: portal.worldEpoch,
             generation: this.getWorldGenerationContext(sceneId),
             replace: firstConstruction,
-            includeInitialFeatureBuilding: firstConstruction && !!cfg.featureBuilding,
         });
         if (foundingGift && !ensureWorldPlayerBaseSnapshot(sceneId)) {
             return { ok: false, reason: '首城市政厅快照登记失败，暂不能完成授予' };

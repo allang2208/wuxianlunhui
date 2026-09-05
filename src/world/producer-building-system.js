@@ -1821,7 +1821,7 @@ export class ProducerBuilding extends DamageableEntity {
 
     // 人口、口粮与经营服务由统一世界时钟推进，不受击杀慢动作影响。
     updateEconomy(dt) {
-        if (!this.active) return;
+        if (!this.active || this._planeFeatureNeutral) return;
         skipBuildingUpgradeWait(this);
         WarehouseEconomySystem.updateBuilding(this, dt);
         TavernEconomySystem.updateBuilding(this, dt, PopulationEconomySystem.getLaborEfficiency());
@@ -1851,7 +1851,7 @@ export class ProducerBuilding extends DamageableEntity {
     }
 
     update(dt) {
-        if (!this.active) return;
+        if (!this.active || this._planeFeatureNeutral) return;
         skipBuildingUpgradeWait(this);
         this._updateUpgrade(dt);
         if (!this.spawnEnabled) return;
@@ -7511,6 +7511,12 @@ export const ProducerBuildingSystem = {
         if (!picked?.active || !picked._isProducerBuilding) return false;
         if (!Game?._buildMode && !options.remote
             && Math.hypot(picked.x - player.x, picked.y - player.y) > 260) return false;
+        if (picked._planeFeatureNeutral) {
+            TopNotificationQueue.show('该特色建筑仍由守军控制；清理周边全部敌对单位后才能接管。', {
+                tone: 'warning', duration: 4200,
+            });
+            return true;
+        }
         if (picked._cfg?.panelMode === 'tribute') {
             if (World122TributeSystem.isOpenFor(picked)) World122TributeSystem.closePanel();
             else World122TributeSystem.openFor(picked, player);

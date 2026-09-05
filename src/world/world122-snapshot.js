@@ -583,6 +583,9 @@ export function captureWorld(sceneId = 'scene8') {
         ) : {};
         structures.push({
             kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y,
+            planeFeatureEventId: p._planeFeatureEventId || undefined,
+            planeFeatureWorldId: p._planeFeatureWorldId || undefined,
+            planeFeatureNeutral: p._planeFeatureNeutral === true || undefined,
             cityHallPolicyPlan: p._isPlayerBase ? normalizeCityHallPolicyPlan(p._cityHallPolicyPlan, p.level) : undefined,
             playerBaseRoadCells: p._isPlayerBase
                 ? (p._buildingRoadLayout?.roadCells || []).map(({ i, j }) => ({ i, j })) : undefined,
@@ -1692,6 +1695,17 @@ function _restoreProducer(s, sceneId) {
         candleUpgrade: s.candleUpgrade,
     });
     _markRestored(producer, s);
+    producer._planeFeatureEventId = s.planeFeatureEventId || null;
+    producer._planeFeatureWorldId = s.planeFeatureWorldId || null;
+    producer._planeFeatureNeutral = s.planeFeatureNeutral === true;
+    if (producer._planeFeatureNeutral) {
+        producer._builtByPlayer = false;
+        producer._planeFeatureOriginalSpawnEnabled = producer.spawnEnabled;
+        producer.spawnEnabled = false;
+        producer._faction = 'neutral';
+        producer.hittable = false;
+        producer.name = `中立·${cfg.name || producer.name}`;
+    }
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;
     producer._spawnTimer = Math.max(0, s.spawnTimer || 0);
     producer._recruitMode = normalizeRecruitMode(s.recruitMode);

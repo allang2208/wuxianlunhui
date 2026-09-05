@@ -305,6 +305,9 @@ const INDUSTRIAL_SIM_DEFINITIONS = {
     },
 };
 
+// 尚未夺取的特色建筑只占据地图，不参与后台经济、生产、科研或防守结算。
+const isOperationalStructure = (structure) => structure?.planeFeatureNeutral !== true;
+
 function _workshopModuleValue(structure, moduleId) {
     return _economyModuleValue(structure, 'workshop', moduleId);
 }
@@ -643,6 +646,7 @@ export function getWorld122ResearchSummary(snapshot) {
     const structures = Array.isArray(snapshot?.structures) ? snapshot.structures : [];
     const economyStructures = structures.filter((structure) =>
         structure?.kind === 'producer'
+        && isOperationalStructure(structure)
         && Number(structure?.hp ?? 1) > 0
         && producerBuildingsJson[structure?.cfgKey]?.economyType
     );
@@ -789,7 +793,8 @@ function _settleWorkshopRepairs(target, economyStructures, safeSeconds) {
     }
     const structures = (target.structures || []).filter((structure) => {
         const maxHp = _structureMaxHp(structure);
-        return structure.hp > 0 && maxHp > 0 && structure.hp < maxHp;
+        return isOperationalStructure(structure)
+            && structure.hp > 0 && maxHp > 0 && structure.hp < maxHp;
     });
     const globallyClaimed = new Set();
     const speed = Math.max(1, Number(populationEconomyConfig.workshop?.engineerSpeed) || 180);
@@ -958,7 +963,8 @@ function _rosterDps(roster, levelOverrides = null) {
 /** 后台无逐实体坐标：至少一名存活骆驼骑兵参战时，按当前惊吓等级折算怪群输出。 */
 function _camelFrightReduction(target) {
     const hasCamel = (target.structures || []).some((structure) => (
-        structure?.hp > 0
+        isOperationalStructure(structure)
+        && structure?.hp > 0
         && (structure.kind === 'barracks' || structure.kind === 'producer')
         && (_normalizedRoster(structure).camel_cavalry || 0) > 0
     ));
@@ -1119,7 +1125,7 @@ function _snapshotLocalUpgradeJobs(target) {
         });
     };
     for (const structure of target.structures || []) {
-        if (!(Number(structure.hp ?? 1) > 0)) continue;
+        if (!isOperationalStructure(structure) || !(Number(structure.hp ?? 1) > 0)) continue;
         if (structure.kind === 'hut') {
             add(structure, 'upgrade', 'modules',
                 getMiningWorkerProfile(structure.cfgKey).building.modules);
@@ -1241,7 +1247,8 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         research_structure_hp: initialStructureHpLevel,
     };
     const completionTimes = {};
-    const warehouses = (target.structures || []).filter((s) => s.kind === 'producer'
+    const warehouses = (target.structures || []).filter((s) => isOperationalStructure(s)
+        && s.kind === 'producer'
         && getProducerStorageCap(s) > 0);
     const roadContext = _snapshotRoadContext(target);
     // v1 快照把粮食挂在位面全局；后台结算开始时先迁入真实仓库，放不下的留作回场迁移。
@@ -1265,6 +1272,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     // 玩家不在该位面时不物化平民，也不会产生逐单位寻路/动画开销。 ----
     const economyStructures = (target.structures || []).filter((structure) =>
         structure.kind === 'producer'
+        && isOperationalStructure(structure)
         && Number(structure.hp ?? 1) > 0
         && producerBuildingsJson[structure.cfgKey]?.economyType
     );
@@ -2250,7 +2258,8 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
 
     // ---- 读条结算（能力/研究 + 出兵模块；持续目标保留供回场资源轮询）----
     for (const s of target.structures || []) {
-        if ((s.kind !== 'producer' && s.kind !== 'barracks') || !s.upgrade) continue;
+        if (!isOperationalStructure(s)
+            || (s.kind !== 'producer' && s.kind !== 'barracks') || !s.upgrade) continue;
         const up = s.upgrade;
         const elapsedMsLocal = Math.max(0, elapsedMs);
         if (up.remainMs <= elapsedMsLocal) {
@@ -2325,7 +2334,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     const titheIntervalMs = Math.max(0, Number(titheModule?.tickMs) || 0);
     if (tithePerTick > 0 && titheIntervalMs > 0) {
         for (const s of target.structures || []) {
-            if (s.kind !== 'producer') continue;
+            if (!isOperationalStructure(s) || s.kind !== 'producer') continue;
             const roster = _normalizedRoster(s);
             const priests = (roster.priest || 0) + (roster.bishop || 0) + (roster.archbishop || 0);
             if (priests <= 0) continue;
@@ -2453,14 +2462,16 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     const instantTroopProduction = isInstantTroopProductionEnabled();
     const ignoreMilitaryPopulation = isMilitaryPopulationIgnored();
     let militaryPopulationUsed = (target.structures || []).reduce((sum, structure) => {
-        if (structure.kind !== 'barracks' && structure.kind !== 'producer') return sum;
+        if (!isOperationalStructure(structure)
+            || (structure.kind !== 'barracks' && structure.kind !== 'producer')) return sum;
         const cfg = _producerConfigOf(structure);
         if (!(cfg?.unitTypes || []).some((unit) => !!unit?.key)) return sum;
         return sum + _rosterMilitaryPopulation(_normalizedRoster(structure))
             + _deployedMilitaryPopulation(structure);
     }, 0);
     for (const s of target.structures || []) {
-        if (s.kind !== 'barracks' && s.kind !== 'producer') continue;
+        if (!isOperationalStructure(s)
+            || (s.kind !== 'barracks' && s.kind !== 'producer')) continue;
         const producerCfg = _producerConfigOf(s);
         if (producerCfg && !producerCfg.parallelProduction && s.unitType) {
             const nextUnitType = resolveRecruitmentUnitType(
@@ -2700,7 +2711,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     // ---- 探险结算：12 分钟一次性任务；离场后只推进剩余时间，完成后不再循环产出。----
     for (const s of target.structures || []) {
         const state = s.explorerState;
-        if (!state || !(s.hp > 0)) continue;
+        if (!isOperationalStructure(s) || !state || !(s.hp > 0)) continue;
         const rosterCount = Math.max(0, Math.floor(Number(s.unitRoster?.explorer) || 0));
         const legacyCount = Math.min(
             Math.max(0, Math.floor(Number(state.activeCount) || 0)), rosterCount);
@@ -2761,8 +2772,9 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         let priestCount = 0;
         let scoutCount = 0;
         for (const structure of target.structures || []) {
-            if (structure.kind !== 'barracks'
-                && !(structure.kind === 'producer' && structure.unitType)) continue;
+            if (!isOperationalStructure(structure)
+                || (structure.kind !== 'barracks'
+                    && !(structure.kind === 'producer' && structure.unitType))) continue;
             const roster = _normalizedRoster(structure);
             unitDps += _rosterDps(roster, segment.levels);
             priestCount += (roster.priest || 0) + (roster.bishop || 0) + (roster.archbishop || 0);
@@ -3006,7 +3018,7 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
             const monsterDamageMul = 1 - _camelFrightReduction(target);
             // 防守 DPS 每波重算（结算过程中建筑可能被摧毁）
             const dps = (target.structures || []).reduce((sum, s) => {
-                if (!(s.hp > 0)) return sum;
+                if (!isOperationalStructure(s) || !(s.hp > 0)) return sum;
                 if (s.kind === 'tower') return sum + (s.dps || 0);
                 if (s.kind === 'barracks' || (s.kind === 'producer' && s.unitType)) return sum + (s.unitDps || 0);
                 return sum;
@@ -3046,7 +3058,8 @@ function _applyStructureDamage(target, amount, report) {
     let left = amount;
     const structures = target.structures || [];
     const walls = structures.filter((s) => s.kind === 'block' || s.kind === 'gate4');
-    const buildings = structures.filter((s) => s.kind !== 'block' && s.kind !== 'gate4');
+    const buildings = structures.filter((s) => isOperationalStructure(s)
+        && s.kind !== 'block' && s.kind !== 'gate4');
     for (const group of [walls, buildings]) {
         if (left <= 0) break;
         for (const s of group) {

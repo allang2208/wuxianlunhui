@@ -44,6 +44,7 @@ import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
 import { scatterWorld126MineEnvironment } from './world126-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
+import { PlaneSpecialBuildingEventSystem } from './plane-special-building-event-system.js';
 import { WorldInstanceSystem } from './world-instance-system.js';
 import desertTerrainConfig from '../../data/desert-terrain.json';
 import { getFrozenTerrainBase, getFrozenTerrainDeco } from '../config/frozen-terrain.js';
@@ -571,6 +572,8 @@ export const SceneManager = {
             // 世界-122 防守地图：离场统一拆除（关面板/停波次；实体由下方 clear 统一清理）
             // 世界-122 快照：离场先捕获再拆除（M0：重进恢复建筑/波次/矿点，不归零）
             if (this._isPersistentWorld(this.currentScene) && DefenseSystem && DefenseSystem.active) {
+                PlaneSpecialBuildingEventSystem.update(departingWorldId);
+                PlaneSpecialBuildingEventSystem.leaveWorld(departingWorldId);
                 if (!opts.strategyRestore && !WorldInstanceSystem.isDevPreview(departingWorldId)) {
                     window.WorldInvasionSystem?.onWorldLeaving?.(departingWorldId);
                 }
@@ -1969,6 +1972,10 @@ export const SceneManager = {
         DefenseSystem.base = portal;
         const scene = this.scenes[runtimeSceneId] || {};
         this._ensureWorldPlayerBase(sceneId, portal);
+        PlaneSpecialBuildingEventSystem.enterWorld(sceneId, {
+            observer: Game._observerMode === true,
+            questInstance: this.isQuestInstance(runtimeSceneId),
+        });
         FogOfWarSystem.enterScene(sceneId, {
             templateSceneId: runtimeSceneId,
             worldEpoch: WorldProgressionSystem.getWorldEpoch(sceneId),

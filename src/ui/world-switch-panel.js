@@ -1297,15 +1297,19 @@ export const WorldSwitchPanel = {
             const discovery = persistent ? WorldProgressionSystem.getWorldMapDiscovery(world.id) : null;
             const entryCell = discovery?.cell || null;
             const eligible = persistent && WorldProgressionSystem.isWorldEligible(world.id);
+            const specialEvent = persistent && connected
+                ? WorldProgressionSystem.getSpecialBuildingEvent?.(world.id) : null;
             const hallAlive = persistent && SceneManager._hasLiveWorldAnchor?.(world.id, 'city_hall');
             const isCurrent = current === world.id;
             const isHome = Game._observerMode && home === world.id;
             const badge = this._firstFoundingSelection ? '首城候选'
+                : specialEvent && specialEvent.status !== 'completed'
+                    ? `？ ${specialEvent.status === 'active' ? '夺取事件进行中' : '夺取特色建筑'}`
                 : isCurrent ? '当前视野' : isHome ? '本体所在'
                 : portal?.destroyed ? '传送门已毁'
                 : !connected ? (eligible ? '可接通' : entryCell ? '信标待打通' : '信标未定位')
                 : invasions.some((war) => war.targetWorld === world.id) ? '入侵中' : '已接通';
-            return { ...world, persistent, connected, isCurrent, isHome, badge, entryCell, discovery, eligible,
+            return { ...world, persistent, connected, isCurrent, isHome, badge, entryCell, discovery, eligible, specialEvent,
                 destroyed: !!portal?.destroyed, hallAlive: !!hallAlive,
                 endpointExists: !!portal?.endpointExists };
         });
@@ -1364,6 +1368,9 @@ export const WorldSwitchPanel = {
             <h2 class="wm-detail-title">${escapeHtml(this._worldName(selected.id))}</h2>
             ${selected.entryCell ? `<p class="wm-hint">${selected.destroyed ? '旧入口地块' : selected.connected ? '接通地块' : '目标地块'}：${selected.entryCell.q}, ${selected.entryCell.r}</p>` : ''}
             <div class="ws-status">${status}</div>
+            ${selected.specialEvent && selected.specialEvent.status !== 'completed' ? `
+                <div class="ws-status is-warning"><strong>❓ 随机事件 · ${escapeHtml(selected.specialEvent.name)}</strong><br>
+                进入该位面后，特色建筑会以中立状态生成；清理领主、精英与普通守军即可取得控制权，并解锁该位面的特色科技研究。</div>` : ''}
             ${this._baseMilitaryHtml(selected)}
             ${this._worldExpeditionHtml(selected)}
             ${this._firstFoundingSelection || celebration ? '' : `<div class="wm-actions">
@@ -1385,6 +1392,13 @@ export const WorldSwitchPanel = {
                 <button type="button" class="ws-rebuild is-primary" data-rebuild-world="${entry.sceneId}">
                     ${escapeHtml(entry.name || entry.sceneId)} · ${entry.cost.gold || 0} 金币 + ${entry.cost.energy || 0} 能源
                 </button>`).join('')}` : '');
-        this._map?.setState(states.map(({ id, connected, badge, entryCell }) => ({ id, connected, badge, entryCell })), selected.id);
+        this._map?.setState(states.map(({ id, connected, badge, entryCell, specialEvent }) => ({
+            id, connected, badge, entryCell,
+            specialEvent: specialEvent && specialEvent.status !== 'completed' ? {
+                eventId: specialEvent.eventId,
+                name: specialEvent.name,
+                status: specialEvent.status,
+            } : null,
+        })), selected.id);
     },
 };

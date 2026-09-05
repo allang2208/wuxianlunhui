@@ -525,7 +525,7 @@ export const TechnologySystem = {
         const node = this.getNode(id);
         if (!node) return false;
         if (node.requiredWorldId
-            && !WorldProgressionSystem.isWorldEligible(node.requiredWorldId)) return false;
+            && !WorldProgressionSystem.isSpecialBuildingCaptured(node.requiredWorldId)) return false;
         const requiredWorldCount = Math.max(0,
             Math.floor(Number(node.requiredWorldCount) || 0));
         return requiredWorldCount <= 0
@@ -1114,6 +1114,10 @@ export const TechnologySystem = {
             completedNode,
             state: this.serialize(),
         });
+    },
+
+    notifyWorldRequirementChanged(reason = 'world-special-building-captured') {
+        this._emitChanged(reason);
     },
 
     _refreshConsumers() {

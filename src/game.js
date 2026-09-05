@@ -7,6 +7,7 @@ import { Renderer } from './world/renderer.js';
 import { pickStructureAtScreen } from './world/structure-picking.js';
 import { SceneManager } from './world/scene-manager.js';
 import { TroopLineSystem } from './world/troop-line-system.js';
+import { PlaneSpecialBuildingEventSystem } from './world/plane-special-building-event-system.js';
 import { WorldStrategySystem } from './world/world-strategy-system.js';
 import { newWorldMap } from './world/world-map-cells.js';
 import { advanceCombatClock } from './combat/combat-clock.js';
@@ -1338,6 +1339,7 @@ export const Game = {
         if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
             ProducerBuildingSystem.update(dt);
         }
+        PlaneSpecialBuildingEventSystem.update(SceneManager.getCurrentWorldId());
         // 全局兵线：同位面到点待命、跨位面抵达传送门后转入增援队列。
         TroopLineSystem.update(SceneManager.getCurrentWorldId());
     },

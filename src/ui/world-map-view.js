@@ -652,6 +652,7 @@ export class WorldMapView {
         }
         if (this.hovered) { this._hex(this.hovered); ctx.strokeStyle = this.colors.accent; ctx.lineWidth = 1.6; ctx.stroke(); }
         this._drawSettlements();
+        this._drawWorldEvents();
         this._drawArmyLayer();
         ctx.textAlign = 'left';
         if (this._pointerPoint && !this.drag) this._hoverAt(this._pointerPoint);
@@ -749,6 +750,34 @@ export class WorldMapView {
             if (name) { ctx.fillStyle = this.colors.text; ctx.fillText(name, x, labelY + 15); ctx.fillStyle = ctx.strokeStyle; }
             ctx.fillText(label, x, labelY + (name ? 32 : 15));
             this.siteLabels.push({ x: hitLeft, y: hitTop, w: hitRight - hitLeft, h: hitBottom - hitTop, cellId: site.cellId });
+        }
+    }
+
+    _drawWorldEvents() {
+        const ctx = this.ctx;
+        const events = Array.from(this.states.values()).filter((state) =>
+            state.connected && state.specialEvent && state.entryCell?.id);
+        for (const state of events) {
+            const cell = this.cellById.get(state.entryCell.id);
+            if (!cell) continue;
+            const x = this.offset.x + cell.x * this.scale;
+            const y = this.offset.y + cell.y * this.scale - clamp(this.scale * 0.7, 24, 46);
+            const radius = this.detailLevel === 'compact' ? 12 : 15;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.colors.shell;
+            ctx.fill();
+            ctx.strokeStyle = state.specialEvent.status === 'active'
+                ? this.colors.hostile : this.colors.warning;
+            ctx.lineWidth = state.specialEvent.status === 'active' ? 3 : 2;
+            ctx.stroke();
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.font = `800 ${this.detailLevel === 'compact' ? 16 : 20}px ${this.font}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('?', x, y + 1);
+            ctx.restore();
         }
     }
 

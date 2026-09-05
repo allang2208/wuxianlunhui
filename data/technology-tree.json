@@ -587,7 +587,7 @@
   "planeResearch": [
     {
       "id": "snow_castle_architecture", "name": "雪原城堡营造术", "icon": "🏯", "iconPath": "assets/ui/technology-icons/snow_castle_architecture.png", "branch": "位面独特科技", "section": "plane", "column": 2, "lane": 0, "researchCost": 260,
-      "prerequisites": [], "requiredWorldId": "scene9", "description": "掌握雪原城堡的冻土基础、覆雪屋顶与防御结构；完成后可在世界-123建造雪原城堡。",
+      "prerequisites": [], "requiredWorldId": "scene9", "description": "夺取雪原城堡控制权后，掌握其冻土基础、覆雪屋顶与防御结构；完成后可在世界-123追加建造雪原城堡。",
       "unlocks": [
         { "type": "building", "id": "snow_castle", "label": "雪原城堡" }
       ]
@@ -601,7 +601,7 @@
     },
     {
       "id": "dungeon_explorer_corps", "name": "地牢探险团", "icon": "🧭", "iconPath": "assets/ui/technology-icons/dungeon_explorer_corps.png", "branch": "位面独特科技", "section": "plane", "column": 0, "lane": 0, "researchCost": 260,
-      "prerequisites": [], "requiredWorldId": "scene11", "description": "僵尸地牢位面解锁后即可研究；完成后开放探险家营地与该位面特色单位。",
+      "prerequisites": [], "requiredWorldId": "scene11", "description": "夺取地牢遗迹中的探险家营地控制权后即可研究；完成后开放追加建造与该位面特色单位。",
       "unlocks": [
         { "type": "building", "id": "explorer_camp", "label": "探险家营地" },
         { "type": "building", "id": "dungeon_candle", "label": "守夜烛台" },
@@ -618,7 +618,7 @@
     },
     {
       "id": "jungle_temple_rites", "name": "丛林神庙仪式", "icon": "🌿", "iconPath": "assets/ui/technology-icons/jungle_temple_rites.png", "branch": "位面独特科技", "section": "plane", "column": 1, "lane": 0, "researchCost": 280,
-      "prerequisites": [], "requiredWorldId": "scene10", "description": "沼泽林地位面解锁后即可研究；完成后开放丛林神庙与美洲豹战士。",
+      "prerequisites": [], "requiredWorldId": "scene10", "description": "夺取林地位面的丛林神庙控制权后即可研究；完成后开放追加建造与美洲豹战士。",
       "unlocks": [
         { "type": "building", "id": "jungle_temple", "label": "丛林神庙" },
         { "type": "unit", "id": "jaguar_warrior", "label": "美洲豹战士" }
@@ -633,7 +633,7 @@
     },
     {
       "id": "desert_mansion_charter", "name": "沙漠官邸营造术", "icon": "🏛️", "iconPath": "assets/ui/technology-icons/desert_mansion_charter.png", "branch": "位面独特科技", "section": "plane", "column": 3, "lane": 0, "researchCost": 240,
-      "prerequisites": [], "requiredWorldId": "scene8", "description": "研究荒漠官邸的砂岩承重、穹顶与防风结构；完成后可在世界-122追加建造沙漠官邸。",
+      "prerequisites": [], "requiredWorldId": "scene8", "description": "夺取沙漠官邸控制权后，研究其砂岩承重、穹顶与防风结构；完成后可在世界-122追加建造沙漠官邸。",
       "unlocks": [
         { "type": "building", "id": "desert_mansion", "label": "沙漠官邸" }
       ]
@@ -647,7 +647,7 @@
     },
     {
       "id": "cavern_mining_guild", "name": "矿洞矿业工会", "icon": "⛏️", "iconPath": "assets/ui/technology-icons/cavern_mining_guild.png", "branch": "位面独特科技", "section": "plane", "column": 4, "lane": 0, "researchCost": 320,
-      "prerequisites": [], "requiredWorldId": "scene12", "description": "解锁矿洞专属矿业工会。分配人口岗位后自动生成仓鼠矿业专家，电钻采矿、负重返营并交付能源；专家不可选中或指挥。同步解锁钻头、电机、背架、矿靴与扩编升级。",
+      "prerequisites": [], "requiredWorldId": "scene12", "description": "夺取矿洞位面的矿业工会控制权后即可研究。完成后允许追加建造矿业工会，并同步解锁钻头、电机、背架、矿靴与扩编升级。",
       "unlocks": [
         { "type": "building", "id": "mining_guild", "label": "矿业工会" },
         { "type": "upgrade", "id": "guild_drill", "label": "合金钻头" },
