@@ -1,0 +1,128 @@
+{
+  "date": "2026-08-30",
+  "generator": "built-in image_gen",
+  "prompts": "prompts.json",
+  "authorization": "Continue the five priority prop replacements proposed in this task",
+  "status": "material-reference-only",
+  "runtimeInstalled": false,
+  "reason": "Free ImageGen output does not lock the shared Blender orthographic 30deg / root 44.8deg geometry. Five runtime replacements withdrawn after pipeline review.",
+  "nextPipeline": "Shared Blender model/camera/ground anchor, then model-constrained material refinement",
+  "pipeline": "ImageGen alpha -> alpha-content crop -> premultiplied area resampling -> 256px transparent runtime canvas",
+  "floorChanged": false,
+  "otherThirteenPropsChanged": false,
+  "collisionChanged": false,
+  "preview": "five-props-preview.png",
+  "previewScope": "Offline asset sheet, upper enlarged / lower 0.7 scale; not a game screenshot",
+  "assets": [
+    {
+      "name": "broken_rail",
+      "label": "断轨",
+      "visibleSize": 74,
+      "originY": 0.5,
+      "key": "abandoned_mine_prop_broken_rail",
+      "sourceCrop": {
+        "x": 62,
+        "y": 155,
+        "w": 1139,
+        "h": 926
+      },
+      "runtimeBox": {
+        "x": 24,
+        "y": 44,
+        "w": 208,
+        "h": 169
+      },
+      "size": 91,
+      "source": "broken_rail-source.png",
+      "candidate": "candidates/abandoned_mine_prop_broken_rail.png"
+    },
+    {
+      "name": "broken_sleepers",
+      "label": "枕木",
+      "visibleSize": 60,
+      "originY": 0.5,
+      "key": "abandoned_mine_prop_broken_sleepers",
+      "sourceCrop": {
+        "x": 47,
+        "y": 186,
+        "w": 1160,
+        "h": 880
+      },
+      "runtimeBox": {
+        "x": 24,
+        "y": 49,
+        "w": 208,
+        "h": 158
+      },
+      "size": 74,
+      "source": "broken_sleepers-source.png",
+      "candidate": "candidates/abandoned_mine_prop_broken_sleepers.png"
+    },
+    {
+      "name": "pickaxe",
+      "label": "矿镐",
+      "visibleSize": 64,
+      "originY": 0.5,
+      "key": "abandoned_mine_prop_pickaxe",
+      "sourceCrop": {
+        "x": 33,
+        "y": 55,
+        "w": 1197,
+        "h": 1117
+      },
+      "runtimeBox": {
+        "x": 24,
+        "y": 31,
+        "w": 208,
+        "h": 194
+      },
+      "size": 79,
+      "source": "pickaxe-source.png",
+      "candidate": "candidates/abandoned_mine_prop_pickaxe.png"
+    },
+    {
+      "name": "floor_lantern",
+      "label": "矿灯",
+      "visibleSize": 44,
+      "originY": 0.875,
+      "key": "abandoned_mine_prop_floor_lantern",
+      "sourceCrop": {
+        "x": 424,
+        "y": 13,
+        "w": 402,
+        "h": 1217
+      },
+      "runtimeBox": {
+        "x": 94,
+        "y": 16,
+        "w": 69,
+        "h": 208
+      },
+      "size": 54,
+      "source": "floor_lantern-source.png",
+      "candidate": "candidates/abandoned_mine_prop_floor_lantern.png"
+    },
+    {
+      "name": "minecart_wheel",
+      "label": "矿车轮",
+      "visibleSize": 56,
+      "originY": 0.5,
+      "key": "abandoned_mine_prop_minecart_wheel",
+      "sourceCrop": {
+        "x": 41,
+        "y": 185,
+        "w": 1174,
+        "h": 895
+      },
+      "runtimeBox": {
+        "x": 24,
+        "y": 49,
+        "w": 208,
+        "h": 159
+      },
+      "size": 69,
+      "source": "minecart_wheel-source.png",
+      "candidate": "candidates/abandoned_mine_prop_minecart_wheel.png"
+    }
+  ]
+}
