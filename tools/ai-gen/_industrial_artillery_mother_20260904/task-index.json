@@ -17,6 +17,7 @@
   "background": "pure white mother frame, not transparent spritesheet",
   "camera": "accepted engineering-line shallow mildly elevated right-facing three-quarter view; dominant near-wheel side face, minimal axle depth, horizontal group staging and shallow-overlap split trails",
   "pendingPreview": "mother/industrial-artillery-crew-mother-v08-engineering-camera.png",
+  "cleanupManifest": "cleanup-manifest.json",
   "unit": {
     "unitKey": "industrial_artillery_crew",
     "unitName": "仓鼠近代炮兵组",
@@ -29,8 +30,8 @@
     "artilleryCount": 1,
     "output": "mother/industrial-artillery-crew-mother-v08-engineering-camera.png",
     "prompt": "prompts/industrial-artillery-crew-v08-engineering-camera.txt",
-    "sourceOutput": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
-    "sourcePrompt": "prompts/industrial-artillery-crew-v07-right-facing-nearside.txt",
+    "historicalPreviousCandidate": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
+    "historicalPreviousPrompt": "prompts/industrial-artillery-crew-v07-right-facing-nearside.txt",
     "accepted": true,
     "identityAnchors": [
       "两名同等成年体型的金橙白颊仓鼠，红星钢盔与卡其近代军服",
@@ -84,59 +85,59 @@
   "revisionHistory": [
     {
       "version": "v01",
-      "output": "mother/industrial-artillery-crew-mother-v01.png",
+      "removedOutput": "mother/industrial-artillery-crew-mother-v01.png",
       "prompt": "prompts/industrial-artillery-crew-v01.txt",
       "status": "superseded_direct_edit_source",
       "reason": "时代、血统与器械层级通过，但两名炮手靴子落在炮架纵梁上。"
     },
     {
       "version": "v02",
-      "output": "mother/industrial-artillery-crew-mother-v02-grounded-crew.png",
+      "removedOutput": "mother/industrial-artillery-crew-mother-v02-grounded-crew.png",
       "prompt": "prompts/industrial-artillery-crew-v02-grounded-crew.txt",
-      "sourceOutput": "mother/industrial-artillery-crew-mother-v01.png",
+      "historicalSourceOutput": "mother/industrial-artillery-crew-mother-v01.png",
       "status": "superseded_direct_edit_source",
       "reason": "炮手落脚已修正，但尾部炮架被错误改成左下角脱离主体的独立箱体。"
     },
     {
       "version": "v03",
-      "output": "mother/industrial-artillery-crew-mother-v03-connected-trail.png",
+      "removedOutput": "mother/industrial-artillery-crew-mother-v03-connected-trail.png",
       "prompt": "prompts/industrial-artillery-crew-v03-connected-trail.txt",
-      "sourceOutput": "mother/industrial-artillery-crew-mother-v02-grounded-crew.png",
+      "historicalSourceOutput": "mother/industrial-artillery-crew-mother-v02-grounded-crew.png",
       "status": "superseded_direct_edit_source",
       "revisionScope": "删除孤立箱体，恢复从轴座连续向左延伸并以驻锄收尾的炮架；保持两名炮手站在地面。",
       "reason": "用户复核指出该版实际只有一条单尾架，缺少远侧独立稳定架。"
     },
     {
       "version": "v04",
-      "output": "mother/industrial-artillery-crew-mother-v04-dual-stabilizers.png",
+      "removedOutput": "mother/industrial-artillery-crew-mother-v04-dual-stabilizers.png",
       "prompt": "prompts/industrial-artillery-crew-v04-dual-stabilizers.txt",
-      "sourceOutput": "mother/industrial-artillery-crew-mother-v03-connected-trail.png",
+      "historicalSourceOutput": "mother/industrial-artillery-crew-mother-v03-connected-trail.png",
       "status": "superseded_direct_edit_source",
       "revisionScope": "将单尾架改为两条从同一炮轴后部独立铰接、向左后方展开的V形分列式稳定架；近远两臂及各自驻锄均清楚可见，人物保持落地。",
       "reason": "用户复核指出两条稳定架虽然数量正确，但轮轴、炮尾铰接点、梁体消失方向与遮挡没有形成统一三维透视。"
     },
     {
       "version": "v05",
-      "output": "mother/industrial-artillery-crew-mother-v05-perspective-corrected.png",
+      "removedOutput": "mother/industrial-artillery-crew-mother-v05-perspective-corrected.png",
       "prompt": "prompts/industrial-artillery-crew-v05-perspective-corrected.txt",
-      "sourceOutput": "mother/industrial-artillery-crew-mother-v04-dual-stabilizers.png",
+      "historicalSourceOutput": "mother/industrial-artillery-crew-mother-v04-dual-stabilizers.png",
       "status": "superseded_reference_source",
       "revisionScope": "重建炮管纵轴、两轮共同轴线、炮尾Y形共同铰接顶点与双稳定架在同一地平面上的透视、缩短和遮挡关系。",
       "reason": "用户复核后要求停止继续修补，并联网参考二战反坦克炮重新优化整体构图。"
     },
     {
       "version": "v06",
-      "output": "mother/industrial-artillery-crew-mother-v06-zis2-rear-three-quarter.png",
+      "removedOutput": "mother/industrial-artillery-crew-mother-v06-zis2-rear-three-quarter.png",
       "prompt": "prompts/industrial-artillery-crew-v06-zis2-rear-three-quarter.txt",
-      "sourceOutput": "mother/industrial-artillery-crew-mother-v05-perspective-corrected.png",
+      "historicalSourceOutput": "mother/industrial-artillery-crew-mother-v05-perspective-corrected.png",
       "status": "superseded_direction_mismatch",
       "revisionScope": "联网研究ZiS-2、57毫米M1/六磅反坦克炮后完全重构：改为炮尾左后三分之四机位，炮架V形进入前景、炮口斜指右上、两名炮手分列炮尾左右，并将器械外观收敛为二战低矮长管反坦克炮。"
     },
     {
       "version": "v07",
-      "output": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
+      "removedOutput": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
       "prompt": "prompts/industrial-artillery-crew-v07-right-facing-nearside.txt",
-      "sourceOutput": "mother/industrial-artillery-crew-mother-v06-zis2-rear-three-quarter.png",
+      "historicalSourceOutput": "mother/industrial-artillery-crew-mother-v06-zis2-rear-three-quarter.png",
       "status": "superseded_engineering_camera_mismatch",
       "revisionScope": "按第16b卷1.1节与WORKFLOW 3.6重新锁定已认可野战炮实际动作帧的略俯视近侧三分之四镜头：炮管与两名炮手统一朝屏幕右侧，两条分列式驻锄从共同炮架向左后方展开，近远两臂和两枚驻锄均清晰可见。",
       "reason": "用户指出视角仍不符合其他工程器械单位；复核确认该版机位仍偏高并沿炮架纵深展开，近轮、远轮、双驻锄和人物形成过强前后层。"
@@ -145,7 +146,7 @@
       "version": "v08",
       "output": "mother/industrial-artillery-crew-mother-v08-engineering-camera.png",
       "prompt": "prompts/industrial-artillery-crew-v08-engineering-camera.txt",
-      "sourceOutput": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
+      "historicalPreviousCandidate": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
       "status": "selected_for_doubao_animation_source",
       "inputBoundary": "v07 was not supplied to imagegen; the accepted field-cannon, howitzer and catapult mothers were the direct camera inputs, with the Soviet rifleman used only for identity.",
       "revisionScope": "直接以投石组、野战炮组和榴弹炮组获准母图锁定整组镜头：近轮侧面占主导、远轮紧贴其后、轮轴纵深短、两名炮手同尺度同脚线、炮架横向铺开；双驻锄以浅V近重叠投影向左延伸。"
@@ -153,41 +154,41 @@
   ],
   "provenance": [
     {
-      "path": "mother/industrial-artillery-crew-mother-v01.png",
+      "removedPath": "mother/industrial-artillery-crew-mother-v01.png",
       "sourcePath": "C:/Users/allan/.codex/generated_images/01a06b7d-ab0f-7b81-ba4f-c70e4b6aa304/exec-857413e7-75d5-48bf-80a8-031c5223d72b.png",
       "operation": "built_in_imagegen_generation_then_copy_without_additional_pixel_edits"
     },
     {
-      "path": "mother/industrial-artillery-crew-mother-v02-grounded-crew.png",
+      "removedPath": "mother/industrial-artillery-crew-mother-v02-grounded-crew.png",
       "sourcePath": "C:/Users/allan/.codex/generated_images/01a06b7d-ab0f-7b81-ba4f-c70e4b6aa304/exec-0a7e8458-30b5-44ca-b3bc-2e9a6e9cd1b1.png",
       "operation": "built_in_imagegen_grounded_crew_edit_then_copy_without_additional_pixel_edits"
     },
     {
-      "path": "mother/industrial-artillery-crew-mother-v03-connected-trail.png",
+      "removedPath": "mother/industrial-artillery-crew-mother-v03-connected-trail.png",
       "sourcePath": "C:/Users/allan/.codex/generated_images/01a06b7d-ab0f-7b81-ba4f-c70e4b6aa304/exec-d2973b6f-6cd3-4690-a8e3-7ab92f81d5d0.png",
       "sha256": "F3014E140EEABD5B22BBFBE26D353C06B84408EC8397A444EFD1F8F4E27A712F",
       "operation": "built_in_imagegen_connected_trail_edit_then_copy_without_additional_pixel_edits"
     },
     {
-      "path": "mother/industrial-artillery-crew-mother-v04-dual-stabilizers.png",
+      "removedPath": "mother/industrial-artillery-crew-mother-v04-dual-stabilizers.png",
       "sourcePath": "C:/Users/allan/.codex/generated_images/01a06b7d-ab0f-7b81-ba4f-c70e4b6aa304/exec-5a616362-27c3-45cf-ab2d-5c5094c9e527.png",
       "sha256": "BB3374D09C8C714D9E19A73BE98E259A078F43B58927D8C6CFAA11C51FC9B80A",
       "operation": "built_in_imagegen_dual_split_trail_edit_then_copy_without_additional_pixel_edits"
     },
     {
-      "path": "mother/industrial-artillery-crew-mother-v05-perspective-corrected.png",
+      "removedPath": "mother/industrial-artillery-crew-mother-v05-perspective-corrected.png",
       "sourcePath": "C:/Users/allan/.codex/generated_images/01a06b7d-ab0f-7b81-ba4f-c70e4b6aa304/exec-a2ec972b-c586-4b41-a97a-cf0e7e564cd8.png",
       "sha256": "B81BEB6EA3A2E3A133BB1A4CA65B9422129389A6BDB5DC0EBF554A5DCBA85719",
       "operation": "built_in_imagegen_perspective_corrected_split_trail_edit_then_copy_without_additional_pixel_edits"
     },
     {
-      "path": "mother/industrial-artillery-crew-mother-v06-zis2-rear-three-quarter.png",
+      "removedPath": "mother/industrial-artillery-crew-mother-v06-zis2-rear-three-quarter.png",
       "sourcePath": "C:/Users/allan/.codex/generated_images/01a06b7d-ab0f-7b81-ba4f-c70e4b6aa304/exec-67f8dd53-4c98-4d38-bdb8-b3be605d35b0.png",
       "sha256": "DAC280A3F2783DA1DA98A3F71443009CC6D402835301648C428DFD01F802205D",
       "operation": "built_in_imagegen_fresh_zis2_informed_recomposition_then_copy_without_additional_pixel_edits"
     },
     {
-      "path": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
+      "removedPath": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png",
       "sourcePath": "C:/Users/allan/.codex/generated_images/01a06b7d-ab0f-7b81-ba4f-c70e4b6aa304/exec-e9076073-22cb-4347-8fe5-2ec850aaf787.png",
       "sha256": "E6AF17893F5D67BFC90DF5FF1CC014AD03E425B44475D11206D2B9F23AAD0DC4",
       "operation": "built_in_imagegen_right_facing_nearside_recomposition_then_copy_without_additional_pixel_edits"

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-05",
+  "task": "industrial_artillery_crew",
+  "authorization": "User explicitly requested final cleanup of task-produced rejected files before Git publication.",
+  "movedFromActiveArchiveFileCount": 166,
+  "movedFromActiveArchiveBytes": 139533352,
+  "recoverability": "The files were moved to the Git-ignored tools/.trash-industrial-artillery-20260905/ directory and can be restored locally; they are not part of the Git publication. Rejected prompts, provider JSON/task IDs, hashes, review reasons and accepted rebuild inputs remain in the active archive.",
+  "retainedRebuildChain": [
+    "mother/industrial-artillery-crew-mother-v08-engineering-camera.png",
+    "prompts/",
+    "animations-v08-doubao-20260904/videos/industrial-artillery-crew-idle-doubao-v02-no-fire.mp4",
+    "animations-v08-doubao-20260904/videos/industrial-artillery-crew-running-doubao-v01.mp4",
+    "animations-v08-doubao-20260904/videos/industrial-artillery-crew-attacking-doubao-v01.mp4",
+    "animations-v08-doubao-20260904/videos/industrial-artillery-crew-dying-doubao-v01.mp4",
+    "animations-v08-doubao-20260904/source-sheets/",
+    "animations-v08-doubao-20260904/final/",
+    "animations-v08-doubao-20260904/previews/*-transparent-runtime-clock.gif",
+    "animations-v08-doubao-20260904/sprite-validation-report.json"
+  ],
+  "movedFromActiveArchive": {
+    "supersededMotherBinaries": {
+      "reason": "v01-v07 were rejected or superseded and none is a direct pixel ancestor of accepted v08; prompts, provenance and rejection history remain.",
+      "fileCount": 7,
+      "bytes": 13686831,
+      "files": [
+        { "path": "mother/industrial-artillery-crew-mother-v01.png", "bytes": 2066156 },
+        { "path": "mother/industrial-artillery-crew-mother-v02-grounded-crew.png", "bytes": 2039338 },
+        { "path": "mother/industrial-artillery-crew-mother-v03-connected-trail.png", "bytes": 1683585 },
+        { "path": "mother/industrial-artillery-crew-mother-v04-dual-stabilizers.png", "bytes": 2024360 },
+        { "path": "mother/industrial-artillery-crew-mother-v05-perspective-corrected.png", "bytes": 2004185 },
+        { "path": "mother/industrial-artillery-crew-mother-v06-zis2-rear-three-quarter.png", "bytes": 1916908 },
+        { "path": "mother/industrial-artillery-crew-mother-v07-right-facing-nearside.png", "bytes": 1952299 }
+      ]
+    },
+    "rejectedIdleBinary": {
+      "reason": "Idle v01 fired unexpectedly; its prompt, provider JSON, task identity, hash and rejection reason remain.",
+      "fileCount": 1,
+      "bytes": 527397,
+      "files": [
+        { "path": "animations-v08-doubao-20260904/videos/industrial-artillery-crew-idle-doubao-v01.mp4", "bytes": 527397 }
+      ]
+    },
+    "regenerableSourceReviewPreviews": {
+      "reason": "The ten full-source GIF/contact previews and preview-report are reproducible from retained MP4s; final transparent runtime-clock GIFs and validation reports remain.",
+      "fileCount": 11,
+      "bytes": 60429757,
+      "files": [
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-idle-doubao-v01.gif", "bytes": 10949921 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-idle-doubao-v01-contact.png", "bytes": 1192245 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-idle-doubao-v02-no-fire.gif", "bytes": 10842660 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-idle-doubao-v02-no-fire-contact.png", "bytes": 1164936 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-running-doubao-v01.gif", "bytes": 10434881 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-running-doubao-v01-contact.png", "bytes": 1220619 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-attacking-doubao-v01.gif", "bytes": 11229595 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-attacking-doubao-v01-contact.png", "bytes": 1314534 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-dying-doubao-v01.gif", "bytes": 10857783 },
+        { "path": "animations-v08-doubao-20260904/previews/industrial-artillery-crew-dying-doubao-v01-contact.png", "bytes": 1220682 },
+        { "path": "animations-v08-doubao-20260904/previews/preview-report.json", "bytes": 1901 }
+      ]
+    },
+    "regenerableCaches": {
+      "reason": "BiRefNet frame cache and RIFE preview cache are reproducible. The only projectile source frame was promoted byte-identically to source-sheets/shell-source-frame-0028.png before deletion.",
+      "path": "animations-v08-doubao-20260904/cache/",
+      "fileCount": 146,
+      "bytes": 64873009
+    },
+    "pythonBytecode": {
+      "reason": "Generated Python bytecode is not a source artifact.",
+      "path": "animations-v08-doubao-20260904/__pycache__/",
+      "fileCount": 1,
+      "bytes": 16358
+    }
+  }
+}

@@ -229,7 +229,7 @@ def main() -> None:
         published.append(destination)
 
     # The approved death source includes one isolated, right-facing 57 mm shell.
-    projectile_source = TASK_DIR / "cache/birefnet/industrial-artillery-crew-dying-doubao-v01-0028.png"
+    projectile_source = TASK_DIR / "source-sheets/shell-source-frame-0028.png"
     source_image = Image.open(projectile_source).convert("RGBA")
     source_crop = [350, 500, 527, 565]
     shell = centered_thumbnail(source_image.crop(tuple(source_crop)), (64, 64), (54, 24))

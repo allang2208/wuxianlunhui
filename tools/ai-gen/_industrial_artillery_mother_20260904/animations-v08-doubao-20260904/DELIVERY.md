@@ -1,14 +1,14 @@
 # 仓鼠近代炮兵组 v08 豆包源片交付记录
 
-状态：母图 v08 已被用户选为动作身份源；待机、跑动、攻击、死亡四段豆包源片均已生成、通过助手源片门禁，并由用户以“可用，按照动画标准工作量继续”确认进入正式后处理。待机 v01 保留为失败证据；透明成品已在后续明确授权下接入运行时，等待用户实机验收。
+状态：母图 v08 已被用户选为动作身份源；待机、跑动、攻击、死亡四段豆包源片均已生成、通过助手源片门禁，并由用户以“可用，按照动画标准工作量继续”确认进入正式后处理。待机 v01 的提示词、供应方 JSON、任务信息、判退原因和清理记录保留，失败视频二进制及重复预览已按最终清理授权移入Git忽略回收区；透明成品已在后续明确授权下接入运行时，等待用户实机验收。
 
 ## 当前四段候选
 
-- 待机 v02：`videos/industrial-artillery-crew-idle-doubao-v02-no-fire.mp4`；GIF `previews/industrial-artillery-crew-idle-doubao-v02-no-fire.gif`；SHA-256 `11A9DD1EA5D650FDB534A790ED966AEB3712B4F2D7D50126B7E4F1DB7AE2059D`。
-- 跑动 v01：`videos/industrial-artillery-crew-running-doubao-v01.mp4`；GIF `previews/industrial-artillery-crew-running-doubao-v01.gif`；SHA-256 `6A24919EA4DFB895E3313EF5F8AB96E8D51164EF6B982DA9BE4C71DC07896E66`。
-- 攻击 v01：`videos/industrial-artillery-crew-attacking-doubao-v01.mp4`；GIF `previews/industrial-artillery-crew-attacking-doubao-v01.gif`；SHA-256 `6E13B40E76F96869D4324288737D50B52220230ADE8D778F0B8BEADDFB42C7EC`。
-- 死亡 v01：`videos/industrial-artillery-crew-dying-doubao-v01.mp4`；GIF `previews/industrial-artillery-crew-dying-doubao-v01.gif`；SHA-256 `62077A8FED93C31169EC52C941323717EC75E6784C42CDDEFDDDFD3605C2276E`。
-- 四段均为1280×720、24fps、121帧、约5.042秒；每段均有覆盖整段、无裁时和无变速的24点接触表及来源JSON。
+- 待机 v02：`videos/industrial-artillery-crew-idle-doubao-v02-no-fire.mp4`；运行时钟GIF `previews/idle-transparent-runtime-clock.gif`；SHA-256 `11A9DD1EA5D650FDB534A790ED966AEB3712B4F2D7D50126B7E4F1DB7AE2059D`。
+- 跑动 v01：`videos/industrial-artillery-crew-running-doubao-v01.mp4`；运行时钟GIF `previews/run-transparent-runtime-clock.gif`；SHA-256 `6A24919EA4DFB895E3313EF5F8AB96E8D51164EF6B982DA9BE4C71DC07896E66`。
+- 攻击 v01：`videos/industrial-artillery-crew-attacking-doubao-v01.mp4`；运行时钟GIF `previews/attack-transparent-runtime-clock.gif`；SHA-256 `6E13B40E76F96869D4324288737D50B52220230ADE8D778F0B8BEADDFB42C7EC`。
+- 死亡 v01：`videos/industrial-artillery-crew-dying-doubao-v01.mp4`；运行时钟GIF `previews/die-transparent-runtime-clock.gif`；SHA-256 `62077A8FED93C31169EC52C941323717EC75E6784C42CDDEFDDDFD3605C2276E`。
+- 四段均为1280×720、24fps、121帧、约5.042秒；来源JSON、正式透明源表、运行时钟GIF和离线报告保留。源视频整段GIF与24点接触表已在完成正式透明成品后作为可再生重复预览删除。
 
 ## 四段源片门禁结论
 
@@ -30,7 +30,7 @@
 ## 淘汰待机候选 v01
 
 - `videos/industrial-artillery-crew-idle-doubao-v01.mp4` 约2.2–2.6秒出现炮口火焰，违反“不射击”的待机语义。
-- v01 的MP4、整段GIF、接触表与来源JSON完整保留，不被v02覆盖。
+- v01 的提示词、来源JSON、任务ID、SHA与判退理由保留；MP4、整段GIF和接触表已移出活动归档，详见`../cleanup-manifest.json`。
 
 ## 生成边界
 

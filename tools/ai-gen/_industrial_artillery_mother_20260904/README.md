@@ -12,14 +12,14 @@
 ## 当前文件
 
 - 当前候选：`mother/industrial-artillery-crew-mother-v08-engineering-camera.png`
-- 生成首稿：`mother/industrial-artillery-crew-mother-v01.png`
-- 构图/角色参考祖先：`mother/industrial-artillery-crew-mother-v05-perspective-corrected.png`
+- 历史母图 v01–v07：二进制废案已移出活动目录到Git忽略回收区，提示词、来源元数据与逐版判退原因保留在`task-index.json`和`cleanup-manifest.json`
 - 八版母图完整提示词：`prompts/`
 - 联网研究与使用边界：`web-research-wwii-antitank-20260904.md`
 - 豆包动作批次、当前预览与失败记录：`animations-v08-doubao-20260904/DELIVERY.md`
 - 透明精灵图、时钟、预算与离线检查：`animations-v08-doubao-20260904/SPRITES-DELIVERY.md`
 - 运行时接入参数、注册链与验证边界：`animations-v08-doubao-20260904/RUNTIME-DELIVERY.md`
 - 唯一状态与来源索引：`task-index.json`
+- 最终归档清理记录：`cleanup-manifest.json`
 
 v01 的时代与器械方案成立，但两人踩在炮架纵梁上；v02 修正人物脚点后误把尾架变为脱离主体的箱体；v03 删除孤立箱体并恢复连续炮架，却仍只有一条稳定架；v04 补齐两条稳定架，但三维关系不统一；v05 继续局部修补后仍未满足视觉要求。v06 根据二战反坦克炮资料从头重构了器械，却错误采用炮尾左后三分之四展示视角；v07 虽统一了右向轴，镜头仍偏高并沿炮架纵深展开。v08 不再使用v07作为图像输入，直接以获准投石组、野战炮组和榴弹炮组母图作为整组镜头真源：近轮侧面占主导、远轮紧贴其后、轮轴纵深短、人物同尺度同脚线、双驻锄以浅V近重叠投影向左延伸，作为当前候选。
 
