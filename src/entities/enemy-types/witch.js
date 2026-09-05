@@ -84,6 +84,7 @@ export class Witch extends Enemy {
         // 伴生煮锅：首次 update 生成（此时 entities/墙体系统均已就绪）
         if (!this._cauldronSpawned) {
             this._cauldronSpawned = true;
+            if (this._invasionRecord) this._invasionRecord.companionSpawned = true;
             this._spawnCompanionCauldron();
         }
 
@@ -164,6 +165,7 @@ export class Witch extends Enemy {
     _spawnCompanionCauldron() {
         const cauldronCfg = enemyConfigData.cauldron || {};
         const created = summonMonster(this, {
+            type: 'cauldron',
             factory: this._createCauldron,
             count: 1,
             mode: 'radial',

@@ -8,6 +8,7 @@ import { SoundManager } from '../../ui/sound-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { summonMonster } from './_shared/summon-helper.js';
 import enemyConfigData from '../../../data/enemy-config.json';
+import { canInvasionSummon } from '../../world/invasion-summon-budget.js';
 
 /**
  * 僵尸巫师（精英）
@@ -198,7 +199,7 @@ export class ZombieWizard extends Enemy {
         }
 
         // 尝试召唤
-        if (this._summonCooldown <= 0 && this.target && this.target.active) {
+        if (this._summonCooldown <= 0 && this.target && this.target.active && canInvasionSummon(this, 'zombieDog')) {
             this._summonZombieDogs(entities);
         }
 
@@ -339,6 +340,7 @@ export class ZombieWizard extends Enemy {
 
         if (typeof this._createZombieDog !== 'function') return;
         summonMonster(this, {
+            type: 'zombieDog',
             factory: this._createZombieDog,
             count: 3,
             mode: 'sector',

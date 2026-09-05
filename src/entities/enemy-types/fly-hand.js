@@ -247,6 +247,7 @@ export class FlyHand extends Enemy {
         const count = summon.count ?? 3;
         const spread = summon.spreadRadius ?? 50;
         summonMonster(this, {
+            type: 'flySwarm',
             factory: (x, y) => new FlySwarm(x, y, { showWeapon: false }),
             count,
             mode: 'scatter',

@@ -1,5 +1,16 @@
 {
  "blackWolf": {
+  "entityClass": "BlackWolf",
+  "invasion": {
+   "series": "wolf_pack",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "melee",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "blackWolf",
   "name": "黑狼",
   "hp": 160,
@@ -71,6 +82,17 @@
   "height": 68.4
  },
  "brownSnake": {
+  "entityClass": "BrownSnakeEnemy",
+  "invasion": {
+   "series": "serpent_brood",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "poison",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "brownSnake",
   "name": "棕蛇",
   "hp": 135,
@@ -214,6 +236,17 @@
   }
  },
  "blackKingCobra": {
+  "entityClass": "BlackKingCobraEnemy",
+  "invasion": {
+   "series": "serpent_brood",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "poison",
+   "threatScale": 1.2,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "blackKingCobra",
   "name": "黑色眼镜蛇王",
   "hp": 720,
@@ -380,6 +413,17 @@
   }
  },
  "brownBear": {
+  "entityClass": "BrownBearEnemy",
+  "invasion": {
+   "series": "bear_clan",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "shield",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "brownBear",
   "name": "棕熊",
   "hp": 360,
@@ -509,6 +553,17 @@
   }
  },
  "evilTreant": {
+  "entityClass": "EvilTreantEnemy",
+  "invasion": {
+   "series": "blighted_grove",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "melee",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "evilTreant",
   "name": "邪恶树精",
   "hp": 300,
@@ -644,6 +699,17 @@
   }
  },
  "purpleBlightAncient": {
+  "entityClass": "PurpleBlightAncientEnemy",
+  "invasion": {
+   "series": "blighted_grove",
+   "mode": "defend",
+   "enabled": false,
+   "mechanics": "control",
+   "threatScale": 2,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": false
+  },
   "id": "purpleBlightAncient",
   "name": "紫蚀古树",
   "hp": 2100,
@@ -841,6 +907,17 @@
   }
  },
  "carnivorousPitcher": {
+  "entityClass": "CarnivorousPitcherEnemy",
+  "invasion": {
+   "series": "blighted_grove",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "poison",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "carnivorousPitcher",
   "name": "食人花",
   "hp": 735,
@@ -984,6 +1061,17 @@
   }
  },
  "medusa": {
+  "entityClass": "MedusaEnemy",
+  "invasion": {
+   "series": "serpent_brood",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.5,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "medusa",
   "name": "美杜莎",
   "hp": 1500,
@@ -1222,6 +1310,17 @@
   }
  },
  "blackBear": {
+  "entityClass": "BlackBearEnemy",
+  "invasion": {
+   "series": "bear_clan",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "transform",
+   "threatScale": 1.5,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "blackBear",
   "name": "熊德鲁伊",
   "hp": 1400,
@@ -1524,6 +1623,17 @@
   }
  },
  "redWolfKing": {
+  "entityClass": "RedWolfKing",
+  "invasion": {
+   "series": "wolf_pack",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "transform",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "redWolfKing",
   "name": "红狼",
   "hp": 750,
@@ -1632,6 +1742,17 @@
   }
  },
  "fatZombie": {
+  "entityClass": "FatZombie",
+  "invasion": {
+   "series": "horror_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "poison",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "fatZombie",
   "name": "胖子僵尸",
   "hp": 200,
@@ -1743,6 +1864,17 @@
   "attackType": "重击碾压"
  },
  "coffinWard": {
+  "entityClass": "CoffinWard",
+  "invasion": {
+   "series": "funerary_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "shield",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "coffinWard",
   "name": "棺板卫尸",
   "type": "普通",
@@ -2172,6 +2304,17 @@
   "attackType": "物理（单体拳砸）"
  },
  "shroudThrall": {
+  "entityClass": "ShroudThrall",
+  "invasion": {
+   "series": "funerary_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "melee",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "shroudThrall",
   "name": "裹尸囚徒",
   "hp": 170,
@@ -2613,6 +2756,17 @@
   ]
  },
  "ossuaryCaster": {
+  "entityClass": "OssuaryCaster",
+  "invasion": {
+   "series": "funerary_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "ranged",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "ossuaryCaster",
   "name": "掷骨殓徒",
   "hp": 120,
@@ -3023,6 +3177,17 @@
   ]
  },
  "knellAttendant": {
+  "entityClass": "KnellAttendant",
+  "invasion": {
+   "series": "funerary_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "knellAttendant",
   "name": "缚钟侍者",
   "hp": 190,
@@ -3445,6 +3610,17 @@
   ]
  },
  "minerZombie": {
+  "entityClass": "MinerZombie",
+  "invasion": {
+   "series": "mine_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "melee",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "minerZombie",
   "name": "矿工僵尸",
   "type": "普通",
@@ -3537,6 +3713,17 @@
   "attackType": "物理"
  },
  "lanternMinerZombie": {
+  "entityClass": "LanternMinerZombie",
+  "invasion": {
+   "series": "mine_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "ranged",
+   "threatScale": 1.2,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "lanternMinerZombie",
   "name": "矿工提灯僵尸",
   "type": "精英",
@@ -3666,6 +3853,17 @@
   "attackType": "物理"
  },
  "foremanZombie": {
+  "entityClass": "ForemanZombie",
+  "invasion": {
+   "series": "mine_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "foremanZombie",
   "name": "僵尸工头",
   "type": "领主",
@@ -3886,6 +4084,21 @@
   "height": 242.6
  },
  "mineCave": {
+  "entityClass": "MineCave",
+  "invasion": {
+   "series": "fixtures",
+   "mode": "dependency",
+   "enabled": false,
+   "mechanics": "summon",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "summons": [
+    "minerZombie",
+    "lanternMinerZombie"
+   ],
+   "assaultReady": false
+  },
   "id": "mineCave",
   "name": "矿洞",
   "type": "次级",
@@ -3952,6 +4165,21 @@
   "attackType": "物理"
  },
  "tombstone": {
+  "entityClass": "Tombstone",
+  "invasion": {
+   "series": "fixtures",
+   "mode": "dependency",
+   "enabled": false,
+   "mechanics": "summon",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "summons": [
+    "zombie",
+    "spitterZombie"
+   ],
+   "assaultReady": false
+  },
   "id": "tombstone",
   "name": "墓碑",
   "type": "普通",
@@ -4037,6 +4265,17 @@
   "attackType": "物理"
  },
  "oreSpider": {
+  "entityClass": "OreSpider",
+  "invasion": {
+   "series": "ore_spiders",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "ranged",
+   "threatScale": 1.5,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "oreSpider",
   "name": "矿石蜘蛛",
   "type": "精英",
@@ -4171,6 +4410,17 @@
   "attackType": "物理"
  },
  "zombieDog": {
+  "entityClass": "ZombieDogEnemy",
+  "invasion": {
+   "series": "undead_hounds",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "melee",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "zombieDog",
   "name": "Zombie Dog",
   "hp": 100,
@@ -4465,6 +4715,17 @@
   }
  },
  "zombie": {
+  "entityClass": "Zombie",
+  "invasion": {
+   "series": "horror_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "melee",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "zombie",
   "name": "僵尸",
   "type": "普通",
@@ -4600,6 +4861,17 @@
   "height": 143
  },
  "spitterZombie": {
+  "entityClass": "SpitterZombie",
+  "invasion": {
+   "series": "horror_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "ranged",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "spitterZombie",
   "name": "毒液僵尸",
   "type": "普通",
@@ -4731,6 +5003,26 @@
   "height": 146
  },
  "zombieWizard": {
+  "entityClass": "ZombieWizard",
+  "entityBindings": {
+   "_createZombieDog": "zombieDog"
+  },
+  "visualDependencies": [
+   "zombieDog"
+  ],
+  "invasion": {
+   "series": "horror_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "summon",
+   "threatScale": 1.5,
+   "minDay": 1,
+   "weight": 1,
+   "summons": [
+    "zombieDog"
+   ],
+   "assaultReady": true
+  },
   "id": "zombieWizard",
   "name": "僵尸巫师",
   "type": "精英",
@@ -4813,6 +5105,18 @@
   "height": 149
  },
  "amalgamZombie": {
+  "entityClass": "AmalgamZombie",
+  "dungeonAutoFactory": false,
+  "invasion": {
+   "series": "fixed_flesh",
+   "mode": "defend",
+   "enabled": false,
+   "mechanics": "control",
+   "threatScale": 2,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": false
+  },
   "id": "amalgamZombie",
   "name": "集合体",
   "type": "首领",
@@ -4960,6 +5264,17 @@
   "attackType": "集合体重击"
  },
  "armoredKnight": {
+  "entityClass": "ArmoredKnight",
+  "invasion": {
+   "series": "armored_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "shield",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "armoredKnight",
   "name": "铠甲骑士",
   "type": "精英",
@@ -5092,6 +5407,17 @@
   "hitParticleDistMul": 1.3
  },
  "shounao": {
+  "entityClass": "Shounao",
+  "invasion": {
+   "series": "horror_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.5,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "shounao",
   "name": "手脑",
   "type": "领主",
@@ -5204,6 +5530,17 @@
   "height": 162
  },
  "flySwarm": {
+  "entityClass": "FlySwarm",
+  "invasion": {
+   "series": "carrion_brood",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "flying",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "flySwarm",
   "name": "蝇群",
   "type": "普通",
@@ -5310,6 +5647,23 @@
   ]
  },
  "flyHand": {
+  "entityClass": "FlyHand",
+  "visualDependencies": [
+   "flySwarm"
+  ],
+  "invasion": {
+   "series": "carrion_brood",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "summon",
+   "threatScale": 1.5,
+   "minDay": 1,
+   "weight": 1,
+   "summons": [
+    "flySwarm"
+   ],
+   "assaultReady": true
+  },
   "id": "flyHand",
   "name": "蝇手",
   "type": "领主",
@@ -5433,6 +5787,17 @@
   ]
  },
  "mutant3": {
+  "entityClass": "Mutant3",
+  "invasion": {
+   "series": "horror_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "mutant3",
   "name": "怪物突变体-3",
   "type": "精英",
@@ -5520,6 +5885,17 @@
   "height": 162
  },
  "timeAgentAssault": {
+  "entityClass": "TimeAgentAssault",
+  "invasion": {
+   "series": "time_agents",
+   "mode": "event",
+   "enabled": false,
+   "mechanics": "ranged",
+   "threatScale": 2,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": false
+  },
   "id": "timeAgentAssault",
   "name": "时空特工(突击)-F",
   "type": "领主",
@@ -5669,6 +6045,17 @@
   }
  },
  "timeAgentShield": {
+  "entityClass": "TimeAgentShield",
+  "invasion": {
+   "series": "time_agents",
+   "mode": "event",
+   "enabled": false,
+   "mechanics": "shield",
+   "threatScale": 2,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": false
+  },
   "id": "timeAgentShield",
   "name": "时空特工(盾位)-F",
   "type": "领主",
@@ -5790,6 +6177,17 @@
   }
  },
  "poisonMaggot": {
+  "entityClass": "PoisonMaggot",
+  "invasion": {
+   "series": "carrion_brood",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "ranged",
+   "threatScale": 1.1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "poisonMaggot",
   "name": "毒蛆",
   "type": "精英",
@@ -5997,6 +6395,26 @@
   }
  },
  "witch": {
+  "entityClass": "Witch",
+  "entityBindings": {
+   "_createCauldron": "cauldron"
+  },
+  "visualDependencies": [
+   "cauldron"
+  ],
+  "invasion": {
+   "series": "witch_coven",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "summon",
+   "threatScale": 1.5,
+   "minDay": 1,
+   "weight": 1,
+   "summons": [
+    "cauldron"
+   ],
+   "assaultReady": true
+  },
   "id": "witch",
   "name": "巫婆",
   "type": "领主",
@@ -6168,6 +6586,17 @@
   "height": 201.6
  },
  "cauldron": {
+  "entityClass": "Cauldron",
+  "invasion": {
+   "series": "fixtures",
+   "mode": "dependency",
+   "enabled": false,
+   "mechanics": "ranged",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": false
+  },
   "id": "cauldron",
   "name": "煮锅",
   "type": "其他",
@@ -8207,6 +8636,17 @@
   ]
  },
  "swampVampireMosquito": {
+  "entityClass": "SwampVampireMosquitoEnemy",
+  "invasion": {
+   "series": "mosquito_swarm",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "flying",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "swampVampireMosquito",
   "name": "沼泽吸血大蚊",
   "hp": 110,
@@ -8351,6 +8791,17 @@
   }
  },
   "smallRotbogRhinocerosBeetle": {
+   "entityClass": "SmallRotbogRhinocerosBeetleEnemy",
+   "invasion": {
+    "series": "rotbog_beetles",
+    "mode": "assault",
+    "enabled": true,
+    "mechanics": "melee",
+    "threatScale": 1,
+    "minDay": 1,
+    "weight": 1,
+    "assaultReady": true
+   },
     "id": "smallRotbogRhinocerosBeetle",
     "name": "腐沼小独角仙",
     "hp": 70,
@@ -8472,6 +8923,17 @@
     }
   },
   "reedShadowSickleMantis": {
+   "entityClass": "ReedShadowSickleMantisEnemy",
+   "invasion": {
+    "series": "reed_mantis",
+    "mode": "assault",
+    "enabled": true,
+    "mechanics": "control",
+    "threatScale": 1,
+    "minDay": 1,
+    "weight": 1,
+    "assaultReady": true
+   },
     "id": "reedShadowSickleMantis",
     "name": "芦影镰螳",
     "hp": 780,
@@ -8641,6 +9103,23 @@
     }
   },
   "rotTideToadAncestor": {
+   "entityClass": "RotTideToadAncestorEnemy",
+   "visualDependencies": [
+    "smallRotbogRhinocerosBeetle"
+   ],
+   "invasion": {
+    "series": "rot_toad",
+    "mode": "defend",
+    "enabled": false,
+    "mechanics": "summon",
+    "threatScale": 2,
+    "minDay": 1,
+    "weight": 1,
+    "summons": [
+     "smallRotbogRhinocerosBeetle"
+    ],
+    "assaultReady": false
+   },
     "id": "rotTideToadAncestor",
     "name": "腐潮蟾祖·格罗玛",
     "hp": 5600,
@@ -8857,6 +9336,20 @@
     }
   },
   "rotbogRhinocerosBeetleKing": {
+   "entityClass": "RotbogRhinocerosBeetleKingEnemy",
+   "invasion": {
+    "series": "rotbog_beetles",
+    "mode": "assault",
+    "enabled": true,
+    "mechanics": "summon",
+    "threatScale": 1.5,
+    "minDay": 1,
+    "weight": 1,
+    "summons": [
+     "smallRotbogRhinocerosBeetle"
+    ],
+    "assaultReady": true
+   },
     "id": "rotbogRhinocerosBeetleKing",
     "name": "腐沼独角仙王",
     "hp": 1900,
@@ -10686,6 +11179,17 @@
   }
  },
  "werewolfKing": {
+  "entityClass": "WerewolfKingEnemy",
+  "invasion": {
+   "series": "wolf_pack",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "werewolfKing",
   "name": "狼人王",
   "hp": 1700,
@@ -10902,6 +11406,17 @@
   }
  },
  "bombZombie": {
+  "entityClass": "BombZombie",
+  "invasion": {
+   "series": "mine_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "ranged",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "bombZombie",
   "name": "炸弹僵尸",
   "type": "精英",
@@ -11034,6 +11549,17 @@
   "attackType": "物理"
  },
  "supportBeamBrute": {
+  "entityClass": "SupportBeamBrute",
+  "invasion": {
+   "series": "mine_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "shield",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "supportBeamBrute",
   "name": "支护梁巨尸",
   "type": "精英",
@@ -11249,6 +11775,17 @@
   "attackType": "物理"
  },
  "coreDrillLarva": {
+  "entityClass": "CoreDrillLarva",
+  "invasion": {
+   "series": "core_burrow",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "melee",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "coreDrillLarva",
   "name": "岩芯幼钻虫",
   "type": "普通",
@@ -11409,6 +11946,17 @@
   "attackType": "物理"
  },
  "oreShardling": {
+  "entityClass": "OreShardling",
+  "invasion": {
+   "series": "mineral_fusion",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "shield",
+   "threatScale": 1,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "oreShardling",
   "name": "碎矿石怪",
   "type": "普通",
@@ -11568,6 +12116,17 @@
   "attackType": "物理"
  },
  "coreDrillWorm": {
+  "entityClass": "CoreDrillWorm",
+  "invasion": {
+   "series": "core_burrow",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.3,
+   "minDay": 1,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "coreDrillWorm",
   "name": "岩芯钻虫",
   "type": "精英",
@@ -11758,6 +12317,17 @@
   "attackType": "物理"
  },
  "deepVeinMother": {
+  "entityClass": "DeepVeinMother",
+  "invasion": {
+   "series": "mineral_fusion",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 2,
+   "minDay": 25,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "deepVeinMother",
   "name": "深脉之母",
   "type": "首领",
@@ -12006,6 +12576,17 @@
   "attackType": "矿足范围重踏、锁定落点三连喷矿、矿脉范围震荡与泄压易伤"
  },
  "brokenCableGaoler": {
+  "entityClass": "BrokenCableGaoler",
+  "invasion": {
+   "series": "mine_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.5,
+   "minDay": 25,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "brokenCableGaoler",
   "name": "断索狱监",
   "type": "领主",
@@ -12222,6 +12803,17 @@
   "attackType": "断链扇形AOE、单体投钩拉回与囚笼范围镇压"
  },
  "blackLungLampKeeper": {
+  "entityClass": "BlackLungLampKeeper",
+  "invasion": {
+   "series": "mine_dead",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "poison",
+   "threatScale": 1.5,
+   "minDay": 25,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "blackLungLampKeeper",
   "name": "黑肺提灯长",
   "type": "领主",
@@ -12438,6 +13030,17 @@
   "attackType": "正面矿镐镇压、黑肺扇区咳雾与提灯环形过载"
  },
  "sealedShaftRockWraith": {
+  "entityClass": "SealedShaftRockWraith",
+  "invasion": {
+   "series": "mineral_fusion",
+   "mode": "assault",
+   "enabled": true,
+   "mechanics": "control",
+   "threatScale": 1.5,
+   "minDay": 25,
+   "weight": 1,
+   "assaultReady": true
+  },
   "id": "sealedShaftRockWraith",
   "name": "封井岩魇",
   "type": "领主",

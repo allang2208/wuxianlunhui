@@ -17,6 +17,7 @@ import { ReedMantisSweepEffect } from '../effects/reed-mantis-sweep-effect.js';
 import { MedusaPetrifyingGazeFx } from '../effects/medusa-petrifying-gaze-fx.js';
 import { VineEntangleEffect } from '../effects/vine-entangle-effect.js';
 import { DamagePipeline } from '../combat/damage-pipeline.js';
+import { canInvasionSummon, invasionSummonSlotsLeft, inheritInvasionSummon } from '../world/invasion-summon-budget.js';
 import { isFriendlyFire } from './damageable-entity.js';
 import { PartySystem } from '../systems/party-system.js';
 import { GroundEllipse, GroundSector } from '../physics/skill-shapes.js';
@@ -5427,6 +5428,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
 
     _canStartSummon(target) {
         if (!this._isReadyForRotbogSkill() || !this._isRotbogTarget(target)) return false;
+        if (!canInvasionSummon(this, 'smallRotbogRhinocerosBeetle')) return false;
         if (this._summons.size >= Math.max(0, Number(this._summonCfg.aliveCap) || 4)) return false;
         if (!this._ensureBroodVisuals()) return false;
         const range = Math.max(0, Number(this._summonCfg.triggerRange) || 900);
@@ -5520,6 +5522,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         const cap = Math.max(0, Number(this._summonCfg.aliveCap) || 4);
         const count = Math.min(
             Math.max(0, Math.floor(Number(this._summonCfg.count) || 2)),
+            invasionSummonSlotsLeft(this),
             Math.max(0, cap - this._summons.size)
         );
         const radius = Math.max(4, Number(enemyConfigData.smallRotbogRhinocerosBeetle?.collisionRadius) || 20);
@@ -5533,6 +5536,11 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
             const summon = createSmallRotbogRhinocerosBeetle(safe.x, safe.y);
             summon._summoned = true;
             summon._rotbogSummoner = this;
+            if (!inheritInvasionSummon(this, summon, 'smallRotbogRhinocerosBeetle')) {
+                summon.active = false;
+                summon._destroyPhaserSprite?.();
+                continue;
+            }
             summon.target = this.target;
             this._summons.add(summon);
             registry.set(

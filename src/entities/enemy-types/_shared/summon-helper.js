@@ -1,5 +1,6 @@
 import { WallSystem } from '../../../world/wall-system.js';
 import { SpawnPlacement } from '../../../world/spawn-placement.js';
+import { canInvasionSummon, invasionSummonSlotsLeft, inheritInvasionSummon } from '../../../world/invasion-summon-budget.js';
 
 /**
  * 怪物召唤统一接口（ROADMAP：各怪物类内重复召唤逻辑收口）
@@ -133,6 +134,7 @@ function findSpawnPosition(spawner, opts, entities) {
  * @param {object} spawner 召唤者实体
  * @param {object} opts
  * @param {function} opts.factory (x, y) => entity，必须
+ * @param {string} [opts.type] 召唤物类型；入侵账本用它在创建前校验白名单
  * @param {number} [opts.count=1] 召唤数量
  * @param {string} [opts.mode='radial'] 落点模式
  * @param {number} [opts.radius=15] 召唤物 footprint 半径
@@ -158,8 +160,9 @@ export function summonMonster(spawner, opts = {}) {
     if (!entities) return [];
 
     const scene = getScene();
-    const count = opts.count ?? 1;
     const tag = opts.tag || 'summon';
+    if (!canInvasionSummon(spawner, opts.type)) return [];
+    const count = Math.min(opts.count ?? 1, invasionSummonSlotsLeft(spawner));
     const playFx = opts.playFx !== false;
     const setAnchor = opts.setAnchor === true;
     const statusImmune = opts.statusImmune === true;
@@ -173,6 +176,19 @@ export function summonMonster(spawner, opts = {}) {
 
         const entity = factory(pos.x, pos.y);
         if (!entity) continue;
+
+        // 仅矿洞天气的召唤链需要共享名额；其他召唤者保持原有行为。
+        if (spawner?._mineWeather && !window.World126WeatherSystem?.admitSummon?.(spawner, entity)) {
+            entity._destroyCustomEffects?.(); entity._destroyPhaserSprite?.();
+            entity.active = false;
+            continue;
+        }
+
+        if (!inheritInvasionSummon(spawner, entity, opts.type || entity._enemyTypeKey || entity.config?.id)) {
+            entity._destroyCustomEffects?.(); entity._destroyPhaserSprite?.();
+            entity.active = false;
+            continue;
+        }
 
         // 防卡墙：沿召唤者→落点射线解析
         if (!pos.buildingExit && WallSystem && typeof WallSystem.resolve === 'function') {
