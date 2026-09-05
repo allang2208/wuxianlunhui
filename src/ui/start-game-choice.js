@@ -19,7 +19,14 @@ export const StartGameChoice = {
         this._onNewGame = onNewGame;
         if (!this._overlay || !this._panel || !this._startButton || !this._newGameButton) return;
 
-        this._startButton.addEventListener('click', () => this.open());
+        this._startButton.addEventListener('click', () => {
+            const loadButton = document.getElementById('loadGameChoiceBtn');
+            if (!loadButton || loadButton.disabled) {
+                this._startNewGame({ fromMainMenu: true });
+                return;
+            }
+            this.open();
+        });
         this._backButton?.addEventListener('click', () => this.close());
         this._overlay.addEventListener('click', (event) => {
             if (event.target === this._overlay) this.close();
@@ -50,17 +57,27 @@ export const StartGameChoice = {
         if (restoreFocus) this._startButton?.focus({ preventScroll: true });
     },
 
-    _startNewGame() {
-        if (!this._open || this._newGameButton?.disabled) return;
+    _startNewGame({ fromMainMenu = false } = {}) {
+        if ((!this._open && !fromMainMenu) || this._newGameButton?.disabled) return;
         this._newGameButton.disabled = true;
         this._newGameButton.setAttribute('aria-busy', 'true');
         this._newGameButton.textContent = '正在建立新轮回…';
-        this.close({ restoreFocus: false });
+        if (this._open) this.close({ restoreFocus: false });
+        if (fromMainMenu) {
+            this._startButton.disabled = true;
+            this._startButton.setAttribute('aria-busy', 'true');
+            this._startButton.textContent = '正在建立新轮回…';
+        }
         Promise.resolve(this._onNewGame?.()).catch((error) => {
             console.error('新游戏启动失败:', error);
             this._newGameButton.disabled = false;
             this._newGameButton.removeAttribute('aria-busy');
             this._newGameButton.textContent = '新游戏';
+            if (fromMainMenu) {
+                this._startButton.disabled = false;
+                this._startButton.removeAttribute('aria-busy');
+                this._startButton.textContent = '开始游戏';
+            }
         });
     },
 
