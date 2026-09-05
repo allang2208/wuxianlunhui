@@ -1,0 +1,434 @@
+{
+  "method": "raw fixed-crop RGB and foreground-union comparison; no frame transformed",
+  "video": "videos/03-white-silence-bell-hart-stride-h3-v01.mp4",
+  "decodedFrames": 124,
+  "fps": 24.0,
+  "search": {
+    "startFrames": [
+      0,
+      40
+    ],
+    "periodFrames": [
+      40,
+      80
+    ]
+  },
+  "topCandidates": [
+    {
+      "startFrame": 40,
+      "duplicateEndpoint": 93,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 18.0781,
+      "changedUnionRatioOver12": 0.491142,
+      "foregroundAreaRatio": 1.007531
+    },
+    {
+      "startFrame": 39,
+      "duplicateEndpoint": 92,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 18.4591,
+      "changedUnionRatioOver12": 0.509067,
+      "foregroundAreaRatio": 0.998857
+    },
+    {
+      "startFrame": 35,
+      "duplicateEndpoint": 88,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.0677,
+      "changedUnionRatioOver12": 0.516017,
+      "foregroundAreaRatio": 0.998298
+    },
+    {
+      "startFrame": 25,
+      "duplicateEndpoint": 78,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.3253,
+      "changedUnionRatioOver12": 0.518716,
+      "foregroundAreaRatio": 0.989368
+    },
+    {
+      "startFrame": 24,
+      "duplicateEndpoint": 77,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.4831,
+      "changedUnionRatioOver12": 0.520115,
+      "foregroundAreaRatio": 0.995683
+    },
+    {
+      "startFrame": 26,
+      "duplicateEndpoint": 79,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.6034,
+      "changedUnionRatioOver12": 0.514374,
+      "foregroundAreaRatio": 0.999698
+    },
+    {
+      "startFrame": 38,
+      "duplicateEndpoint": 91,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.6389,
+      "changedUnionRatioOver12": 0.536407,
+      "foregroundAreaRatio": 1.000127
+    },
+    {
+      "startFrame": 36,
+      "duplicateEndpoint": 89,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.7013,
+      "changedUnionRatioOver12": 0.534524,
+      "foregroundAreaRatio": 1.009249
+    },
+    {
+      "startFrame": 23,
+      "duplicateEndpoint": 76,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.7293,
+      "changedUnionRatioOver12": 0.523709,
+      "foregroundAreaRatio": 1.001013
+    },
+    {
+      "startFrame": 31,
+      "duplicateEndpoint": 84,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 20.9905,
+      "changedUnionRatioOver12": 0.528193,
+      "foregroundAreaRatio": 0.998309
+    },
+    {
+      "startFrame": 17,
+      "duplicateEndpoint": 71,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 21.066,
+      "changedUnionRatioOver12": 0.508949,
+      "foregroundAreaRatio": 0.997152
+    },
+    {
+      "startFrame": 30,
+      "duplicateEndpoint": 83,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 21.1906,
+      "changedUnionRatioOver12": 0.511575,
+      "foregroundAreaRatio": 1.001494
+    },
+    {
+      "startFrame": 37,
+      "duplicateEndpoint": 90,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 21.2392,
+      "changedUnionRatioOver12": 0.541177,
+      "foregroundAreaRatio": 1.001238
+    },
+    {
+      "startFrame": 27,
+      "duplicateEndpoint": 81,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 21.4371,
+      "changedUnionRatioOver12": 0.517636,
+      "foregroundAreaRatio": 0.99995
+    },
+    {
+      "startFrame": 34,
+      "duplicateEndpoint": 87,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 21.5804,
+      "changedUnionRatioOver12": 0.546694,
+      "foregroundAreaRatio": 0.998163
+    },
+    {
+      "startFrame": 27,
+      "duplicateEndpoint": 80,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 21.6457,
+      "changedUnionRatioOver12": 0.533388,
+      "foregroundAreaRatio": 0.996799
+    },
+    {
+      "startFrame": 32,
+      "duplicateEndpoint": 85,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 21.6801,
+      "changedUnionRatioOver12": 0.545268,
+      "foregroundAreaRatio": 1.00167
+    },
+    {
+      "startFrame": 28,
+      "duplicateEndpoint": 82,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 21.7414,
+      "changedUnionRatioOver12": 0.53526,
+      "foregroundAreaRatio": 1.002456
+    },
+    {
+      "startFrame": 28,
+      "duplicateEndpoint": 81,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 21.7644,
+      "changedUnionRatioOver12": 0.537349,
+      "foregroundAreaRatio": 1.00218
+    },
+    {
+      "startFrame": 19,
+      "duplicateEndpoint": 73,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 21.9743,
+      "changedUnionRatioOver12": 0.517689,
+      "foregroundAreaRatio": 1.000632
+    },
+    {
+      "startFrame": 21,
+      "duplicateEndpoint": 75,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 21.9772,
+      "changedUnionRatioOver12": 0.547128,
+      "foregroundAreaRatio": 0.998434
+    },
+    {
+      "startFrame": 33,
+      "duplicateEndpoint": 86,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 22.0241,
+      "changedUnionRatioOver12": 0.550853,
+      "foregroundAreaRatio": 0.997893
+    },
+    {
+      "startFrame": 29,
+      "duplicateEndpoint": 82,
+      "periodFrames": 53,
+      "periodMs": 2208,
+      "meanAbsRgbOnUnion": 22.0258,
+      "changedUnionRatioOver12": 0.540758,
+      "foregroundAreaRatio": 0.995198
+    },
+    {
+      "startFrame": 26,
+      "duplicateEndpoint": 80,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 22.1883,
+      "changedUnionRatioOver12": 0.536724,
+      "foregroundAreaRatio": 1.003903
+    },
+    {
+      "startFrame": 20,
+      "duplicateEndpoint": 74,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 22.2581,
+      "changedUnionRatioOver12": 0.547342,
+      "foregroundAreaRatio": 1.000329
+    },
+    {
+      "startFrame": 16,
+      "duplicateEndpoint": 70,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 22.3806,
+      "changedUnionRatioOver12": 0.540698,
+      "foregroundAreaRatio": 1.020757
+    },
+    {
+      "startFrame": 30,
+      "duplicateEndpoint": 84,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 22.4789,
+      "changedUnionRatioOver12": 0.543571,
+      "foregroundAreaRatio": 0.999527
+    },
+    {
+      "startFrame": 40,
+      "duplicateEndpoint": 94,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 22.7523,
+      "changedUnionRatioOver12": 0.565703,
+      "foregroundAreaRatio": 1.006051
+    },
+    {
+      "startFrame": 25,
+      "duplicateEndpoint": 79,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 22.8666,
+      "changedUnionRatioOver12": 0.55456,
+      "foregroundAreaRatio": 1.002551
+    },
+    {
+      "startFrame": 15,
+      "duplicateEndpoint": 70,
+      "periodFrames": 55,
+      "periodMs": 2292,
+      "meanAbsRgbOnUnion": 23.0239,
+      "changedUnionRatioOver12": 0.565661,
+      "foregroundAreaRatio": 1.010593
+    },
+    {
+      "startFrame": 18,
+      "duplicateEndpoint": 72,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 23.1408,
+      "changedUnionRatioOver12": 0.544374,
+      "foregroundAreaRatio": 0.987355
+    },
+    {
+      "startFrame": 13,
+      "duplicateEndpoint": 68,
+      "periodFrames": 55,
+      "periodMs": 2292,
+      "meanAbsRgbOnUnion": 23.1735,
+      "changedUnionRatioOver12": 0.567894,
+      "foregroundAreaRatio": 0.997425
+    },
+    {
+      "startFrame": 15,
+      "duplicateEndpoint": 69,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 23.3153,
+      "changedUnionRatioOver12": 0.539304,
+      "foregroundAreaRatio": 1.026063
+    },
+    {
+      "startFrame": 31,
+      "duplicateEndpoint": 85,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 23.3179,
+      "changedUnionRatioOver12": 0.542729,
+      "foregroundAreaRatio": 0.999453
+    },
+    {
+      "startFrame": 14,
+      "duplicateEndpoint": 69,
+      "periodFrames": 55,
+      "periodMs": 2292,
+      "meanAbsRgbOnUnion": 24.068,
+      "changedUnionRatioOver12": 0.573022,
+      "foregroundAreaRatio": 0.998097
+    },
+    {
+      "startFrame": 13,
+      "duplicateEndpoint": 67,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 24.3897,
+      "changedUnionRatioOver12": 0.564417,
+      "foregroundAreaRatio": 1.007627
+    },
+    {
+      "startFrame": 16,
+      "duplicateEndpoint": 71,
+      "periodFrames": 55,
+      "periodMs": 2292,
+      "meanAbsRgbOnUnion": 24.445,
+      "changedUnionRatioOver12": 0.590494,
+      "foregroundAreaRatio": 1.006107
+    },
+    {
+      "startFrame": 38,
+      "duplicateEndpoint": 92,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 24.6123,
+      "changedUnionRatioOver12": 0.582095,
+      "foregroundAreaRatio": 0.998376
+    },
+    {
+      "startFrame": 23,
+      "duplicateEndpoint": 77,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 24.8275,
+      "changedUnionRatioOver12": 0.5789,
+      "foregroundAreaRatio": 1.0
+    },
+    {
+      "startFrame": 37,
+      "duplicateEndpoint": 91,
+      "periodFrames": 54,
+      "periodMs": 2250,
+      "meanAbsRgbOnUnion": 24.8611,
+      "changedUnionRatioOver12": 0.572043,
+      "foregroundAreaRatio": 0.99578
+    }
+  ],
+  "namedPairs": [
+    {
+      "startFrame": 0,
+      "duplicateEndpoint": 64,
+      "periodFrames": 64,
+      "periodMs": 2667,
+      "meanAbsRgbOnUnion": 60.2068,
+      "changedUnionRatioOver12": 0.857537,
+      "foregroundAreaRatio": 0.996093
+    },
+    {
+      "startFrame": 0,
+      "duplicateEndpoint": 60,
+      "periodFrames": 60,
+      "periodMs": 2500,
+      "meanAbsRgbOnUnion": 45.0343,
+      "changedUnionRatioOver12": 0.771382,
+      "foregroundAreaRatio": 1.01013
+    },
+    {
+      "startFrame": 0,
+      "duplicateEndpoint": 59,
+      "periodFrames": 59,
+      "periodMs": 2458,
+      "meanAbsRgbOnUnion": 45.51,
+      "changedUnionRatioOver12": 0.77776,
+      "foregroundAreaRatio": 1.019055
+    },
+    {
+      "startFrame": 5,
+      "duplicateEndpoint": 64,
+      "periodFrames": 59,
+      "periodMs": 2458,
+      "meanAbsRgbOnUnion": 59.0696,
+      "changedUnionRatioOver12": 0.85358,
+      "foregroundAreaRatio": 0.993768
+    },
+    {
+      "startFrame": 27,
+      "duplicateEndpoint": 91,
+      "periodFrames": 64,
+      "periodMs": 2667,
+      "meanAbsRgbOnUnion": 71.7216,
+      "changedUnionRatioOver12": 0.902184,
+      "foregroundAreaRatio": 0.985397
+    },
+    {
+      "startFrame": 32,
+      "duplicateEndpoint": 96,
+      "periodFrames": 64,
+      "periodMs": 2667,
+      "meanAbsRgbOnUnion": 70.1881,
+      "changedUnionRatioOver12": 0.901161,
+      "foregroundAreaRatio": 0.991551
+    }
+  ]
+}

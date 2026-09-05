@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "white-silence-bell-hart-partial-rhythm-shift-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "rhythm_shift_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_white_silence_bell_hart_rhythm_shift_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/rhythm-shift-body/formal-final/rhythm-shift-body.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 109,
+      "endFrame": 108,
+      "footX": 128,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

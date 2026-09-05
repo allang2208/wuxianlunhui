@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "snow-sepulcher-carrier-partial-tower-drop-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "tower_drop_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_snow_sepulcher_carrier_tower_drop_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/snow-sepulcher-carrier/tower-drop-body/formal-final/tower-drop-body.png",
+      "frameWidth": 448,
+      "frameHeight": 256,
+      "frameCount": 123,
+      "endFrame": 122,
+      "footX": 224,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

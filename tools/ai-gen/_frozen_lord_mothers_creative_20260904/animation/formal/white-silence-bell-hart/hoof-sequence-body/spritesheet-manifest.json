@@ -1,0 +1,246 @@
+{
+  "asset": "white-silence-bell-hart",
+  "displayName": "白寂鸣钟鹿",
+  "action": "hoof_sequence_body",
+  "stage": "formal-sprite-asset-ready-not-runtime-integrated",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "budgetTier": "boss",
+  "facing": "screen-right low three-quarter",
+  "topologyGate": "exactly four complete load-bearing legs perform four separate low taps from screen-left to screen-right with no overlapping airborne intervals; the fixed camera, right-facing beaked skull, rigid branching antlers, hollow rib frame, one abdominal bell and exactly three pendants remain stable",
+  "rootMotion": "preserved from fixed raw-video source anchor x=429.0; no per-frame recentering",
+  "sourceVideo": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02.mp4",
+  "sourceVideoProvider": "minimax-h3-local",
+  "sourceProvenance": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02.mp4.json",
+  "sourceReference": "animation/references/03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+  "selectedSourceFrames": [
+    0,
+    4,
+    8,
+    10,
+    12,
+    16,
+    19,
+    21,
+    22,
+    30,
+    37,
+    42,
+    45,
+    48,
+    53,
+    57,
+    60,
+    71,
+    74,
+    78,
+    80,
+    84,
+    88,
+    92,
+    96,
+    100,
+    104,
+    106,
+    108
+  ],
+  "sourceWindow": [
+    0,
+    108
+  ],
+  "sourceWindowSemantics": "non-uniform audited full-frame sampling from source f0..f108; neutral gaps are compressed, no frame is spatially transformed",
+  "duplicateEndpoint": null,
+  "sourceVideoFps": 24,
+  "sourceWallClockMs": 4500,
+  "formalWallClockMs": 2333,
+  "temporalRetiming": {
+    "mode": "non-uniform-complete-source-frame-sampling-before-one-shot-rife",
+    "sourceWindowWallClockMs": 4500,
+    "formalWallClockMs": 2333,
+    "reason": "preserve all four natural low hoof arcs while restoring the designed eight-formal-frame impact cadence"
+  },
+  "excludedHead": [],
+  "excludedTail": [
+    109,
+    123
+  ],
+  "sourceSheet": "animation/formal/white-silence-bell-hart/hoof-sequence-body/source-sheets-pre-rife/hoof-sequence-body.png",
+  "finalSheet": "animation/formal/white-silence-bell-hart/hoof-sequence-body/formal-final/hoof-sequence-body.png",
+  "previewGif": "animation/formal/white-silence-bell-hart/hoof-sequence-body/previews/white-silence-bell-hart-hoof_sequence_body.gif",
+  "sourceContactSheet": "animation/formal/white-silence-bell-hart/hoof-sequence-body/previews/white-silence-bell-hart-hoof_sequence_body-source-contact.png",
+  "finalContactSheet": "animation/formal/white-silence-bell-hart/hoof-sequence-body/previews/white-silence-bell-hart-hoof_sequence_body-contact.png",
+  "processingReport": "animation/formal/white-silence-bell-hart/hoof-sequence-body/reports/hoof-sequence-body-rife.json",
+  "rifeReport": "animation/formal/white-silence-bell-hart/hoof-sequence-body/reports/hoof-sequence-body-rife.json",
+  "interpolation": {
+    "passes": 1,
+    "mode": "one-shot",
+    "wrap": false,
+    "sourceFrameCount": 29,
+    "outputFrameCount": 57,
+    "keyFrameIndexMapping": "outputIndex = sourceKeyIndex * 2"
+  },
+  "layout": {
+    "frameWidth": 256,
+    "frameHeight": 256,
+    "columns": 6,
+    "rows": 10,
+    "frameCount": 57,
+    "endFrame": 56,
+    "footX": 128,
+    "footY": 240,
+    "targetBodyHeight": 208,
+    "baseScale": 0.49406175771971494
+  },
+  "clock": {
+    "durationMs": 2333,
+    "frameRate": 24.4320617231033,
+    "repeat": 0,
+    "frameIndices": "0-based",
+    "phases": {
+      "hold_prepare": [
+        0,
+        7
+      ],
+      "hoof_1": [
+        8,
+        16
+      ],
+      "hoof_2": [
+        17,
+        24
+      ],
+      "hoof_3": [
+        25,
+        32
+      ],
+      "hoof_4": [
+        33,
+        40
+      ],
+      "planted_recoil": [
+        41,
+        46
+      ],
+      "recover": [
+        47,
+        56
+      ]
+    },
+    "events": {
+      "hoofContactFrames": [
+        16,
+        24,
+        32,
+        40
+      ],
+      "hoofContactConsumerFramesIfOneBased": [
+        17,
+        25,
+        33,
+        41
+      ],
+      "sourceHoofContactFrames": [
+        22,
+        45,
+        60,
+        80
+      ],
+      "contactIntervalsFrames": [
+        8,
+        8,
+        8
+      ],
+      "contactIntervalsMs": [
+        333,
+        333,
+        333
+      ]
+    },
+    "runtimeVfxContract": "body taps only; create one external 105-radius impact circle at each f16/f24/f32/f40 contact event for 1.00x physical damage, with a per-target maximum of two hits across the cast; circles, damage, cooldown and state transitions remain runtime work"
+  },
+  "atlas": {
+    "width": 1536,
+    "height": 2560,
+    "decodedRgbaBytes": 15728640,
+    "decodedRgbaMiB": 15.0,
+    "pngBytes": 2626740,
+    "bossTargetMiB": 128,
+    "bossHardStopMiB": 256,
+    "withinSingleAssetBossTarget": true
+  },
+  "gifTimingMs": [
+    40,
+    40,
+    40,
+    40,
+    40,
+    50,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    50,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    50,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    50,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    40,
+    50,
+    40,
+    40,
+    40,
+    40,
+    40
+  ],
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 239,
+    "alphaBottomMax": 240,
+    "nonzeroRgbInTransparentPixels": 0,
+    "originalKeyFramesPreservedAtEvenIndices": true
+  },
+  "blockedRuntimeWork": [
+    "hoof_sequence_four_105_radius_circles",
+    "hoof_sequence_physical_damage_1_00x",
+    "hoof_sequence_per_target_hit_cap_2",
+    "hoof_sequence_impact_vfx",
+    "hoof_sequence_cooldown_8s",
+    "runtime_state_machine"
+  ]
+}

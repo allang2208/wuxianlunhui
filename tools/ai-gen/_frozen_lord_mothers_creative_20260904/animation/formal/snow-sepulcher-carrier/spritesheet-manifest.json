@@ -8,8 +8,10 @@
   "budgetTier": "boss",
   "facing": "screen-right low three-quarter",
   "topologyGate": "six weight-bearing legs and fused back tower remain readable",
-  "rootMotion": "locked by lower-body anchor; no collider translation is baked into this sheet",
+  "rootMotion": "preserved from fixed raw-video source anchor x=317.0; no per-frame recentering",
   "sourceVideo": "animation/videos/01-snow-sepulcher-carrier-plow-windup-h3-v02.mp4",
+  "sourceVideoProvider": "minimax-h3-local",
+  "sourceProvenance": "animation/videos/01-snow-sepulcher-carrier-plow-windup-h3-v02.mp4.json",
   "sourceReference": "animation/action-references/01-snow-sepulcher-carrier-plow-windup-v02-1024x576.png",
   "selectedSourceFrames": [
     8,
@@ -64,8 +66,11 @@
     8,
     100
   ],
+  "sourceWindowSemantics": "inclusive [start, end]",
+  "duplicateEndpoint": null,
   "sourceVideoFps": 24,
   "sourceWallClockMs": 3833,
+  "formalWallClockMs": 3833,
   "excludedHead": [
     0,
     7
@@ -79,6 +84,7 @@
   "previewGif": "animation/formal/snow-sepulcher-carrier/previews/snow-sepulcher-carrier-plow_prepare.gif",
   "sourceContactSheet": "animation/formal/snow-sepulcher-carrier/previews/snow-sepulcher-carrier-plow_prepare-source-contact.png",
   "finalContactSheet": "animation/formal/snow-sepulcher-carrier/previews/snow-sepulcher-carrier-plow_prepare-contact.png",
+  "processingReport": "animation/formal/snow-sepulcher-carrier/reports/plow-prepare-rife.json",
   "rifeReport": "animation/formal/snow-sepulcher-carrier/reports/plow-prepare-rife.json",
   "interpolation": {
     "passes": 1,
@@ -97,8 +103,8 @@
     "endFrame": 92,
     "footX": 240,
     "footY": 240,
-    "targetBodyHeight": 224,
-    "baseScale": 0.7542087542087542
+    "targetBodyHeight": 222,
+    "baseScale": 0.7474747474747475
   },
   "clock": {
     "durationMs": 3833,
@@ -139,7 +145,7 @@
     "height": 3072,
     "decodedRgbaBytes": 47185920,
     "decodedRgbaMiB": 45.0,
-    "pngBytes": 9257696,
+    "pngBytes": 9132892,
     "bossTargetMiB": 128,
     "bossHardStopMiB": 256,
     "withinSingleAssetBossTarget": true

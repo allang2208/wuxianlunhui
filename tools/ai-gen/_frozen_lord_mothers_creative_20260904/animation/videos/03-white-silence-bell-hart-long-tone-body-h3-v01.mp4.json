@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-05T08:43:24.146316+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-long-tone-body-h3-v01.mp4",
+    "bytes": 459030,
+    "sha256": "684a4a536a8665bb0d837618e279d517750749f9e6b5103e256c805d7e8899c1"
+  },
+  "promptId": "299977a1-0dec-4d59-b911-d4efffe85370",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1646213968,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact white-silence bell hart performs one planted long-tone bell release toward screen-right, then recovers. This is a single deliberate resonance gesture, not a repeated toll.\n\nUse one locked 1024x576 tripod shot. The pale outer frame, four corner brackets and lower baseline belong to the background and remain perfectly motionless. Keep focal length, framing, creature scale and the right-facing low three-quarter body axis unchanged. All four hooves stay on their opening contacts; leg joints and shoulders may flex independently without sliding the creature.\n\n0.00-0.40 seconds: hold the supplied backward-bell brace with subtle living tension.\n0.40-1.30 seconds: load the rear legs and shoulders in sequence while the single abdominal bell draws slightly farther toward screen-left around its original top pivot. Keep exactly three pendants following the bell.\n1.30-1.70 seconds: release one powerful pendulum swing through the rib frame toward screen-right. The chest and neck transmit the weight naturally while the planted legs absorb it. Show one clear forward release peak.\n1.70-2.35 seconds: hold a short resonant body pose at the forward extreme. The bell remains attached and readable; do not create the sound attack itself.\n2.35-3.70 seconds: allow one small passive damped return that stays weaker than the release peak. Shoulders and separate leg joints unload naturally.\n3.70-5.17 seconds: settle into the exact supplied backward-bell stance at the final frame.\n\nPreserve exactly four load-bearing legs, right-facing beaked skull, unchanged rigid antlers, hollow rib frame, one bell and exactly three pendants. No camera movement or reframing, zoom compensation, root travel, hoof sliding, body turn, repeated attack, extra anatomy, detached bell, external VFX or cropping.",
+  "effectivePrompt": "The exact white-silence bell hart performs one planted long-tone bell release toward screen-right, then recovers. This is a single deliberate resonance gesture, not a repeated toll.\n\nUse one locked 1024x576 tripod shot. The pale outer frame, four corner brackets and lower baseline belong to the background and remain perfectly motionless. Keep focal length, framing, creature scale and the right-facing low three-quarter body axis unchanged. All four hooves stay on their opening contacts; leg joints and shoulders may flex independently without sliding the creature.\n\n0.00-0.40 seconds: hold the supplied backward-bell brace with subtle living tension.\n0.40-1.30 seconds: load the rear legs and shoulders in sequence while the single abdominal bell draws slightly farther toward screen-left around its original top pivot. Keep exactly three pendants following the bell.\n1.30-1.70 seconds: release one powerful pendulum swing through the rib frame toward screen-right. The chest and neck transmit the weight naturally while the planted legs absorb it. Show one clear forward release peak.\n1.70-2.35 seconds: hold a short resonant body pose at the forward extreme. The bell remains attached and readable; do not create the sound attack itself.\n2.35-3.70 seconds: allow one small passive damped return that stays weaker than the release peak. Shoulders and separate leg joints unload naturally.\n3.70-5.17 seconds: settle into the exact supplied backward-bell stance at the final frame.\n\nPreserve exactly four load-bearing legs, right-facing beaked skull, unchanged rigid antlers, hollow rib frame, one bell and exactly three pendants. No camera movement or reframing, zoom compensation, root travel, hoof sliding, body turn, repeated attack, extra anatomy, detached bell, external VFX or cropping, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact white-silence bell hart performs one planted long-tone bell release toward screen-right, then recovers. This is a single deliberate resonance gesture, not a repeated toll.\n\nUse one locked 1024x576 tripod shot. The pale outer frame, four corner brackets and lower baseline belong to the background and remain perfectly motionless. Keep focal length, framing, creature scale and the right-facing low three-quarter body axis unchanged. All four hooves stay on their opening contacts; leg joints and shoulders may flex independently without sliding the creature.\n\n0.00-0.40 seconds: hold the supplied backward-bell brace with subtle living tension.\n0.40-1.30 seconds: load the rear legs and shoulders in sequence while the single abdominal bell draws slightly farther toward screen-left around its original top pivot. Keep exactly three pendants following the bell.\n1.30-1.70 seconds: release one powerful pendulum swing through the rib frame toward screen-right. The chest and neck transmit the weight naturally while the planted legs absorb it. Show one clear forward release peak.\n1.70-2.35 seconds: hold a short resonant body pose at the forward extreme. The bell remains attached and readable; do not create the sound attack itself.\n2.35-3.70 seconds: allow one small passive damped return that stays weaker than the release peak. Shoulders and separate leg joints unload naturally.\n3.70-5.17 seconds: settle into the exact supplied backward-bell stance at the final frame.\n\nPreserve exactly four load-bearing legs, right-facing beaked skull, unchanged rigid antlers, hollow rib frame, one bell and exactly three pendants. No camera movement or reframing, zoom compensation, root travel, hoof sliding, body turn, repeated attack, extra anatomy, detached bell, external VFX or cropping, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b4016de60b055fcf25d46af861576ee4491edf38856626bdcd91e102edef2595",
+  "effectivePromptSha256": "7a7f9323d7e080dcd154b3a7597fc50978d67802a8f6d4dcfede4829638c073c",
+  "finalPromptSha256": "2d99f040c3249448a343bb962d877fbe031f50918c10af53ec7a88da84d76e2e",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\03-white-silence-bell-hart-long-tone-body-h3-v01.txt",
+      "bytes": 1797,
+      "sha256": "5e9170249317a80834696266b4aa3f8f99f6192b0cd83dd7c9843cb054df87dd"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\03-white-silence-bell-hart-long-tone-prepare-v01-1024x576.png",
+      "bytes": 442360,
+      "sha256": "7b0b0eeed9c3e654e2788cbd6033160f187fda7c4a59da42eb1d8720ec847cdd"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\03-white-silence-bell-hart-long-tone-prepare-v01-1024x576.png",
+      "bytes": 442360,
+      "sha256": "7b0b0eeed9c3e654e2788cbd6033160f187fda7c4a59da42eb1d8720ec847cdd"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-long-tone-body-h3-v01_contact.png",
+    "bytes": 376603,
+    "sha256": "c3c33230db7fd5a21a845069fe8cc241a5c08186d7e750d5ba667886a26579d4"
+  },
+  "elapsedSeconds": 458.856
+}

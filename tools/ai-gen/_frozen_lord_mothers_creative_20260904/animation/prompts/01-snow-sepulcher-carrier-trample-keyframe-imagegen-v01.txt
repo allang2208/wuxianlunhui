@@ -1,0 +1,8 @@
+Use case: precise-object-edit
+Asset type: 2D game boss animation keyframe for a later image-to-video action
+Input image: edit target and identity/camera reference — the approved 16:9 snow-sepulcher-carrier locomotion frame
+Primary request: change only the pose into the anticipation keyframe for one heavy close-range stomp. Lift the near-side front leg closest to the long armored head on screen-right; bend that leg clearly under the front chest so its complete shoulder root, knee, lower leg and broad stone foot remain readable above the common ground line. Keep the other five legs planted and load-bearing.
+Camera and direction: preserve exactly the same fixed slightly elevated, side-dominant low three-quarter camera. The long wedge-shaped armored head, chest-to-hip axis, knees and lifted foot continue to face screen-right. Do not yaw toward the viewer.
+Identity invariants: exactly six massive legs in three pairs; one and only one lifted near-side front leg; the other five planted. Preserve the fused ruined central tower, battlements, cairns, snow-covered mountain body, layered stone armor, cyan ice seams, scale, silhouette and PBR materials. The tower and snow mountain remain a rigid fused structure.
+Composition: same 16:9 white asset backdrop, same character size and visual root, entire tower and all feet inside a generous safe frame. Leave useful empty space below the lifted foot for the later stomp motion.
+Constraints: no impact yet, no ground crack, no snow burst, no shockwave, no debris, no attack rectangle, no second creature, no text, no watermark. Do not add, remove, merge or split legs. Do not move the tower, change its storey count, or turn the creature.

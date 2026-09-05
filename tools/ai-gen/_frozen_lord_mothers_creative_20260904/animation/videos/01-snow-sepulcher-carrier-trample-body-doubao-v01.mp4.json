@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\01-snow-sepulcher-carrier-trample-prepare-v01-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\01-snow-sepulcher-carrier-trample-body-doubao-v01.txt",
+  "promptChars": 717,
+  "promptSha256": "8e398ac073b4ba07e36447eefa6b31e4946a7a8bc1056f649ce9defa704589b8",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-05T04:00:30.150Z",
+  "sourceUrlScheme": "https"
+}

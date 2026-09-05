@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "white-silence-bell-hart-partial-long-tone-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "long_tone_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_white_silence_bell_hart_long_tone_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/long-tone-body/formal-final/long-tone-body.png",
+      "frameWidth": 320,
+      "frameHeight": 256,
+      "frameCount": 109,
+      "endFrame": 108,
+      "footX": 160,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

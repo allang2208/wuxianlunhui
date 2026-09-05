@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-05T06:33:37.451690+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\01-snow-sepulcher-carrier-tower-drop-body-h3-v08.mp4",
+    "bytes": 1007078,
+    "sha256": "927162d442156d0f7bad8bdcae7440696319d1e35bb6ae4b8de0059c1f19105d"
+  },
+  "promptId": "13628567-d5c3-4f20-b29e-29e445ed824b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 213477828,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact six-legged snow-sepulcher carrier in the supplied first frame performs one organic heavy tower-volley bracing action in place. The body animation prepares and supports three external falling-block events; the blocks and impacts are created later by the game.\n\nMaintain the locked slightly elevated, side-dominant three-quarter camera. The armored wedge head stays on screen-right, the rear stays on screen-left, and the full creature remains at the same screen scale.\n\n0.00-0.75 seconds: the creature senses the distant target and gathers its weight. Its rear leg pair bends first, the middle pair firms up, and the front pair spreads pressure through the toes. All six feet remain planted, but the joints articulate independently so the body feels alive and extremely heavy.\n\n0.75-1.65 seconds: a smooth weight wave travels from the rear legs through the shoulders. The front torso rises slightly, the head draws back a small amount, and the rigid fused tower gains a restrained upward anticipation without bending or changing shape.\n\n1.65-2.55 seconds: the creature settles into one powerful low brace. Front, middle and rear pairs reach the loaded pose a few frames apart. The head counters downward, the snow-covered shell follows with soft secondary inertia, and the tower remains a vertical rigid mass. This is the single clear peak of the action.\n\n2.55-3.45 seconds: hold the loaded firing stance with natural muscular tension and tiny non-repeating weight adjustments. This stable interval supports three separately timed runtime volleys without three identical whole-body crouches.\n\n3.45-5.17 seconds: release the pressure from front to rear, return smoothly to the supplied ready stance, and become fully settled at the exact final frame.\n\nPreserve exactly six individually readable load-bearing legs, the central ruined tower and battlements, cairns, layered snow-and-stone armor, cyan ice seams, proportions and silhouette. Keep the visual root and common ground line stable on a uniform white background. No camera motion, turn, walking displacement, repeated full-body brace, projectile, target marker, impact, dust burst or magical effect.",
+  "effectivePrompt": "The exact six-legged snow-sepulcher carrier in the supplied first frame performs one organic heavy tower-volley bracing action in place. The body animation prepares and supports three external falling-block events; the blocks and impacts are created later by the game.\n\nMaintain the locked slightly elevated, side-dominant three-quarter camera. The armored wedge head stays on screen-right, the rear stays on screen-left, and the full creature remains at the same screen scale.\n\n0.00-0.75 seconds: the creature senses the distant target and gathers its weight. Its rear leg pair bends first, the middle pair firms up, and the front pair spreads pressure through the toes. All six feet remain planted, but the joints articulate independently so the body feels alive and extremely heavy.\n\n0.75-1.65 seconds: a smooth weight wave travels from the rear legs through the shoulders. The front torso rises slightly, the head draws back a small amount, and the rigid fused tower gains a restrained upward anticipation without bending or changing shape.\n\n1.65-2.55 seconds: the creature settles into one powerful low brace. Front, middle and rear pairs reach the loaded pose a few frames apart. The head counters downward, the snow-covered shell follows with soft secondary inertia, and the tower remains a vertical rigid mass. This is the single clear peak of the action.\n\n2.55-3.45 seconds: hold the loaded firing stance with natural muscular tension and tiny non-repeating weight adjustments. This stable interval supports three separately timed runtime volleys without three identical whole-body crouches.\n\n3.45-5.17 seconds: release the pressure from front to rear, return smoothly to the supplied ready stance, and become fully settled at the exact final frame.\n\nPreserve exactly six individually readable load-bearing legs, the central ruined tower and battlements, cairns, layered snow-and-stone armor, cyan ice seams, proportions and silhouette. Keep the visual root and common ground line stable on a uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. No camera motion, turn, walking displacement, repeated full-body brace, projectile, target marker, impact, dust burst or magical effect.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact six-legged snow-sepulcher carrier in the supplied first frame performs one organic heavy tower-volley bracing action in place. The body animation prepares and supports three external falling-block events; the blocks and impacts are created later by the game.\n\nMaintain the locked slightly elevated, side-dominant three-quarter camera. The armored wedge head stays on screen-right, the rear stays on screen-left, and the full creature remains at the same screen scale.\n\n0.00-0.75 seconds: the creature senses the distant target and gathers its weight. Its rear leg pair bends first, the middle pair firms up, and the front pair spreads pressure through the toes. All six feet remain planted, but the joints articulate independently so the body feels alive and extremely heavy.\n\n0.75-1.65 seconds: a smooth weight wave travels from the rear legs through the shoulders. The front torso rises slightly, the head draws back a small amount, and the rigid fused tower gains a restrained upward anticipation without bending or changing shape.\n\n1.65-2.55 seconds: the creature settles into one powerful low brace. Front, middle and rear pairs reach the loaded pose a few frames apart. The head counters downward, the snow-covered shell follows with soft secondary inertia, and the tower remains a vertical rigid mass. This is the single clear peak of the action.\n\n2.55-3.45 seconds: hold the loaded firing stance with natural muscular tension and tiny non-repeating weight adjustments. This stable interval supports three separately timed runtime volleys without three identical whole-body crouches.\n\n3.45-5.17 seconds: release the pressure from front to rear, return smoothly to the supplied ready stance, and become fully settled at the exact final frame.\n\nPreserve exactly six individually readable load-bearing legs, the central ruined tower and battlements, cairns, layered snow-and-stone armor, cyan ice seams, proportions and silhouette. Keep the visual root and common ground line stable on a uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. No camera motion, turn, walking displacement, repeated full-body brace, projectile, target marker, impact, dust burst or magical effect. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "4186422b38a7be465aaba208509396846e60b46827083c52ab7579044808081f",
+  "effectivePromptSha256": "e590683738d07d9d95d6cf8279b54b19628a51d2e1ffef8cb6dd203c6868fe8b",
+  "finalPromptSha256": "d704c72ebee27e9e5d32fdc8a2951beae5efa20608a1a6eb8ee9e338b87fea70",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\01-snow-sepulcher-carrier-tower-drop-body-h3-v08.txt",
+      "bytes": 2165,
+      "sha256": "c3fc21ab60687fb4ac5e410b9ff11edc7ffbb9769a79d5e63fa366f6086f9bca"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\01-snow-sepulcher-carrier-locomotion-1024x576.png",
+      "bytes": 397794,
+      "sha256": "823693d9df5e20b561dc1781c9ae2905692d5b908c7aeb4ee50b87adab8f84e4"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\01-snow-sepulcher-carrier-locomotion-1024x576.png",
+      "bytes": 397794,
+      "sha256": "823693d9df5e20b561dc1781c9ae2905692d5b908c7aeb4ee50b87adab8f84e4"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\01-snow-sepulcher-carrier-tower-drop-body-h3-v08_contact.png",
+    "bytes": 482853,
+    "sha256": "c232fabd6a8c452da889f4bcf50e540e13f17d25e3748f7f025f02bad07f4729"
+  },
+  "elapsedSeconds": 463.135
+}

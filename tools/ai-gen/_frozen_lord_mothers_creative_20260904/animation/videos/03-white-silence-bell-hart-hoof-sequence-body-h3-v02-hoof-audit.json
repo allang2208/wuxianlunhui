@@ -1,0 +1,379 @@
+{
+  "method": "raw-video fixed x bands around the four opening hoof contacts; no frame transformed",
+  "video": "videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02.mp4",
+  "decodedFrames": 124,
+  "openingHoofXs": [
+    315,
+    387,
+    460,
+    532
+  ],
+  "openingBottomY": 516,
+  "openingHoofYs": [
+    512,
+    508,
+    516,
+    513
+  ],
+  "liftThresholdPixels": 6,
+  "hoofEpisodesScreenLeftToRight": [
+    [
+      {
+        "startFrame": 12,
+        "peakFrame": 16,
+        "endFrame": 21,
+        "peakLiftPixels": 23
+      }
+    ],
+    [
+      {
+        "startFrame": 30,
+        "peakFrame": 37,
+        "endFrame": 44,
+        "peakLiftPixels": 36
+      }
+    ],
+    [
+      {
+        "startFrame": 48,
+        "peakFrame": 53,
+        "endFrame": 59,
+        "peakLiftPixels": 29
+      }
+    ],
+    [
+      {
+        "startFrame": 71,
+        "peakFrame": 74,
+        "endFrame": 79,
+        "peakLiftPixels": 26
+      }
+    ]
+  ],
+  "samples": [
+    {
+      "frame": 0,
+      "liftPixels": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 2,
+      "liftPixels": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 4,
+      "liftPixels": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 6,
+      "liftPixels": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 8,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 10,
+      "liftPixels": [
+        2,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 12,
+      "liftPixels": [
+        14,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 14,
+      "liftPixels": [
+        21,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 16,
+      "liftPixels": [
+        23,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 18,
+      "liftPixels": [
+        19,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 20,
+      "liftPixels": [
+        14,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 22,
+      "liftPixels": [
+        3,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 24,
+      "liftPixels": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 26,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 28,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 30,
+      "liftPixels": [
+        1,
+        11,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 32,
+      "liftPixels": [
+        1,
+        11,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 34,
+      "liftPixels": [
+        1,
+        25,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 36,
+      "liftPixels": [
+        1,
+        31,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 38,
+      "liftPixels": [
+        1,
+        36,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 40,
+      "liftPixels": [
+        1,
+        30,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 42,
+      "liftPixels": [
+        1,
+        23,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 44,
+      "liftPixels": [
+        1,
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 46,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 48,
+      "liftPixels": [
+        1,
+        0,
+        6,
+        0
+      ]
+    },
+    {
+      "frame": 50,
+      "liftPixels": [
+        1,
+        0,
+        13,
+        0
+      ]
+    },
+    {
+      "frame": 52,
+      "liftPixels": [
+        1,
+        0,
+        25,
+        0
+      ]
+    },
+    {
+      "frame": 54,
+      "liftPixels": [
+        1,
+        0,
+        29,
+        0
+      ]
+    },
+    {
+      "frame": 56,
+      "liftPixels": [
+        1,
+        0,
+        29,
+        0
+      ]
+    },
+    {
+      "frame": 58,
+      "liftPixels": [
+        1,
+        0,
+        21,
+        0
+      ]
+    },
+    {
+      "frame": 60,
+      "liftPixels": [
+        1,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "frame": 62,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 64,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 66,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 68,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "frame": 70,
+      "liftPixels": [
+        1,
+        0,
+        0,
+        1
+      ]
+    }
+  ]
+}

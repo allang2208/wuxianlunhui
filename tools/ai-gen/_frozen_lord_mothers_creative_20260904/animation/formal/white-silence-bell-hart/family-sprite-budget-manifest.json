@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "id": "white-silence-bell-hart-approved-body-action-family",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "approved stride, double_toll_body, antler_body, long_tone_body, hoof_sequence_body and rhythm_shift_body formal body actions only; navigation, rings, directed hit areas, damage, debuffs, stun, cooldown logic and full boss dependency closure are not included",
+  "decodedRgbaMiB": 140.1875,
+  "bossTargetMiB": 128,
+  "bossHardStopMiB": 256,
+  "withinFamilyBossTarget": false,
+  "withinFamilyBossHardStop": true,
+  "targetException": "user explicitly requested completion and repeated rerolls to qualified motion; preserve the six accepted formal actions below the 256 MiB hard stop rather than discard approved action coverage",
+  "sheets": [
+    {
+      "action": "double_toll_body",
+      "textureKey": "enemy_white_silence_bell_hart_double_toll_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/formal-final/double-toll-body.png",
+      "frameWidth": 192,
+      "frameHeight": 256,
+      "frameCount": 73,
+      "endFrame": 72,
+      "footX": 96,
+      "footY": 240,
+      "decodedRgbaMiB": 14.0625
+    },
+    {
+      "action": "antler_body",
+      "textureKey": "enemy_white_silence_bell_hart_antler_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/antler-body/formal-final/antler-body.png",
+      "frameWidth": 352,
+      "frameHeight": 256,
+      "frameCount": 101,
+      "endFrame": 100,
+      "footX": 176,
+      "footY": 240,
+      "decodedRgbaMiB": 35.75
+    },
+    {
+      "action": "long_tone_body",
+      "textureKey": "enemy_white_silence_bell_hart_long_tone_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/long-tone-body/formal-final/long-tone-body.png",
+      "frameWidth": 320,
+      "frameHeight": 256,
+      "frameCount": 109,
+      "endFrame": 108,
+      "footX": 160,
+      "footY": 240,
+      "decodedRgbaMiB": 34.375
+    },
+    {
+      "action": "hoof_sequence_body",
+      "textureKey": "enemy_white_silence_bell_hart_hoof_sequence_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/hoof-sequence-body/formal-final/hoof-sequence-body.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 57,
+      "endFrame": 56,
+      "footX": 128,
+      "footY": 240,
+      "decodedRgbaMiB": 15.0
+    },
+    {
+      "action": "rhythm_shift_body",
+      "textureKey": "enemy_white_silence_bell_hart_rhythm_shift_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/rhythm-shift-body/formal-final/rhythm-shift-body.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 109,
+      "endFrame": 108,
+      "footX": 128,
+      "footY": 240,
+      "decodedRgbaMiB": 27.5
+    },
+    {
+      "action": "stride",
+      "textureKey": "enemy_white_silence_bell_hart_stride_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/stride/formal-final/stride.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 54,
+      "endFrame": 53,
+      "footX": 128,
+      "footY": 240,
+      "decodedRgbaMiB": 13.5
+    }
+  ],
+  "dependencies": []
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "aurora-fate-weaver-partial-cut-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "cut_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_aurora_fate_weaver_cut_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/cut-body/formal-final/cut-body.png",
+      "frameWidth": 352,
+      "frameHeight": 256,
+      "frameCount": 85,
+      "endFrame": 84,
+      "footX": 176,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

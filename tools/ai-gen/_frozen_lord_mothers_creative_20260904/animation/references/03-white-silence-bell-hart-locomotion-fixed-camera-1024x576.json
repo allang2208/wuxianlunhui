@@ -1,0 +1,17 @@
+{
+  "source": "03-white-silence-bell-hart-locomotion-1024x576.png",
+  "output": "03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+  "purpose": "temporary fixed-camera registration reference for H3; not runtime art",
+  "imageTransform": "none",
+  "subjectPixels": "unchanged",
+  "backgroundMarks": {
+    "outerFrame": [
+      22,
+      22,
+      1001,
+      553
+    ],
+    "baselineY": 540,
+    "cornerBrackets": "outside subject"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\02-aurora-fate-weaver-body-cast-v02-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\02-aurora-fate-weaver-reweave-body-doubao-v02.txt",
+  "promptChars": 732,
+  "promptSha256": "c19fbe5c7498c070d008db7a32185a9671b38608fa5843959120ccb63ba48218",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-05T02:37:29.006Z",
+  "sourceUrlScheme": "https"
+}

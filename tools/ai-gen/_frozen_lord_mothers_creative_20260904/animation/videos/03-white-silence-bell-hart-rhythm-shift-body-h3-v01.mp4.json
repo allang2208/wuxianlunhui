@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-05T09:33:55.071561+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-rhythm-shift-body-h3-v01.mp4",
+    "bytes": 441998,
+    "sha256": "6e72d096394b4a40638ce9b6c273c83b3043bb80d9c6ee27a15a3b7b6851990e"
+  },
+  "promptId": "ee7341c5-314e-45b2-886b-c3fe00a98f08",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 33637725,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact white-silence bell hart performs one stationary phase-change tuning ritual, then returns to its ready stance. This is a non-damaging body transition with one clear lock-in pose, distinct from its long horizontal bell attack.\n\nLocked 1024x576 tripod shot. The pale outer frame, corner brackets and lower baseline remain perfectly motionless. Keep the same framing, scale and screen-right low-three-quarter body axis. All four hoof contacts stay at their opening screen positions while separate knees, shoulders and neck transmit a rear-to-front tension wave.\n\n0.00-0.45 seconds: quiet planted preparation, bell nearly vertical.\n0.45-1.25 seconds: rear legs tense first, then the shoulders rise and the long neck lifts; the rigid antlers tilt slightly higher without changing shape.\n1.25-2.10 seconds: the three existing pendants answer in one compact left-to-right triplet while the single large bell stays attached and mostly vertical. Each pendant flick is small and readable; the body holds its planted tuning posture.\n2.10-2.60 seconds: reach one clear phase-lock pose with chest raised, head alert and all four hooves grounded. Hold briefly without creating an attack effect.\n2.60-3.55 seconds: release the tension from front to rear; the bell makes one small passive settling sway.\n3.55-5.17 seconds: return naturally to the exact supplied stance and remain quietly alive.\n\nPreserve exactly four complete legs, the right-facing beaked skull, unchanged rigid branching antlers, hollow rib frame, one abdominal bell and exactly three pendants. Keep the full silhouette inside the registration frame. No camera motion, root travel, hoof sliding, body turn, horizontal power swing, repeated ritual, extra anatomy, detached parts or external VFX.",
+  "effectivePrompt": "The exact white-silence bell hart performs one stationary phase-change tuning ritual, then returns to its ready stance. This is a non-damaging body transition with one clear lock-in pose, distinct from its long horizontal bell attack.\n\nLocked 1024x576 tripod shot. The pale outer frame, corner brackets and lower baseline remain perfectly motionless. Keep the same framing, scale and screen-right low-three-quarter body axis. All four hoof contacts stay at their opening screen positions while separate knees, shoulders and neck transmit a rear-to-front tension wave.\n\n0.00-0.45 seconds: quiet planted preparation, bell nearly vertical.\n0.45-1.25 seconds: rear legs tense first, then the shoulders rise and the long neck lifts; the rigid antlers tilt slightly higher without changing shape.\n1.25-2.10 seconds: the three existing pendants answer in one compact left-to-right triplet while the single large bell stays attached and mostly vertical. Each pendant flick is small and readable; the body holds its planted tuning posture.\n2.10-2.60 seconds: reach one clear phase-lock pose with chest raised, head alert and all four hooves grounded. Hold briefly without creating an attack effect.\n2.60-3.55 seconds: release the tension from front to rear; the bell makes one small passive settling sway.\n3.55-5.17 seconds: return naturally to the exact supplied stance and remain quietly alive.\n\nPreserve exactly four complete legs, the right-facing beaked skull, unchanged rigid branching antlers, hollow rib frame, one abdominal bell and exactly three pendants. Keep the full silhouette inside the registration frame. No camera motion, root travel, hoof sliding, body turn, horizontal power swing, repeated ritual, extra anatomy, detached parts or external VFX, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact white-silence bell hart performs one stationary phase-change tuning ritual, then returns to its ready stance. This is a non-damaging body transition with one clear lock-in pose, distinct from its long horizontal bell attack.\n\nLocked 1024x576 tripod shot. The pale outer frame, corner brackets and lower baseline remain perfectly motionless. Keep the same framing, scale and screen-right low-three-quarter body axis. All four hoof contacts stay at their opening screen positions while separate knees, shoulders and neck transmit a rear-to-front tension wave.\n\n0.00-0.45 seconds: quiet planted preparation, bell nearly vertical.\n0.45-1.25 seconds: rear legs tense first, then the shoulders rise and the long neck lifts; the rigid antlers tilt slightly higher without changing shape.\n1.25-2.10 seconds: the three existing pendants answer in one compact left-to-right triplet while the single large bell stays attached and mostly vertical. Each pendant flick is small and readable; the body holds its planted tuning posture.\n2.10-2.60 seconds: reach one clear phase-lock pose with chest raised, head alert and all four hooves grounded. Hold briefly without creating an attack effect.\n2.60-3.55 seconds: release the tension from front to rear; the bell makes one small passive settling sway.\n3.55-5.17 seconds: return naturally to the exact supplied stance and remain quietly alive.\n\nPreserve exactly four complete legs, the right-facing beaked skull, unchanged rigid branching antlers, hollow rib frame, one abdominal bell and exactly three pendants. Keep the full silhouette inside the registration frame. No camera motion, root travel, hoof sliding, body turn, horizontal power swing, repeated ritual, extra anatomy, detached parts or external VFX, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "172b1494dc5ada2c982e2040167946932843a1d3131c689c9c2b899c13585d92",
+  "effectivePromptSha256": "f3ce16ea278147179f8315b138c1e861cb7d1a2efb242e6c8a2de0d4e89ed613",
+  "finalPromptSha256": "262b2158ff2d821a1295328ab69c6b87b7e80961b4eb81dbdfd91abb9a337b35",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\03-white-silence-bell-hart-rhythm-shift-body-h3-v01.txt",
+      "bytes": 1757,
+      "sha256": "a45502181213a8d07fcb86a9e066cd4b8b394159585c050e7fab6746430153a6"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+      "bytes": 202964,
+      "sha256": "d0b4ab6792174f7ca33c0a594e4be45d8e6e0966c0698a9028761303890dd5e2"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+      "bytes": 202964,
+      "sha256": "d0b4ab6792174f7ca33c0a594e4be45d8e6e0966c0698a9028761303890dd5e2"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-rhythm-shift-body-h3-v01_contact.png",
+    "bytes": 406149,
+    "sha256": "7dbf6660715889dee2c5f596e2248572135e04642a2d55cfc2d5714cef47f74c"
+  },
+  "elapsedSeconds": 464.698
+}

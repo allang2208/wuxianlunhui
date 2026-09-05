@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\02-aurora-fate-weaver-locomotion-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\02-aurora-fate-weaver-seek-band-doubao-v01.txt",
+  "promptChars": 905,
+  "promptSha256": "ed798f70a5013d0ad279a621398fde0b9e41a4822bf488c2c920664c6c5ce65d",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-05T03:05:16.958Z",
+  "sourceUrlScheme": "https"
+}

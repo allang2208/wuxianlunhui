@@ -22,4 +22,5 @@
 
 - 已做：BiRefNet 透明抠图、固定比例与脚线、一次非回绕 RIFE、直接可看的最终 GIF/联系表、帧与容量清单。`sprite-budget-manifest.json` 只登记当前已完成的这一张动作表，不代表整套领主动画预算已闭合。
 - 未做：`enemy-config`、纹理预载、动画注册、技能状态机、外部三角 VFX、伤害与游戏内测试。
-- 其他动作 `cut / oldstep / tether / reweave` 仍冻结；本动作通过不替它们解锁素材生产。
+- `oldstep_body`、`tether_body`、`cut_body`、`reweave_body` 与 `seek_band` 已分别在同目录子包完成正式本体表/移动循环。六张表合计解码 RGBA `202.8750 MiB`，超过 Boss 128 MiB 目标但低于 256 MiB 硬停线，按用户已接受的目标线例外保留。所有表都未接入运行时，彼此通过也不自动解锁寻路、世界位移、碰撞、外部 VFX、伤害或状态机；`reweave_body` 的 5000ms 素材墙钟与原 1.4 秒玩法提案仍需接入前决策。
+- 六动作同步复核 GIF：`previews/aurora-fate-weaver-all-formal-actions.gif`。全量标准审计见上级目录 `../standard-workflow-audit-20260905.md` 与 `../standard-workflow-audit-20260905.json`。

@@ -27,6 +27,15 @@ def distributed_durations(frame_count: int, total_ms: int) -> list[int]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--video", type=Path, required=True)
+    parser.add_argument(
+        "--direction-gate",
+        default="fixed approved camera, facing, root and identity topology",
+        help="asset-specific direction/topology contract written to the preview report",
+    )
+    parser.add_argument(
+        "--stage",
+        default="raw-doubao-source-awaiting-offline-direction-topology-review",
+    )
     args = parser.parse_args()
     video = args.video.resolve()
 
@@ -86,8 +95,8 @@ def main() -> None:
         "previewGif": gif_path.relative_to(ROOT).as_posix(),
         "previewFrameIndices": gif_indices,
         "previewDurationMs": sum(durations),
-        "directionGate": "screen-right low three-quarter; fixed root; six walking legs plus two weaving arms; open ring and contained membrane",
-        "stage": "raw-doubao-source-awaiting-offline-direction-topology-review",
+        "directionGate": args.direction_gate,
+        "stage": args.stage,
     }
     report_path = video.with_name(f"{video.stem}_preview.json")
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

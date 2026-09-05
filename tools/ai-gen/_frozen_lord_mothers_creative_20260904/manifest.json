@@ -3,9 +3,9 @@
   "generatedAt": "2026-09-04",
   "generator": "OpenAI imagegen built-in",
   "direction": "independent creative snowfield lords, not evolved forms of existing monsters",
-  "stage": "five-approved-body-actions-formal-sprite-ready",
-  "futurePlanOnly": true,
-  "runtimeIntegrationActive": false,
+  "stage": "three-approved-lords-runtime-integrated-static-unverified",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
   "userApproved": true,
   "animationAuthorized": true,
   "animationProvider": "minimax-h3-local",
@@ -19,6 +19,44 @@
     "rejectedReasonsPreservedInManifest": true
   },
   "directionRecord": "animation/direction-reference.md",
+    "standardWorkflowAudit": "animation/formal/standard-workflow-audit-20260905.md",
+    "standardWorkflowAuditData": "animation/formal/standard-workflow-audit-20260905.json",
+    "runtimeIntegrationAudit": "runtime-integration-audit-20260905.md",
+  "formalInspectionGifs": {
+    "snowSepulcherCarrier": "animation/formal/snow-sepulcher-carrier/previews/snow-sepulcher-carrier-all-formal-actions.gif",
+    "auroraFateWeaver": "animation/formal/aurora-fate-weaver/previews/aurora-fate-weaver-all-formal-actions.gif",
+    "whiteSilenceBellHart": "animation/formal/white-silence-bell-hart/previews/white-silence-bell-hart-all-formal-actions.gif"
+  },
+  "runtimeIntegration": {
+    "integratedAt": "2026-09-05",
+    "status": "static_contract_complete_runtime_unverified",
+    "enemyKeys": [
+      "snowSepulcherCarrier",
+      "auroraFateWeaver",
+      "whiteSilenceBellHart"
+    ],
+    "entityImplementation": "src/entities/enemy-types/snowfield-lords.js",
+    "registryExport": "src/entities/enemy-types.js",
+    "preloadAndAnimations": "src/phaser/scenes/BootScene.js",
+    "enemyConfigs": ["data/enemy-config.json", "public/data/enemy-config.json"],
+    "dungeonConfigs": ["data/dungeon-config.json", "public/data/dungeon-config.json"],
+    "dungeonSlot": "frozenDungeon.bossEncounter.waveComposition[2].lord",
+    "runtimeAssets": [
+      "assets/enemies/snow_sepulcher_carrier",
+      "assets/enemies/aurora_fate_weaver",
+      "assets/enemies/white_silence_bell_hart"
+    ],
+    "testsRun": false,
+    "runtimeVerified": false,
+    "supersedesHistoricalRuntimeBlockedStatuses": true,
+    "resolvedRuntimeStates": {
+      "snowSepulcherCarrier": ["advance", "trample_body", "plow_prepare", "plow_move", "plow_recover", "tower_drop_body", "fortify", "exposed"],
+      "auroraFateWeaver": ["seek_band", "cut_body", "triangle_weave_body", "oldstep_body", "tether_body", "reweave_body"],
+      "whiteSilenceBellHart": ["stride", "antler_body", "double_toll_body", "hoof_sequence_body", "long_tone_body", "rhythm_shift_body"]
+    },
+    "remainingFrozenCandidates": ["permafrostChasmMaw", "frozenSunCoreRelic"],
+    "historicalStatusNote": "Candidate entries below preserve generation-time checkpoints; this runtimeIntegration object is the current authority for the three approved lords."
+  },
   "h3Parameters": {
     "size": "1024x576",
     "durationSeconds": 5.17,
@@ -81,23 +119,51 @@
     "runtimeStateIntegrationActive": false
   },
   "doubaoActionSummary": {
-    "generated": 2,
-    "submittedCandidates": 2,
+    "generated": 10,
+    "submittedCandidates": 10,
     "model": "Seedance 2.0 Mini",
     "fillOnlyPromptReadbackVerified": true,
     "promptSha256ByAction": {
       "oldstep_body": "04244850ab60269fe73ef218e2695ca055a4c337e62e3c6586fe718ba434078b",
-      "tether_body": "562ec7e64da27e6908936182d4c4f73494ffffc4c6c851db7f6172aa6a360f4c"
+      "tether_body": "562ec7e64da27e6908936182d4c4f73494ffffc4c6c851db7f6172aa6a360f4c",
+      "cut_body": "0a4171d409b5e84f66fc9028eb7558b07863bff5c2aac2fcbfe653e11384ed79",
+      "reweave_body_v01": "edd5559cd146f440cce2acb6fb54e6119d9a850fd79d480dd41773d5f7001d6f",
+      "reweave_body_v02": "c19fbe5c7498c070d008db7a32185a9671b38608fa5843959120ccb63ba48218",
+      "seek_band": "ed798f70a5013d0ad279a621398fde0b9e41a4822bf488c2c920664c6c5ce65d",
+      "snow_advance": "d3594a7dfed88acac0ad81085c36134bc06232739153ea2b8c739eb0d21d1559",
+      "snow_trample_body": "8e398ac073b4ba07e36447eefa6b31e4946a7a8bc1056f649ce9defa704589b8",
+      "snow_tower_drop_body_v01": "a522a7562a4f144792a124ad94b0d4f7fe99b3bfffb0ba70457274e401bee166",
+      "snow_tower_drop_body_v02": "ec8a35e5a79bfdfe12e33b07d394f2169add6508127d9f93cc1a098db07706d1",
+      "snow_tower_drop_body_v03_fill_only": "9676382b089dff4ce16cec67048462bfb234b9200c80d5bc93dab6c26b7b4bc8"
     },
     "passedOfflineActionGate": [
       "auroraFateWeaver.oldstep_body",
-      "auroraFateWeaver.tether_body"
+      "auroraFateWeaver.tether_body",
+      "auroraFateWeaver.cut_body",
+      "auroraFateWeaver.reweave_body",
+      "auroraFateWeaver.seek_band",
+      "snowSepulcherCarrier.advance",
+      "snowSepulcherCarrier.trample_body"
     ],
     "formalSpriteAssetsReady": [
       "auroraFateWeaver.oldstep_body",
-      "auroraFateWeaver.tether_body"
+      "auroraFateWeaver.tether_body",
+      "auroraFateWeaver.cut_body",
+      "auroraFateWeaver.reweave_body",
+      "auroraFateWeaver.seek_band",
+      "snowSepulcherCarrier.advance",
+      "snowSepulcherCarrier.trample_body"
     ],
+    "rejectedAndFrozen": [
+      "auroraFateWeaver.reweave_body.v01",
+      "snowSepulcherCarrier.tower_drop_body.v01",
+      "snowSepulcherCarrier.tower_drop_body.v02"
+    ],
+    "userAuthorizedRetryCount": 3,
     "automaticRetryCount": 0,
+    "blockedBeforeGeneration": [
+      "snowSepulcherCarrier.tower_drop_body.v03: daily free video quota exhausted; paid confirmation required and not authorized"
+    ],
     "runtimeStateIntegrationActive": false
   },
   "supersedesAsRecommendation": "../_frozen_lord_mothers_20260904",
@@ -114,12 +180,112 @@
       "orientation": "screen-right low three-quarter",
       "pilotAction": "advance",
       "pilotStatus": "passed_offline_direction_topology",
-      "nextStageReady": "plow_prepare_formal_sprite_ready_event_contract_recorded_runtime_charge_blocked",
+      "formalInspectionGif": "animation/formal/snow-sepulcher-carrier/previews/snow-sepulcher-carrier-all-formal-actions.gif",
+      "nextStageReady": "advance_loop_trample_body_plow_prepare_and_tower_drop_body_formal_sprites_ready_event_contracts_recorded_runtime_movement_melee_charge_and_tower_events_blocked",
       "video": "animation/videos/01-snow-sepulcher-carrier-advance-h3-v01.mp4",
       "provenance": "animation/videos/01-snow-sepulcher-carrier-advance-h3-v01.mp4.json",
       "contactSheet": "animation/videos/01-snow-sepulcher-carrier-advance-h3-v01_contact.png",
       "previewGif": "animation/videos/01-snow-sepulcher-carrier-advance-h3-v01_preview.gif",
       "review": "24 samples keep screen-right axis, six distinct legs, fused tower topology and stable visual root",
+      "advanceDoubaoV01": {
+        "action": "advance",
+        "reference": "animation/references/01-snow-sepulcher-carrier-locomotion-1024x576.png",
+        "prompt": "animation/prompts/01-snow-sepulcher-carrier-advance-doubao-v01.txt",
+        "status": "formal_loop_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/01-snow-sepulcher-carrier-advance-doubao-v01.mp4",
+        "provenance": "animation/videos/01-snow-sepulcher-carrier-advance-doubao-v01.mp4.json",
+        "contactSheet": "animation/videos/01-snow-sepulcher-carrier-advance-doubao-v01_contact.png",
+        "detailContactSheet": "animation/videos/01-snow-sepulcher-carrier-advance-doubao-v01_legs-tower-detail.png",
+        "loopEndpointContactSheet": "animation/videos/01-snow-sepulcher-carrier-advance-doubao-v01_loop-f25-f113-proof.png",
+        "previewGif": "animation/videos/01-snow-sepulcher-carrier-advance-doubao-v01_preview.gif",
+        "review": "passed: fixed screen-right low three-quarter camera/root, exactly six massive load-bearing legs remain readable as three pairs, and the fused ruined tower, battlements, cairns and snow mass stay rigid; source half-open window [f25,f113) uses f113 only as the same-phase duplicate endpoint",
+        "formalSpritePackage": "animation/formal/snow-sepulcher-carrier/advance/spritesheet-manifest.json",
+        "familyBudget": "animation/formal/snow-sepulcher-carrier/family-sprite-budget-manifest.json"
+      },
+      "trampleBodyDoubaoV01": {
+        "action": "trample_body",
+        "keyframe": "animation/action-keyframes/01-snow-sepulcher-carrier-trample-prepare-v01.png",
+        "keyframePrompt": "animation/prompts/01-snow-sepulcher-carrier-trample-keyframe-imagegen-v01.txt",
+        "keyframeGenerator": "OpenAI imagegen built-in",
+        "reference": "animation/action-references/01-snow-sepulcher-carrier-trample-prepare-v01-1024x576.png",
+        "prompt": "animation/prompts/01-snow-sepulcher-carrier-trample-body-doubao-v01.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/01-snow-sepulcher-carrier-trample-body-doubao-v01.mp4",
+        "provenance": "animation/videos/01-snow-sepulcher-carrier-trample-body-doubao-v01.mp4.json",
+        "contactSheet": "animation/videos/01-snow-sepulcher-carrier-trample-body-doubao-v01_contact.png",
+        "detailContactSheet": "animation/videos/01-snow-sepulcher-carrier-trample-body-doubao-v01_legs-tower-detail.png",
+        "impactContactSheet": "animation/videos/01-snow-sepulcher-carrier-trample-body-doubao-v01_stomp-detail.png",
+        "previewGif": "animation/videos/01-snow-sepulcher-carrier-trample-body-doubao-v01_preview.gif",
+        "review": "passed: fixed screen-right camera/root and rigid fused tower identity; exactly six legs remain traceable, the near-side front leg makes one vertical stomp with first contact at source f26, and the body settles without a repeated attack or external impact VFX",
+        "formalSpritePackage": "animation/formal/snow-sepulcher-carrier/trample-body/spritesheet-manifest.json",
+        "familyBudget": "animation/formal/snow-sepulcher-carrier/family-sprite-budget-manifest.json"
+      },
+      "towerDropBodyDoubaoV01": {
+        "action": "tower_drop_body",
+        "status": "rejected_and_frozen_at_raw_video_direction_rhythm_gate",
+        "rejectedMediaPruned": true,
+        "review": "rejected: the fused tower and broad six-leg identity survive without external VFX, but the camera/body yaws laterally between beats and the requested vertical triple recoil becomes large side-to-side rocking; no segmentation, interpolation or formal sprite build"
+      },
+      "towerDropBodyDoubaoV02": {
+        "action": "tower_drop_body",
+        "status": "rejected_and_frozen_at_raw_video_rhythm_gate",
+        "rejectedMediaPruned": true,
+        "review": "rejected: camera, right-facing axis, planted six-leg identity and rigid tower are materially improved, but source f18..f36 is one long compression and f50..f84 is a second long compression; the clip never produces three separated down-up beats"
+      },
+      "towerDropBodyDoubaoV03": {
+        "action": "tower_drop_body",
+        "status": "not_generated_paid_confirmation_required",
+        "rejectedMediaPruned": true,
+        "fillOnlyPromptSha256": "9676382b089dff4ce16cec67048462bfb234b9200c80d5bc93dab6c26b7b4bc8",
+        "review": "after fill-only verification, the generation request stopped at Doubao's daily free-quota exhaustion prompt requiring paid confirmation; no paid confirmation was authorized, no video was downloaded, and no formal processing occurred"
+      },
+      "towerDropBodyH3V04": {
+        "action": "tower_drop_body",
+        "reference": "animation/action-references/01-snow-sepulcher-carrier-plow-windup-v02-1024x576.png",
+        "status": "rejected_and_frozen_at_raw_video_rhythm_and_nonrepeat_gate",
+        "rejectedMediaPruned": true,
+        "review": "rejected: the camera, screen-right axis and vertical tower are broadly readable, but the clip repeats large crouches through the full duration and never resolves into exactly three short pulses followed by a settled hold"
+      },
+      "towerDropBodyH3ReferenceV05": {
+        "action": "tower_drop_body",
+        "identityReference": "animation/action-references/01-snow-sepulcher-carrier-plow-windup-v02-1024x576.png",
+        "status": "rejected_and_frozen_at_raw_video_identity_foot_anchor_and_tower_gate",
+        "rejectedMediaPruned": true,
+        "review": "rejected: the motion reference influences the three-pulse path, but the result redraws the carrier as a suspended thin-legged dragon/city; planted feet, mountain proportions, head armor and fused tower identity fail"
+      },
+      "towerDropBodyDerivedV06": {
+        "action": "tower_drop_body",
+        "status": "user_rejected_motion_too_rigid_superseded_by_h3_v08",
+        "generatedResult": false,
+        "acceptedUniqueSourceFrames": [14, 16, 18, 20, 22],
+        "rejectedMediaPruned": true,
+        "construction": "exact complete-frame reuse and reverse-order reuse only; formal build extracts the five unique frames from the original v02 video and uses no RIFE, crop deformation, translation or redraw",
+        "formerFormalClock": {"durationMs": 2333, "frameCount": 56, "eventFrames": [16, 24, 32]},
+        "review": "user rejected after GIF review: topology and joins were stable, but repeating five native poses produced a rigid synchronized piston motion; do not integrate or count as an approved formal action"
+      },
+      "towerDropBodyH3V07": {
+        "action": "tower_drop_body",
+        "reference": "animation/references/01-snow-sepulcher-carrier-locomotion-1024x576.png",
+        "status": "rejected_at_raw_video_action_semantics_gate",
+        "rejectedMediaPruned": true,
+        "review": "rejected: joint transitions are softer and identity recovers under first/last-frame locks, but H3 merges the requested three pulses into one long compression and one recovery"
+      },
+      "towerDropBodyH3V08": {
+        "action": "tower_drop_body",
+        "reference": "animation/references/01-snow-sepulcher-carrier-locomotion-1024x576.png",
+        "firstAndLastFrameLocked": true,
+        "prompt": "animation/prompts/01-snow-sepulcher-carrier-tower-drop-body-h3-v08.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/01-snow-sepulcher-carrier-tower-drop-body-h3-v08.mp4",
+        "provenance": "animation/videos/01-snow-sepulcher-carrier-tower-drop-body-h3-v08.mp4.json",
+        "contactSheet": "animation/videos/01-snow-sepulcher-carrier-tower-drop-body-h3-v08_contact.png",
+        "detailContactSheet": "animation/videos/01-snow-sepulcher-carrier-tower-drop-body-h3-v08_natural-motion-detail.png",
+        "previewGif": "animation/videos/01-snow-sepulcher-carrier-tower-drop-body-h3-v08_preview.gif",
+        "review": "passed: one organic rear-to-front weight transfer, readable independent six-leg articulation, deep living firing brace, rigid fused tower, stable screen-right axis and complete recovery; three runtime volleys move to f64/f72/f80 inside the firing hold",
+        "formalSpritePackage": "animation/formal/snow-sepulcher-carrier/tower-drop-body/spritesheet-manifest.json",
+        "formalPreviewGif": "animation/formal/snow-sepulcher-carrier/tower-drop-body/previews/snow-sepulcher-carrier-tower_drop_body.gif",
+        "familyBudget": "animation/formal/snow-sepulcher-carrier/family-sprite-budget-manifest.json"
+      },
       "signatureAction": "plow",
       "signatureActionKeyframe": "animation/action-keyframes/01-snow-sepulcher-carrier-plow-prepare-v01.png",
       "signatureActionStatus": "rejected_unwanted_yaw_and_incomplete_orientation_recovery",
@@ -137,8 +303,8 @@
         "review": "passed: six legs, fused tower, screen-right long axis and visual root remain stable through one restrained downward brace and recovery",
         "formalSpritePackage": "animation/formal/snow-sepulcher-carrier/spritesheet-manifest.json"
       },
-      "qualifiedAnimationSources": ["advance", "plow_prepare"],
-      "blockedStates": ["trample", "plow_charge_and_impact", "tower_drop", "fortify"]
+      "qualifiedAnimationSources": ["advance", "trample_body", "plow_prepare", "tower_drop_body"],
+      "blockedStates": ["advance_navigation_translation_collision_and_runtime_state", "trample_directed_rectangle_damage_knockback_vfx_and_runtime_state", "plow_charge_and_impact", "tower_drop_prediction_events_damage_hit_cap_cooldown_and_runtime_state", "fortify"]
     },
     {
       "key": "auroraFateWeaver",
@@ -150,12 +316,28 @@
       "orientation": "screen-right low three-quarter; six walking legs plus two weaving arms",
       "pilotAction": "seek_band",
       "pilotStatus": "passed_offline_direction_topology",
-      "nextStageReady": "triangle_weave_body_oldstep_body_and_tether_body_formal_sprites_ready_event_contracts_recorded_runtime_integration_blocked",
+      "formalInspectionGif": "animation/formal/aurora-fate-weaver/previews/aurora-fate-weaver-all-formal-actions.gif",
+      "nextStageReady": "seek_band_loop_triangle_weave_body_oldstep_body_tether_body_cut_body_and_reweave_body_formal_sprites_ready_event_contracts_recorded_runtime_integration_blocked",
       "video": "animation/videos/02-aurora-fate-weaver-seek-band-h3-v01.mp4",
       "provenance": "animation/videos/02-aurora-fate-weaver-seek-band-h3-v01.mp4.json",
       "contactSheet": "animation/videos/02-aurora-fate-weaver-seek-band-h3-v01_contact.png",
       "previewGif": "animation/videos/02-aurora-fate-weaver-seek-band-h3-v01_preview.gif",
       "review": "24 samples keep the open ring, six walking legs, two raised weaving arms and stable aurora membrane",
+      "seekBandDoubaoV01": {
+        "action": "seek_band",
+        "reference": "animation/references/02-aurora-fate-weaver-locomotion-1024x576.png",
+        "prompt": "animation/prompts/02-aurora-fate-weaver-seek-band-doubao-v01.txt",
+        "status": "formal_loop_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/02-aurora-fate-weaver-seek-band-doubao-v01.mp4",
+        "provenance": "animation/videos/02-aurora-fate-weaver-seek-band-doubao-v01.mp4.json",
+        "contactSheet": "animation/videos/02-aurora-fate-weaver-seek-band-doubao-v01_contact.png",
+        "detailContactSheet": "animation/videos/02-aurora-fate-weaver-seek-band-doubao-v01_legs-detail.png",
+        "loopEndpointContactSheet": "animation/videos/02-aurora-fate-weaver-seek-band-doubao-v01_loop-endpoint-detail.png",
+        "previewGif": "animation/videos/02-aurora-fate-weaver-seek-band-doubao-v01_preview.gif",
+        "review": "passed: fixed screen-right low three-quarter camera/root, six load-bearing legs keep their walking roles, both shorter weaving arms stay raised, and the open ring plus contained crossed membrane remain stable; source f6..f113 uses same-phase duplicate endpoint f114 for a 4.5-second wrap loop",
+        "formalSpritePackage": "animation/formal/aurora-fate-weaver/seek-band/spritesheet-manifest.json",
+        "familyBudget": "animation/formal/aurora-fate-weaver/family-sprite-budget-manifest.json"
+      },
       "signatureAction": "triangle_weave",
       "signatureActionStatus": "rejected_external_triangle_and_star_vfx_intrusion",
       "rejectedMediaPruned": true,
@@ -204,8 +386,46 @@
         "formalSpritePackage": "animation/formal/aurora-fate-weaver/tether-body/spritesheet-manifest.json",
         "familyBudget": "animation/formal/aurora-fate-weaver/family-sprite-budget-manifest.json"
       },
-      "qualifiedAnimationSources": ["seek_band", "triangle_weave_body", "oldstep_body", "tether_body"],
-      "blockedStates": ["cut", "oldstep_history_snapshot_vfx_damage_and_runtime_state", "tether_target_selection_lines_los_pull_and_runtime_state", "reweave", "triangle_weave_runtime_integration_and_external_vfx"]
+      "cutBodyDoubaoV01": {
+        "action": "cut_body",
+        "keyframe": "animation/action-keyframes/02-aurora-fate-weaver-tether-prepare-v02.png",
+        "keyframeReuseReason": "the approved wide-V weaving-arm pose is already the open-scissors silhouette and avoids reopening the six-leg/two-arm topology gate",
+        "reference": "animation/action-references/02-aurora-fate-weaver-tether-prepare-v02-1024x576.png",
+        "prompt": "animation/prompts/02-aurora-fate-weaver-cut-body-doubao-v01.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/02-aurora-fate-weaver-cut-body-doubao-v01.mp4",
+        "provenance": "animation/videos/02-aurora-fate-weaver-cut-body-doubao-v01.mp4.json",
+        "contactSheet": "animation/videos/02-aurora-fate-weaver-cut-body-doubao-v01_contact.png",
+        "detailContactSheet": "animation/videos/02-aurora-fate-weaver-cut-body-doubao-v01_closure-detail.png",
+        "previewGif": "animation/videos/02-aurora-fate-weaver-cut-body-doubao-v01_preview.gif",
+        "review": "passed: fixed screen-right camera/root, stable walking legs/ring/membrane identity, and two separately traceable weaving arms make one scissor closure at source f20 with no baked attack sector or VFX",
+        "formalSpritePackage": "animation/formal/aurora-fate-weaver/cut-body/spritesheet-manifest.json",
+        "familyBudget": "animation/formal/aurora-fate-weaver/family-sprite-budget-manifest.json"
+      },
+      "reweaveBodyDoubaoV01": {
+        "action": "reweave_body",
+        "reference": "animation/action-references/02-aurora-fate-weaver-body-cast-v02-1024x576.png",
+        "status": "rejected_raw_direction_topology_vfx_gate",
+        "rejectedMediaPruned": true,
+        "review": "rejected: outer ring, root and walking legs are mostly stable, but the body drifts toward a near-frontal presentation, one weaving arm crosses into the ring center, and source f58 then f62..f77 turns the approved contained crossed membrane into a bright burst and full portal-like disk",
+        "downstreamBlocked": ["birefnet", "rife", "formalSprite", "runtimeIntegration"]
+      },
+      "reweaveBodyDoubaoV02": {
+        "action": "reweave_body",
+        "reference": "animation/action-references/02-aurora-fate-weaver-body-cast-v02-1024x576.png",
+        "prompt": "animation/prompts/02-aurora-fate-weaver-reweave-body-doubao-v02.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/02-aurora-fate-weaver-reweave-body-doubao-v02.mp4",
+        "provenance": "animation/videos/02-aurora-fate-weaver-reweave-body-doubao-v02.mp4.json",
+        "contactSheet": "animation/videos/02-aurora-fate-weaver-reweave-body-doubao-v02_contact.png",
+        "detailContactSheet": "animation/videos/02-aurora-fate-weaver-reweave-body-doubao-v02_topology-detail.png",
+        "previewGif": "animation/videos/02-aurora-fate-weaver-reweave-body-doubao-v02_preview.gif",
+        "review": "passed: fixed screen-right camera/root, stable six-leg/two-short-arm role split, unchanged open hard ring and contained crossed membrane; one quiet brace-and-calibrate gesture returns to the reference pose without a burst or portal",
+        "formalSpritePackage": "animation/formal/aurora-fate-weaver/reweave-body/spritesheet-manifest.json",
+        "familyBudget": "animation/formal/aurora-fate-weaver/family-sprite-budget-manifest.json"
+      },
+      "qualifiedAnimationSources": ["seek_band", "triangle_weave_body", "oldstep_body", "tether_body", "cut_body", "reweave_body"],
+      "blockedStates": ["seek_band_navigation_translation_collision_and_runtime_state", "cut_directed_sector_damage_knockback_and_runtime_state", "oldstep_history_snapshot_vfx_damage_and_runtime_state", "tether_target_selection_lines_los_pull_and_runtime_state", "reweave_half_health_cadence_oldstep_vfx_and_runtime_state", "triangle_weave_runtime_integration_and_external_vfx"]
     },
     {
       "key": "whiteSilenceBellHart",
@@ -217,7 +437,11 @@
       "orientation": "screen-right low three-quarter",
       "pilotAction": "stride",
       "pilotStatus": "passed_offline_direction_topology",
-      "nextStageReady": "double_toll_body_formal_sprite_ready_event_contract_recorded_runtime_rings_blocked",
+      "formalInspectionGif": "animation/formal/white-silence-bell-hart/previews/white-silence-bell-hart-all-formal-actions.gif",
+      "standardWorkflowAudit": "animation/formal/white-silence-bell-hart/standard-workflow-audit-20260905.md",
+      "preRuntimeNormalizationRequired": [],
+      "normalizationCompleted": ["double_toll_body_family_scale_208_fixed_source_anchor_x417"],
+      "nextStageReady": "stride_double_toll_body_antler_body_long_tone_body_hoof_sequence_body_and_rhythm_shift_body_formal_sprites_ready_event_contracts_recorded_runtime_navigation_rings_hit_areas_damage_debuff_stun_cooldowns_and_state_blocked",
       "video": "animation/videos/03-white-silence-bell-hart-stride-h3-v01.mp4",
       "provenance": "animation/videos/03-white-silence-bell-hart-stride-h3-v01.mp4.json",
       "contactSheet": "animation/videos/03-white-silence-bell-hart-stride-h3-v01_contact.png",
@@ -233,8 +457,130 @@
       "signatureActionPreviewGif": "animation/videos/03-white-silence-bell-hart-double-toll-h3-v01_preview.gif",
       "signatureActionReview": "passed: four legs, antlers, suspended bell and exactly three pendants remain stable; the physical swing supplies two event beats and returns to rest without external ring VFX",
       "formalSpritePackage": "animation/formal/white-silence-bell-hart/spritesheet-manifest.json",
-      "qualifiedAnimationSources": ["stride", "double_toll_body"],
-      "blockedStates": ["antler", "hoof_sequence", "long_tone", "rhythm_shift", "double_toll_runtime_integration_and_external_rings"]
+      "antlerBodyH3V01": {
+        "action": "antler_body",
+        "reference": "animation/references/03-white-silence-bell-hart-locomotion-1024x576.png",
+        "firstAndLastFrameLocked": true,
+        "status": "user_rejected_camera_drift_superseded_by_h3_v04",
+        "rejectedMediaPruned": true,
+        "review": "rejected by user for visible camera/composition drift; action semantics were accepted but the old formal clock and event frame are invalid",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-antler-body-camera-audit.json"
+      },
+      "antlerBodyH3V02": {
+        "action": "antler_body",
+        "reference": "animation/references/03-white-silence-bell-hart-locomotion-1024x576.png",
+        "firstAndLastFrameLocked": true,
+        "status": "rejected_raw_camera_root_drift",
+        "rejectedMediaPruned": true,
+        "review": "rejected before cutout: the rear support hoof slides about 67px and the torso-root proxy swings about -55..+65px",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-antler-body-camera-audit.json"
+      },
+      "antlerBodyH3V03": {
+        "action": "antler_body",
+        "reference": "animation/references/03-white-silence-bell-hart-locomotion-1024x576.png",
+        "firstAndLastFrameLocked": true,
+        "status": "rejected_raw_camera_root_drift",
+        "rejectedMediaPruned": true,
+        "review": "rejected before cutout: the rear support hoof still slides about 49px and the torso-root proxy spans about -50..+38px",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-antler-body-camera-audit.json"
+      },
+      "antlerBodyH3V04": {
+        "action": "antler_body",
+        "reference": "animation/references/03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+        "referenceProvenance": "animation/references/03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.json",
+        "firstAndLastFrameLocked": true,
+        "prompt": "animation/prompts/03-white-silence-bell-hart-antler-body-h3-v04.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/03-white-silence-bell-hart-antler-body-h3-v04.mp4",
+        "provenance": "animation/videos/03-white-silence-bell-hart-antler-body-h3-v04.mp4.json",
+        "contactSheet": "animation/videos/03-white-silence-bell-hart-antler-body-h3-v04_contact.png",
+        "detailContactSheet": "animation/videos/03-white-silence-bell-hart-antler-body-h3-v04_contact-peak-detail.png",
+        "previewGif": "animation/videos/03-white-silence-bell-hart-antler-body-h3-v04_preview.gif",
+        "review": "passed: registration frame and baseline remain fixed; three support hooves stay within about one source pixel while only the near front hoof lifts and returns; one planted antler strike preserves the right-facing four-leg, rigid-antler, one-bell and three-pendant identity",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-antler-body-camera-audit.json",
+        "formalSpritePackage": "animation/formal/white-silence-bell-hart/antler-body/spritesheet-manifest.json",
+        "formalPreviewGif": "animation/formal/white-silence-bell-hart/antler-body/previews/white-silence-bell-hart-antler_body.gif",
+        "familyBudget": "animation/formal/white-silence-bell-hart/family-sprite-budget-manifest.json"
+      },
+      "longToneBodyH3V01": {
+        "action": "long_tone_body",
+        "keyframe": "animation/action-keyframes/03-white-silence-bell-hart-long-tone-prepare-v01.png",
+        "reference": "animation/action-references/03-white-silence-bell-hart-long-tone-prepare-v01-1024x576.png",
+        "referenceProvenance": "animation/action-references/03-white-silence-bell-hart-long-tone-prepare-v01-1024x576.json",
+        "firstAndLastFrameLocked": true,
+        "prompt": "animation/prompts/03-white-silence-bell-hart-long-tone-body-h3-v01.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/03-white-silence-bell-hart-long-tone-body-h3-v01.mp4",
+        "provenance": "animation/videos/03-white-silence-bell-hart-long-tone-body-h3-v01.mp4.json",
+        "contactSheet": "animation/videos/03-white-silence-bell-hart-long-tone-body-h3-v01_contact.png",
+        "releaseDetailContactSheet": "animation/videos/03-white-silence-bell-hart-long-tone-body-h3-v01-release-dense.png",
+        "tailDetailContactSheet": "animation/videos/03-white-silence-bell-hart-long-tone-body-h3-v01-tail-dense.png",
+        "previewGif": "animation/videos/03-white-silence-bell-hart-long-tone-body-h3-v01_preview.gif",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-long-tone-body-h3-v01-camera-audit.json",
+        "review": "passed: registration frame and baseline stay fixed; the rear planted hoof drifts only about -0.13..+1.51 source pixels while all four hooves remain registered; one bell performs one strong forward release and one weaker damped return without changing the right-facing four-leg, rigid-antler and three-pendant identity",
+        "formalSpritePackage": "animation/formal/white-silence-bell-hart/long-tone-body/spritesheet-manifest.json",
+        "formalPreviewGif": "animation/formal/white-silence-bell-hart/long-tone-body/previews/white-silence-bell-hart-long_tone_body.gif",
+        "familyBudget": "animation/formal/white-silence-bell-hart/family-sprite-budget-manifest.json"
+      },
+      "hoofSequenceBodyH3V01": {
+        "action": "hoof_sequence_body",
+        "reference": "animation/references/03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+        "firstAndLastFrameLocked": true,
+        "status": "rejected_raw_missing_second_hoof_and_overlapping_airborne_legs",
+        "rejectedMediaPruned": true,
+        "review": "rejected before cutout: only three active hoof episodes; the second hoof never lifts independently and the first and third hooves overlap airborne"
+      },
+      "hoofSequenceBodyH3V02": {
+        "action": "hoof_sequence_body",
+        "reference": "animation/references/03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+        "firstAndLastFrameLocked": true,
+        "prompt": "animation/prompts/03-white-silence-bell-hart-hoof-sequence-body-h3-v02.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02.mp4",
+        "provenance": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02.mp4.json",
+        "contactSheet": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02_contact.png",
+        "hoofDetailContactSheet": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02-hooves-dense.png",
+        "fourthAndTailContactSheet": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02-fourth-and-tail.png",
+        "previewGif": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02_preview.gif",
+        "hoofAudit": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02-hoof-audit.json",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02-camera-audit.json",
+        "review": "passed: four non-overlapping low hoof taps occur from screen-left to screen-right and each hoof returns to its own opening contact; registration frame, right-facing identity, four complete legs, one bell and exactly three pendants remain stable",
+        "formalSpritePackage": "animation/formal/white-silence-bell-hart/hoof-sequence-body/spritesheet-manifest.json",
+        "formalPreviewGif": "animation/formal/white-silence-bell-hart/hoof-sequence-body/previews/white-silence-bell-hart-hoof_sequence_body.gif",
+        "familyBudget": "animation/formal/white-silence-bell-hart/family-sprite-budget-manifest.json"
+      },
+      "rhythmShiftBodyH3V01": {
+        "action": "rhythm_shift_body",
+        "reference": "animation/references/03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+        "firstAndLastFrameLocked": true,
+        "prompt": "animation/prompts/03-white-silence-bell-hart-rhythm-shift-body-h3-v01.txt",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "video": "animation/videos/03-white-silence-bell-hart-rhythm-shift-body-h3-v01.mp4",
+        "provenance": "animation/videos/03-white-silence-bell-hart-rhythm-shift-body-h3-v01.mp4.json",
+        "contactSheet": "animation/videos/03-white-silence-bell-hart-rhythm-shift-body-h3-v01_contact.png",
+        "lockDetailContactSheet": "animation/videos/03-white-silence-bell-hart-rhythm-shift-body-h3-v01-lock-detail.png",
+        "previewGif": "animation/videos/03-white-silence-bell-hart-rhythm-shift-body-h3-v01_preview.gif",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-rhythm-shift-body-h3-v01-camera-audit.json",
+        "review": "passed: fixed registration and four planted hooves remain stable; one rear-to-front tuning rise reaches a held chest-and-neck phase-lock platform without becoming another long-tone attack, and the right-facing four-leg, rigid-antler, one-bell and three-pendant identity remains traceable",
+        "formalSpritePackage": "animation/formal/white-silence-bell-hart/rhythm-shift-body/spritesheet-manifest.json",
+        "formalPreviewGif": "animation/formal/white-silence-bell-hart/rhythm-shift-body/previews/white-silence-bell-hart-rhythm_shift_body.gif",
+        "familyBudget": "animation/formal/white-silence-bell-hart/family-sprite-budget-manifest.json"
+      },
+      "strideFormal": {
+        "action": "stride",
+        "sourceVideo": "animation/videos/03-white-silence-bell-hart-stride-h3-v01.mp4",
+        "status": "formal_sprite_asset_ready_not_runtime_integrated",
+        "loopAudit": "animation/videos/03-white-silence-bell-hart-stride-h3-v01-loop-audit.json",
+        "cameraAudit": "animation/videos/03-white-silence-bell-hart-stride-h3-v01-camera-audit.json",
+        "sourceWindow": [40, 93],
+        "sourceWindowSemantics": "half-open; source f93 is the excluded same-phase endpoint matching f40",
+        "review": "passed: one continuous four-leg alternating stride cycle keeps the screen-right axis and stable identity; the f92-to-f40 wrap supplies the missing half-step without a repeated endpoint or camera jump",
+        "formalSpritePackage": "animation/formal/white-silence-bell-hart/stride/spritesheet-manifest.json",
+        "formalPreviewGif": "animation/formal/white-silence-bell-hart/stride/previews/white-silence-bell-hart-stride.gif",
+        "familyBudget": "animation/formal/white-silence-bell-hart/family-sprite-budget-manifest.json"
+      },
+      "qualifiedAnimationSources": ["stride", "double_toll_body", "antler_body", "long_tone_body", "hoof_sequence_body", "rhythm_shift_body"],
+      "blockedStates": ["stride_navigation_translation_collision_and_runtime_state", "antler_directed_sector_damage_limp_and_runtime_state", "hoof_sequence_runtime_circles_damage_hit_cap_cooldown_and_state", "long_tone_runtime_rectangle_damage_stun_cooldown_and_state", "rhythm_shift_runtime_health_threshold_echo_counter_ring_damage_and_state", "double_toll_runtime_integration_and_external_rings"]
     },
     {
       "key": "permafrostChasmMaw",

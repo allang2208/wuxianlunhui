@@ -1,0 +1,23 @@
+{
+  "source": "action-keyframes/03-white-silence-bell-hart-long-tone-prepare-v01.png",
+  "output": "action-references/03-white-silence-bell-hart-long-tone-prepare-v01-1024x576.png",
+  "sourceSize": [
+    1672,
+    941
+  ],
+  "canvasSize": [
+    1024,
+    576
+  ],
+  "scale": 0.61211477151966,
+  "fittedSize": [
+    1023,
+    576
+  ],
+  "paste": [
+    0,
+    0
+  ],
+  "transform": "uniform scale plus white letterbox only; no crop or non-uniform stretch",
+  "purpose": "approved long_tone_body H3 first-and-last reference"
+}

@@ -8,8 +8,10 @@
   "budgetTier": "boss",
   "facing": "screen-right low three-quarter",
   "topologyGate": "four legs, antlers, one abdominal bell and exactly three pendants remain readable",
-  "rootMotion": "locked by lower-body anchor; no collider translation is baked into this sheet",
+  "rootMotion": "preserved from fixed raw-video source anchor x=417.0; no per-frame recentering",
   "sourceVideo": "animation/videos/03-white-silence-bell-hart-double-toll-h3-v01.mp4",
+  "sourceVideoProvider": "minimax-h3-local",
+  "sourceProvenance": "animation/videos/03-white-silence-bell-hart-double-toll-h3-v01.mp4.json",
   "sourceReference": "animation/action-references/03-white-silence-bell-hart-double-toll-prepare-1024x576.png",
   "selectedSourceFrames": [
     12,
@@ -54,8 +56,11 @@
     12,
     84
   ],
+  "sourceWindowSemantics": "inclusive [start, end]",
+  "duplicateEndpoint": null,
   "sourceVideoFps": 24,
   "sourceWallClockMs": 3000,
+  "formalWallClockMs": 3000,
   "excludedHead": [
     0,
     11
@@ -69,6 +74,7 @@
   "previewGif": "animation/formal/white-silence-bell-hart/previews/white-silence-bell-hart-double_toll_body.gif",
   "sourceContactSheet": "animation/formal/white-silence-bell-hart/previews/white-silence-bell-hart-double_toll_body-source-contact.png",
   "finalContactSheet": "animation/formal/white-silence-bell-hart/previews/white-silence-bell-hart-double_toll_body-contact.png",
+  "processingReport": "animation/formal/white-silence-bell-hart/reports/double-toll-body-rife.json",
   "rifeReport": "animation/formal/white-silence-bell-hart/reports/double-toll-body-rife.json",
   "interpolation": {
     "passes": 1,
@@ -87,8 +93,8 @@
     "endFrame": 72,
     "footX": 96,
     "footY": 240,
-    "targetBodyHeight": 224,
-    "baseScale": 0.5320665083135392
+    "targetBodyHeight": 208,
+    "baseScale": 0.49406175771971494
   },
   "clock": {
     "durationMs": 3000,
@@ -134,7 +140,7 @@
     "height": 1280,
     "decodedRgbaBytes": 14745600,
     "decodedRgbaMiB": 14.0625,
-    "pngBytes": 3109215,
+    "pngBytes": 2774671,
     "bossTargetMiB": 128,
     "bossHardStopMiB": 256,
     "withinSingleAssetBossTarget": true

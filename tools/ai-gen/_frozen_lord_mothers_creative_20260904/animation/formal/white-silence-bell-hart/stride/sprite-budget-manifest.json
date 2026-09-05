@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "white-silence-bell-hart-partial-stride-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "stride only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_white_silence_bell_hart_stride_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/stride/formal-final/stride.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 54,
+      "endFrame": 53,
+      "footX": 128,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

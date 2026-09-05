@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "white-silence-bell-hart-partial-hoof-sequence-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "hoof_sequence_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_white_silence_bell_hart_hoof_sequence_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/hoof-sequence-body/formal-final/hoof-sequence-body.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 57,
+      "endFrame": 56,
+      "footX": 128,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

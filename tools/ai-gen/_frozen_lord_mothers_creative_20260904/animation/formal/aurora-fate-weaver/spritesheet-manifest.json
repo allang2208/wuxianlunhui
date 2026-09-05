@@ -6,8 +6,11 @@
   "runtimeIntegrationActive": false,
   "budgetTier": "boss",
   "facing": "screen-right low three-quarter",
-  "rootMotion": "locked; runtime does not translate the collider during this body cast",
+  "topologyGate": "six planted walking legs and two shorter raised weaving arms remain distinct; the open biological ring, contained membrane and screen-right body axis stay readable",
+  "rootMotion": "legacy lower-body anchor registration; runtime does not translate the collider during this body cast",
   "sourceVideo": "animation/videos/02-aurora-fate-weaver-body-cast-h3-v02.mp4",
+  "sourceVideoProvider": "minimax-h3-local",
+  "sourceProvenance": "animation/videos/02-aurora-fate-weaver-body-cast-h3-v02.mp4.json",
   "sourceReference": "animation/action-references/02-aurora-fate-weaver-body-cast-v02-1024x576.png",
   "selectedSourceFrames": [
     0,

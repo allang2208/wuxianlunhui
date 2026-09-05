@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "snow-sepulcher-carrier-partial-advance-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "advance only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_snow_sepulcher_carrier_advance_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/snow-sepulcher-carrier/advance/formal-final/advance.png",
+      "frameWidth": 448,
+      "frameHeight": 256,
+      "frameCount": 88,
+      "endFrame": 87,
+      "footX": 224,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

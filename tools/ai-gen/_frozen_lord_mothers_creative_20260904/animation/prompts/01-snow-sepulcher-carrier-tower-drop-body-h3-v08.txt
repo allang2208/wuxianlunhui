@@ -1,0 +1,15 @@
+The exact six-legged snow-sepulcher carrier in the supplied first frame performs one organic heavy tower-volley bracing action in place. The body animation prepares and supports three external falling-block events; the blocks and impacts are created later by the game.
+
+Maintain the locked slightly elevated, side-dominant three-quarter camera. The armored wedge head stays on screen-right, the rear stays on screen-left, and the full creature remains at the same screen scale.
+
+0.00-0.75 seconds: the creature senses the distant target and gathers its weight. Its rear leg pair bends first, the middle pair firms up, and the front pair spreads pressure through the toes. All six feet remain planted, but the joints articulate independently so the body feels alive and extremely heavy.
+
+0.75-1.65 seconds: a smooth weight wave travels from the rear legs through the shoulders. The front torso rises slightly, the head draws back a small amount, and the rigid fused tower gains a restrained upward anticipation without bending or changing shape.
+
+1.65-2.55 seconds: the creature settles into one powerful low brace. Front, middle and rear pairs reach the loaded pose a few frames apart. The head counters downward, the snow-covered shell follows with soft secondary inertia, and the tower remains a vertical rigid mass. This is the single clear peak of the action.
+
+2.55-3.45 seconds: hold the loaded firing stance with natural muscular tension and tiny non-repeating weight adjustments. This stable interval supports three separately timed runtime volleys without three identical whole-body crouches.
+
+3.45-5.17 seconds: release the pressure from front to rear, return smoothly to the supplied ready stance, and become fully settled at the exact final frame.
+
+Preserve exactly six individually readable load-bearing legs, the central ruined tower and battlements, cairns, layered snow-and-stone armor, cyan ice seams, proportions and silhouette. Keep the visual root and common ground line stable on a uniform white background. No camera motion, turn, walking displacement, repeated full-body brace, projectile, target marker, impact, dust burst or magical effect.

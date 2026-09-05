@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-05T08:09:17.690211+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-antler-body-h3-v04.mp4",
+    "bytes": 504366,
+    "sha256": "6ef6140e49f8806feed1e68d8102af7a09448d422e7ecbeb36b777447df6776a"
+  },
+  "promptId": "074ad576-3d1f-4b31-aaaf-22abd8507937",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 28280549,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact white-silence bell hart makes one natural stationary antler strike toward screen-right, then recovers. This is a planted defensive attack, not a charge or step across the scene.\n\nUse one locked 1024x576 tripod shot. The pale frame, four corner brackets and thin baseline belong to the background and remain perfectly motionless in every frame. Keep focal length, framing and creature scale unchanged. The creature moves relative to these fixed guides; the camera never follows it.\n\nKeep the rear hoof, far rear hoof and far front hoof planted on their exact opening contacts. They flex under weight but never slide. Only the near front hoof may lift slightly and return to the same contact. The pelvis stays over the planted support triangle. Put the attack travel into the shoulders, articulated neck and head rather than translating the torso.\n\n0.00-0.75 seconds: subtle living alert through head and separate leg joints.\n0.75-1.75 seconds: staggered rear-leg tension and a smooth shoulder-neck coil while planted hooves stay fixed.\n1.75-2.45 seconds: one quick forward-down antler thrust and short sweep, led by the head and neck, with one clear contact peak.\n2.45-3.25 seconds: shoulders and legs absorb momentum in sequence; the abdominal bell sways only slightly.\n3.25-5.17 seconds: release tension and return naturally to the exact supplied stance.\n\nPreserve exactly four load-bearing legs, the right-facing beaked skull, unchanged rigid antlers, hollow rib frame, one bell and exactly three pendants. Keep the full silhouette inside the registration frame. No camera motion, zoom, reframing, root travel, support-hoof sliding, body turn, repeated strike, extra anatomy, attack VFX or cropping.",
+  "effectivePrompt": "The exact white-silence bell hart makes one natural stationary antler strike toward screen-right, then recovers. This is a planted defensive attack, not a charge or step across the scene.\n\nUse one locked 1024x576 tripod shot. The pale frame, four corner brackets and thin baseline belong to the background and remain perfectly motionless in every frame. Keep focal length, framing and creature scale unchanged. The creature moves relative to these fixed guides; the camera never follows it.\n\nKeep the rear hoof, far rear hoof and far front hoof planted on their exact opening contacts. They flex under weight but never slide. Only the near front hoof may lift slightly and return to the same contact. The pelvis stays over the planted support triangle. Put the attack travel into the shoulders, articulated neck and head rather than translating the torso.\n\n0.00-0.75 seconds: subtle living alert through head and separate leg joints.\n0.75-1.75 seconds: staggered rear-leg tension and a smooth shoulder-neck coil while planted hooves stay fixed.\n1.75-2.45 seconds: one quick forward-down antler thrust and short sweep, led by the head and neck, with one clear contact peak.\n2.45-3.25 seconds: shoulders and legs absorb momentum in sequence; the abdominal bell sways only slightly.\n3.25-5.17 seconds: release tension and return naturally to the exact supplied stance.\n\nPreserve exactly four load-bearing legs, the right-facing beaked skull, unchanged rigid antlers, hollow rib frame, one bell and exactly three pendants. Keep the full silhouette inside the registration frame. No camera motion, zoom, reframing, root travel, support-hoof sliding, body turn, repeated strike, extra anatomy, attack VFX or cropping, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact white-silence bell hart makes one natural stationary antler strike toward screen-right, then recovers. This is a planted defensive attack, not a charge or step across the scene.\n\nUse one locked 1024x576 tripod shot. The pale frame, four corner brackets and thin baseline belong to the background and remain perfectly motionless in every frame. Keep focal length, framing and creature scale unchanged. The creature moves relative to these fixed guides; the camera never follows it.\n\nKeep the rear hoof, far rear hoof and far front hoof planted on their exact opening contacts. They flex under weight but never slide. Only the near front hoof may lift slightly and return to the same contact. The pelvis stays over the planted support triangle. Put the attack travel into the shoulders, articulated neck and head rather than translating the torso.\n\n0.00-0.75 seconds: subtle living alert through head and separate leg joints.\n0.75-1.75 seconds: staggered rear-leg tension and a smooth shoulder-neck coil while planted hooves stay fixed.\n1.75-2.45 seconds: one quick forward-down antler thrust and short sweep, led by the head and neck, with one clear contact peak.\n2.45-3.25 seconds: shoulders and legs absorb momentum in sequence; the abdominal bell sways only slightly.\n3.25-5.17 seconds: release tension and return naturally to the exact supplied stance.\n\nPreserve exactly four load-bearing legs, the right-facing beaked skull, unchanged rigid antlers, hollow rib frame, one bell and exactly three pendants. Keep the full silhouette inside the registration frame. No camera motion, zoom, reframing, root travel, support-hoof sliding, body turn, repeated strike, extra anatomy, attack VFX or cropping, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "849c0397fc5047ea0ebca5afaa54bad5a6e1b6d906d39e678d3b3577f67a61d3",
+  "effectivePromptSha256": "40f12aec2cbbe42b355b888bdb22b51a63e40fadadda211280428856599e7020",
+  "finalPromptSha256": "3da15c0640db718e49166de2682cf555038009f746af9f55fae7e1a9cf1f2aaf",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\03-white-silence-bell-hart-antler-body-h3-v04.txt",
+      "bytes": 1712,
+      "sha256": "8accde30c1ab5251823ccbcc5bc71834ddcb55af33f3effd3b6f9bdf56e0419f"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+      "bytes": 202964,
+      "sha256": "d0b4ab6792174f7ca33c0a594e4be45d8e6e0966c0698a9028761303890dd5e2"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\03-white-silence-bell-hart-locomotion-fixed-camera-1024x576.png",
+      "bytes": 202964,
+      "sha256": "d0b4ab6792174f7ca33c0a594e4be45d8e6e0966c0698a9028761303890dd5e2"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-antler-body-h3-v04_contact.png",
+    "bytes": 336828,
+    "sha256": "c614ab2b563f7fcca41e90c10bd353726c7a1a859cedc71e3fe201d39d9eb6e5"
+  },
+  "elapsedSeconds": 461.699
+}

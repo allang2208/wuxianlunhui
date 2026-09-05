@@ -4,11 +4,13 @@
   "profile": "boss",
   "assetOnly": true,
   "runtimeIntegrationActive": false,
-  "scope": "approved formal body actions only; locomotion, VFX, damage and full boss dependency closure are not included",
-  "decodedRgbaMiB": 94.7188,
+  "scope": "approved formal body actions plus the seek_band locomotion loop; VFX, damage, navigation and full boss dependency closure are not included",
+  "decodedRgbaMiB": 202.875,
   "bossTargetMiB": 128,
   "bossHardStopMiB": 256,
-  "withinFamilyBossTarget": true,
+  "withinFamilyBossTarget": false,
+  "withinFamilyBossHardStop": true,
+  "targetException": "user explicitly continued after the 128 MiB over-target warning; the 256 MiB boss hard stop remains enforced",
   "sheets": [
     {
       "action": "triangle_weave_body",
@@ -45,6 +47,42 @@
       "footX": 192,
       "footY": 240,
       "decodedRgbaMiB": 39.375
+    },
+    {
+      "action": "cut_body",
+      "textureKey": "enemy_aurora_fate_weaver_cut_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/cut-body/formal-final/cut-body.png",
+      "frameWidth": 352,
+      "frameHeight": 256,
+      "frameCount": 85,
+      "endFrame": 84,
+      "footX": 176,
+      "footY": 240,
+      "decodedRgbaMiB": 30.25
+    },
+    {
+      "action": "reweave_body",
+      "textureKey": "enemy_aurora_fate_weaver_reweave_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/reweave-body/formal-final/reweave-body.png",
+      "frameWidth": 288,
+      "frameHeight": 256,
+      "frameCount": 121,
+      "endFrame": 120,
+      "footX": 144,
+      "footY": 240,
+      "decodedRgbaMiB": 34.0312
+    },
+    {
+      "action": "seek_band",
+      "textureKey": "enemy_aurora_fate_weaver_seek_band_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/seek-band/formal-final/seek-band.png",
+      "frameWidth": 416,
+      "frameHeight": 256,
+      "frameCount": 108,
+      "endFrame": 107,
+      "footX": 208,
+      "footY": 240,
+      "decodedRgbaMiB": 43.875
     }
   ],
   "dependencies": []

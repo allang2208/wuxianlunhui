@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "white-silence-bell-hart-partial-antler-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "antler_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_white_silence_bell_hart_antler_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/antler-body/formal-final/antler-body.png",
+      "frameWidth": 352,
+      "frameHeight": 256,
+      "frameCount": 101,
+      "endFrame": 100,
+      "footX": 176,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

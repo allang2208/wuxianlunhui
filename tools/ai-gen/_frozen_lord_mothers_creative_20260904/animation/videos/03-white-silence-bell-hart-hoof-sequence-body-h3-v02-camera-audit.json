@@ -1,0 +1,474 @@
+{
+  "method": "raw-video non-white subject silhouette; outer registration band excluded from subject measurement; no frame transformed",
+  "video": "videos/03-white-silence-bell-hart-hoof-sequence-body-h3-v02.mp4",
+  "decodedFrames": 124,
+  "baseline": {
+    "bbox": [
+      300,
+      97,
+      641,
+      516
+    ],
+    "width": 342,
+    "height": 420,
+    "area": 40928,
+    "centerX": 456.35,
+    "rootX": 429.0,
+    "footXs": [
+      315.18,
+      386.86,
+      460.19,
+      531.72
+    ],
+    "rearFootX": 315.18
+  },
+  "activeWindow0To104": {
+    "rootDeltaXRange": [
+      -16.0,
+      11.0
+    ],
+    "rearFootDeltaXRange": [
+      0.0,
+      17.78
+    ],
+    "heightRatioRange": [
+      0.9786,
+      1.0167
+    ],
+    "areaRatioRange": [
+      0.9941,
+      1.0235
+    ]
+  },
+  "samples": [
+    {
+      "bbox": [
+        300,
+        97,
+        641,
+        516
+      ],
+      "width": 342,
+      "height": 420,
+      "area": 40928,
+      "centerX": 456.35,
+      "rootX": 429.0,
+      "footXs": [
+        315.18,
+        386.86,
+        460.19,
+        531.72
+      ],
+      "rearFootX": 315.18,
+      "frame": 0,
+      "rootDeltaX": 0.0,
+      "rearFootDeltaX": 0.0,
+      "heightRatio": 1.0,
+      "areaRatio": 1.0,
+      "footDeltaXs": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "bbox": [
+        302,
+        100,
+        643,
+        516
+      ],
+      "width": 342,
+      "height": 417,
+      "area": 41022,
+      "centerX": 459.24,
+      "rootX": 432.0,
+      "footXs": [
+        316.26,
+        386.84,
+        460.25,
+        531.64
+      ],
+      "rearFootX": 316.26,
+      "frame": 8,
+      "rootDeltaX": 3.0,
+      "rearFootDeltaX": 1.08,
+      "heightRatio": 0.9929,
+      "areaRatio": 1.0023,
+      "footDeltaXs": [
+        1.08,
+        -0.02,
+        0.06,
+        -0.08
+      ]
+    },
+    {
+      "bbox": [
+        315,
+        102,
+        649,
+        516
+      ],
+      "width": 335,
+      "height": 415,
+      "area": 40685,
+      "centerX": 465.54,
+      "rootX": 440.0,
+      "footXs": [
+        332.96,
+        386.82,
+        460.32,
+        531.63
+      ],
+      "rearFootX": 332.96,
+      "frame": 16,
+      "rootDeltaX": 11.0,
+      "rearFootDeltaX": 17.78,
+      "heightRatio": 0.9881,
+      "areaRatio": 0.9941,
+      "footDeltaXs": [
+        17.78,
+        -0.04,
+        0.13,
+        -0.09
+      ]
+    },
+    {
+      "bbox": [
+        301,
+        97,
+        641,
+        516
+      ],
+      "width": 341,
+      "height": 420,
+      "area": 41450,
+      "centerX": 455.81,
+      "rootX": 431.0,
+      "footXs": [
+        315.41,
+        386.81,
+        460.18,
+        531.46
+      ],
+      "rearFootX": 315.41,
+      "frame": 24,
+      "rootDeltaX": 2.0,
+      "rearFootDeltaX": 0.23,
+      "heightRatio": 1.0,
+      "areaRatio": 1.0128,
+      "footDeltaXs": [
+        0.23,
+        -0.05,
+        -0.01,
+        -0.26
+      ]
+    },
+    {
+      "bbox": [
+        297,
+        102,
+        632,
+        516
+      ],
+      "width": 336,
+      "height": 415,
+      "area": 41337,
+      "centerX": 447.58,
+      "rootX": 419.0,
+      "footXs": [
+        315.32,
+        393.18,
+        460.04,
+        531.4
+      ],
+      "rearFootX": 315.32,
+      "frame": 32,
+      "rootDeltaX": -10.0,
+      "rearFootDeltaX": 0.14,
+      "heightRatio": 0.9881,
+      "areaRatio": 1.01,
+      "footDeltaXs": [
+        0.14,
+        6.32,
+        -0.15,
+        -0.32
+      ]
+    },
+    {
+      "bbox": [
+        296,
+        96,
+        629,
+        516
+      ],
+      "width": 334,
+      "height": 421,
+      "area": 41310,
+      "centerX": 446.91,
+      "rootX": 415.0,
+      "footXs": [
+        315.28,
+        402.4,
+        410.92,
+        460.04,
+        531.46
+      ],
+      "rearFootX": 315.28,
+      "frame": 40,
+      "rootDeltaX": -14.0,
+      "rearFootDeltaX": 0.1,
+      "heightRatio": 1.0024,
+      "areaRatio": 1.0093
+    },
+    {
+      "bbox": [
+        301,
+        99,
+        640,
+        513
+      ],
+      "width": 340,
+      "height": 415,
+      "area": 41376,
+      "centerX": 457.15,
+      "rootX": 429.0,
+      "footXs": [
+        315.2,
+        386.6,
+        467.47,
+        531.23
+      ],
+      "rearFootX": 315.2,
+      "frame": 48,
+      "rootDeltaX": 0.0,
+      "rearFootDeltaX": 0.02,
+      "heightRatio": 0.9881,
+      "areaRatio": 1.0109,
+      "footDeltaXs": [
+        0.02,
+        -0.26,
+        7.28,
+        -0.49
+      ]
+    },
+    {
+      "bbox": [
+        301,
+        102,
+        649,
+        513
+      ],
+      "width": 349,
+      "height": 412,
+      "area": 40945,
+      "centerX": 464.61,
+      "rootX": 438.0,
+      "footXs": [
+        315.28,
+        386.68,
+        479.66,
+        531.46
+      ],
+      "rearFootX": 315.28,
+      "frame": 56,
+      "rootDeltaX": 9.0,
+      "rearFootDeltaX": 0.1,
+      "heightRatio": 0.981,
+      "areaRatio": 1.0004,
+      "footDeltaXs": [
+        0.1,
+        -0.18,
+        19.47,
+        -0.26
+      ]
+    },
+    {
+      "bbox": [
+        301,
+        98,
+        640,
+        516
+      ],
+      "width": 340,
+      "height": 419,
+      "area": 41255,
+      "centerX": 455.36,
+      "rootX": 431.0,
+      "footXs": [
+        315.34,
+        386.89,
+        460.25,
+        531.43
+      ],
+      "rearFootX": 315.34,
+      "frame": 64,
+      "rootDeltaX": 2.0,
+      "rearFootDeltaX": 0.16,
+      "heightRatio": 0.9976,
+      "areaRatio": 1.008,
+      "footDeltaXs": [
+        0.16,
+        0.03,
+        0.06,
+        -0.29
+      ]
+    },
+    {
+      "bbox": [
+        298,
+        102,
+        629,
+        516
+      ],
+      "width": 332,
+      "height": 415,
+      "area": 41196,
+      "centerX": 447.03,
+      "rootX": 418.0,
+      "footXs": [
+        315.34,
+        386.84,
+        460.15,
+        536.95
+      ],
+      "rearFootX": 315.34,
+      "frame": 72,
+      "rootDeltaX": -11.0,
+      "rearFootDeltaX": 0.16,
+      "heightRatio": 0.9881,
+      "areaRatio": 1.0065,
+      "footDeltaXs": [
+        0.16,
+        -0.02,
+        -0.04,
+        5.23
+      ]
+    },
+    {
+      "bbox": [
+        298,
+        91,
+        628,
+        516
+      ],
+      "width": 331,
+      "height": 426,
+      "area": 41434,
+      "centerX": 446.87,
+      "rootX": 416.0,
+      "footXs": [
+        315.33,
+        386.71,
+        460.13,
+        531.5
+      ],
+      "rearFootX": 315.33,
+      "frame": 84,
+      "rootDeltaX": -13.0,
+      "rearFootDeltaX": 0.15,
+      "heightRatio": 1.0143,
+      "areaRatio": 1.0124,
+      "footDeltaXs": [
+        0.15,
+        -0.15,
+        -0.06,
+        -0.22
+      ]
+    },
+    {
+      "bbox": [
+        301,
+        100,
+        640,
+        516
+      ],
+      "width": 340,
+      "height": 417,
+      "area": 41079,
+      "centerX": 455.83,
+      "rootX": 428.0,
+      "footXs": [
+        315.33,
+        386.91,
+        460.28,
+        531.51
+      ],
+      "rearFootX": 315.33,
+      "frame": 96,
+      "rootDeltaX": -1.0,
+      "rearFootDeltaX": 0.15,
+      "heightRatio": 0.9929,
+      "areaRatio": 1.0037,
+      "footDeltaXs": [
+        0.15,
+        0.05,
+        0.09,
+        -0.21
+      ]
+    },
+    {
+      "bbox": [
+        301,
+        97,
+        641,
+        516
+      ],
+      "width": 341,
+      "height": 420,
+      "area": 40733,
+      "centerX": 456.51,
+      "rootX": 430.0,
+      "footXs": [
+        315.34,
+        386.85,
+        460.31,
+        531.6
+      ],
+      "rearFootX": 315.34,
+      "frame": 108,
+      "rootDeltaX": 1.0,
+      "rearFootDeltaX": 0.16,
+      "heightRatio": 1.0,
+      "areaRatio": 0.9952,
+      "footDeltaXs": [
+        0.16,
+        -0.01,
+        0.12,
+        -0.12
+      ]
+    },
+    {
+      "bbox": [
+        301,
+        97,
+        641,
+        516
+      ],
+      "width": 341,
+      "height": 420,
+      "area": 40684,
+      "centerX": 456.45,
+      "rootX": 429.0,
+      "footXs": [
+        315.32,
+        386.85,
+        460.31,
+        531.61
+      ],
+      "rearFootX": 315.32,
+      "frame": 123,
+      "rootDeltaX": 0.0,
+      "rearFootDeltaX": 0.14,
+      "heightRatio": 1.0,
+      "areaRatio": 0.994,
+      "footDeltaXs": [
+        0.14,
+        -0.01,
+        0.12,
+        -0.11
+      ]
+    }
+  ]
+}

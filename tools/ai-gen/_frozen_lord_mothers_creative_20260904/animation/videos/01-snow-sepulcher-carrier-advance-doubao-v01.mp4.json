@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\01-snow-sepulcher-carrier-locomotion-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\01-snow-sepulcher-carrier-advance-doubao-v01.txt",
+  "promptChars": 879,
+  "promptSha256": "d3594a7dfed88acac0ad81085c36134bc06232739153ea2b8c739eb0d21d1559",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-05T03:23:44.955Z",
+  "sourceUrlScheme": "https"
+}

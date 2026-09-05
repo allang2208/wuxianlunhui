@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "snow-sepulcher-carrier-partial-trample-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "trample_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_snow_sepulcher_carrier_trample_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/snow-sepulcher-carrier/trample-body/formal-final/trample-body.png",
+      "frameWidth": 480,
+      "frameHeight": 256,
+      "frameCount": 85,
+      "endFrame": 84,
+      "footX": 240,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

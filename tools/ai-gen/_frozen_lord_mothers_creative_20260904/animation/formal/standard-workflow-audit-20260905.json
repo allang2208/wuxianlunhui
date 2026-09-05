@@ -1,0 +1,620 @@
+{
+  "version": 1,
+  "scope": "offline formal sprite/source/provenance/interpolation/clock/GIF/family-budget audit; no game runtime, build or browser validation",
+  "standardReferences": [
+    "SKILL.md animation index",
+    "skill/16b-animation-alignment-and-timing.md sections 1.1-7",
+    "tools/ai-gen/WORKFLOW.md section 3.6",
+    ".agents/skills/game-dev-lessons/lessons.md sections 62-65"
+  ],
+  "actionCount": 16,
+  "familyCount": 3,
+  "errorCount": 0,
+  "warningCount": 9,
+  "result": "pass",
+  "actions": [
+    {
+      "manifest": "animation/formal/aurora-fate-weaver/cut-body/spritesheet-manifest.json",
+      "action": "cut_body",
+      "provider": "doubao-desktop-seedance-2.0-mini",
+      "sourceVideoDecodedFrames": 121,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        352,
+        256
+      ],
+      "atlasSize": [
+        2816,
+        2816
+      ],
+      "frameCount": 85,
+      "durationMs": 3500,
+      "gifDurationMs": 3500,
+      "targetBodyHeight": 224,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.034091,
+      "decodedRgbaMiB": 30.25,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        20
+      ],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/aurora-fate-weaver/oldstep-body/spritesheet-manifest.json",
+      "action": "oldstep_body",
+      "provider": "doubao-desktop-seedance-2.0-mini",
+      "sourceVideoDecodedFrames": 121,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        320,
+        256
+      ],
+      "atlasSize": [
+        2560,
+        2816
+      ],
+      "frameCount": 85,
+      "durationMs": 3500,
+      "gifDurationMs": 3500,
+      "targetBodyHeight": 224,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.034091,
+      "decodedRgbaMiB": 27.5,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        24,
+        50,
+        66
+      ],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/aurora-fate-weaver/reweave-body/spritesheet-manifest.json",
+      "action": "reweave_body",
+      "provider": "doubao-desktop-seedance-2.0-mini",
+      "sourceVideoDecodedFrames": 121,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        288,
+        256
+      ],
+      "atlasSize": [
+        3168,
+        2816
+      ],
+      "frameCount": 121,
+      "durationMs": 5000,
+      "gifDurationMs": 5000,
+      "targetBodyHeight": 224,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.0,
+      "decodedRgbaMiB": 34.0312,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        84
+      ],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/aurora-fate-weaver/seek-band/spritesheet-manifest.json",
+      "action": "seek_band",
+      "provider": "doubao-desktop-seedance-2.0-mini",
+      "sourceVideoDecodedFrames": 121,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        416,
+        256
+      ],
+      "atlasSize": [
+        3744,
+        3072
+      ],
+      "frameCount": 108,
+      "durationMs": 4500,
+      "gifDurationMs": 4500,
+      "targetBodyHeight": 224,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        240
+      ],
+      "trailingEmptyRatio": 0.0,
+      "decodedRgbaMiB": 43.875,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/aurora-fate-weaver/spritesheet-manifest.json",
+      "action": "triangle_weave_body",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        352,
+        256
+      ],
+      "atlasSize": [
+        3168,
+        2304
+      ],
+      "frameCount": 81,
+      "durationMs": 3333,
+      "gifDurationMs": 3330,
+      "targetBodyHeight": 224,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.0,
+      "decodedRgbaMiB": 27.8438,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        48
+      ],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/aurora-fate-weaver/tether-body/spritesheet-manifest.json",
+      "action": "tether_body",
+      "provider": "doubao-desktop-seedance-2.0-mini",
+      "sourceVideoDecodedFrames": 121,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        384,
+        256
+      ],
+      "atlasSize": [
+        2688,
+        3840
+      ],
+      "frameCount": 105,
+      "durationMs": 4333,
+      "gifDurationMs": 4330,
+      "targetBodyHeight": 224,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        240
+      ],
+      "trailingEmptyRatio": 0.0,
+      "decodedRgbaMiB": 39.375,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        32,
+        58
+      ],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/snow-sepulcher-carrier/advance/spritesheet-manifest.json",
+      "action": "advance",
+      "provider": "doubao-desktop-seedance-2.0-mini",
+      "sourceVideoDecodedFrames": 121,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        448,
+        256
+      ],
+      "atlasSize": [
+        3584,
+        2816
+      ],
+      "frameCount": 88,
+      "durationMs": 3667,
+      "gifDurationMs": 3670,
+      "targetBodyHeight": 222,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        240
+      ],
+      "trailingEmptyRatio": 0.0,
+      "decodedRgbaMiB": 38.5,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/snow-sepulcher-carrier/spritesheet-manifest.json",
+      "action": "plow_prepare",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        480,
+        256
+      ],
+      "atlasSize": [
+        3840,
+        3072
+      ],
+      "frameCount": 93,
+      "durationMs": 3833,
+      "gifDurationMs": 3830,
+      "targetBodyHeight": 222,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.03125,
+      "decodedRgbaMiB": 45.0,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        60
+      ],
+      "rootPolicy": "fixed-source-anchor",
+      "errors": [],
+      "warnings": [],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/snow-sepulcher-carrier/tower-drop-body/spritesheet-manifest.json",
+      "action": "tower_drop_body",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        448,
+        256
+      ],
+      "atlasSize": [
+        4032,
+        3584
+      ],
+      "frameCount": 123,
+      "durationMs": 5083,
+      "gifDurationMs": 5080,
+      "targetBodyHeight": 222,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.02381,
+      "decodedRgbaMiB": 55.125,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        64,
+        72,
+        80
+      ],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/snow-sepulcher-carrier/trample-body/spritesheet-manifest.json",
+      "action": "trample_body",
+      "provider": "doubao-desktop-seedance-2.0-mini",
+      "sourceVideoDecodedFrames": 121,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        480,
+        256
+      ],
+      "atlasSize": [
+        3840,
+        2816
+      ],
+      "frameCount": 85,
+      "durationMs": 3500,
+      "gifDurationMs": 3500,
+      "targetBodyHeight": 222,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.034091,
+      "decodedRgbaMiB": 41.25,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        26
+      ],
+      "rootPolicy": "legacy-lower-body-registration",
+      "errors": [],
+      "warnings": [
+        "legacy lower-body registration retained; accepted visual contacts require manual root-motion review"
+      ],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/white-silence-bell-hart/antler-body/spritesheet-manifest.json",
+      "action": "antler_body",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        352,
+        256
+      ],
+      "atlasSize": [
+        2816,
+        3328
+      ],
+      "frameCount": 101,
+      "durationMs": 4167,
+      "gifDurationMs": 4170,
+      "targetBodyHeight": 208,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.028846,
+      "decodedRgbaMiB": 35.75,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        60
+      ],
+      "rootPolicy": "fixed-source-anchor",
+      "errors": [],
+      "warnings": [],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/white-silence-bell-hart/hoof-sequence-body/spritesheet-manifest.json",
+      "action": "hoof_sequence_body",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        256,
+        256
+      ],
+      "atlasSize": [
+        1536,
+        2560
+      ],
+      "frameCount": 57,
+      "durationMs": 2333,
+      "gifDurationMs": 2330,
+      "targetBodyHeight": 208,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        240
+      ],
+      "trailingEmptyRatio": 0.05,
+      "decodedRgbaMiB": 15.0,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        16,
+        24,
+        32,
+        40
+      ],
+      "rootPolicy": "fixed-source-anchor",
+      "errors": [],
+      "warnings": [],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/white-silence-bell-hart/long-tone-body/spritesheet-manifest.json",
+      "action": "long_tone_body",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        320,
+        256
+      ],
+      "atlasSize": [
+        3200,
+        2816
+      ],
+      "frameCount": 109,
+      "durationMs": 4500,
+      "gifDurationMs": 4500,
+      "targetBodyHeight": 208,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.009091,
+      "decodedRgbaMiB": 34.375,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        56
+      ],
+      "rootPolicy": "fixed-source-anchor",
+      "errors": [],
+      "warnings": [],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/white-silence-bell-hart/rhythm-shift-body/spritesheet-manifest.json",
+      "action": "rhythm_shift_body",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        256,
+        256
+      ],
+      "atlasSize": [
+        2560,
+        2816
+      ],
+      "frameCount": 109,
+      "durationMs": 4500,
+      "gifDurationMs": 4500,
+      "targetBodyHeight": 208,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.009091,
+      "decodedRgbaMiB": 27.5,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        52
+      ],
+      "rootPolicy": "fixed-source-anchor",
+      "errors": [],
+      "warnings": [],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/white-silence-bell-hart/spritesheet-manifest.json",
+      "action": "double_toll_body",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        192,
+        256
+      ],
+      "atlasSize": [
+        2880,
+        1280
+      ],
+      "frameCount": 73,
+      "durationMs": 3000,
+      "gifDurationMs": 3000,
+      "targetBodyHeight": 208,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.026667,
+      "decodedRgbaMiB": 14.0625,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [
+        24,
+        50
+      ],
+      "rootPolicy": "fixed-source-anchor",
+      "errors": [],
+      "warnings": [],
+      "result": "pass"
+    },
+    {
+      "manifest": "animation/formal/white-silence-bell-hart/stride/spritesheet-manifest.json",
+      "action": "stride",
+      "provider": "minimax-h3-local",
+      "sourceVideoDecodedFrames": 124,
+      "sourceVideoFps": 24.0,
+      "frameSize": [
+        256,
+        256
+      ],
+      "atlasSize": [
+        1536,
+        2304
+      ],
+      "frameCount": 54,
+      "durationMs": 2208,
+      "gifDurationMs": 2210,
+      "targetBodyHeight": 208,
+      "footY": 240,
+      "alphaBottomRange": [
+        239,
+        239
+      ],
+      "trailingEmptyRatio": 0.0,
+      "decodedRgbaMiB": 13.5,
+      "nativeKeysPreservedExactly": true,
+      "outputEventFrames0Based": [],
+      "rootPolicy": "fixed-source-anchor",
+      "errors": [],
+      "warnings": [],
+      "result": "pass"
+    }
+  ],
+  "families": [
+    {
+      "asset": "aurora-fate-weaver",
+      "actionCount": 6,
+      "targetBodyHeight": 224,
+      "decodedRgbaMiB": 202.875,
+      "bossTargetMiB": 128,
+      "bossHardStopMiB": 256,
+      "targetException": "user explicitly continued after the 128 MiB over-target warning; the 256 MiB boss hard stop remains enforced",
+      "keyframeMontage": "animation/formal/audit-keyframes-20260905/aurora-fate-weaver-formal-keyframes.png",
+      "errors": [],
+      "result": "pass"
+    },
+    {
+      "asset": "snow-sepulcher-carrier",
+      "actionCount": 4,
+      "targetBodyHeight": 222,
+      "decodedRgbaMiB": 179.875,
+      "bossTargetMiB": 128,
+      "bossHardStopMiB": 256,
+      "targetException": "user rejected the rigid 22.75 MiB derived tower_drop_body and requested regeneration after the existing 124.75 MiB family total and expected 128 MiB target overrun were stated; the accepted natural H3 v08 replacement raises the active family to 179.875 MiB while the 256 MiB hard stop remains enforced",
+      "keyframeMontage": "animation/formal/audit-keyframes-20260905/snow-sepulcher-carrier-formal-keyframes.png",
+      "errors": [],
+      "result": "pass"
+    },
+    {
+      "asset": "white-silence-bell-hart",
+      "actionCount": 6,
+      "targetBodyHeight": 208,
+      "decodedRgbaMiB": 140.1875,
+      "bossTargetMiB": 128,
+      "bossHardStopMiB": 256,
+      "targetException": "user explicitly requested completion and repeated rerolls to qualified motion; preserve the six accepted formal actions below the 256 MiB hard stop rather than discard approved action coverage",
+      "keyframeMontage": "animation/formal/audit-keyframes-20260905/white-silence-bell-hart-formal-keyframes.png",
+      "errors": [],
+      "result": "pass"
+    }
+  ]
+}

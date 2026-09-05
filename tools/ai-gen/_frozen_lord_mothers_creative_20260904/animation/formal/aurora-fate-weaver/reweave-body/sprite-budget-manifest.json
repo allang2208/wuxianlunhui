@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "aurora-fate-weaver-partial-reweave-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "reweave_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_aurora_fate_weaver_reweave_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/reweave-body/formal-final/reweave-body.png",
+      "frameWidth": 288,
+      "frameHeight": 256,
+      "frameCount": 121,
+      "endFrame": 120,
+      "footX": 144,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}
