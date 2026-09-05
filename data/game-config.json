@@ -1918,6 +1918,8 @@
       "boss": "#ff0000",
       "enemy": "#ff4444",
       "drop": "#ffd700",
+      "friendlyBuilding": "#59a9ff",
+      "friendlyUnit": "#56e39f",
       "player": "#00ff00",
       "playerArrow": "#00ff00"
     },
@@ -1926,6 +1928,8 @@
       "portalRadius": 2.5,
       "enemyRadius": 1.5,
       "dropRadius": 1,
+      "friendlyBuildingRadius": 2.5,
+      "friendlyUnitRadius": 1.75,
       "playerRadius": 3,
       "playerArrowLength": 6,
       "riftRadius": 2
