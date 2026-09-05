@@ -1,4 +1,6 @@
 const EMPTY_POPULATION_SNAPSHOT = Object.freeze({
+    viewRevision: 0,
+    total: 0,
     used: 0,
     capacity: 0,
     free: 0,
@@ -8,11 +10,14 @@ const EMPTY_POPULATION_SNAPSHOT = Object.freeze({
 function normalizePopulationSnapshot(snapshot) {
     const used = Math.max(0, Math.floor(Number(snapshot?.used) || 0));
     const capacity = Math.max(0, Math.floor(Number(snapshot?.capacity) || 0));
+    const total = Math.max(0, Math.floor(Number(snapshot?.total) || 0));
     return {
+        viewRevision: Math.max(0, Math.floor(Number(snapshot?.viewRevision) || 0)),
+        total,
         used,
         capacity,
-        free: Math.max(0, capacity - used),
-        overcrowded: Math.max(0, used - capacity),
+        free: Math.max(0, total - used),
+        overcrowded: Math.max(0, total - capacity),
     };
 }
 
