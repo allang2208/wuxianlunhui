@@ -50,8 +50,15 @@ export function classifyDefenseTarget(entity) {
     return DEFENSE_TARGET_TYPE.INVALID;
 }
 
-export function isDefenseTargetEligible(entity) {
+/** 与 CombatSystem 的普通攻击选择一致；软掩护不能成为普通弹体的直接攻击目标。 */
+export function canAttackDefenseTarget(enemy, entity) {
+    return !entity?._projectileSoftCover
+        || !(enemy?._isHumanoid || enemy?.attacks?.ranged);
+}
+
+export function isDefenseTargetEligible(entity, enemy = null) {
     if (!entity || !entity.active || entity.hittable === false) return false;
+    if (!canAttackDefenseTarget(enemy, entity)) return false;
     if (entity.hp !== undefined && entity.hp <= 0) return false;
     if (typeof entity.x !== 'number' || typeof entity.y !== 'number') return false;
     return classifyDefenseTarget(entity) !== DEFENSE_TARGET_TYPE.INVALID;
@@ -104,7 +111,7 @@ export function pickDefensePriorityTarget(enemy, entities, {
     const farUnits = [];
 
     for (const entity of iter) {
-        if (entity === enemy || entity === exclude || !isDefenseTargetEligible(entity)) continue;
+        if (entity === enemy || entity === exclude || !isDefenseTargetEligible(entity, enemy)) continue;
         const meta = defenseTargetMeta(enemy, entity);
         if (meta.distance > alertRange) continue;
         // 隔墙单位不能占住本地池，否则怪物既不会回退到挡路结构，也无法出手。
@@ -146,7 +153,7 @@ export function isDefenseAttackInProgress(enemy) {
 /** 距离档位稳定切换；同档才比较类型，避免每次扫描因几像素变化来回跳目标。 */
 export function shouldSwitchDefenseTarget(enemy, current, candidate) {
     if (!candidate || !candidate.target || candidate.target === current) return false;
-    if (!current || !isDefenseTargetEligible(current)) return true;
+    if (!current || !isDefenseTargetEligible(current, enemy)) return true;
     if (isDefenseAttackInProgress(enemy)) return false;
 
     const cur = defenseTargetMeta(enemy, current);
