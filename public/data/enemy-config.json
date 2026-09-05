@@ -918,6 +918,10 @@
    "weight": 1,
    "assaultReady": true
   },
+  "attackTelegraph": {
+   "overlapWindup": true,
+   "durationMs": 300
+  },
   "id": "carnivorousPitcher",
   "name": "食人花",
   "hp": 735,
