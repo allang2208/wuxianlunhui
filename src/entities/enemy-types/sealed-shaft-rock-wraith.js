@@ -1,3 +1,7 @@
+import { attackFrameAt, attackFrameStartMs } from './_shared/attack-timing.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { hasAttackLineOfSight } from '../../combat/melee-reach.js';
+import { canStartGroundSkill } from './_shared/attack-shapes.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { DamagePipeline } from '../../combat/damage-pipeline.js';
@@ -33,6 +37,7 @@ export class SealedShaftRockWraith extends Enemy {
 
         this._animState = 'idle';
         this._animStateTimer = 0;
+        this._heldVisualFrame = null;
         this._action = null;
         this._actionCfg = null;
         this._actionDuration = 0;
@@ -50,6 +55,7 @@ export class SealedShaftRockWraith extends Enemy {
         this._chargeDir = { x: 1, y: 0 };
         this._chargeTraveled = 0;
         this._chargeStopped = true;
+        this._chargeRecoveryAt = null;
         this._prevNoCollision = this.noCollision;
 
         this._preserveCorpse = true;
@@ -57,6 +63,7 @@ export class SealedShaftRockWraith extends Enemy {
         this._corpseTimer = 0;
         this._fadeTimer = 0;
         this._syncApproachProfile();
+        this._syncVisualMetrics();
     }
 
     _skill(key) {
@@ -66,11 +73,11 @@ export class SealedShaftRockWraith extends Enemy {
     _layout(key = this._animState) {
         const layouts = this.config?.textures?.frameLayouts || {};
         return layouts[key] || layouts.idle || {
-            frameWidth: 320,
-            frameHeight: 512,
+            frameWidth: 254,
+            frameHeight: 412,
             frameCount: 1,
-            footY: 490,
-            authoredBodyHeight: 460,
+            footY: 406,
+            authoredBodyHeight: 390,
         };
     }
 
@@ -78,11 +85,15 @@ export class SealedShaftRockWraith extends Enemy {
         const smash = this._skill('crystalArmSmash');
         const borequake = this._skill('borequake');
         const rush = this._skill('drillRush');
+        const distance = this.target
+            ? distanceToEntityShape(this.target, this.collider?.x ?? this.x, this.collider?.y ?? this.y)
+            : Infinity;
         let reach = Number(smash.approachReach) || 250;
         if ((this._cooldowns?.borequake || 0) <= 0) {
             reach = Math.max(reach, Number(borequake.triggerRange) || 320);
         }
-        if ((this._cooldowns?.drillRush || 0) <= 0) {
+        if ((this._cooldowns?.drillRush || 0) <= 0
+            && distance >= (Number(rush.minTriggerRange) || 260)) {
             reach = Math.max(reach, Number(rush.triggerRange) || 760);
         }
         this.attackRange = reach;
@@ -100,48 +111,38 @@ export class SealedShaftRockWraith extends Enemy {
         attack.config.range = reach;
         attack.config.dynamicRange = reach;
         attack.range = reach;
-        attack.maxCooldown = Number(smash.cooldown) || 5200;
+        attack.maxCooldown = Number(smash.cooldown) || 3400;
         attack.baseMaxCooldown = attack.maxCooldown;
     }
 
-    updateWhilePetrified(dt) {
-        if (this._action) this._finishAction();
-        if (this._pendingThrust?.active) this._pendingThrust.active = false;
-        this._clearAttackTelegraph?.();
-        super.updateWhilePetrified(dt);
-    }
-
-    _onCombatActionInterruptedByControl() {
-        if (this._action) this._finishAction();
-        super._onCombatActionInterruptedByControl();
-    }
-
     update(dt, entities) {
+        const delta = Math.max(0, Number(dt) || 0);
         if (!this.active) {
-            this._updateDeathSequence(dt);
+            this._updateDeathSequence(delta);
             return;
         }
 
-        super.update(dt, entities);
-        if (!this.active) return;
         this._lastEntities = entities;
-        const delta = Math.max(0, Number(dt) || 0);
+        // 控制可能在本帧基础更新中到期，先取消旧动作，避免解控后补打。
+        if (this._action && this._isActionControlled()) {
+            this._finishAction(this._holdsFrozenPose());
+        }
+        super.update(delta, entities);
+        // 基类的持续伤害可能在此帧触发死亡，不能再覆盖 dying 状态。
+        if (!this.active) return;
         const cooldownDt = typeof this.getAttackIntervalDelta === 'function'
             ? this.getAttackIntervalDelta(delta)
             : delta;
         this._cooldowns.borequake = Math.max(0, this._cooldowns.borequake - cooldownDt);
         this._cooldowns.drillRush = Math.max(0, this._cooldowns.drillRush - cooldownDt);
 
-        const controlled = this.hasStatusEffect
-            && (this.hasStatusEffect('stun')
-                || this.hasStatusEffect('frozen')
-                || this.hasStatusEffect('petrified')
-                || this.hasStatusEffect('fear'));
         if (this._action) {
-            if (controlled) this._finishAction();
+            if (this._isActionControlled()) this._finishAction(this._holdsFrozenPose());
             else this._updateAction(delta);
             return;
         }
+        if (this._holdsFrozenPose()) return;
+        if (this._heldVisualFrame !== null) this._setVisualState('idle');
 
         this._frozenForCast = false;
         this._attackAnimTimer = 0;
@@ -150,38 +151,30 @@ export class SealedShaftRockWraith extends Enemy {
         const next = speed > (this.maxSpeed || this.speed || 145) * 0.05 ? 'walking' : 'idle';
         this._animStateTimer += delta;
         if (next !== this._animState && this._animStateTimer >= 80) {
-            this._animState = next;
-            this._animStateTimer = 0;
+            this._setVisualState(next);
         }
         if (speed > 0.1) this.rotation = Math.atan2(this.vy, this.vx);
     }
 
+    _selectAttackAction(target) {
+        if (this._action || this.isCombatActionBlocked() || !this._isValidTarget(target)
+            || !canMeleeShareSurface(this, target)) return null;
+        const distance = distanceToEntityShape(target, this.collider?.x ?? this.x, this.collider?.y ?? this.y);
+        const quake = this._skill('borequake'), rush = this._skill('drillRush'), smash = this._skill('crystalArmSmash');
+        if (this._cooldowns.borequake <= 0
+            && canStartGroundSkill(this, target, { kind: 'ellipse', radiusX: quake.radiusX || 340, radiusY: quake.radiusY || 190 })) return 'borequake';
+        // 冲刺沿屏幕世界坐标位移，保持原移动射程。
+        if (!this.hasStatusEffect('bind') && this._cooldowns.drillRush <= 0 && distance >= (rush.minTriggerRange || 260)
+            && distance <= (rush.triggerRange || 760) && hasAttackLineOfSight(this, target)) return 'drillRush';
+        if (canStartGroundSkill(this, target, { range: Math.min(smash.approachReach || 250, smash.range || 275), width: smash.width || 170 })) return 'crystalArmSmash';
+        return null;
+    }
+
     triggerWeaponAnim() {
-        if (this._action || !this.active) return false;
         const pending = this._pendingThrust?.active ? this._pendingThrust : null;
         const target = pending?.primaryTarget || this.target;
-        if (!this._isValidTarget(target)) return false;
-        // 通用 ThrustAttack 仅负责起手与冷却调度；三个专属动作拥有唯一命中源。
+        const action = this._selectAttackAction(target);
         if (pending) pending.active = false;
-
-        const sourceX = this.collider?.x ?? this.x;
-        const sourceY = this.collider?.y ?? this.y;
-        const distance = distanceToEntityShape(target, sourceX, sourceY);
-        const borequake = this._skill('borequake');
-        const rush = this._skill('drillRush');
-        const smash = this._skill('crystalArmSmash');
-        let action = null;
-        if (this._cooldowns.borequake <= 0
-            && distance <= (Number(borequake.triggerRange) || 320)) {
-            action = 'borequake';
-        } else if (this._cooldowns.drillRush <= 0
-            && !this.hasStatusEffect('bind')
-            && distance >= (Number(rush.minTriggerRange) || 260)
-            && distance <= (Number(rush.triggerRange) || 760)) {
-            action = 'drillRush';
-        } else if (distance <= (Number(smash.range) || 275)) {
-            action = 'crystalArmSmash';
-        }
         if (!action) return false;
         return this._startAction(action, target);
     }
@@ -197,7 +190,8 @@ export class SealedShaftRockWraith extends Enemy {
         const dy = targetY - sourceY;
         const worldAngle = Math.atan2(dy, dx);
         const groundAngle = Math.atan2(dy / PERSPECTIVE_SCALE_Y, dx);
-        const duration = Math.max(1, Number(cfg.duration) || 5083);
+        const duration = Math.max(1, Number(cfg.duration ?? this.config?.textures?.frameLayouts?.[action]?.duration)
+            || enemyConfigData.sealedShaftRockWraith.attackSkills[action].duration);
 
         this._action = action;
         this._actionCfg = cfg;
@@ -206,8 +200,7 @@ export class SealedShaftRockWraith extends Enemy {
         this._actionTarget = target;
         this._actionSnapshot = { sourceX, sourceY, worldAngle, groundAngle };
         this._actionHitDone = false;
-        this._animState = action;
-        this._animStateTimer = 0;
+        this._setVisualState(action);
         this._frozenForCast = true;
         this._attackAnimTimer = duration;
         this.rotation = worldAngle;
@@ -223,12 +216,14 @@ export class SealedShaftRockWraith extends Enemy {
             this._chargeDir = { x: Math.cos(worldAngle), y: Math.sin(worldAngle) };
             this._chargeTraveled = 0;
             this._chargeStopped = false;
+            this._chargeRecoveryAt = null;
             this._prevNoCollision = this.noCollision;
         }
         return true;
     }
 
     _updateAction(dt) {
+        const snapshot = this._actionSnapshot;
         const previous = this._actionTimer;
         this._actionTimer = Math.max(0, previous - dt);
         this._attackAnimTimer = this._actionTimer;
@@ -243,20 +238,20 @@ export class SealedShaftRockWraith extends Enemy {
         if (this._action === 'drillRush') {
             this._updateDrillRushMotion(elapsedBefore, elapsedAfter);
         } else {
-            const frameCount = Math.max(1, Number(this._actionCfg?.frames) || 61);
-            const frameMs = this._actionDuration / frameCount;
             const hitFrame = Number(
                 this._actionCfg?.contactFrame
                 ?? this._actionCfg?.releaseFrame
                 ?? this._actionCfg?.impactFrame
                 ?? 0
             );
-            const hitMs = Math.max(0, hitFrame) * frameMs;
-            if (!this._actionHitDone && elapsedBefore < hitMs && elapsedAfter >= hitMs) {
+            const hitMs = attackFrameStartMs(this._layout(), hitFrame, this._actionDuration);
+            if (!this._actionHitDone && elapsedBefore <= hitMs && elapsedAfter >= hitMs) {
                 this._actionHitDone = true;
                 this._resolveActionHit();
             }
         }
+        // 弹反/反伤可在命中回调中取消动作或杀死施放者。
+        if (!this.active || this._actionSnapshot !== snapshot) return;
         if (this._actionTimer <= 0) this._finishAction();
     }
 
@@ -266,7 +261,7 @@ export class SealedShaftRockWraith extends Enemy {
             return;
         }
         const cfg = this._actionCfg || {};
-        const prepareMs = Math.max(0, Number(cfg.prepareMs) || 1500);
+        const prepareMs = Math.max(0, Number(cfg.prepareMs) || 900);
         const chargeMs = Math.max(1, Number(cfg.chargeMs) || 1100);
         const chargeEndMs = prepareMs + chargeMs;
         if (this._chargeStopped || elapsedAfter <= prepareMs || elapsedBefore >= chargeEndMs) {
@@ -304,6 +299,7 @@ export class SealedShaftRockWraith extends Enemy {
             fromX, fromY, intendedX, intendedY, this.x, this.y
         );
 
+        const snapshot = this._actionSnapshot;
         const target = this._actionTarget;
         if (!this._actionHitDone && this._isValidTarget(target)
             && sweptMotionMeleeHits(
@@ -319,6 +315,7 @@ export class SealedShaftRockWraith extends Enemy {
             this._actionHitDone = true;
             this._resolveDrillRushHit(target);
         }
+        if (!this.active || this._actionSnapshot !== snapshot) return;
 
         if (this._actionHitDone || blocked || this._chargeTraveled >= maxDistance
             || elapsedAfter >= chargeEndMs) {
@@ -383,6 +380,7 @@ export class SealedShaftRockWraith extends Enemy {
 
     _resolveDrillRushHit(target) {
         const cfg = this._actionCfg || {};
+        const snapshot = this._actionSnapshot;
         const result = DamagePipeline.applyHit(this, target, {
             damage: this._scaledDamage(cfg),
             damageType: cfg.damageType || 'physical',
@@ -391,8 +389,8 @@ export class SealedShaftRockWraith extends Enemy {
             isMelee: true,
             confirmedHitContext: { skillId: 'sealedShaftDrillRush' },
         });
-        if (!result.hit) return;
-        const parried = !!target.shieldSystem?._lastParried;
+        if (!result.hit || !this.active || this._actionSnapshot !== snapshot) return;
+        const parried = result.parried;
         if (parried) return;
         const angle = this._actionSnapshot?.worldAngle ?? this.rotation;
         const knockback = Math.max(0, Number(cfg.knockback) || 240);
@@ -402,7 +400,9 @@ export class SealedShaftRockWraith extends Enemy {
     }
 
     _damageTargetsInShape(shape, cfg, skillId, originX, originY, afterHit, isMelee) {
+        const snapshot = this._actionSnapshot;
         for (const target of this._collectTargets()) {
+            if (this.isCombatActionBlocked() || this._actionSnapshot !== snapshot) break;
             if (!this._isValidTarget(target) || !shape.intersectsEntity(target)) continue;
             if (this._isWallBlocked(target, originX, originY)) continue;
             const tx = target.collider?.x ?? target.x;
@@ -416,8 +416,9 @@ export class SealedShaftRockWraith extends Enemy {
                 isMelee,
                 confirmedHitContext: { skillId },
             });
-            if (!result.hit) continue;
-            const parried = !!(isMelee && target.shieldSystem?._lastParried);
+            if (this.isCombatActionBlocked() || this._actionSnapshot !== snapshot) break;
+            if (!result.hit || !target.active || target._isDead) continue;
+            const parried = result.parried;
             if (!parried) {
                 const knockback = Math.max(0, Number(cfg.knockback) || 0);
                 if (knockback > 0) target.applyKnockback?.(angle, knockback);
@@ -451,36 +452,36 @@ export class SealedShaftRockWraith extends Enemy {
     }
 
     _isWallBlocked(target, originX, originY) {
-        const tx = target.collider?.x ?? target.x;
-        const ty = target.collider?.y ?? target.y;
-        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
-        if (!WallSystem?.blocked?.(originX, originY, tx, ty, ignore)) return false;
-        return !(target._isDefenseStructure
-            && distanceToEntityShape(target, originX, originY)
-                <= Math.max(
-                    1,
-                    Number(this._actionCfg?.range)
-                        || Number(this._actionCfg?.radiusX)
-                        || 275
-                ));
+        return !hasAttackLineOfSight(this, target, originX, originY);
     }
 
     _stopChargeMotion() {
         if (this._chargeStopped) return;
         this._chargeStopped = true;
         this._chargePhase = 'recovery';
+        const cfg = this._actionCfg || {};
+        const prepareMs = Math.max(0, Number(cfg.prepareMs) || 900);
+        const chargeMs = Math.max(1, Number(cfg.chargeMs) || 1100);
+        const recoveryMs = Math.max(1, this._actionDuration - prepareMs - chargeMs);
+        // 提前命中/撞墙后跳过未用的冲锋时间，完整收势一次，不在末帧补等。
+        this._chargeRecoveryAt = this._actionDuration - recoveryMs;
+        if (this._action === 'drillRush') {
+            this._actionTimer = Math.min(this._actionTimer, recoveryMs);
+            this._attackAnimTimer = this._actionTimer;
+        }
         this.noCollision = this._prevNoCollision;
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
     }
 
-    _finishAction() {
+    _finishAction(preservePose = false) {
+        const heldFrame = preservePose ? this._getVisualFrame() : null;
         this._stopChargeMotion();
-        this.noCollision = this._prevNoCollision;
         this._chargePhase = 'idle';
         this._chargeTraveled = 0;
         this._chargeStopped = true;
+        this._chargeRecoveryAt = null;
         this._action = null;
         this._actionCfg = null;
         this._actionDuration = 0;
@@ -490,42 +491,68 @@ export class SealedShaftRockWraith extends Enemy {
         this._actionHitDone = false;
         this._attackAnimTimer = 0;
         this._frozenForCast = false;
-        this._animState = 'idle';
-        this._animStateTimer = 0;
+        if (preservePose) this._heldVisualFrame = heldFrame;
+        else this._setVisualState('idle');
         this.aiTimer = 0;
         this._syncApproachProfile();
+    }
+
+    _holdsFrozenPose() {
+        return this.hasStatusEffect?.('petrified') || this.hasStatusEffect?.('frozen');
+    }
+
+    _isActionControlled() {
+        return this._dashStunned || this._holdsFrozenPose()
+            || this.hasStatusEffect?.('stun') || this.hasStatusEffect?.('fear');
+    }
+
+    _onCombatActionInterruptedByControl() {
+        if (this._action) this._finishAction(this._holdsFrozenPose());
+        super._onCombatActionInterruptedByControl();
+    }
+
+    _enterStunnedIdleAnimation() {
+        if (this.active && !this._holdsFrozenPose()) this._setVisualState('idle');
+    }
+
+    updateWhilePetrified(dt) {
+        if (this._action) this._finishAction(true);
+        super.updateWhilePetrified(dt);
     }
 
     onDeath(source) {
         if (!this.active) return;
         this._finishAction();
         this.active = false;
-        this._animState = 'dying';
+        // 死亡后不再推进状态计时；解除渲染冻结，确保死亡帧能继续播放。
+        this.removeStatusEffect('petrified');
+        this.removeStatusEffect('frozen');
+        this._freezeStacks = 0;
+        this._freezeTimer = 0;
         const death = this.config?.death || {};
         this._deathAnimTimer = Math.max(1, Number(death.animMs) || 3417);
-        this._corpseTimer = 0;
-        this._fadeTimer = 0;
+        this._corpseTimer = Math.max(0, Number(death.holdMs ?? 1600));
+        this._fadeTimer = Math.max(0, Number(death.fadeMs ?? 300));
+        this._setVisualState('dying');
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        // 通用墙钟3秒会截断3417ms死亡动作；由尸体的游戏时钟完成后释放。
+        this._deathRemoveDelay = Infinity;
         if (typeof super.onDeath === 'function') super.onDeath(source);
     }
 
     _updateDeathSequence(dt) {
-        const death = this.config?.death || {};
-        if (this._deathAnimTimer > 0) {
-            this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
-            if (this._deathAnimTimer <= 0) this._corpseTimer = Number(death.holdMs) || 1600;
-        } else if (this._corpseTimer > 0) {
-            this._corpseTimer = Math.max(0, this._corpseTimer - dt);
-            if (this._corpseTimer <= 0) this._fadeTimer = Number(death.fadeMs) || 300;
-        } else if (this._fadeTimer > 0) {
-            this._fadeTimer = Math.max(0, this._fadeTimer - dt);
-            const fadeMs = Number(death.fadeMs) || 300;
-            if (this._phaserSprite?.active) {
-                this._phaserSprite.setAlpha(Math.max(0, this._fadeTimer / fadeMs));
-                if (this._fadeTimer <= 0) {
-                    this._phaserSprite.destroy();
-                    this._phaserSprite = null;
-                }
-            }
+        let remaining = dt;
+        for (const timer of ['_deathAnimTimer', '_corpseTimer', '_fadeTimer']) {
+            const consumed = Math.min(this[timer], remaining);
+            this[timer] -= consumed;
+            remaining -= consumed;
+        }
+        if (this._deathAnimTimer + this._corpseTimer + this._fadeTimer <= 0) {
+            this._phaserSprite?.destroy();
+            this._phaserSprite = null;
+            this._deathRemoveDelay = 0;
         }
     }
 
@@ -533,36 +560,95 @@ export class SealedShaftRockWraith extends Enemy {
         return `enemy_sealed_shaft_rock_wraith_${this._animState}`;
     }
 
-    _getPhaserOptions() {
+    _setVisualState(state) {
+        this._animState = state;
+        this._animStateTimer = 0;
+        this._heldVisualFrame = null;
+        // 场景先定位再选纹理；换动作时提前更新脚线，不沿用上一张表的偏移。
+        this._syncVisualMetrics();
+    }
+
+    _getVisualFrame() {
+        if (this._heldVisualFrame !== null) return this._heldVisualFrame;
+        const layout = this._layout();
+        const count = Math.max(1, Number(layout.frameCount) || 1);
+        if (this._animState === 'dying') {
+            const duration = Math.max(1, Number(this.config?.death?.animMs) || 3417);
+            return Math.min(count - 1, Math.floor((duration - this._deathAnimTimer) / duration * count));
+        }
+        if (this._action) {
+            const elapsed = this._actionDuration - this._actionTimer;
+            if (this._action === 'drillRush') return this._getDrillRushFrame(elapsed, count);
+            return attackFrameAt(layout, elapsed, this._actionDuration);
+        }
+        const frameRate = Math.max(1, Number(layout.frameRate) || 12);
+        return Math.floor(this._animStateTimer * frameRate / 1000) % count;
+    }
+
+    _getDrillRushFrame(elapsed, count) {
+        const cfg = this._actionCfg || {};
+        const start = Math.min(count - 1, Math.max(0, Number(cfg.chargeStartFrame) || 18));
+        const end = Math.min(count - 1, Math.max(start, Number(cfg.chargeEndFrame) || 49));
+        const prepareMs = Math.max(0, Number(cfg.prepareMs) || 900);
+        const chargeMs = Math.max(1, Number(cfg.chargeMs) || 1100);
+        const recoveryAt = this._chargeRecoveryAt ?? (prepareMs + chargeMs);
+        if (elapsed >= recoveryAt) {
+            const first = Math.min(count - 1, end + 1);
+            const recoveryMs = Math.max(1, this._actionDuration - prepareMs - chargeMs);
+            return Math.min(count - 1,
+                first + Math.floor((elapsed - recoveryAt) / recoveryMs * (count - first)));
+        }
+        if (elapsed < prepareMs) {
+            return Math.max(0, Math.min(start - 1, Math.floor(elapsed / prepareMs * start)));
+        }
+        // 源视频的完整奔跑段压入实际冲锋窗口；撞墙/命中则立即进入收势。
+        return Math.min(end, start + Math.floor((elapsed - prepareMs) / chargeMs * (end - start + 1)));
+    }
+
+    _syncVisualMetrics() {
         const render = this.config?.render || {};
         const layout = this._layout();
         const targetBodyHeight = Math.max(1, Number(render.bodyDisplayHeight) || 260);
-        const authoredBodyHeight = Math.max(1, Number(layout.authoredBodyHeight) || 460);
+        const authoredBodyHeight = Math.max(1, Number(layout.authoredBodyHeight) || 390);
         const pixelScale = targetBodyHeight / authoredBodyHeight;
-        const frameWidth = Math.max(1, Number(layout.frameWidth) || 320);
-        const frameHeight = Math.max(1, Number(layout.frameHeight) || 544);
-        const spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
+        const frameWidth = Math.max(1, Number(layout.frameWidth) || 254);
+        const frameHeight = Math.max(1, Number(layout.frameHeight) || 412);
+        this._visualSpriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
         const footY = Number.isFinite(Number(layout.footY)) ? Number(layout.footY) : frameHeight;
         this.footOffsetY = (footY - frameHeight / 2) * pixelScale;
+    }
+
+    _syncPetrifiedBodyAnchor(sprite) {
+        const state = sprite.texture?.key?.replace('enemy_sealed_shaft_rock_wraith_', '');
+        const layout = this.config?.textures?.frameLayouts?.[state];
+        if (!layout) return;
+        sprite.y += this.footOffsetY
+            - (layout.footY - layout.frameHeight / 2) * Math.abs(sprite.scaleY);
+    }
+
+    _getPhaserOptions() {
+        const render = this.config?.render || {};
+        this._syncVisualMetrics();
 
         let flipX = false;
         if (this._actionSnapshot) flipX = Math.cos(this._actionSnapshot.worldAngle) < 0;
         else if (this.isMoving && Math.abs(this.vx) > 0.1) flipX = this.vx < 0;
         else flipX = Math.cos(this.rotation || 0) < 0;
 
-        const oneShot = this._animState === 'crystalArmSmash'
-            || this._animState === 'borequake'
-            || this._animState === 'drillRush';
-        const animState = this._animState === 'dying'
-            ? 'death'
-            : (oneShot ? 'attack' : (this._animState === 'walking' ? 'walk' : 'idle'));
+        const fadeMs = Math.max(1, Number(this.config?.death?.fadeMs ?? 300));
+        const alpha = this.active || this._deathAnimTimer > 0 || this._corpseTimer > 0
+            ? 1 : Math.max(0, this._fadeTimer / fadeMs);
         return {
-            spriteSize,
+            spriteSize: this._visualSpriteSize,
+            frame: this._getVisualFrame(),
+            manualFrame: true,
+            alpha,
             collisionWidth: Number(render.collisionWidth) || 124,
             collisionHeight: Number(render.collisionHeight) || 235,
             textOffsetY: -(Number(render.collisionHeight) || 235) - 18,
             flipX,
-            animState,
+            // 统一用实体时钟：离屏或晚加载后恢复当前帧，不再从头播放攻击/死亡。
+            animState: undefined,
             animKey: `enemy_sealed_shaft_rock_wraith_${this._animState}`,
             dynamicSpriteSize: true,
         };

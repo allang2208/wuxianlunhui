@@ -13654,235 +13654,162 @@
   ],
   "attackType": "正面矿镐镇压、黑肺扇区咳雾与提灯环形过载"
  },
- "sealedShaftRockWraith": {
-  "entityClass": "SealedShaftRockWraith",
-  "invasion": {
-   "series": "mineral_fusion",
-   "mode": "assault",
-   "enabled": true,
-   "mechanics": "control",
-   "threatScale": 1.5,
-   "minDay": 25,
-   "weight": 1,
-   "assaultReady": true
-  },
-  "id": "sealedShaftRockWraith",
-  "name": "封井岩魇",
-  "type": "领主",
-  "category": "monster",
-  "family": "僵尸",
-  "families": [
-   "僵尸",
-   "大型"
-  ],
-  "poolWhitelistOnly": true,
-  "color": "#65438a",
-  "highlightColor": "rgba(181, 91, 255, 0.42)",
-  "size": 26,
-  "collisionRadius": 64,
-  "height": 235,
-  "hp": 2050,
-  "maxHp": 2050,
-  "speed": 145,
-  "level": 9,
-  "rank": "lord",
-  "str": 76,
-  "dex": 14,
-  "con": 68,
-  "int": 30,
-  "wis": 24,
-  "luck": 8,
-  "attackRange": 760,
-  "attackDistance": 760,
-  "aiInterval": 1500,
-  "attack": {
-   "type": "thrust",
-   "cooldown": 5200,
-   "range": 760,
-   "dynamicRange": 760,
-   "width": 170,
-   "knockback": 0
-  },
-  "basicMelee": {
-   "approachReach": 760,
-   "impactReach": 760,
-   "width": 170,
-   "requiresSameSurface": true,
-   "requiresLosAtImpact": true
-  },
-  "attackSkills": {
-   "crystalArmSmash": {
-    "comment": "常用近距压制；最终61帧动作第30帧以锁定方向结算正面晶臂砸击",
-    "approachReach": 250,
-    "range": 275,
-    "width": 170,
-    "duration": 5083,
-    "frames": 61,
-    "contactFrame": 30,
-    "damageMul": 1.4,
-    "damageType": "physical",
-    "knockback": 90,
-    "crippleMs": 2200,
-    "cooldown": 5200
-   },
-   "borequake": {
-    "comment": "贴身岩脉震荡；第24帧以起手脚点为中心结算椭圆范围",
-    "initialCooldownMs": 5000,
-    "triggerRange": 320,
-    "radiusX": 340,
-    "radiusY": 190,
-    "duration": 5083,
-    "frames": 61,
-    "releaseFrame": 24,
-    "damageMul": 1.55,
-    "damageType": "magic",
-    "knockback": 110,
-    "slowMs": 3000,
-    "cooldown": 12000
-   },
-   "drillRush": {
-    "comment": "替换远距封井塌顶；锁定方向蓄势1.5秒后沿墙体解析后的实际轨迹冲锋1.1秒",
-    "initialCooldownMs": 2500,
-    "minTriggerRange": 260,
-    "triggerRange": 760,
-    "prepareMs": 1500,
-    "chargeMs": 1100,
-    "maxDistance": 760,
-    "sweepWidth": 135,
-    "duration": 5083,
-    "frames": 61,
-    "chargeStartFrame": 18,
-    "chargeEndFrame": 31,
-    "damageMul": 1.8,
-    "damageType": "physical",
-    "knockback": 240,
-    "stunMs": 1800,
-    "cooldown": 15000
-   }
-  },
-  "death": {
-   "animMs": 3417,
-   "holdMs": 1600,
-   "fadeMs": 300
-  },
-  "ai": {
-   "aggroRange": 9999,
-   "pacingRange": 240,
-   "loseTimeout": 3000
-  },
-  "render": {
-   "bodyDisplayHeight": 260,
-   "collisionWidth": 124,
-   "collisionHeight": 235,
-   "footOffsetY": 141.7,
-   "projectileHitbox": {
-    "width": 124,
+"sealedShaftRockWraith": {
+    "entityClass": "SealedShaftRockWraith",
+    "invasion": {"series":"mineral_fusion","mode":"assault","enabled":true,"mechanics":"control","threatScale":1.5,"minDay":25,"weight":1,"assaultReady":true},
+    "attackTelegraph": {
+      "overlapWindup": true,
+      "durationMs": 350
+    },
+    "id": "sealedShaftRockWraith",
+    "name": "封井岩魇",
+    "type": "领主",
+    "category": "monster",
+    "family": "僵尸",
+    "families": ["僵尸", "大型"],
+    "poolWhitelistOnly": true,
+    "color": "#65438a",
+    "highlightColor": "rgba(181, 91, 255, 0.42)",
+    "size": 26,
+    "collisionRadius": 64,
     "height": 235,
-    "offsetX": 0,
-    "bottom": 0
-   },
-   "capsuleHudAnchor": true,
-   "colliderOffsetX": 0,
-   "colliderOffsetY": 0
+    "hp": 2050,
+    "maxHp": 2050,
+    "speed": 145,
+    "level": 9,
+    "rank": "lord",
+    "str": 76,
+    "dex": 14,
+    "con": 68,
+    "int": 30,
+    "wis": 24,
+    "luck": 8,
+    "attackRange": 760,
+    "attackDistance": 760,
+    "aiInterval": 150,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 3400,
+      "range": 760,
+      "dynamicRange": 760,
+      "width": 170,
+      "knockback": 0
+    },
+    "basicMelee": {
+      "approachReach": 760,
+      "impactReach": 760,
+      "width": 170,
+      "requiresSameSurface": true,
+      "requiresLosAtImpact": true
+    },
+    "attackSkills": {
+      "crystalArmSmash": {
+        "comment": "常用近距压制；最终61帧动作第20帧随落臂以锁定方向结算正面晶臂砸击",
+        "approachReach": 250,
+        "range": 275,
+        "width": 170,
+        "duration": 2130,
+        "frames": 61,
+        "contactFrame": 20,
+        "damageMul": 1.4,
+        "damageType": "physical",
+        "knockback": 90,
+        "crippleMs": 2200,
+        "cooldown": 3400
+      },
+      "borequake": {
+        "comment": "贴身岩脉震荡；第24帧以起手脚点为中心结算椭圆范围",
+        "initialCooldownMs": 5000,
+        "triggerRange": 320,
+        "radiusX": 340,
+        "radiusY": 190,
+        "duration": 2400,
+        "frames": 61,
+        "releaseFrame": 24,
+        "damageMul": 1.55,
+        "damageType": "magic",
+        "knockback": 110,
+        "slowMs": 3000,
+        "cooldown": 12000
+      },
+      "drillRush": {
+        "comment": "锁定方向蓄势0.9秒；第18—49帧完整奔跑段映射实际冲锋1.1秒，命中或撞墙后从第50帧收势",
+        "initialCooldownMs": 2500,
+        "minTriggerRange": 260,
+        "triggerRange": 760,
+        "prepareMs": 900,
+        "chargeMs": 1100,
+        "maxDistance": 760,
+        "sweepWidth": 135,
+        "duration": 3000,
+        "frames": 61,
+        "chargeStartFrame": 18,
+        "chargeEndFrame": 49,
+        "damageMul": 1.8,
+        "damageType": "physical",
+        "knockback": 240,
+        "stunMs": 1800,
+        "cooldown": 15000
+      }
+    },
+    "death": {
+      "animMs": 3417,
+      "holdMs": 1600,
+      "fadeMs": 300
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 240,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "bodyDisplayHeight": 260,
+      "collisionWidth": 124,
+      "collisionHeight": 235,
+      "footOffsetY": 133.3333,
+      "projectileHitbox": {
+        "width": 124,
+        "height": 235,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "textures": {
+      "idle": "assets/enemies/sealed_shaft_rock_wraith/idle.png",
+      "walking": "assets/enemies/sealed_shaft_rock_wraith/walking.png",
+      "crystalArmSmash": "assets/enemies/sealed_shaft_rock_wraith/crystal_arm_smash.png",
+      "borequake": "assets/enemies/sealed_shaft_rock_wraith/borequake.png",
+      "drillRush": "assets/enemies/sealed_shaft_rock_wraith/drill_rush.png",
+      "dying": "assets/enemies/sealed_shaft_rock_wraith/dying.png",
+      "frameLayouts": {
+        "idle": {"columns": 10, "rows": 5, "frameWidth": 254, "frameHeight": 412, "frameCount": 50, "endFrame": 49, "footX": 127.0, "footY": 406, "authoredBodyHeight": 390, "frameRate": 12, "repeat": -1},
+        "walking": {"columns": 10, "rows": 5, "frameWidth": 302, "frameHeight": 450, "frameCount": 50, "endFrame": 49, "footX": 151.0, "footY": 434, "authoredBodyHeight": 390, "frameRate": 12, "repeat": -1},
+        "crystalArmSmash": {"columns": 9, "rows": 7, "frameWidth": 370, "frameHeight": 440, "frameCount": 61, "endFrame": 60, "footX": 185.0, "footY": 433, "authoredBodyHeight": 390, "duration": 2130, "contactFrame": 20, "repeat": 0, "frameDurations": [41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 41.803279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.303279, 31.30326]},
+        "borequake": {"columns": 9, "rows": 7, "frameWidth": 358, "frameHeight": 436, "frameCount": 61, "endFrame": 60, "footX": 179.0, "footY": 429, "authoredBodyHeight": 390, "duration": 2400, "releaseFrame": 24, "repeat": 0, "frameDurations": [43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 43.442623, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.498179, 36.49816]},
+        "drillRush": {"columns": 9, "rows": 7, "frameWidth": 340, "frameHeight": 436, "frameCount": 61, "endFrame": 60, "footX": 170.0, "footY": 429, "authoredBodyHeight": 390, "duration": 3000, "prepareMs": 900, "chargeMs": 1100, "chargeStartFrame": 18, "chargeEndFrame": 49, "repeat": 0},
+        "dying": {"columns": 6, "rows": 7, "frameWidth": 612, "frameHeight": 468, "frameCount": 41, "endFrame": 40, "footX": 306.0, "footY": 428, "authoredBodyHeight": 390, "duration": 3417, "corpseSettledFrame": 28, "repeat": 0}
+      }
+    },
+    "description": "废弃矿洞封井层凝成的紫晶尸骸，没有头颅，颈腔只竖着一枚向上的采矿钻头。它以晶臂砸击压制近身目标，以钻头震入岩层引发范围震荡，并在高速旋转蓄势后沿锁定方向猛冲；冲锋撞墙即停，命中会把目标击退并眩晕。仅通过废弃矿洞领主白名单生成。",
+    "skills": [
+      {
+        "name": "晶臂砸击",
+        "desc": "锁定起手方向，2.13秒动作第20帧（起手约0.84秒）落臂砸击前方275×170像素矩形，造成物攻×1.4物理伤害、击退90像素并致残2.2秒；可招架，冷却3.4秒。"
+      },
+      {
+        "name": "岩脉震荡",
+        "desc": "第24帧震击起手脚点周围340×190像素椭圆区域，造成魔攻×1.55魔法伤害、击退110像素并减速3秒；不可招架，冷却12秒。"
+      },
+      {
+        "name": "钻头旋冲",
+        "desc": "锁定260—760像素目标方向，原地高速旋转蓄势0.9秒后冲锋1.1秒、最远760像素；命中造成物攻×1.8物理伤害、击退240像素并眩晕1.8秒。撞墙或命中即停，可招架，冷却15秒。"
+      }
+    ],
+    "attackType": "晶臂正面砸击、岩脉范围震荡与锁向钻头旋冲"
   },
-  "textures": {
-   "idle": "assets/enemies/sealed_shaft_rock_wraith/idle.png",
-   "walking": "assets/enemies/sealed_shaft_rock_wraith/walking.png",
-   "crystalArmSmash": "assets/enemies/sealed_shaft_rock_wraith/crystal_arm_smash.png",
-   "borequake": "assets/enemies/sealed_shaft_rock_wraith/borequake.png",
-   "drillRush": "assets/enemies/sealed_shaft_rock_wraith/drill_rush.png",
-   "dying": "assets/enemies/sealed_shaft_rock_wraith/dying.png",
-   "frameLayouts": {
-    "idle": {
-     "columns": 8,
-     "rows": 7,
-     "frameWidth": 320,
-     "frameHeight": 512,
-     "frameCount": 50,
-     "footY": 490,
-     "authoredBodyHeight": 460,
-     "frameRate": 12,
-     "repeat": -1
-    },
-    "walking": {
-     "columns": 8,
-     "rows": 7,
-     "frameWidth": 448,
-     "frameHeight": 544,
-     "frameCount": 50,
-     "footY": 522,
-     "authoredBodyHeight": 460,
-     "frameRate": 12,
-     "repeat": -1
-    },
-    "crystalArmSmash": {
-     "columns": 8,
-     "rows": 8,
-     "frameWidth": 480,
-     "frameHeight": 544,
-     "frameCount": 61,
-     "footY": 522,
-     "authoredBodyHeight": 460,
-     "duration": 5083,
-     "contactFrame": 30,
-     "repeat": 0
-    },
-    "borequake": {
-     "columns": 8,
-     "rows": 8,
-     "frameWidth": 448,
-     "frameHeight": 544,
-     "frameCount": 61,
-     "footY": 522,
-     "authoredBodyHeight": 460,
-     "duration": 5083,
-     "releaseFrame": 24,
-     "repeat": 0
-    },
-    "drillRush": {
-     "columns": 8,
-     "rows": 8,
-     "frameWidth": 448,
-     "frameHeight": 544,
-     "frameCount": 61,
-     "footY": 522,
-     "authoredBodyHeight": 460,
-     "duration": 5083,
-     "chargeStartFrame": 18,
-     "chargeEndFrame": 31,
-     "repeat": 0
-    },
-    "dying": {
-     "columns": 6,
-     "rows": 7,
-     "frameWidth": 1184,
-     "frameHeight": 544,
-     "frameCount": 41,
-     "footY": 522,
-     "authoredBodyHeight": 460,
-     "duration": 3417,
-     "corpseSettledFrame": 36,
-     "repeat": 0
-    }
-   }
-  },
-  "description": "废弃矿洞封井层凝成的紫晶尸骸，没有头颅，颈腔只竖着一枚向上的采矿钻头。它以晶臂砸击压制近身目标，以钻头震入岩层引发范围震荡，并在高速旋转蓄势后沿锁定方向猛冲；冲锋撞墙即停，命中会把目标击退并眩晕。仅通过废弃矿洞领主白名单生成。",
-  "skills": [
-   {
-    "name": "晶臂砸击",
-    "desc": "锁定起手方向，5.083秒动作第30帧砸击前方275×170像素矩形，造成物攻×1.4物理伤害、击退90像素并致残2.2秒；可招架，冷却5.2秒。"
-   },
-   {
-    "name": "岩脉震荡",
-    "desc": "第24帧震击起手脚点周围340×190像素椭圆区域，造成魔攻×1.55魔法伤害、击退110像素并减速3秒；不可招架，冷却12秒。"
-   },
-   {
-    "name": "钻头旋冲",
-    "desc": "锁定260—760像素目标方向，原地高速旋转蓄势1.5秒后冲锋1.1秒、最远760像素；命中造成物攻×1.8物理伤害、击退240像素并眩晕1.8秒。撞墙或命中即停，可招架，冷却15秒。"
-   }
-  ],
-  "attackType": "晶臂正面砸击、岩脉范围震荡与锁向钻头旋冲"
- },
   "snowSepulcherCarrier": {
     "entityClass": "SnowSepulcherCarrier",
     "id": "snowSepulcherCarrier",
