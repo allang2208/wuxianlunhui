@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-31",
+  "title": "IV级重机枪BAR误改稿（已撤销）",
+  "scope": "此目录为助手误解目标产生的IV级BAR改图，已撤销；只留历史来源，不再候选或计划开发。正确目标为III级双人马克沁改单人BAR，射手和IV级重机枪保持原样。",
+  "userRequest": "我指的是重机枪替换成勃朗宁，原来那个恢复",
+  "provider": "built-in image_gen",
+  "model": "not_exposed_by_tool",
+  "seed": null,
+  "status": "rejected_wrong_target",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": false,
+  "acceptedPreview": null,
+  "approvedAt": null,
+  "pendingPreview": null,
+  "units": [
+    {
+      "unitKey": "heavy_machine_gunner",
+      "name": "仓鼠重机枪",
+      "tier": 4,
+      "accepted": false,
+      "status": "rejected_wrong_target",
+      "output": "mother/hamster-heavy-machine-gunner-mother-v03-browning-bar.png",
+      "prompt": "prompts/heavy-machine-gunner-v03-browning-bar.txt",
+      "sourceOutput": "references/heavy-machine-gunner-original-v02.png",
+      "sourcePrompt": "references/heavy-machine-gunner-v02-unified.txt",
+      "referenceInputs": [
+        "references/heavy-machine-gunner-original-v02.png"
+      ],
+      "parentSourceIndex": "../_hamster_missing_mothers_20260826/task-index.json",
+      "originalRuntimeTask": "../_hamster_heavy_machine_gunner_20260827/task-index.json",
+      "existingRuntimeIntegrationActive": true,
+      "candidateRuntimeIntegrationActive": false,
+      "invariants": [
+        "保留现代头盔、护目镜、护甲、手套、护膝和背包/弹药包",
+        "保留仓鼠身份、毛色、体型、站姿与镜头；手部仅作适配换枪的调整"
+      ],
+      "changes": [
+        "本目录图像的换枪属于错误目标修改，已撤销；不可据此制作动画或替换IV级正式素材。"
+      ],
+      "weaponReference": {
+        "visualInterpretation": "Military Browning BAR M1918 family; prompt uses M1918A2 appearance direction",
+        "sources": [
+          "https://www.browning.com/news/articles/historical/inside-story-bar-john-m-browning-automatic-rifle.html"
+        ],
+        "scope": "沿用上一轮已核对枪型方向，只为游戏美术，不宣称工程精确复刻。外部网页图片未传入生成。"
+      },
+      "productionPlan": {
+        "profile": "crowd",
+        "targetMiB": 32,
+        "admissionMiB": 64,
+        "bodyReference": "保留现有IV级母图普通步兵有效身体尺度，武器不计身高",
+        "runtimeBudgetMeasured": false
+      },
+      "runtimeBoundary": "原IV级重机枪母图、四动作、AI、数据与正式素材保持原样；本误改图从未接入运行时。",
+      "active": false
+    }
+  ],
+  "provenance": [
+    {
+      "path": "mother/hamster-heavy-machine-gunner-mother-v03-browning-bar.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-9855f82d-e825-4c55-b3ee-2e9af13742f4.png",
+      "editInputPaths": [
+        "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_industrial_shooting_mothers_20260831/references/heavyMachineIV.png"
+      ],
+      "prompt": "prompts/heavy-machine-gunner-v03-browning-bar.txt",
+      "operation": "imagegen_weapon_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "references/heavy-machine-gunner-original-v02.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_industrial_shooting_mothers_20260831/references/heavyMachineIV.png",
+      "originalSourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-heavy-machine-gunner-mother-v02-unified-white.png",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/heavy-machine-gunner-v02-unified.txt",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/prompts/heavy-machine-gunner-v02-unified.txt",
+      "operation": "copied_unchanged"
+    }
+  ],
+  "reviewBoundary": "直接查看母图并核对本次文件差异；未运行测试、运行时、像素/尺度或预算验证。",
+  "active": false,
+  "correctionRequest": "错了，我的意思是级双人马克沁  替换成单人勃朗宁，原来计划开发的的射手不变",
+  "scopeCorrection": {
+    "correctUnitKey": "emplaced_machine_gun_crew",
+    "activeTask": "../_industrial_shooting_mothers_20260831/task-index.json",
+    "activeOutput": "../_industrial_shooting_mothers_20260831/mother/emplaced_machine_gun_crew-mother-v02-browning-bar.png",
+    "unchangedModernSource": "../_hamster_missing_mothers_20260826/mother/hamster-heavy-machine-gunner-mother-v02-unified-white.png",
+    "note": "该链接只是正确任务位置；本误改目录无活动候选。"
+  }
+}

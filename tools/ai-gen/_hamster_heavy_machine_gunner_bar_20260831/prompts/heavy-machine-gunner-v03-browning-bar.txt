@@ -1,0 +1,16 @@
+Use case: precise-object-edit.
+Asset type: revised mother image of the EXISTING tier-IV hamster heavy machine gunner, unitKey heavy_machine_gunner.
+Primary request: change ONLY this modern armored hamster's carried firearm to a military Browning BAR M1918A2-style automatic rifle. The previous edit mistakenly changed the separate two-hamster Maxim crew; that crew is NOT the target and must not appear here.
+
+Input image 1 is the sole EDIT TARGET and identity authority: the existing modern heavy machine gunner on white. Preserve this same individual hamster's golden-orange and white fur, muzzle and eyes, modern tan ballistic helmet with side rails and front mount, clear goggles, plate carrier, shoulder armor, green sleeves, gloves, knee pads, boots, pouches, robust adult body proportions, stance, camera and full-body framing.
+This is a weapon-only revision, not an era or clothing conversion. No Soviet steel helmet, no red star, no khaki WWII tunic, no second soldier.
+
+Required edit:
+- Remove the existing belt-fed modern machine gun, its ammunition belt, attached belt box, large perforated handguard, modern weapon rails and its bipod.
+- Replace it with exactly one credible military Browning BAR from the M1918 family, using WWII M1918A2 as the visual direction: walnut fixed shoulder stock; long comparatively slim rectangular dark steel receiver; clearly separate short broad wooden fore-end; substantial straight box magazine projecting below the receiver; long exposed barrel with a slim gas tube beneath; simple iron sights and a compact folded metal bipod near the front. A plain period muzzle device, no modern optic or rail.
+- BAR silhouette must be readable, with walnut stock and short wooden handguard separated by the receiver, and magazine below. It must not look like a modern sporting Browning hunting rifle, an SVT with a full-length wooden fore-end, an AK, or a belt-fed Browning M1919/M2.
+- Both gloved paws naturally hold the new BAR at the same low-ready orientation as the original weapon, muzzle toward screen right. One paw at stock wrist/trigger area, the supporting paw under the wooden fore-end. Change only local hand/finger/forearm articulation needed to fit the replacement. Keep shoulders, torso, head, pelvis, knees and boot locations consistent with the input.
+- Do not add new equipment, extra arms, a shield, wheels, ground props or a sidekick. Keep all existing clothing pouches outside the replaced gun area unchanged.
+
+Style and invariants: retain the original detailed PBR game character rendering, realistic fur, woven modern military fabric, worn tan armor and gloves, restrained dark steel and walnut grain. Match existing soft neutral illumination. Clean pure white background with NO cast shadow, contact shadow, floor line, text or watermark.
+Composition: preserve the original near-square portrait aspect and full-body crop, same apparent body size and three-quarter right-facing slightly elevated camera. Every boot, helmet, muzzle and stock remains entirely visible with safe white margin. One isolated character, not a grid, not a spritesheet, not a comparison montage. No anatomy or expression redesign. Visual game-art interpretation, not a technical construction diagram.
