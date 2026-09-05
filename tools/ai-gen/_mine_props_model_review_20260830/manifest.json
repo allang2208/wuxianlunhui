@@ -1,0 +1,235 @@
+{
+  "version": 1,
+  "stage": "model-review-only",
+  "runtimeInstalled": false,
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 30.0,
+    "modelRootRotationZDegrees": 44.8,
+    "propOrthoScale": 6.4,
+    "propBottomRatio": 0.875,
+    "resolution": [
+      1024,
+      1024
+    ]
+  },
+  "shadowPolicy": "no ground plane, no authored cast-shadow geometry, no runtime shadow or emission",
+  "sourceGenerator": "tools/ai-gen/build-abandoned-mine-terrain.py",
+  "generator": "tools/ai-gen/build-mine-props-model-review.py",
+  "blend": "tools/ai-gen/_mine_props_model_review_20260830/mine_props_curated.blend",
+  "props": [
+    {
+      "key": "abandoned_mine_prop_slate_rubble",
+      "labelZh": "片岩碎块",
+      "decision": "优化",
+      "reason": "由均匀小方块改为少量有层理的大薄片，减少与底材重复的碎屑噪声。",
+      "targetVisibleWorldPx": 42,
+      "modelRender": "model-renders/abandoned_mine_prop_slate_rubble.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_slate_rubble_depth.png",
+      "groundLift": -0.0,
+      "cameraDepthRange": [
+        17.149717712402342,
+        18.798204040527345
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_coal_chunks",
+      "labelZh": "煤块",
+      "decision": "重建",
+      "reason": "圆滑卵石改为棱角断口和黑色块面；减少散点。",
+      "targetVisibleWorldPx": 44,
+      "modelRender": "model-renders/abandoned_mine_prop_coal_chunks.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_coal_chunks_depth.png",
+      "groundLift": 0.023367345333099365,
+      "cameraDepthRange": [
+        17.16656322479248,
+        18.61967067718506
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_ore_fragments",
+      "labelZh": "矿石碎块",
+      "decision": "重建",
+      "reason": "圆珠改为带局部矿脉的破碎岩块；不做发光宝石。",
+      "targetVisibleWorldPx": 40,
+      "modelRender": "model-renders/abandoned_mine_prop_ore_fragments.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_ore_fragments_depth.png",
+      "groundLift": 0.010898001492023468,
+      "cameraDepthRange": [
+        17.25675983428955,
+        18.586286354064942
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_broken_sleepers",
+      "labelZh": "破损枕木",
+      "decision": "重建",
+      "reason": "两根普通木条改为带缺口、垫板、道钉的轨枕组合。",
+      "targetVisibleWorldPx": 60,
+      "modelRender": "model-renders/abandoned_mine_prop_broken_sleepers.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_broken_sleepers_depth.png",
+      "groundLift": -0.014999999664723873,
+      "cameraDepthRange": [
+        17.006065368652344,
+        18.84748077392578
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_broken_rail",
+      "labelZh": "断轨",
+      "decision": "优化",
+      "reason": "保留轨头、轨腰、底板截面，补断口、接头板与螺栓。",
+      "targetVisibleWorldPx": 74,
+      "modelRender": "model-renders/abandoned_mine_prop_broken_rail.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_broken_rail_depth.png",
+      "groundLift": -0.012000000104308128,
+      "cameraDepthRange": [
+        17.091881828308104,
+        18.759278221130373
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_rope_coil",
+      "labelZh": "绳圈",
+      "decision": "优化",
+      "reason": "三个分离同心圆改为连续绳线，保留松脱尾端。",
+      "targetVisibleWorldPx": 44,
+      "modelRender": "model-renders/abandoned_mine_prop_rope_coil.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_rope_coil_depth.png",
+      "groundLift": 0.0004112906754016876,
+      "cameraDepthRange": [
+        17.113932876586915,
+        18.834084243774413
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_pickaxe",
+      "labelZh": "矿镐",
+      "decision": "重建",
+      "reason": "重做横向弯曲镐头、中央柄眼与木柄连接，形成明确T形轮廓。",
+      "targetVisibleWorldPx": 64,
+      "modelRender": "model-renders/abandoned_mine_prop_pickaxe.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_pickaxe_depth.png",
+      "groundLift": -0.015103214420378208,
+      "cameraDepthRange": [
+        17.328156127929688,
+        18.806037292480468
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_shovel",
+      "labelZh": "矿铲",
+      "decision": "重建",
+      "reason": "矩形小铁片改为铲肩、收尖铲面、套筒及D形握柄。",
+      "targetVisibleWorldPx": 64,
+      "modelRender": "model-renders/abandoned_mine_prop_shovel.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_shovel_depth.png",
+      "groundLift": -0.02386816218495369,
+      "cameraDepthRange": [
+        17.23287326812744,
+        18.867031745910644
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_floor_lantern",
+      "labelZh": "废矿灯",
+      "decision": "重建",
+      "reason": "补底座、顶盖、保护笼和连接提环；默认熄灭，避免假动态光源。",
+      "targetVisibleWorldPx": 44,
+      "modelRender": "model-renders/abandoned_mine_prop_floor_lantern.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_floor_lantern_depth.png",
+      "groundLift": -0.0,
+      "cameraDepthRange": [
+        17.2614656829834,
+        18.351643905639648
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_helmet",
+      "labelZh": "矿工帽",
+      "decision": "优化",
+      "reason": "球体方檐改为半球帽壳、圆檐和固定前灯；控制年代感。",
+      "targetVisibleWorldPx": 38,
+      "modelRender": "model-renders/abandoned_mine_prop_helmet.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_helmet_depth.png",
+      "groundLift": -0.08249999582767487,
+      "cameraDepthRange": [
+        17.292725982666017,
+        18.616140899658202
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_minecart_wheel",
+      "labelZh": "矿车轮",
+      "decision": "重建",
+      "reason": "轮圈、轮缘、轮毂、六辐条统一在同一轮平面，平放接地。",
+      "targetVisibleWorldPx": 56,
+      "modelRender": "model-renders/abandoned_mine_prop_minecart_wheel.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_minecart_wheel_depth.png",
+      "groundLift": -0.019999995827674866,
+      "cameraDepthRange": [
+        17.165944786071776,
+        18.815555839538575
+      ]
+    },
+    {
+      "key": "abandoned_mine_prop_ore_sack",
+      "labelZh": "矿石袋",
+      "decision": "重建",
+      "reason": "封口袋顶悬浮矿石改为低矮开口袋，矿石嵌入口沿内。",
+      "targetVisibleWorldPx": 46,
+      "modelRender": "model-renders/abandoned_mine_prop_ore_sack.png",
+      "bodyDepth": "body-depth/abandoned_mine_prop_ore_sack_depth.png",
+      "groundLift": 0.0020000000949949026,
+      "cameraDepthRange": [
+        17.152860374450682,
+        18.55788829803467
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "key": "abandoned_mine_prop_rail_spikes",
+      "labelZh": "道钉",
+      "decision": "合并",
+      "reason": "独立散布辨识度低；建入破损枕木的垫板中。",
+      "originalFilesPreserved": true
+    },
+    {
+      "key": "abandoned_mine_prop_rotten_planks",
+      "labelZh": "烂木板",
+      "decision": "退出新版通用组",
+      "reason": "与枕木轮廓重复，主题信息弱。",
+      "originalFilesPreserved": true
+    },
+    {
+      "key": "abandoned_mine_prop_timber_offcuts",
+      "labelZh": "木料边角",
+      "decision": "退出新版通用组",
+      "reason": "第三组小木条重复；不再单独建模。",
+      "originalFilesPreserved": true
+    },
+    {
+      "key": "abandoned_mine_prop_broken_chain",
+      "labelZh": "断铁链",
+      "decision": "退出新版通用组",
+      "reason": "细环在正常缩放下较难辨认，矿洞专属性弱，旧环链连接也不成立。",
+      "originalFilesPreserved": true
+    },
+    {
+      "key": "abandoned_mine_prop_dynamite",
+      "labelZh": "炸药",
+      "decision": "场景专用保留",
+      "reason": "退出通用组；红色道具可能被误认作可拾取或可爆炸物，留给爆破场景。",
+      "originalFilesPreserved": true
+    },
+    {
+      "key": "abandoned_mine_prop_fuse_spool",
+      "labelZh": "引线卷",
+      "decision": "场景专用保留",
+      "reason": "与炸药成套使用更有意义，退出通用随机散布候选。",
+      "originalFilesPreserved": true
+    }
+  ],
+  "runtimePolicy": "No runtime deletion or replacement in this model-first stage. New geometry requires fresh size calibration after later material approval."
+}
