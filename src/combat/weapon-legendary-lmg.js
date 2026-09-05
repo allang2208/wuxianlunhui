@@ -6,6 +6,12 @@ import { LightningBoltEffect } from '../effects/lightning-bolt.js';
 const LEGENDARY_LMG_STATE = new WeakMap();
 const FULL_RUNE_MASK = 0b111;
 
+function configuredSlowReduction(value, fallback = 0.5) {
+    if (value == null) return fallback;
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(0, Math.min(0.9, number)) : fallback;
+}
+
 function getWeaponState(weapon) {
     if (!weapon || (typeof weapon !== 'object' && typeof weapon !== 'function')) return null;
     let state = LEGENDARY_LMG_STATE.get(weapon);
@@ -191,6 +197,7 @@ function handleConstellationHit(source, weapon, hitTarget, projectile, entities)
             for (const target of affected) {
                 target?.addStatusEffect?.('slow', slowDurationMs, {
                     name: '星图迟滞', icon: '✦', color: '#65d8ff',
+                    value: configuredSlowReduction(params.slowReduction),
                 });
             }
         }

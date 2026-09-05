@@ -198,7 +198,16 @@ export class GroundSector {
         // 与 AttackRangeEffect('sector') 的 Y 压缩显示同口径——红扇画多大就实际打多大
         const dx = c.x - this.x;
         const dy = (c.y - this.y) / PERSPECTIVE_SCALE_Y;
-        return MathUtils.pointInSector(dx, dy, 0, 0, this.angle, this.radius + c.radius, this.arcAngle);
+        const footprintRadius = Math.max(0, c.radius || 0);
+        if (MathUtils.pointInSector(dx, dy, 0, 0, this.angle,
+            this.radius + footprintRadius, this.arcAngle)) return true;
+        // 中心在张角外时仍可能擦到扇形侧边，不能只放宽径向距离。
+        for (const edgeAngle of [this.angle - this.arcAngle / 2, this.angle + this.arcAngle / 2]) {
+            const ux = Math.cos(edgeAngle), uy = Math.sin(edgeAngle);
+            const along = Math.max(0, Math.min(this.radius, dx * ux + dy * uy));
+            if (Math.hypot(dx - ux * along, dy - uy * along) <= footprintRadius) return true;
+        }
+        return false;
     }
 }
 
