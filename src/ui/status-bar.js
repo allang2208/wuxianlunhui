@@ -10,6 +10,7 @@ export const StatusBar = {
     STATUS_CONFIG: {
         stun: { icon: '💫', name: '眩晕', color: '#9a7a5a', desc: '无法移动、攻击、使用技能与物品。' },
         poison: { icon: '☠️', name: '中毒', color: '#7a9a5a', desc: '每秒受到层数点毒素伤害。' },
+        minePoison: { icon: '☣', name: '矿毒', color: '#a1b052', desc: '矿洞毒气：每秒以最大生命0.5%为基准结算魔法伤害；离开毒区后最多残留3秒，可净化。' },
         slow: { icon: '🐌', name: '减速', color: '#5a7a9a', desc: '移动速度降低 50%。' },
         waxSealSlow: { icon: '🕯️', name: '封蜡减速', color: '#ba9272', desc: '移动速度降低20%，持续2秒；再次命中只刷新时间，不叠层。' },
         buff: { icon: '✨', name: '增益', color: '#9a9a5a', desc: '获得临时增益效果。' },

@@ -504,6 +504,7 @@ export function isFriendlyFire(source, target) {
                 const STATUS_CONFIG = {
                     stun: { icon: '💫', name: '眩晕', color: '#9a7a5a' },
                     poison: { icon: '☠️', name: '中毒', color: '#7a9a5a' },
+                    minePoison: { icon: '☣', name: '矿毒', color: '#a1b052' },
                     slow: { icon: '🐌', name: '减速', color: '#5a7a9a' },
                     bind: { icon: '⛓️', name: '束缚', color: '#7a5a8a' },
                     buff: { icon: '✨', name: '增益', color: '#9a9a5a' },
