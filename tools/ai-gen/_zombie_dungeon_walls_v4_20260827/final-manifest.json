@@ -24,7 +24,14 @@
     }
   },
   "gateCandidateRoot": "tools\\ai-gen\\_zombie_dungeon_gate_spikes_20260827",
-  "geometryPolicy": "generated material only; Blender controls silhouette, alpha, wall-block jamb separation, three-slice depth order, and animation",
+  "geometryPolicy": "generated material only; Blender controls silhouette, alpha, wall-block jamb separation, six-slice tucked depth order, baseline alignment, and animation",
+  "gateAlignment": {
+    "materialFinalizeOffset": [
+      48,
+      -24
+    ],
+    "reason": "checked-in masks predate the gate-leaf baseline fix; a rebuilt Blender source exports [0, 0]"
+  },
   "runtimeAssets": {
     "zombie_wall_block.png": {
       "size": [
@@ -43,7 +50,7 @@
         640
       ],
       "frames": 16,
-      "sha256": "0db75c094bf9959cf643a079f701109a0297902b37953d6f23eb2900cf25b7f0"
+      "sha256": "8659b915f48aa8b5a05f4519287804371b8f6142710081104043f4a41333e34d"
     }
   },
   "preview": "zombie_dungeon_wall_v4_preview.png",

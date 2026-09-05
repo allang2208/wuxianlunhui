@@ -32,6 +32,7 @@ GATE_BASE_B = (608.0, 588.0)
 GATE_WORLD_A = (-3.0, 0.0, 0.0)
 GATE_WORLD_B = (3.0, 0.0, 0.0)
 GATE_BAR_HEIGHT = 1.92
+GATE_LEAF_PLANE_Y = 0.0
 
 
 def args_after_double_dash() -> list[str]:
@@ -251,18 +252,18 @@ def build_gate(materials):
         x = GATE_WORLD_A[0] + bar_spacing * (index + 0.5)
         cube(
             f"PortcullisBar_{index:02d}",
-            (x, -0.48, (bar_bottom + GATE_BAR_HEIGHT) / 2),
+            (x, GATE_LEAF_PLANE_Y + 0.02, (bar_bottom + GATE_BAR_HEIGHT) / 2),
             (0.11, 0.13, GATE_BAR_HEIGHT - bar_bottom),
             iron, 0.018, bars_collection,
         )
         downward_spike(
             f"PortcullisSpike_{index:02d}",
-            (x, -0.48, spike_height / 2),
+            (x, GATE_LEAF_PLANE_Y + 0.02, spike_height / 2),
             0.145, spike_height, iron, bars_collection,
         )
         cube(
             f"PortcullisSpikeCollar_{index:02d}",
-            (x, -0.49, spike_shoulder_z - 0.025),
+            (x, GATE_LEAF_PLANE_Y + 0.01, spike_shoulder_z - 0.025),
             (0.18, 0.17, 0.12),
             rust, 0.018, bars_collection,
         )
@@ -270,14 +271,14 @@ def build_gate(materials):
     for rail_index, z in enumerate(rail_heights):
         cube(
             f"PortcullisRail_{rail_index:02d}",
-            (0, -0.50, z),
+            (0, GATE_LEAF_PLANE_Y, z),
             (gate_span - 0.08, 0.14, 0.13),
             rust, 0.02, bars_collection,
         )
         for side in (-1, 1):
             cube(
                 f"PortcullisRailEnd_{rail_index:02d}_{side:+d}",
-                (side * (gate_span / 2 - 0.07), -0.50, z),
+                (side * (gate_span / 2 - 0.07), GATE_LEAF_PLANE_Y, z),
                 (0.14, 0.18, 0.19),
                 iron, 0.025, bars_collection,
             )
@@ -285,7 +286,7 @@ def build_gate(materials):
             x = GATE_WORLD_A[0] + bar_spacing * (index + 0.5)
             rivet(
                 f"PortcullisRivet_{rail_index:02d}_{index:02d}",
-                (x, -0.592, z),
+                (x, GATE_LEAF_PLANE_Y - 0.092, z),
                 0.052,
                 iron if (index + rail_index) % 3 else rust,
                 bars_collection,
@@ -466,7 +467,9 @@ def main():
             "wallH": round(abs(projected((0, 0, GATE_BAR_HEIGHT), GATE_SIZE, GATE_SIZE)[1] - projected((0, 0, 0), GATE_SIZE, GATE_SIZE)[1]), 4),
             "slope": round((base_b[1] - base_a[1]) / max(1e-6, base_b[0] - base_a[0]), 6),
             "halfThick": 13,
-            "depthSlices": 3,
+            "depthSlices": 6,
+            "tuckEndSlices": True,
+            "materialFinalizeOffset": [0, 0],
         },
     }
     (out_dir / "geometry.json").write_text(json.dumps(geometry, ensure_ascii=False, indent=2), encoding="utf-8")

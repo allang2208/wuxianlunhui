@@ -38,6 +38,11 @@
     "wallH": 225.7447,
     "slope": 0.500002,
     "halfThick": 13,
-    "depthSlices": 3
+    "depthSlices": 6,
+    "tuckEndSlices": true,
+    "materialFinalizeOffset": [
+      48,
+      -24
+    ]
   }
 }

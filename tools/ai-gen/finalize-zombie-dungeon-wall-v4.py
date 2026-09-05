@@ -75,9 +75,24 @@ def material_transfer(
     return Image.fromarray(np.uint8(np.clip(result * 255.0, 0, 255)), "RGBA")
 
 
-def build_gate_sheet(frame_layer: Image.Image, bars_layer: Image.Image) -> tuple[Image.Image, list[Image.Image]]:
+def translated_layer(layer: Image.Image, offset: tuple[int, int]) -> Image.Image:
+    """Apply the checked-in pre-fix mask correction inside the 640px cell."""
+    if offset == (0, 0):
+        return layer
+    translated = Image.new("RGBA", layer.size, (0, 0, 0, 0))
+    translated.alpha_composite(layer, offset)
+    return translated
+
+
+def build_gate_sheet(
+    frame_layer: Image.Image,
+    bars_layer: Image.Image,
+    material_finalize_offset: tuple[int, int] = (0, 0),
+) -> tuple[Image.Image, list[Image.Image]]:
     frame_layer = frame_layer.resize((640, 640), Image.Resampling.LANCZOS)
     bars_layer = bars_layer.resize((640, 640), Image.Resampling.LANCZOS)
+    frame_layer = translated_layer(frame_layer, material_finalize_offset)
+    bars_layer = translated_layer(bars_layer, material_finalize_offset)
     sheet = Image.new("RGBA", (2560, 2560), (0, 0, 0, 0))
     frames: list[Image.Image] = []
     for index in range(16):
@@ -172,11 +187,17 @@ def build_diamond_preview(wall: Image.Image, closed_gate: Image.Image, geometry:
         t1 = (tx1 - base[0]) / (base_end[0] - base[0])
         y0 = opening_a[1] + (opening_b[1] - opening_a[1]) * t0
         y1 = opening_a[1] + (opening_b[1] - opening_a[1]) * t1
-        pieces.append((max(y0, y1) + 3.9, segment, segment_x, gate_y))
+        if gate_geometry.get("tuckEndSlices") and index == 0:
+            slice_depth = opening_a[1] + 3.9
+        elif gate_geometry.get("tuckEndSlices") and index == slices - 1:
+            slice_depth = opening_b[1] + 3.9
+        else:
+            slice_depth = max(y0, y1) + 3.9
+        pieces.append((slice_depth, segment, segment_x, gate_y))
 
     for _, sprite, x, y in sorted(pieces, key=lambda item: item[0]):
         canvas.alpha_composite(sprite, (round(x), round(y)))
-    draw.text((46, 38), "Zombie dungeon V4: wall-block jambs / exact 6-cell gate / 3 depth slices", fill=(226, 221, 211, 255))
+    draw.text((46, 38), "Zombie dungeon V4: wall-block jambs / exact 6-cell gate / 6 tucked depth slices", fill=(226, 221, 211, 255))
     canvas.save(output, optimize=True)
 
 
@@ -197,13 +218,19 @@ def main() -> None:
         rgba(required[0]), rgba(WALL_AI), 0.42,
         dark=(0.035, 0.045, 0.060), light=(0.29, 0.34, 0.40),
     )
+    geometry = json.loads((MODEL_OUT / "geometry.json").read_text(encoding="utf-8"))
+    gate_geometry = geometry["gate"]
+    material_finalize_offset = tuple(int(value) for value in gate_geometry.get("materialFinalizeOffset", [0, 0]))
+    if len(material_finalize_offset) != 2:
+        raise ValueError("gate.materialFinalizeOffset must contain exactly two integers")
+
     gate_generated = rgba(GATE_AI)
     gate_frame = material_transfer(
         rgba(required[1]), gate_generated, 0.34,
         dark=(0.030, 0.040, 0.055), light=(0.25, 0.30, 0.36),
     )
     gate_bars = material_transfer(rgba(required[2]), gate_generated, 0.48)
-    gate_sheet, frames = build_gate_sheet(gate_frame, gate_bars)
+    gate_sheet, frames = build_gate_sheet(gate_frame, gate_bars, material_finalize_offset)
 
     wall_path = ASSETS / "zombie_wall_block.png"
     gate_path = ASSETS / "zombie_gate.png"
@@ -217,7 +244,6 @@ def main() -> None:
     wall.save(final_wall, optimize=True)
     frames[0].save(final_gate, optimize=True)
     build_preview(wall, frames, preview_path)
-    geometry = json.loads((MODEL_OUT / "geometry.json").read_text(encoding="utf-8"))
     build_diamond_preview(wall, frames[0], geometry, diamond_preview_path)
 
     manifest = {
@@ -231,7 +257,11 @@ def main() -> None:
         },
         "refine": {"steps": 48, "variants": 2, "denoise": 0.30, "selected": {"wall": "v02", "gate": "v01"}},
         "gateCandidateRoot": str(GATE_SPIKE_OUT.relative_to(ROOT)),
-        "geometryPolicy": "generated material only; Blender controls silhouette, alpha, wall-block jamb separation, three-slice depth order, and animation",
+        "geometryPolicy": "generated material only; Blender controls silhouette, alpha, wall-block jamb separation, six-slice tucked depth order, baseline alignment, and animation",
+        "gateAlignment": {
+            "materialFinalizeOffset": list(material_finalize_offset),
+            "reason": "checked-in masks predate the gate-leaf baseline fix; a rebuilt Blender source exports [0, 0]",
+        },
         "runtimeAssets": {
             "zombie_wall_block.png": {"size": list(wall.size), "sha256": digest(wall_path)},
             "zombie_gate.png": {"size": list(gate_sheet.size), "frameSize": [640, 640], "frames": 16, "sha256": digest(gate_path)},
