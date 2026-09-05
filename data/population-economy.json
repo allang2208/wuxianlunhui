@@ -745,7 +745,48 @@
     "cookhouseServiceRadius": 200,
     "warehouseServiceRadius": 180,
     "moveGraceMs": 5000,
-    "droughtFoodMultiplierFloor": 1
+    "droughtFoodMultiplierFloor": 1,
+    "workerVisual": {
+      "id": "hamster_baker",
+      "name": "仓鼠炊坊伙计",
+      "displaySize": 128,
+      "originY": 0.935547,
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_baker/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 10,
+          "frames": [0, 9],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "empty_running": {
+          "src": "assets/companions/hamster_baker/empty_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "frames": [0, 19],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "loaded_running": {
+          "src": "assets/companions/hamster_baker/loaded_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "frames": [0, 19],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        }
+      }
+    }
   },
   "frost_smokehouse": {
     "workerSlots": 10,
@@ -762,7 +803,48 @@
     "smokehouseServiceRadius": 200,
     "warehouseServiceRadius": 180,
     "moveGraceMs": 5000,
-    "planeOutputMultipliers": { "scene9": 1.35, "default": 0.85 }
+    "planeOutputMultipliers": { "scene9": 1.35, "default": 0.85 },
+    "workerVisual": {
+      "id": "hamster_baker",
+      "name": "仓鼠熏制坊伙计",
+      "displaySize": 128,
+      "originY": 0.935547,
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_baker/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 10,
+          "frames": [0, 9],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "empty_running": {
+          "src": "assets/companions/hamster_baker/empty_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "frames": [0, 19],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "loaded_running": {
+          "src": "assets/companions/hamster_baker/loaded_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "frames": [0, 19],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        }
+      }
+    }
   },
   "chain_restaurant": {
     "workerSlots": 10,
