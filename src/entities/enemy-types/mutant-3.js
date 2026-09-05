@@ -327,10 +327,10 @@ export class Mutant3 extends Enemy {
         if (!target || !impactSnapshot
             || !canImpactBasicMelee(this, target, impactSnapshot)) return;
 
-        const attack = this.attacks && this.attacks.melee;
-        const dmgCfg = attack && attack.config && attack.config.damage;
-        const base = dmgCfg ? Math.floor((dmgCfg.min + dmgCfg.max) / 2) : (this.data.atk || this.data.str || 20);
-        const damage = Math.max(1, base);
+        // 通用近战对象始终带默认 8~15 伤害，读取它会绕过地牢成长。
+        // 五段共享配置倍率，保留接触帧和单段结算，不把五连击放大成五倍完整普攻。
+        const damageMul = this.config.attackSkills?.combo?.damageMul ?? 0.3;
+        const damage = Math.max(1, Math.round(this.data.atk * damageMul));
         target.takeDamage(damage, this, 'physical', true);
         // 连击音效（配置 sounds.combo，每次伤害判定播放）
         playSoundFrom(this, 'combo');

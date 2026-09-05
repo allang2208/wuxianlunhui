@@ -5849,7 +5849,7 @@
   "skills": [
    {
     "name": "五连击",
-    "desc": "贴身 50px 触发，2s 内连续 5 段挥砍（各造成物理攻击 ×1 伤害），冷却 4s；连击期间不可移动但持续向目标突进 30px（插帧平滑）"
+    "desc": "连续5段挥砍，每段造成成长后物理攻击×0.3的伤害（全中合计×1.5）；冷却4秒。保留现有动作接触帧、突进与束缚规则。"
    },
    {
     "name": "飞扑",
@@ -5882,7 +5882,12 @@
    "idleFrameCount": 1,
    "idleSheetColumns": 8
   },
-  "height": 162
+  "height": 162,
+  "attackSkills": {
+   "combo": {
+    "damageMul": 0.3
+   }
+  }
  },
  "timeAgentAssault": {
   "entityClass": "TimeAgentAssault",
