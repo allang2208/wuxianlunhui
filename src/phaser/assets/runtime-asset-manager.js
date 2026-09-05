@@ -1,4 +1,5 @@
 import performanceConfig from '../../../data/performance-config.json';
+import enemyConfigData from '../../../data/enemy-config.json';
 import {
     estimateFriendlyUnitGpuBytes,
     getKnownFriendlyUnitIds,
@@ -324,6 +325,22 @@ class RuntimeAssetManagerImpl {
         return filename.replace(/_(idle|walking|walk|running|run|attacking|attack\d*|bite|pounce|howl|howling|dying|death|melt|spitting|spellcast|throw|transform).*$/i, '').toLowerCase();
     }
 
+    getEnemyVisualKeysForContent(type, config = null) {
+        const requestedTypes = [type];
+        for (const dependency of config?.visualDependencies || []) {
+            if (typeof dependency === 'string') requestedTypes.push(dependency);
+        }
+        return this.resolveEnemyVisualKeysForTypes(requestedTypes).keys;
+    }
+
+    isTextureReady(key, scene = this.scene) {
+        return !!key && scene?.textures?.exists(key) === true;
+    }
+
+    isAnimationReady(key, scene = this.scene) {
+        return !!key && scene?.anims?.exists(key) === true;
+    }
+
     getEnemyVisualKeysFromEntities(entities) {
         const keys = [];
         for (const entity of entities || []) {
@@ -373,7 +390,17 @@ class RuntimeAssetManagerImpl {
             normalizedKey: candidate.key.toLowerCase().replace(/[^a-z0-9]/g, ''),
             normalizedFamily: candidate.family.toLowerCase().replace(/[^a-z0-9]/g, ''),
         }));
-        for (const type of types || []) {
+        const pendingTypes = [...(types || [])];
+        const visitedTypes = new Set();
+        for (let index = 0; index < pendingTypes.length; index++) {
+            const type = pendingTypes[index];
+            if (visitedTypes.has(type)) continue;
+            visitedTypes.add(type);
+            for (const dependency of enemyConfigData[type]?.visualDependencies || []) {
+                if (typeof dependency === 'string' && !visitedTypes.has(dependency)) {
+                    pendingTypes.push(dependency);
+                }
+            }
             const normalizedType = String(type).toLowerCase().replace(/[^a-z0-9]/g, '');
             if (!normalizedType) continue;
             // 精确族名优先，避免 zombie 误命中 zombie_dog 之类的前缀兵种。

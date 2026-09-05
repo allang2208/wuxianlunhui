@@ -48,6 +48,7 @@ export { HollowOvum } from './enemy-types/hollow-ovum.js';
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';
 import { loadImage } from '../utils/image-loader.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { ZombieWizard } from './enemy-types/zombie-wizard.js';
 import { Mutant3 } from './enemy-types/mutant-3.js';
 import { SpitterZombie } from './enemy-types/spitter-zombie.js';
@@ -4804,9 +4805,9 @@ function createWerewolfKing(x, y, overrides = {}) {
 }
 
 /**
- * 黑熊领主：初始为黑袍德鲁伊，轮流施放冰锥、闪电与火球；半血后
- * 播放人变熊动画并进入强化四足近战阶段。两种形态共用同一生命链，
- * 只在变熊完成时应用一次既有属性倍率。
+ * 腐沼独角仙王：沼泽精英房压轴领主。普通攻击为锁向扇形巨颚横扫；
+ * 泥沼冲城在蓄力结束时锁定直线，命中首个目标或撞墙后停止；虫巢号令
+ * 召唤腐沼小独角仙。半血开鞘翅只强化移动与冲锋频率，不增伤。
  */
 class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
     constructor(x, y, config = {}) {
@@ -4821,6 +4822,9 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._chargeCooldown = Math.max(0, Number(this._chargeCfg.initialCooldownMs) || 0);
         this._chargeState = 'idle'; // idle | prepare | charge | recovery
         this._chargeTimer = 0;
+        this._chargeElapsed = 0;
+        this._chargeRecoveryStartMs = 0;
+        this._chargeRecoveryStartFrame = 0;
         this._chargeDir = { x: 1, y: 0 };
         this._chargeTargetPos = null;
         this._chargeSpeed = 0;
@@ -4838,6 +4842,14 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._phaseOpened = false;
         this._phaseTimer = 0;
         this._baseRotbogSpeed = Math.max(0, Number(this.speed) || 0);
+        this._elytraProgress = 0;
+        this._deathElytraStart = 0;
+        this._rotbogLoopElapsed = 0;
+        this._rotbogLoopState = 'idle';
+        this._rotbogPetrifiedVisual = null;
+        this._broodLoadPending = null;
+        this._broodLoadRetryAt = 0;
+        this._syncRotbogVisualMetrics();
 
         const meleeAttack = this.attacks?.melee;
         if (meleeAttack?.checkTriangleHit) {
@@ -4853,11 +4865,16 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
     }
 
     _getRotbogVisualState(state = this._animState) {
-        if (state === 'death') return 'dying';
-        if (state === 'run' || state === 'walk') {
-            return this._phaseOpened ? 'enraged_idle' : 'walk';
+        if (this._deathStarted || state === 'death') {
+            return this._getDeathFoldProgress() > 0 ? 'phase_open' : 'dying';
         }
-        if (state === 'idle' && this._phaseOpened) return 'enraged_idle';
+        if (this._rotbogPetrifiedVisual && this.hasStatusEffect?.('petrified')) {
+            return this._rotbogPetrifiedVisual.state;
+        }
+        if (state === 'phase_open' || (this._elytraProgress > 0
+            && (this._elytraProgress < 1 || state !== 'idle'))) return 'phase_open';
+        if (state === 'run' || state === 'walk') return 'walk';
+        if (state === 'idle' && this._phaseOpened && this._elytraProgress >= 1) return 'enraged_idle';
         return state;
     }
 
@@ -4872,60 +4889,246 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
     _getPhaserOptions() {
         const options = super._getPhaserOptions();
         const visualState = this._getRotbogVisualState();
-        options.animState = visualState;
-        options.animKey = `enemy_rotbog_rhinoceros_beetle_king_${visualState}_v1`;
+        // 事件、位移、离屏恢复均使用实体时钟；禁止 Phaser 再启动第二份播放时钟。
+        options.animState = null;
+        options.animKey = null;
+        options.manualFrame = true;
+        options.frame = this._getRotbogFrame(visualState);
         return options;
     }
 
+    _syncRotbogVisualMetrics() {
+        const layout = this._getFrameLayout();
+        const reference = this.config?.textures?.referenceCell ?? 640;
+        const scale = (this.config?.render?.spriteSize || 420) / reference;
+        this.footOffsetY = ((layout.footY ?? layout.frameHeight) - layout.frameHeight / 2) * scale;
+    }
+
+    _setRotbogAnimation(state) {
+        if (this._animState !== state) this._animStateTimer = 0;
+        this._animState = state;
+        this._syncRotbogVisualMetrics();
+    }
+
+    _rotbogControlled() {
+        return !!this._dashStunned || ['stun', 'frozen', 'petrified', 'fear']
+            .some(status => this.hasStatusEffect?.(status));
+    }
+
+    _onCombatActionInterruptedByControl() {
+        if (this._deathStarted) return;
+        // 石化入口跳过常规 update：先快照当前显示，再取消尚未释放的逻辑事件。
+        if (this.hasStatusEffect?.('petrified') && !this._rotbogPetrifiedVisual) {
+            const sprite = this._phaserSprite;
+            const prefix = 'enemy_rotbog_rhinoceros_beetle_king_';
+            const renderedState = sprite?.active && sprite.texture?.key?.startsWith(prefix)
+                ? sprite.texture.key.slice(prefix.length) : null;
+            const state = renderedState || this._getRotbogVisualState();
+            const renderedFrame = renderedState ? Number(sprite.frame?.name) : NaN;
+            this._rotbogPetrifiedVisual = {
+                state,
+                frame: Number.isFinite(renderedFrame) ? renderedFrame : this._getRotbogFrame(state),
+            };
+        }
+        this._chargeState = 'idle';
+        this._chargeTimer = 0;
+        this._chargeElapsed = 0;
+        this._chargeTargetPos = null;
+        this._chargeSpeed = 0;
+        this._summonActive = false;
+        this._summonTimer = 0;
+        this._summonReleased = false;
+        this._phaseOpening = false;
+        this._phaseTimer = 0;
+        if (!this._phaseOpened) this._phaseOpenTriggered = false;
+        super._onCombatActionInterruptedByControl();
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._frozenForCast = false;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+        this._setRotbogAnimation('idle');
+    }
+
+    _enterStunnedIdleAnimation() {
+        super._enterStunnedIdleAnimation();
+        this._syncRotbogVisualMetrics();
+    }
+
+    updateWhilePetrified(dt) {
+        if (!this._rotbogPetrifiedVisual && !this._deathStarted) {
+            this._interruptPendingCombatActionForControl();
+        }
+        super.updateWhilePetrified(dt);
+        if (!this.hasStatusEffect?.('petrified')) this._rotbogPetrifiedVisual = null;
+        this._syncRotbogVisualMetrics();
+    }
+
+    triggerWeaponAnim() {
+        if (this._rotbogControlled() || this._deathStarted) return;
+        super.triggerWeaponAnim();
+        if (this._pendingThrust?.active) this._setRotbogAnimation('attack');
+    }
+
+    _chargeTiming() {
+        return {
+            prepare: Math.max(0, Number(this._chargeCfg.prepareMs ?? 900)),
+            charge: Math.max(1, Number(this._chargeCfg.chargeMs) || 1000),
+            recovery: Math.max(0, Number(this._chargeCfg.recoveryMs ?? 500)),
+        };
+    }
+
+    _getChargeFrame() {
+        const layout = super._getFrameLayout('charge');
+        const last = Math.max(0, layout.frameCount - 1);
+        const timing = this._chargeTiming();
+        const prepareEnd = Math.min(last, this._chargeCfg.prepareEndFrame ?? 12);
+        const chargeEnd = Math.min(last, this._chargeCfg.chargeEndFrame ?? 24);
+        const interpolate = (start, end, elapsed, duration) => Math.min(end,
+            Math.floor(start + (end - start + 1) * Math.max(0, Math.min(1, elapsed / Math.max(1, duration)))));
+        if (this._chargeState === 'recovery') {
+            return interpolate(this._chargeRecoveryStartFrame, last,
+                this._chargeElapsed - this._chargeRecoveryStartMs, timing.recovery);
+        }
+        if (this._chargeElapsed < timing.prepare) {
+            return interpolate(0, Math.max(0, prepareEnd - 1), this._chargeElapsed, timing.prepare);
+        }
+        return interpolate(prepareEnd, Math.max(prepareEnd, chargeEnd - 1),
+            this._chargeElapsed - timing.prepare, timing.charge);
+    }
+
+    _getDeathFoldProgress() {
+        if (!this._deathStarted || !this._deathElytraStart) return 0;
+        const elapsed = (this._getDeathConfig().duration ?? 1800) - this._deathAnimTimer;
+        const foldMs = Math.max(1, this._phaseCfg.foldVisualMs ?? 220);
+        return Math.max(0, this._deathElytraStart - elapsed / foldMs);
+    }
+
+    _getRotbogFrame(state) {
+        if (this._rotbogPetrifiedVisual && this.hasStatusEffect?.('petrified') && !this._deathStarted) {
+            return this._rotbogPetrifiedVisual.frame;
+        }
+        const layout = super._getFrameLayout(state);
+        const count = Math.max(1, Number(layout.frameCount) || 1);
+        const duration = Math.max(1, Number(layout.duration) || count * 1000 / (layout.frameRate || 15));
+        let elapsed = 0;
+        if (state === 'phase_open') {
+            const progress = this._deathStarted ? this._getDeathFoldProgress() : this._elytraProgress;
+            return Math.max(0, Math.min(count - 1, Math.floor(progress * count)));
+        }
+        if (state === 'charge') return this._getChargeFrame();
+        if (state === 'dying') {
+            const deathMs = this._getDeathConfig().duration ?? 1800;
+            const foldMs = this._deathElytraStart * Math.max(1, this._phaseCfg.foldVisualMs ?? 220);
+            // 留尸/重建时自然钳到末帧，不依赖 death/dying 字符串分支。
+            elapsed = (deathMs - this._deathAnimTimer - foldMs) / Math.max(1, deathMs - foldMs) * duration;
+        } else if (state === 'summon') {
+            elapsed = (this._summonCfg.durationMs || 2200) - this._summonTimer;
+        } else if (state === 'attack') {
+            elapsed = this._pendingThrust?.timelineElapsedMs
+                ?? Math.max(0, this._attackDuration - this._attackTimer);
+        } else {
+            elapsed = this._rotbogLoopElapsed % duration;
+        }
+        return Math.max(0, Math.min(count - 1, Math.floor(elapsed / duration * count)));
+    }
+
+    _advanceRotbogVisual(dt) {
+        if (this._deathStarted || this.hasStatusEffect?.('petrified')) return;
+        this._rotbogPetrifiedVisual = null;
+        if (this._phaseOpening) {
+            this._elytraProgress = 1 - this._phaseTimer / Math.max(1, this._phaseCfg.durationMs || 2200);
+        } else {
+            // 现有动作是合鞘步态/攻击：用原开鞘表正反向衔接，不能拿开鞘待机代替行走。
+            const open = this._phaseOpened && this._animState === 'idle';
+            const duration = Math.max(1, open
+                ? (this._phaseCfg.openVisualMs ?? 400) : (this._phaseCfg.foldVisualMs ?? 220));
+            this._elytraProgress = Math.max(0, Math.min(1,
+                this._elytraProgress + (open ? 1 : -1) * dt / duration));
+        }
+        const state = this._getRotbogVisualState();
+        if (state !== this._rotbogLoopState) {
+            this._rotbogLoopState = state;
+            this._rotbogLoopElapsed = 0;
+        } else {
+            this._rotbogLoopElapsed += dt;
+        }
+    }
+
     update(dt, entities) {
-        super.update(dt, entities);
-        if (!this.active) return;
+        const delta = Math.max(0, Number(dt) || 0);
+        // 直接写状态的突刺/恐惧也必须在父类或预警回调消费时间前取消动作。
+        const controlled = this._rotbogControlled();
+        if (this.active && controlled && (!this._rotbogControlActive
+            || this._chargeState !== 'idle' || this._summonActive || this._phaseOpening
+            || this._pendingThrust?.active || this._attackTelegraphTimer > 0)) {
+            this._cancelActionsForStun();
+        }
+        this._rotbogControlActive = controlled;
+        try {
+            this._updateRotbog(delta, entities);
+        } finally {
+            this._advanceRotbogVisual(delta);
+            this._syncRotbogVisualMetrics();
+        }
+    }
+
+    _updateRotbog(delta, entities) {
+        super.update(delta, entities);
+        if (!this.active || this._deathStarted) return;
 
         this._lastEntities = entities;
         this._pruneSummons();
-        const delta = Math.max(0, Number(dt) || 0);
         const attackDt = this.getAttackIntervalDelta(delta);
         this._chargeCooldown = Math.max(0, this._chargeCooldown - attackDt);
         this._summonCooldown = Math.max(0, this._summonCooldown - attackDt);
 
-        const controlled = this.hasStatusEffect
-            && (this.hasStatusEffect('stun')
-                || this.hasStatusEffect('frozen')
-                || this.hasStatusEffect('petrified')
-                || this.hasStatusEffect('fear'));
+        const controlled = this._rotbogControlled();
+        this._ensureBroodVisuals();
+        if (controlled) return;
 
         if (this._phaseOpening) {
-            if (controlled) this._cancelPhaseOpen();
-            else this._updatePhaseOpen(delta);
+            this._updatePhaseOpen(delta);
             return;
         }
         if (this._chargeState !== 'idle') {
-            if (controlled && this._chargeState !== 'recovery') this._finishCharge();
-            else this._updateCharge(delta);
+            if (this.hasStatusEffect?.('bind') && this._chargeState !== 'recovery') {
+                this._beginChargeRecovery();
+            }
+            if (this._chargeState !== 'idle') this._updateCharge(delta);
             return;
         }
         if (this._summonActive) {
-            if (controlled) this._cancelSummon();
-            else this._updateSummon(delta);
+            this._updateSummon(delta);
             return;
         }
 
-        if (!controlled && !this._phaseOpenTriggered
+        // 普攻以公共 melee timeline 为真源，不能让父类独立倒计时提前切回待机。
+        if (this._pendingThrust?.active && this._pendingThrust.basicMeleeTimeline) {
+            this._attackTimer = Math.max(0, this._pendingThrust.basicMeleeTimeline.durationMs
+                - this._pendingThrust.timelineElapsedMs);
+            this._attackAnimTimer = this._attackTimer;
+            this._setRotbogAnimation('attack');
+            return;
+        }
+        if (!this._phaseOpenTriggered
             && this._shouldOpenPhase() && this._isReadyForRotbogSkill()) {
             this._startPhaseOpen();
             return;
         }
-        if (!controlled && this._chargeCooldown <= 0 && this._canStartCharge(this.target)) {
+        if (this._chargeCooldown <= 0 && this._canStartCharge(this.target)) {
             this._tryAttackTelegraph(() => this._startCharge(this.target));
             return;
         }
-        if (!controlled && this._summonCooldown <= 0 && this._canStartSummon(this.target)) {
+        if (this._summonCooldown <= 0 && this._canStartSummon(this.target)) {
             this._startSummon();
         }
     }
 
     _isReadyForRotbogSkill() {
-        return !this._deathStarted
+        return this.active && !this._deathStarted && !this._rotbogControlled()
             && this._chargeState === 'idle'
             && !this._summonActive
             && !this._phaseOpening
@@ -4938,7 +5141,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
 
     _resolveHornSweepAoe() {
         const pending = this._pendingThrust;
-        if (!pending?.active || pending.rotbogSweepResolved) return;
+        if (!pending?.active || pending.rotbogSweepResolved || this._rotbogControlled()) return;
         pending.rotbogSweepResolved = true;
         const cfg = this.config?.basicMelee?.area || {};
         const range = Math.max(1, Number(cfg.range) || 260);
@@ -4975,6 +5178,8 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
             ? Number(cfg.knockback) : pending.knockback;
 
         for (const target of candidates) {
+            if (!this.active || this._deathStarted || this._rotbogControlled()
+                || this._pendingThrust !== pending || !pending.active) break;
             if (!this._isRotbogTarget(target) || pending.hitSet.has(target)) continue;
             if (!shape.intersectsEntity(target)) continue;
             const targetX = target.collider?.x ?? target.x;
@@ -4993,12 +5198,14 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
                 isMelee: true,
                 confirmedHitContext: { skillId: 'rotbogHornSweep' },
             });
-            if (!result.hit) continue;
-            pending.hitSet.add(target);
-            if (result.skillExpEligible) {
+            if (result.hit) pending.hitSet.add(target);
+            if (result.hit && result.skillExpEligible) {
                 pending.totalHitCount += 1;
                 if (result.killed && !target._summoned) pending.totalKillCount += 1;
             }
+            // applyHit 可同步触发弹反/反伤死亡；不能继续消费已经作废的范围攻击快照。
+            if (!this.active || this._deathStarted || this._rotbogControlled()
+                || this._pendingThrust !== pending || !pending.active) break;
         }
     }
 
@@ -5021,6 +5228,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
 
     _canStartCharge(target) {
         if (!this._isReadyForRotbogSkill() || !this._isRotbogTarget(target)) return false;
+        if (this.hasStatusEffect?.('bind')) return false;
         const distance = distanceToEntityShape(target, this.x, this.y);
         const minRange = Math.max(0, Number(this._chargeCfg.minTriggerRange) || 260);
         const maxRange = Math.max(minRange, Number(this._chargeCfg.triggerRange) || 900);
@@ -5033,9 +5241,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         const dy = (target.collider?.y ?? target.y) - (this.collider?.y ?? this.y);
         const distance = Math.hypot(dx, dy);
         if (distance <= 0) return false;
-        const prepareMs = Math.max(0, Number(this._chargeCfg.prepareMs) || 900);
-        const chargeMs = Math.max(1, Number(this._chargeCfg.chargeMs) || 1000);
-        const recoveryMs = Math.max(0, Number(this._chargeCfg.recoveryMs) || 500);
+        const { prepare: prepareMs, charge: chargeMs, recovery: recoveryMs } = this._chargeTiming();
         const maxDistance = Math.max(1, Number(this._chargeCfg.maxDistance) || 900);
         this._chargeDir = { x: dx / distance, y: dy / distance };
         this._chargeTargetPos = {
@@ -5045,13 +5251,14 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._chargeSpeed = maxDistance / (chargeMs / 1000);
         this._chargeState = 'prepare';
         this._chargeTimer = prepareMs;
+        this._chargeElapsed = 0;
         this._chargeHit = false;
         const cooldownMultiplier = this._phaseOpened
             ? Math.max(0, Number(this._phaseCfg.chargeCooldownMultiplier) || 0.7) : 1;
         this._chargeCooldown = Math.max(0, Number(this._chargeCfg.cooldown) || 12000)
             * cooldownMultiplier;
         this._frozenForCast = true;
-        this._animState = 'charge';
+        this._setRotbogAnimation('charge');
         this._animStateTimer = 0;
         this._attackTimer = prepareMs + chargeMs + recoveryMs;
         this._attackAnimTimer = this._attackTimer;
@@ -5067,29 +5274,34 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
     }
 
     _updateCharge(dt) {
+        const timing = this._chargeTiming();
+        const previous = this._chargeElapsed;
+        this._chargeElapsed += dt;
         this._frozenForCast = true;
-        this._animState = 'charge';
+        this._setRotbogAnimation('charge');
         this.rotation = Math.atan2(this._chargeDir.y, this._chargeDir.x);
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
         if (this._chargeState === 'prepare') {
-            this._chargeTimer = Math.max(0, this._chargeTimer - dt);
-            this.vx = 0;
-            this.vy = 0;
-            this.isMoving = false;
+            this._chargeTimer = Math.max(0, timing.prepare - this._chargeElapsed);
             if (this._chargeTimer <= 0) {
                 this._chargeState = 'charge';
-                this._chargeTimer = Math.max(1, Number(this._chargeCfg.chargeMs) || 1000);
+            } else {
+                this._syncChargeLocks();
+                return;
             }
-            return;
         }
         if (this._chargeState === 'recovery') {
-            this._chargeTimer = Math.max(0, this._chargeTimer - dt);
-            this.vx = 0;
-            this.vy = 0;
-            this.isMoving = false;
+            this._syncChargeLocks();
             if (this._chargeTimer <= 0) this._finishCharge();
             return;
         }
 
+        // 只用本次 dt 与真实冲锋时间段的交集移动；准备/恢复段不偷跑，也不丢跨界时间。
+        const chargeEndMs = timing.prepare + timing.charge;
+        const motionEndMs = Math.min(this._chargeElapsed, chargeEndMs);
+        const motionDt = Math.max(0, motionEndMs - Math.max(previous, timing.prepare));
         const fromX = this.x;
         const fromY = this.y;
         const distToEnd = this._chargeTargetPos
@@ -5098,7 +5310,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         let intendedX = fromX;
         let intendedY = fromY;
         if (distToEnd > 6 && this._chargeSpeed > 0) {
-            const step = Math.min(this._chargeSpeed * dt / 1000, distToEnd);
+            const step = Math.min(this._chargeSpeed * motionDt / 1000, distToEnd);
             intendedX += this._chargeDir.x * step;
             intendedY += this._chargeDir.y * step;
             const resolved = WallSystem.resolve(
@@ -5125,19 +5337,23 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
                 ))
                 .sort((a, b) => distanceToEntityShape(a, fromX, fromY)
                     - distanceToEntityShape(b, fromX, fromY));
-            if (hits.length > 0) this._hitChargeTarget(hits[0]);
+            if (hits.length > 0) this._hitChargeTarget(hits[0], motionEndMs);
         }
         if (this._chargeState !== 'charge') return;
-        this._chargeTimer = Math.max(0, this._chargeTimer - dt);
         if (motionBlocked) {
+            // 公共眩晕入口取消动作；不能在回调返回后重新启动 recovery。
+            this._beginChargeRecovery(motionEndMs);
             this.applyStun?.(Math.max(0, Number(this._chargeCfg.wallSelfStunMs) || 600));
-            this._beginChargeRecovery();
-        } else if (this._chargeTimer <= 0 || distToEnd <= 6) {
-            this._beginChargeRecovery();
+            return;
+        } else if (this._chargeElapsed >= chargeEndMs || distToEnd <= 6) {
+            this._beginChargeRecovery(motionEndMs);
         }
+        this._syncChargeLocks();
+        if (this._chargeState === 'recovery' && this._chargeTimer <= 0) this._finishCharge();
     }
 
-    _hitChargeTarget(target) {
+    _hitChargeTarget(target, atMs = this._chargeElapsed) {
+        this._chargeHit = true;
         const damage = Math.max(1, Math.round(
             (this.data?.atk || this.data?.str || 20)
             * Math.max(0, Number(this._chargeCfg.damageMultiplier) || 1.8)
@@ -5152,52 +5368,105 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
             isMelee: true,
             confirmedHitContext: { skillId: 'rotbogMudCharge' },
         });
+        if (!this.active || this._deathStarted || this._rotbogControlled()
+            || this._chargeState !== 'charge') return;
         this._chargeHit = result.hit;
         const parried = target.shieldSystem && target.shieldSystem._lastParried;
         if (result.hit && !parried && target.active && !target._isDead && target.hp > 0) {
             target.applyStun?.(Math.max(0, Number(this._chargeCfg.stunMs) || 1250));
         }
-        if (result.hit) this._beginChargeRecovery();
+        if (result.hit) this._beginChargeRecovery(atMs);
     }
 
-    _beginChargeRecovery() {
-        if (this._chargeState === 'recovery') return;
+    _beginChargeRecovery(atMs = this._chargeElapsed) {
+        if (this._chargeState === 'idle' || this._chargeState === 'recovery') return;
+        // 提前命中从当前姿态继续走完余下帧，不跳到固定收势帧，也不从首帧重播。
+        const timing = this._chargeTiming();
+        this._chargeRecoveryStartFrame = atMs >= timing.prepare + timing.charge
+            ? (this._chargeCfg.chargeEndFrame ?? 24) : this._getChargeFrame();
+        this._chargeRecoveryStartMs = atMs;
         this._chargeState = 'recovery';
-        this._chargeTimer = Math.max(0, Number(this._chargeCfg.recoveryMs) || 500);
+        this._syncChargeLocks();
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
         if (this._chargeTimer <= 0) this._finishCharge();
     }
 
+    _syncChargeLocks() {
+        if (this._chargeState === 'idle') return;
+        const timing = this._chargeTiming();
+        const end = this._chargeState === 'recovery'
+            ? this._chargeRecoveryStartMs + timing.recovery
+            : timing.prepare + timing.charge + timing.recovery;
+        this._attackTimer = Math.max(0, end - this._chargeElapsed);
+        this._attackAnimTimer = this._attackTimer;
+        this._chargeTimer = this._chargeState === 'prepare'
+            ? Math.max(0, timing.prepare - this._chargeElapsed)
+            : this._chargeState === 'charge'
+                ? Math.max(0, timing.prepare + timing.charge - this._chargeElapsed)
+                : this._attackTimer;
+    }
+
     _finishCharge() {
         this._chargeState = 'idle';
         this._chargeTimer = 0;
+        this._chargeElapsed = 0;
         this._chargeTargetPos = null;
         this._chargeSpeed = 0;
         this._chargeHit = false;
         this._frozenForCast = false;
         this._attackTimer = 0;
         this._attackAnimTimer = 0;
-        this._animState = 'idle';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this._setRotbogAnimation('idle');
         this.aiTimer = 0;
     }
 
     _canStartSummon(target) {
         if (!this._isReadyForRotbogSkill() || !this._isRotbogTarget(target)) return false;
         if (this._summons.size >= Math.max(0, Number(this._summonCfg.aliveCap) || 4)) return false;
+        if (!this._ensureBroodVisuals()) return false;
         const range = Math.max(0, Number(this._summonCfg.triggerRange) || 900);
         return distanceToEntityShape(target, this.x, this.y) <= range;
     }
 
+    _ensureBroodVisuals() {
+        const type = this._summonCfg.summonType || 'smallRotbogRhinocerosBeetle';
+        const config = enemyConfigData[type];
+        if (!config) return false;
+        if (!this._broodVisualKeys?.length) {
+            this._broodVisualKeys = RuntimeAssetManager.getEnemyVisualKeysForContent(type, config);
+        }
+        const keys = this._broodVisualKeys;
+        const ready = keys.length > 0 && keys.every(key => RuntimeAssetManager.isTextureReady(key))
+            && Object.keys(config.textures.frameLayouts).every(state => RuntimeAssetManager.isAnimationReady(
+                `enemy_small_rotbog_rhinoceros_beetle_${state}_v1`));
+        if (ready) return true;
+        if (!this.active || this._deathStarted || this._broodLoadPending
+            || Date.now() < this._broodLoadRetryAt || !keys.length) return false;
+        // 只预热，异步回调不生成实体；释放仍由可中断的技能时钟完成。
+        this._broodLoadPending = RuntimeAssetManager.ensureEnemyVisualKeys(keys, {
+            required: false,
+            shouldLoad: () => this.active && !this._deathStarted,
+        }).catch(() => {}).finally(() => {
+            this._broodLoadPending = null;
+            this._broodLoadRetryAt = Date.now() + 2000;
+        });
+        return false;
+    }
+
     _startSummon() {
+        if (!this._canStartSummon(this.target)) return false;
         const duration = Math.max(100, Number(this._summonCfg.durationMs) || 2200);
         this._summonActive = true;
         this._summonTimer = duration;
         this._summonReleased = false;
         this._summonCooldown = Math.max(0, Number(this._summonCfg.cooldown) || 18000);
         this._frozenForCast = true;
-        this._animState = 'summon';
+        this._setRotbogAnimation('summon');
         this._animStateTimer = 0;
         this._attackTimer = duration;
         this._attackAnimTimer = duration;
@@ -5207,6 +5476,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this.vy = 0;
         this.isMoving = false;
         this.aiTimer = 0;
+        return true;
     }
 
     _updateSummon(dt) {
@@ -5219,11 +5489,22 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._summonTimer = Math.max(0, this._summonTimer - dt);
         const elapsed = duration - this._summonTimer;
         if (!this._summonReleased && elapsed >= duration * releaseFrame / frameCount) {
+            if (!this._ensureBroodVisuals()) {
+                // 常规路径已预热并驻留；加载被中断时停在释放点，不生成占位怪或异步补发。
+                this._summonTimer = duration * (1 - releaseFrame / frameCount);
+                this._attackTimer = this._summonTimer;
+                this._attackAnimTimer = this._summonTimer;
+                this._setRotbogAnimation('summon');
+                return;
+            }
             this._summonReleased = true;
             this._releaseSummons();
         }
+        if (!this.active || this._deathStarted || !this._summonActive || this._rotbogControlled()) return;
         this._frozenForCast = true;
-        this._animState = 'summon';
+        this._attackTimer = this._summonTimer;
+        this._attackAnimTimer = this._summonTimer;
+        this._setRotbogAnimation('summon');
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
@@ -5274,7 +5555,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._frozenForCast = false;
         this._attackTimer = 0;
         this._attackAnimTimer = 0;
-        this._animState = 'idle';
+        this._setRotbogAnimation('idle');
         this.aiTimer = 0;
     }
 
@@ -5289,7 +5570,8 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._phaseOpening = true;
         this._phaseTimer = duration;
         this._frozenForCast = true;
-        this._animState = 'phase_open';
+        this._elytraProgress = 0;
+        this._setRotbogAnimation('phase_open');
         this._animStateTimer = 0;
         this._attackTimer = duration;
         this._attackAnimTimer = duration;
@@ -5304,20 +5586,23 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
     _updatePhaseOpen(dt) {
         this._phaseTimer = Math.max(0, this._phaseTimer - dt);
         this._frozenForCast = true;
-        this._animState = 'phase_open';
+        this._attackTimer = this._phaseTimer;
+        this._attackAnimTimer = this._phaseTimer;
+        this._setRotbogAnimation('phase_open');
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
         if (this._phaseTimer > 0) return;
         this._phaseOpening = false;
         this._phaseOpened = true;
+        this._elytraProgress = 1;
         const speedMultiplier = Math.max(0, Number(this._phaseCfg.speedMultiplier) || 1.25);
         this.speed = this._baseRotbogSpeed * speedMultiplier;
         this.maxSpeed = this.speed;
         this._frozenForCast = false;
         this._attackTimer = 0;
         this._attackAnimTimer = 0;
-        this._animState = 'idle';
+        this._setRotbogAnimation('idle');
         this.aiTimer = 0;
     }
 
@@ -5328,11 +5613,14 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._frozenForCast = false;
         this._attackTimer = 0;
         this._attackAnimTimer = 0;
-        this._animState = 'idle';
+        this._setRotbogAnimation('idle');
         this.aiTimer = 0;
     }
 
     onDeath(source) {
+        if (this._deathStarted) return;
+        this._deathElytraStart = this._elytraProgress;
+        this._rotbogPetrifiedVisual = null;
         this._chargeState = 'idle';
         this._chargeTimer = 0;
         this._chargeTargetPos = null;
@@ -5343,6 +5631,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
         this._frozenForCast = false;
         // 召唤物拥有独立生命周期；领主死亡时不清除、不强制击杀。
         super.onDeath(source);
+        this._syncRotbogVisualMetrics();
     }
 }
 

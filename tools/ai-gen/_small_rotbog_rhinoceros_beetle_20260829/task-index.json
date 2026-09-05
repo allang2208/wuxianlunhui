@@ -151,6 +151,18 @@
   "formalSpritesheetsApprovedDate": "2026-08-29",
   "formalSpritesheetsApprovalEvidence": "user confirmed the repaired sprite sheets can be used and requested game integration",
   "runtimeIntegrationActive": true,
+  "runtimePacking20260830": {
+    "status": "installed-runtime-unverified",
+    "manifest": "../_rotbog_repair_20260830/manifest.json",
+    "commonSourceCrop": [96, 288, 416, 448],
+    "frameWidth": 320,
+    "frameHeight": 160,
+    "columns": "per-action; see runtime frameLayouts",
+    "visiblePixelsAndFrameCountsUnchanged": true,
+    "newInterpolation": false,
+    "rgbaMiBBefore": 128,
+    "rgbaMiBAfter": 22.4609375
+  },
   "runtimeIntegration": {
     "enemyType": "smallRotbogRhinocerosBeetle",
     "assetFamily": "assets/enemies/small_rotbog_rhinoceros_beetle",
