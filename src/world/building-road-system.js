@@ -13,12 +13,14 @@ export const BUILDING_ROAD_DISPLAY_HEIGHT = 65;
 export const BUILDING_ROAD_DEPTH = WORLD_RENDER_LAYERS.ROAD;
 export const BUILDING_ROAD_SPEED_MULTIPLIER = 1.2;
 export const BUILDING_FIELD_TEXTURE = 'building_field_tiles';
+export const BUILDING_FIELD_FRAME_COUNT = 4;
 export const BUILDING_FIELD_DISPLAY_WIDTH = 130;
 export const BUILDING_FIELD_DISPLAY_HEIGHT = 65;
 export const BUILDING_FIELD_DEPTH = WORLD_RENDER_LAYERS.FIELD;
 
 const DEFAULT_BUILDING_CELLS = 2;
 const ROAD_PADDING = 1;
+export const BUILDING_FRONT_ROAD_KIND = 'front_road';
 
 function cellKey(i, j) {
     return `${i},${j}`;
@@ -36,12 +38,16 @@ export function buildingRoadFrame(i, j) {
 }
 
 /**
- * A building uses a cells×cells interior. The road reservation adds one cell
- * on every side. The central cells may
- * receive visual-only surface fillers so the building art joins the perimeter
- * without turning its occupied footprint into walkable road.
+ * A building uses a cells×cells interior. Full perimeter modes add one cell on
+ * every side; front_road keeps only the configured door-facing side. Central
+ * cells may receive visual-only surface fillers for full perimeter modes only,
+ * without turning the occupied footprint into walkable road.
  */
-export function buildingRoadLayout(x, y, cells = DEFAULT_BUILDING_CELLS) {
+export function buildingRoadLayout(x, y, cells = DEFAULT_BUILDING_CELLS, {
+    perimeterTile = 'road',
+    frontRoadSide = 'i_positive',
+    mirror = false,
+} = {}) {
     const buildingCellsWide = cells === 4 ? 4 : DEFAULT_BUILDING_CELLS;
     const frontOffsetY = (buildingCellsWide * 2 - 1) * 32;
     const [baseI, baseJ] = blockCellOf(x, y - frontOffsetY);
@@ -57,6 +63,8 @@ export function buildingRoadLayout(x, y, cells = DEFAULT_BUILDING_CELLS) {
             const cell = {
                 i,
                 j,
+                di,
+                dj,
                 key: cellKey(i, j),
                 x: Math.round(cx),
                 y: Math.round(cy),
@@ -69,15 +77,32 @@ export function buildingRoadLayout(x, y, cells = DEFAULT_BUILDING_CELLS) {
         }
     }
 
+    const usesFrontRoad = perimeterTile === BUILDING_FRONT_ROAD_KIND;
+    const configuredFrontSide = frontRoadSide === 'j_positive' ? 'j_positive' : 'i_positive';
+    const effectiveFrontSide = mirror
+        ? (configuredFrontSide === 'i_positive' ? 'j_positive' : 'i_positive')
+        : configuredFrontSide;
+    const selectedRoadCells = usesFrontRoad
+        ? roadCells.filter((cell) => effectiveFrontSide === 'i_positive'
+            ? cell.di === buildingCellsWide && cell.dj >= 0 && cell.dj < buildingCellsWide
+            : cell.dj === buildingCellsWide && cell.di >= 0 && cell.di < buildingCellsWide)
+        : roadCells;
+    const selectedReservationCells = usesFrontRoad
+        ? [...buildingCells, ...selectedRoadCells]
+        : reservationCells;
+
     return {
         x,
         y,
         baseI,
         baseJ,
         footprintCells: buildingCellsWide,
-        reservationCells,
+        reservationCells: selectedReservationCells,
         buildingCells,
-        roadCells,
+        roadCells: selectedRoadCells,
+        fillCells: usesFrontRoad ? [] : buildingCells,
+        perimeterTile,
+        frontRoadSide: effectiveFrontSide,
     };
 }
 
@@ -90,7 +115,7 @@ export const BuildingRoadSystem = {
     _topologyRevision: 0,
     _networkCache: null,
 
-    _markTopologyChanged() {
+    _markTopologyChanged(dirtyRoadKeys = null, { full = false } = {}) {
         this._topologyRevision = (Number(this._topologyRevision) || 0) + 1;
         this._networkCache = null;
         // 拖铺道路会在同一输入事务中连续修改多格；街景只取最终拓扑，微任务合并重建，
@@ -99,6 +124,9 @@ export const BuildingRoadSystem = {
             scene: this._scene,
             roadTiles: this._roadTiles,
             buildings: Array.from(this._owners.keys()),
+            roadRevision: this._topologyRevision,
+            dirtyRoadKeys: dirtyRoadKeys || [],
+            full,
         });
     },
 
@@ -194,7 +222,12 @@ export const BuildingRoadSystem = {
         const layout = building._buildingRoadLayout || buildingRoadLayout(
             building.x,
             building.y,
-            building._buildingFootprintCells || 2
+            building._buildingFootprintCells || 2,
+            {
+                perimeterTile: building._cfg?.perimeterTile ?? 'road',
+                frontRoadSide: building._cfg?.frontRoadSide,
+                mirror: !!building._facingLeft,
+            }
         );
         return layout.roadCells.map((cell) => cell.key).filter((key) => network.byKey.has(key));
     },
@@ -202,16 +235,20 @@ export const BuildingRoadSystem = {
     getBuildingRoadInfo(building) {
         const network = this.getRoadNetwork();
         const wallRevision = Number(WallSystem?._collisionRevision) || 0;
+        const accessKeys = this.getBuildingRoadAccessKeys(building);
         const signature = [
             this.getTopologyRevision(),
             wallRevision,
             Math.round(Number(building?.x) || 0),
             Math.round(Number(building?.y) || 0),
+            building?._facingLeft ? 1 : 0,
+            building?._cfg?.perimeterTile ?? 'road',
+            building?._cfg?.frontRoadSide ?? '',
+            accessKeys.join(','),
         ].join(':');
         if (building?._buildingRoadInfoCache?.signature === signature) {
             return building._buildingRoadInfoCache;
         }
-        const accessKeys = this.getBuildingRoadAccessKeys(building);
         const componentIds = [...new Set(accessKeys
             .map((key) => network.componentByKey.get(key))
             .filter((id) => id !== undefined))];
@@ -277,9 +314,12 @@ export const BuildingRoadSystem = {
         tile.y = cell.y;
         if (!tile.sprite && targetScene?.add?.sprite) {
             const usesFieldTexture = kind === 'field' || kind === 'field_fill';
+            const textureFrame = usesFieldTexture
+                ? cell.frame % BUILDING_FIELD_FRAME_COUNT
+                : cell.frame;
             tile.sprite = usesFieldTexture
-                ? targetScene.add.sprite(cell.x, cell.y, BUILDING_FIELD_TEXTURE, cell.frame)
-                : targetScene.add.sprite(cell.x, cell.y, BUILDING_ROAD_TEXTURE, cell.frame);
+                ? targetScene.add.sprite(cell.x, cell.y, BUILDING_FIELD_TEXTURE, textureFrame)
+                : targetScene.add.sprite(cell.x, cell.y, BUILDING_ROAD_TEXTURE, textureFrame);
             tile.sprite.setOrigin(0.5, 0.5);
             tile.sprite.setDisplaySize(
                 usesFieldTexture ? BUILDING_FIELD_DISPLAY_WIDTH : BUILDING_ROAD_DISPLAY_WIDTH,
@@ -324,7 +364,7 @@ export const BuildingRoadSystem = {
         this._manualRoadCells.set(key, cell);
         const tile = this._ensureRoadTile(cell, targetScene);
         tile.manual = true;
-        this._markTopologyChanged();
+        this._markTopologyChanged([key]);
         return true;
     },
 
@@ -339,7 +379,7 @@ export const BuildingRoadSystem = {
                 this._roadTiles.delete(key);
             }
         }
-        this._markTopologyChanged();
+        this._markTopologyChanged([key]);
         return true;
     },
 
@@ -422,17 +462,24 @@ export const BuildingRoadSystem = {
 
     canAttach(entity) {
         if (!entity) return false;
+        const configuredKind = entity._cfg?.perimeterTile ?? 'road';
+        if (configuredKind === 'none') return true;
         const layout = buildingRoadLayout(
             entity.x,
             entity.y,
-            entity._buildingFootprintCells || 2
+            entity._buildingFootprintCells || 2,
+            {
+                perimeterTile: configuredKind,
+                frontRoadSide: entity._cfg?.frontRoadSide,
+                mirror: !!entity._facingLeft,
+            }
         );
         return layout.reservationCells.every((cell) =>
             !this.isReservedCell(cell.i, cell.j, entity)
         );
     },
 
-    attach(entity, { allowOverlap = false, scene = null, kind = null } = {}) {
+    attach(entity, { allowOverlap = false, scene = null, kind = null, roadCellFilter = null } = {}) {
         if (!entity) return false;
         const targetScene = scene || (
             typeof window !== 'undefined' ? window.__phaserScene : null
@@ -446,8 +493,18 @@ export const BuildingRoadSystem = {
         const layout = buildingRoadLayout(
             entity.x,
             entity.y,
-            entity._buildingFootprintCells || 2
+            entity._buildingFootprintCells || 2,
+            {
+                perimeterTile: configuredKind,
+                frontRoadSide: entity._cfg?.frontRoadSide,
+                mirror: !!entity._facingLeft,
+            }
         );
+        // 市政厅旧档补路可逐格跳过既有障碍；贴图、预约和接路查询共用筛选后的布局。
+        if (typeof roadCellFilter === 'function') {
+            layout.roadCells = layout.roadCells.filter(roadCellFilter);
+            layout.reservationCells = [...layout.buildingCells, ...layout.roadCells];
+        }
         if (!allowOverlap && layout.reservationCells.some((cell) =>
             this.isReservedCell(cell.i, cell.j)
         )) return false;
@@ -471,7 +528,7 @@ export const BuildingRoadSystem = {
         // 删除独立地基后，用外围地块同源纹理补齐主体透明处下方的中央4格。
         // *_fill 不属于道路/田地玩法格：不提供移速、不写手铺道路快照，也不可退款。
         const fillKind = perimeterKind === 'field' ? 'field_fill' : 'road_fill';
-        for (const cell of layout.buildingCells) {
+        for (const cell of layout.fillCells) {
             const tile = this._ensureRoadTile(cell, targetScene, fillKind);
             tile.owners.add(entity);
         }
@@ -482,13 +539,13 @@ export const BuildingRoadSystem = {
             ...options,
             preserveRoads: perimeterKind === 'road' && options.preserveRoads === true,
         });
-        this._markTopologyChanged();
+        this._markTopologyChanged(layout.roadCells.map((cell) => cell.key));
         return true;
     },
 
     /**
-     * 释放建筑的 4×4 预约。preserveRoads=true 时，外围自动道路转为独立道路：
-     * 建筑被毁/拆除后道路保留，中心四格预约释放，可直接原位重建。
+     * 释放建筑的主体与派生道路预约。preserveRoads=true 时，自动道路转为独立道路：
+     * 建筑被毁/拆除后道路保留，主体预约释放，可直接原位重建。
      */
     detach(entity, { preserveRoads = false } = {}) {
         const record = this._owners.get(entity);
@@ -525,7 +582,7 @@ export const BuildingRoadSystem = {
             }
         }
         // 中央补片只服务当前建筑，不能随 preserveRoads 转为手动/可退款道路。
-        for (const cell of record.layout.buildingCells) {
+        for (const cell of record.layout.fillCells || record.layout.buildingCells) {
             const tile = this._roadTiles.get(cell.key);
             if (!tile) continue;
             tile.owners.delete(entity);
@@ -539,7 +596,7 @@ export const BuildingRoadSystem = {
         if (entity?._removeBuildingRoads) delete entity._removeBuildingRoads;
         if (entity?._buildingRoadLayout) delete entity._buildingRoadLayout;
         if (entity?._buildingPerimeterKind) delete entity._buildingPerimeterKind;
-        this._markTopologyChanged();
+        this._markTopologyChanged(record.layout.roadCells.map((cell) => cell.key));
         return true;
     },
 };
