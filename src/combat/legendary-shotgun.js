@@ -3,6 +3,7 @@ import { hasRangedLineOfSight } from './ranged-line-of-sight.js';
 import { isFriendlyFire } from '../entities/damageable-entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { LightningBoltEffect } from '../effects/lightning-bolt.js';
+import { combatNowMs } from './combat-clock.js';
 
 const LEGENDARY_SHOTGUN_STATES = new WeakMap();
 
@@ -26,6 +27,12 @@ function entityList(entities) {
     if (Array.isArray(entities)) return entities;
     if (typeof entities.values === 'function') return Array.from(entities.values());
     return [];
+}
+
+function configuredSlowReduction(value, fallback = 0.5) {
+    if (value == null) return fallback;
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(0, Math.min(0.9, number)) : fallback;
 }
 
 function isHostileTarget(source, target) {
@@ -105,7 +112,7 @@ function handleEclipseHit(source, weapon, entities, blastDamage, blast, hitTarge
     const state = getWeaponState(weapon);
     if (!params || !state || !blast || !hitTarget) return;
     const effects = weapon._craftEffects || {};
-    const now = Date.now();
+    const now = combatNowMs();
     const markDurationMs = Math.max(500,
         (Number(params.markDurationMs) || 3000) + (Number(effects.eclipseMarkDurationDelta) || 0));
 
@@ -116,6 +123,7 @@ function handleEclipseHit(source, weapon, entities, blastDamage, blast, hitTarge
         if (slowDurationMs > 0) {
             hitTarget.addStatusEffect?.('slow', slowDurationMs, {
                 name: '月蚀迟滞', icon: '☾', color: '#6ebcff',
+                value: configuredSlowReduction(params.lunarSlowReduction),
             });
         }
         const moon = { x: hitTarget.x, y: hitTarget.y - 95, active: true, bodyHeight: 0 };
@@ -175,7 +183,7 @@ function handleRoyalHuntHit(source, weapon, blastDamage, hitTarget, projectile) 
     const state = getWeaponState(weapon)?.hunt;
     if (!params || !state || !hitTarget) return;
     const effects = weapon._craftEffects || {};
-    const now = Date.now();
+    const now = combatNowMs();
     const resetMs = Math.max(500,
         (Number(params.resetMs) || 2200) + (Number(effects.huntResetTimeDelta) || 0));
     const requiredHits = Math.max(2, Math.round(

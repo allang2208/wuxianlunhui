@@ -829,7 +829,7 @@ export const EquipDataManager = {
         desc: '传说双相霰弹枪“黑日圣裁”；实际击发在月相与日相间交替。月相首命中施加3秒蚀印与500ms迟滞；紧随其后的日相命中同一目标会消耗蚀印，追加整组弹群35%的聚焦伤害，并向170px内最多4个敌人溅射整组45%的伤害。',
         equipSlot: 'weapon',
         attack: { range: 730, knockback: 17, attackInterval: 445, hitType: '双相鹿弹（6发；月蚀标记/日冕裁决）', damageType: '物理', projectileSpeed: 1340, damageFalloff: { start: 330, minMultiplier: 0.3 } },
-        eclipseVerdictParams: { markDurationMs: 3000, lunarSlowDurationMs: 500, focusDamageMultiplier: 0.35, splashDamageMultiplier: 0.45, radius: 170, maxTargets: 4, knockback: 3 },
+        eclipseVerdictParams: { markDurationMs: 3000, lunarSlowDurationMs: 500, lunarSlowReduction: 0.5, focusDamageMultiplier: 0.35, splashDamageMultiplier: 0.45, radius: 170, maxTargets: 4, knockback: 3 },
         attackKey: 'black_sun_verdict', animConfigKey: 'shotgun', fireSound: 'assets/sounds/weapons/gunshot_600ms_clean.wav', pelletCount: 6, equipSound: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', canvasImageProp: 'blackSunVerdictImage',
         ammoConfig: { max: 8, reloadTime: 500, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/Super90-reload.mp3' }, fireMode: 'semiAuto',
         spreadParams: { startShots: 0, maxShots: 1, recoveryMs: 470, maxAngle: 15 },
