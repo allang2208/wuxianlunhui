@@ -1,0 +1,59 @@
+{
+  "asset": "wall_tower_engineering",
+  "name": "城墙塔工程",
+  "date": "2026-08-31",
+  "generator": "built-in image_gen",
+  "source": "C:/Users/allan/.codex/generated_images/01a05325-2373-77c2-9a2a-b29f01fba71e/exec-5ec69fc4-08dc-4948-a8d5-424da16f58e5.png",
+  "raw": "wall_tower_engineering_raw.png",
+  "runtime": "assets/ui/technology-icons/wall_tower_engineering.png",
+  "replacedReference": "assets/ui/building-thumbnails/wall_tower_sand.png",
+  "references": [
+    {
+      "path": "assets/ui/technology-icons/defense_tower_engineering.png",
+      "role": "cold-steel hexagonal frame, dark interior and lighting"
+    },
+    {
+      "path": "assets/terrain/wall_tower_sand.png",
+      "role": "sandstone wall-tower identity and geometry"
+    }
+  ],
+  "prompt": "Use case: stylized-concept.\nAsset type: one production technology-tree icon for the strategy game World-122, named Wall Tower Engineering; no text inside the image.\nInput images: Image 1 (defense_tower_engineering.png) is the exact cold-steel hexagonal badge frame, dark faceted interior, material and lighting reference ONLY. Image 2 (wall_tower_sand.png) is the building identity and geometry reference ONLY, not a background.\nPrimary request: create a dedicated unlock-technology emblem for the sand-masonry wall tower. Inside the same silver cold-steel hexagon, depict ONE tall square 2-by-2 wall tower in three-quarter isometric view, built of naturally weathered warm tan sandstone blocks. Preserve the recognizable tower from Image 2: two-storey vertical square mass, four sides of crenellated parapets enclosing a flat walkable roof deck, and the elevated side arched opening. This is a wall-walk fortification, not an automatic weapon turret.\nComposition: the tower centered and large, occupies around 75 percent of the inner badge height, complete base and all battlements visible, balanced negative space. A single coherent tower, not four separate towers. The badge frame is upright, top and bottom pointed, with vertical left/right sides and a brushed silver beveled rim, identical visual scale and proportions to Image 1. Full outer border visible, roughly 12px transparent safety margin on a square 1024x1024 canvas. Charcoal faceted inset enclosed within the badge.\nMaterials and lighting: PBR-style textured sandstone and brushed cool silver steel, soft upper-left light, restrained contrast, crisp legible silhouette at small UI scale. No excessive gold, no neon stone, no decorative foliage.\nBackground: genuinely transparent alpha OUTSIDE the hexagonal frame only; the charcoal inner background remains opaque. Do NOT paint checkerboard squares, black or white outer backdrop, floor plane, or cast shadow outside the frame.\nAvoid: cannon, gun, auto-turret, extra buildings, roofs, flags, characters, gears, separate emblems, text, letters, digits, watermark, cropping, missing frame corners.",
+  "finalization": {
+    "script": "finalize_icon.py",
+    "size": [
+      1024,
+      1024
+    ],
+    "visibleLongEdge": 1000,
+    "outerFrameVertices": [
+      [
+        629,
+        8
+      ],
+      [
+        1148,
+        325
+      ],
+      [
+        1148,
+        932
+      ],
+      [
+        629,
+        1234
+      ],
+      [
+        104,
+        932
+      ],
+      [
+        104,
+        325
+      ]
+    ],
+    "alphaFeatherPx": 0.65,
+    "note": "Preserve genuine source alpha if present; otherwise remove only the generated checkerboard outside the measured badge frame. Reuse the project's badge normalization."
+  },
+  "scope": "Only the wall_tower_engineering iconPath changes; no costs, prerequisites, unlocks, building textures or technology version changes.",
+  "runtimeTested": false
+}

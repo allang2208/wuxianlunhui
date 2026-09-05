@@ -107,7 +107,7 @@
       "unlocks": [{ "type": "building", "id": "wall_battlement", "label": "城垛女墙" }]
     },
     {
-      "id": "wall_tower_engineering", "name": "城墙塔工程", "icon": "🏯", "iconPath": "assets/ui/building-thumbnails/wall_tower_sand.png", "branch": "工程", "column": 3, "lane": 0, "researchCost": 160,
+      "id": "wall_tower_engineering", "name": "城墙塔工程", "icon": "🏯", "iconPath": "assets/ui/technology-icons/wall_tower_engineering.png", "branch": "工程", "column": 3, "lane": 0, "researchCost": 160,
       "prerequisites": ["wall_battlement_engineering"], "description": "把四个独立城墙单元组合为2×2双层塔楼，形成可从四向相邻城墙无缝进入的封闭塔顶步道。",
       "unlocks": [{ "type": "building", "id": "wall_tower", "label": "城墙塔" }]
     },
