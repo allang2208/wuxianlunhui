@@ -593,7 +593,19 @@ export function isFriendlyFire(source, target) {
                 return Math.max(0, Math.min(0.95, Number(effect?.value) || 0));
             }
 
-            /** 石化为独立强控：不重置动作，表现层会停在当前帧并黑白化。 */
+            /**
+             * 控制中断的统一结算出口：作废未完成普攻，不返还冷却/经验。
+             * 石化可单独调用本方法以保留当前定格画面。
+             */
+            _interruptPendingCombatActionForControl() {
+                if (this._pendingThrust) {
+                    this._pendingThrust.active = false;
+                    this._pendingThrust = null;
+                }
+                this._onCombatActionInterruptedByControl?.();
+            }
+
+            /** 石化为独立强控：作废未结算普攻，表现层仍停在当前帧并黑白化。 */
             applyPetrify(duration = 5000, magicDamageTakenMultiplier = 1.5) {
                 if (this._isDead || this.hp <= 0 || this.hasStatusEffect('statusImmune')) return false;
                 const effect = this.addStatusEffect('petrified', duration, {
@@ -601,6 +613,7 @@ export function isFriendlyFire(source, target) {
                     value: Math.max(1, Number(magicDamageTakenMultiplier) || 1.5),
                 });
                 if (!effect) return false;
+                this._interruptPendingCombatActionForControl();
                 this.vx = 0;
                 this.vy = 0;
                 this.isMoving = false;
@@ -799,6 +812,7 @@ export function isFriendlyFire(source, target) {
             }
             /** 眩晕/冻结时强制中断当前动作（攻击动画、预警、施法冻结） */
             _cancelActionsForStun() {
+                this._interruptPendingCombatActionForControl();
                 if (this.weaponAnim) {
                     this.weaponAnim.state = 'idle';
                     this.weaponAnim.timer = 0;

@@ -553,6 +553,31 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
                     || this.hasStatusEffect('petrified') || this.hasStatusEffect('fear');
             }
 
+            _onCombatActionInterruptedByControl() {
+                this._attackTimer = 0;
+                this._attackAnimTimer = 0;
+                this._lungeActive = false;
+                this._attackDashOffset = 0;
+                this._frozenForCast = false;
+                this._clearAttackTelegraph();
+            }
+
+            _syncCombatControlInterruption() {
+                const controlled = this.isCombatActionBlocked();
+                if (controlled && !this._combatControlActive && this.active && !this._isDead) {
+                    // 石化允许子类保存当前贴图；恐惧只中断一次，保留逃跑步行动画。
+                    if (this.hasStatusEffect('petrified')) this._interruptPendingCombatActionForControl();
+                    else this._cancelActionsForStun();
+                }
+                this._combatControlActive = controlled;
+                return controlled;
+            }
+
+            updateWhilePetrified(dt) {
+                this._syncCombatControlInterruption();
+                super.updateWhilePetrified(dt);
+            }
+
             // ===== 攻击预警系统（精英及以上：攻击前显示红色轮廓，跟随怪物移动）=====
             // 配置：data/combat-config.json → attackTelegraph（enabled/durationMs/ranks/color 等）
             _getAttackTelegraphConfig() {
@@ -675,7 +700,9 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
             }
 
             update(dt, entities) {
+                this._syncCombatControlInterruption();
                 super.update(dt);
+                if (!this.active || this._isDead) return;
                 // FSM 阶段切换更新（始终执行，不因眩晕或目标丢失而跳过）
                 if (this._fsm) {
                     this._fsm.update(dt, this, entities);
