@@ -223,6 +223,7 @@
 
 - **离散人物帧是位置真源**：用 `playerSprite.anims.currentFrame.index` 选择同号 `walkFrames`，不要再按 `getProgress()` 在相邻握点间连续插值。人物 sheet 在每个离散帧内不动，武器自行插值会在手层换帧前滑离拳头。读取 `currentAnim` 时必须同时校验 `anims.isPlaying`，并兼容 `player_walk` 与 handLayer 实际播放键 `player_walk_body`；停止后的陈旧 `currentAnim` 不能驱动握点。
 - **轨迹生成**：从当前 `walk_hand` 隔离层定位每帧拳头，按显示缩放换算 local offset，直接写握点；`rotation` 是最终显示角（sword 当前110°），`scale` 取 walk 尺寸。更换 walk 素材或持剑手后必须重测21帧拳头，不能只整体平移旧武器中心轨迹。
+- **持盾 walking 摆幅匹配（2026-09-05）**：盾牌挂点与人物、主剑仍按同一离散帧取样，但不能机械复制副手空摆的完整横向跨度。以原盾掌轨迹均值为中性中心，当前正式参数为横向60%、纵向80%、倾角2/3；144px运行时横摆约17.4px，与主剑/主手约17.7px接近。只压缩相对中心的摆动量，不移动平均握位、不改帧序、前后层或格挡姿势。
 - **复用键隔离**：staff 的 `animConfigKey` 也是 `sword`，所以是否启用剑柄锚手/背负必须判断 `currentItem.weaponType === 'sword'`，不能判断 `wt === 'sword'`。法杖继续读独立 `staffWalkFrames`、以杆身中段为中心平滑跟随；弓和枪械也不得进入剑分支。
 - **running 背负**：`sword.running` 保存稳定静态锚点并声明 `carryLayer:'back'`；GameScene 按人物动态 depth 每帧放到 body−1。进入 walking 时恢复 grip origin 与 body+2，退出 walking/running 到 idle/attack 时恢复中心 origin 与正常前景层，避免状态切换继承上一姿态的 origin/depth。
 - **专用持剑奔跑的准入门槛**：复用原版跑姿另叠 `handLayer` 时，不能按“画面左/右”或单帧清晰度猜解剖学持剑手；手臂横穿躯干的帧必须沿肩—肘—腕连续追踪同一条骨链。握点接入前要用运行时同口径的 `textureGrips/origin/displaySize/flip` 分别合成四把剑、左右镜像和完整循环，慢速 GIF 只能检查节奏，单把锈剑的离线合成不能证明游戏内跟手。未经用户确认不得把候选 `sword_run`、专用 `swordRunFrames` 或开发面板入口接入正式配置；实机出现系统性脱手时，稳定回退是移除这三处专用入口，恢复共用 `run` 与 `sword.running carryLayer:'back'`，不要继续在错误轨迹上整体平移。
