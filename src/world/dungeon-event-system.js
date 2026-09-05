@@ -226,13 +226,17 @@ function getUniversalEventConfig(type) {
         if (Array.isArray(cfg.outcomes)) {
             cfg.outcomes = cfg.outcomes.map(o => {
                 if (o.type === 'gold') return { ...o, amount: g.gold };
-                if (o.type === 'materials' && Array.isArray(o.rewards)) {
-                    return { ...o, rewards: o.rewards.map(r => {
+                const materials = o.items || o.rewards;
+                if (o.type === 'materials' && Array.isArray(materials)) {
+                    // JSON 使用 items，旧默认配置使用 rewards；统一后预览和结算读取同一份分级奖励。
+                    const scaled = { ...o, items: materials.map(r => {
                         if (r.type === 'magic_dust') return { ...r, count: g.materialDust };
                         if (r.type === 'enhancement_stone') return { ...r, count: g.enhancementStone ?? 1 };
                         if (r.type === 'reforge_ticket') return { ...r, count: g.reforgeTicket ?? 1 };
                         return r;
                     }) };
+                    delete scaled.rewards;
+                    return scaled;
                 }
                 return o;
             });
