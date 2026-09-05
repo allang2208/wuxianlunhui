@@ -29,12 +29,49 @@ const DEFAULTS = Object.freeze({
     // 环境阴影只衰减强度，不再在无太阳时彻底消失。
     nightShadowStrength: 0.4,
     dungeonShadowStrength: 0.55,
+    // 视觉亮度适应使用真实帧时间而非世界时钟跨度：入夜稍慢，天亮稍快。
+    ambientDarkAdaptMs: 3600,
+    ambientLightAdaptMs: 2200,
 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const smoothstep = (value) => {
     const t = clamp(value, 0, 1);
     return t * t * (3 - 2 * t);
+};
+const smoothRange = (value, start, end) => smoothstep(
+    (value - start) / Math.max(1e-6, end - start)
+);
+const blendRgb = (from, to, amount) => {
+    const t = clamp(amount, 0, 1);
+    const channel = (shift) => Math.round(
+        ((from >> shift) & 0xff) + (((to >> shift) & 0xff) - ((from >> shift) & 0xff)) * t
+    );
+    return (channel(16) << 16) | (channel(8) << 8) | channel(0);
+};
+const weightedRgb = (entries, fallback = 0x1a263d) => {
+    let weight = 0;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    for (const entry of entries) {
+        const amount = Math.max(0, Number(entry?.weight) || 0);
+        if (amount <= 0) continue;
+        const color = Number(entry.color) || 0;
+        weight += amount;
+        red += ((color >> 16) & 0xff) * amount;
+        green += ((color >> 8) & 0xff) * amount;
+        blue += (color & 0xff) * amount;
+    }
+    if (weight <= 1e-6) return fallback;
+    return (Math.round(red / weight) << 16)
+        | (Math.round(green / weight) << 8)
+        | Math.round(blue / weight);
+};
+const parseRgb = (value, fallback = 0x142333) => {
+    if (Number.isFinite(Number(value))) return Number(value) & 0xffffff;
+    const parsed = Number.parseInt(String(value || '').replace(/^#|^0x/i, ''), 16);
+    return Number.isFinite(parsed) ? parsed & 0xffffff : fallback;
 };
 
 const pointSegmentDistance = (point, start, end) => {
@@ -94,6 +131,13 @@ const simplifyMonotoneEnvelope = (points, tolerance, opposite = null) => {
 export const EnvironmentLightingSystem = {
     _config: { ...DEFAULTS },
     _elapsedMs: 0,
+    _ambientInitialized: false,
+    _rainLighting: {
+        key: 'clear',
+        intensityId: null,
+        color: 0x142333,
+        alpha: 0,
+    },
     _sun: {
         phase: 0,
         elevation: 0.9,
@@ -104,6 +148,8 @@ export const EnvironmentLightingSystem = {
         daylight: 1,
         ambientColor: 0x000000,
         ambientAlpha: 0,
+        targetAmbientColor: 0x000000,
+        targetAmbientAlpha: 0,
     },
 
     configure(options = {}) {
@@ -111,21 +157,22 @@ export const EnvironmentLightingSystem = {
         if (Number.isFinite(options.startPhase)) {
             this._elapsedMs = 0;
         }
-        this._refreshSun();
+        this._refreshSun(0);
     },
 
     update(deltaMs = 0) {
         if (this._config.animateSun) {
             this._elapsedMs += Math.max(0, deltaMs || 0);
         }
-        this._refreshSun();
+        this._refreshSun(deltaMs);
         return this._sun;
     },
 
     /** 开发工具专用的显式时钟推进；不依赖 animateSun，仍使用统一游戏时钟。 */
     advanceTime(deltaMs = 0) {
         this._elapsedMs += Math.max(0, Number(deltaMs) || 0);
-        this._refreshSun();
+        // 世界时间可一次跳过数小时，但视觉适应必须留给后续真实帧逐步完成。
+        this._refreshSun(0);
         return this.serializeTime();
     },
 
@@ -297,7 +344,33 @@ export const EnvironmentLightingSystem = {
             color: this._sun.ambientColor,
             alpha: this._sun.ambientAlpha,
             daylight: this._sun.daylight,
+            rainIntensityId: this._rainLighting.intensityId,
+            rainAlpha: this._rainLighting.alpha,
         };
+    },
+
+    /**
+     * 当前位面权威雨态进入环境光目标；只影响视觉覆盖层，不改变太阳、视野或天气排期。
+     * 配置来自 game-config.json#weatherEffects.rain，换档/停雨后由统一亮度适应逐步追随。
+     */
+    setRainLighting(rainState, rainConfig = {}) {
+        const active = rainState?.active === true;
+        const intensityId = active ? (rainState.intensityId || rainConfig.defaultIntensity || 'light') : null;
+        const baseLighting = rainConfig?.lighting || {};
+        const intensityLighting = intensityId
+            ? (rainConfig?.intensities?.[intensityId]?.lighting || {})
+            : {};
+        const color = parseRgb(intensityLighting.color ?? baseLighting.color, 0x142333);
+        const configuredAlpha = Number(intensityLighting.ambientAlpha
+            ?? baseLighting.ambientAlpha);
+        const alpha = active
+            ? clamp(Number.isFinite(configuredAlpha) ? configuredAlpha : 0, 0, 0.3)
+            : 0;
+        const key = `${intensityId || 'clear'}:${color}:${alpha.toFixed(4)}`;
+        if (key === this._rainLighting.key) return;
+        this._rainLighting = { key, intensityId, color, alpha };
+        // 这里只更新目标；实际环境色仍由下一帧的指数响应渐进变化。
+        this._refreshSun(0);
     },
 
     /** 玩法视野的统一昼夜倍率；夜晚口径与深夜环境覆盖层共用 daylight 阈值。 */
@@ -333,7 +406,8 @@ export const EnvironmentLightingSystem = {
         const elapsed = Number(data?.elapsedMs);
         if (Number.isFinite(elapsed) && elapsed >= 0) {
             this._elapsedMs = elapsed;
-            this._refreshSun();
+            // 读档只改变天体目标；若场景已显示，覆盖层在后续帧平滑适应。
+            this._refreshSun(0);
         }
     },
 
@@ -819,7 +893,7 @@ export const EnvironmentLightingSystem = {
 
 
 
-    _refreshSun() {
+    _refreshSun(adaptationDeltaMs = 0) {
         const duration = Math.max(1, Number(this._config.dayDurationMs) || DEFAULTS.dayDurationMs);
         const phase = ((this._elapsedMs / duration) + (this._config.startPhase || 0)) % 1;
         // phase=0 日出、0.25 正午、0.5 日落、0.75 午夜。
@@ -841,17 +915,54 @@ export const EnvironmentLightingSystem = {
         this._sun.shadowY = -projectedSun.y;
         this._sun.daylight = daylight;
 
-        // 屏幕覆盖层：正午完全透明；晨昏少量暖色；夜间为低饱和蓝色。
-        const dusk = clamp(1 - Math.abs(solarHeight) * 4, 0, 1) * daylight;
-        if (daylight <= 0.12) {
-            this._sun.ambientColor = 0x10264a;
-            this._sun.ambientAlpha = 0.34;
-        } else if (dusk > 0.04) {
-            this._sun.ambientColor = 0x9a4d2f;
-            this._sun.ambientAlpha = 0.10 * dusk;
-        } else {
-            this._sun.ambientColor = 0x1a263d;
-            this._sun.ambientAlpha = (1 - daylight) * 0.18;
+        // 屏幕覆盖层不再用 daylight<=0.12 硬切昼夜。先把深夜蓝、晨昏暖色和
+        // 日间冷色按连续权重混合，再用时间常数追随目标，避免阈值/读档/跳时瞬间闪变。
+        const nightWeight = 1 - smoothRange(daylight, 0.04, 0.38);
+        const twilightWeight = 1 - smoothRange(Math.abs(solarHeight), 0.02, 0.45);
+        const nightAlpha = 0.34 * nightWeight;
+        const twilightAlpha = 0.10 * twilightWeight * (1 - nightWeight);
+        const coolAlpha = 0.18 * (1 - daylight)
+            * (1 - nightWeight) * (1 - twilightWeight);
+        const baseTargetAlpha = clamp(nightAlpha + twilightAlpha + coolAlpha, 0, 0.34);
+        // 白天完整体现云层减光；夜晚仅保留55%，避免与既有夜色和雨幕遮罩叠加后过黑。
+        const rainAlpha = clamp(this._rainLighting.alpha
+            * (0.55 + daylight * 0.45), 0, 0.3);
+        // 两层 NORMAL 遮罩按 source-over 合成，不能直接相加，否则暴风雨夜晚会过曝式压黑。
+        const targetAlpha = 1 - (1 - baseTargetAlpha) * (1 - rainAlpha);
+        const targetColor = weightedRgb([
+            { color: 0x10264a, weight: nightAlpha },
+            { color: 0x9a4d2f, weight: twilightAlpha },
+            { color: 0x1a263d, weight: coolAlpha },
+            { color: this._rainLighting.color, weight: rainAlpha },
+        ]);
+        this._sun.targetAmbientColor = targetColor;
+        this._sun.targetAmbientAlpha = targetAlpha;
+
+        if (!this._ambientInitialized) {
+            // 首次初始化发生在场景可见前，直接对齐当前时间，避免每次启动都从黑场渐变。
+            this._sun.ambientColor = targetColor;
+            this._sun.ambientAlpha = targetAlpha;
+            this._ambientInitialized = true;
+            return;
+        }
+
+        // 指数响应与帧率无关；单帧最多消费100ms，后台恢复的大 delta 不会跳到终值。
+        const visualDeltaMs = clamp(Number(adaptationDeltaMs) || 0, 0, 100);
+        if (visualDeltaMs <= 0) return;
+        const darkening = targetAlpha > this._sun.ambientAlpha;
+        const configuredTau = Number(darkening
+            ? this._config.ambientDarkAdaptMs
+            : this._config.ambientLightAdaptMs);
+        const fallbackTau = darkening
+            ? DEFAULTS.ambientDarkAdaptMs
+            : DEFAULTS.ambientLightAdaptMs;
+        const timeConstantMs = Math.max(100, Number.isFinite(configuredTau)
+            ? configuredTau : fallbackTau);
+        const response = 1 - Math.exp(-visualDeltaMs / timeConstantMs);
+        this._sun.ambientAlpha += (targetAlpha - this._sun.ambientAlpha) * response;
+        this._sun.ambientColor = blendRgb(this._sun.ambientColor, targetColor, response);
+        if (Math.abs(targetAlpha - this._sun.ambientAlpha) < 0.0001) {
+            this._sun.ambientAlpha = targetAlpha;
         }
     },
 };

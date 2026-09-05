@@ -2066,6 +2066,10 @@
         "pulseAmount": 0.018,
         "pulsePeriodMs": 5200
       },
+      "lighting": {
+        "color": "#142333",
+        "ambientAlpha": 0.018
+      },
       "streaks": {
         "enabled": true,
         "frequencyMs": 18,
@@ -2098,6 +2102,7 @@
         "moderate": {
           "name": "中雨",
           "foodProductionMultiplier": 1.5,
+          "lighting": { "ambientAlpha": 0.04 },
           "overlay": { "alpha": 0.17 },
           "streaks": {
             "frequencyMs": 14,
@@ -2121,6 +2126,7 @@
         "heavy": {
           "name": "大雨",
           "foodProductionMultiplier": 1.75,
+          "lighting": { "ambientAlpha": 0.075 },
           "overlay": { "alpha": 0.21, "pulseAmount": 0.024 },
           "streaks": {
             "frequencyMs": 9,
@@ -2146,6 +2152,7 @@
         "storm": {
           "name": "暴风雨",
           "foodProductionMultiplier": 2,
+          "lighting": { "ambientAlpha": 0.12 },
           "overlay": { "alpha": 0.28, "pulseAmount": 0.03, "pulsePeriodMs": 3500 },
           "streaks": {
             "frequencyMs": 6,
