@@ -338,6 +338,8 @@ async function initModules() {
     window.PhaserGame = PhaserGame;
 
     // 绑定按钮事件
+    const settingsBtn = getElement('startSettingsBtn');
+    if (settingsBtn) settingsBtn.addEventListener('click', () => GameMenu.openSettings(settingsBtn));
     const helpBtn = getElement('showHelpBtn');
     if (helpBtn) helpBtn.addEventListener('click', () => { helpBtn.blur(); GameUIManager.showHelp(); });
     const backBtn = getElement('backMenuBtn');
