@@ -38,7 +38,7 @@ function _structureHpLevel() {
 
 /** 新建/现有结构统一应用研究生命值；增加上限时同步增加当前生命，保持已损失生命不变。 */
 export function applyResearchHp(entity, explicitBaseHp = null) {
-    if (!entity || (!entity._isBlockCover && !entity._isGate4)) return entity;
+    if (!entity || entity._strategicFortification || (!entity._isBlockCover && !entity._isGate4)) return entity;
     const currentMax = Number(entity.maxHp ?? entity.data?.maxHp ?? 1) || 1;
     if (!(entity._researchBaseMaxHp > 0)) {
         entity._researchBaseMaxHp = explicitBaseHp > 0 ? explicitBaseHp : currentMax;
