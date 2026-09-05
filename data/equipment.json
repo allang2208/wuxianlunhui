@@ -1687,6 +1687,7 @@
             "desc": "重型特种用途霰弹枪；射速偏慢，但散布紧、击退强，擅长稳定控制狭窄正面。",
             "equipSlot": "weapon",
             "attack": { "range": 620, "knockback": 18, "attackInterval": 570, "hitType": "战术重鹿弹（6发弹丸）", "damageType": "物理", "projectileSpeed": 1220 },
+            "fireSound": "assets/sounds/weapons/spas12_fire.wav",
             "animation": { "type": "recoil（后坐力抖动）", "totalMs": "570ms", "timingMul": "0.5x", "recoilAmount": "0.15rad", "description": "SPAS-12 以较慢节奏换取紧密散布和更强的正面控制。" }
         },
         "aa12": {
