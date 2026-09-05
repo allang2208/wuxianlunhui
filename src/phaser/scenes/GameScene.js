@@ -819,6 +819,8 @@ export class GameScene extends Scene {
         this._syncPlayerAttachedHitFx(_game, _delta);
         // 红狼王变身红黑弥漫粒子必须在动态深度之后同步，才能继承本体本帧的墙体遮挡仲裁。
         this._syncRedWolfTransformEffects(_game);
+        // 飞扑手爪烟雾读取本帧最终 Sprite，避免逻辑脚点/上一帧姿态造成错位。
+        this._syncRedWolfPounceSmoke(_game);
         if (this._whirlwindFootprintFx) {
             const whirlwindPlayer = _game?.player;
             this._whirlwindFootprintFx.update(_delta, {
@@ -9080,6 +9082,89 @@ export class GameScene extends Scene {
 
     _destroyInspireFx(fx) {
         if (fx.gfx && fx.gfx.active) fx.gfx.destroy();
+    }
+
+    /** 红狼飞扑：保持原冲锋发烟时段/红烟风格，发射器附着当前帧的手爪。 */
+    _syncRedWolfPounceSmoke(_game) {
+        if (!_game?.entities) return;
+        if (!this._redWolfPounceSmokeFx) {
+            this._redWolfPounceSmokeFx = new Map();
+            this.events.once('shutdown', () => {
+                for (const fx of this._redWolfPounceSmokeFx?.values() || []) this._destroyRedWolfPounceSmoke(fx);
+                this._redWolfPounceSmokeFx = null;
+                this._redWolfPounceSmokeActive?.clear();
+            });
+        }
+        const effects = this._redWolfPounceSmokeFx;
+        const active = this._redWolfPounceSmokeActive || (this._redWolfPounceSmokeActive = new Set());
+        active.clear();
+        const isMapMode = SceneManager.currentScene === 'scene7'
+            && DungeonMapSystem?.active && DungeonMapSystem.state === 'map';
+        for (const enemy of _game.entities.values()) {
+            const sprite = enemy?._phaserSprite;
+            if (isMapMode || enemy?._pounceState !== 'charge' || !enemy.active || enemy._deathStarted
+                || !sprite?.active || !sprite.visible || !this._isEntityInRenderViewport(enemy)) continue;
+            const state = enemy._isTransformed ? 'werewolfPounce' : 'pounce';
+            const anchors = enemy._animCfg?.animation?.pounceSmokeAnchors?.[state];
+            const texture = enemy._isTransformed ? 'enemy_red_wolf_king_werewolf_pounce' : 'enemy_red_wolf_king_pounce';
+            const frameIndex = Number(sprite.frame?.name);
+            if (!anchors || sprite.texture?.key !== texture || !Number.isInteger(frameIndex)
+                || sprite.frame.width !== anchors.frameWidth || sprite.frame.height !== anchors.frameHeight) continue;
+            const points = anchors.frames[frameIndex];
+            if (!points || !this.textures.exists('smoke_particle')) continue;
+            active.add(enemy);
+            let fx = effects.get(enemy);
+            if (!fx) {
+                const emitters = [0, 1].map(() => {
+                    const emitter = this.add.particles(0, 0, 'smoke_particle', {
+                        emitting: false, frequency: 65, quantity: 2,
+                        speed: { min: 12, max: 48 }, angle: { min: 0, max: 360 },
+                        scale: { start: 0.65, end: 1.9 }, alpha: { start: 0.58, end: 0 },
+                        lifespan: { min: 460, max: 760 },
+                        tint: [0x3b070b, 0x7d0d16, 0xb51c26, 0xd6403f], blendMode: 'NORMAL',
+                    });
+                    emitter.addToUpdateList();
+                    return emitter;
+                });
+                fx = { emitters };
+                effects.set(enemy, fx);
+            }
+            // Matrix includes the final position, scale, rotation and any parent transform.
+            // Texture mirroring is separate from that matrix; apply it before origin subtraction.
+            const matrix = sprite.getWorldTransformMatrix();
+            const width = sprite.frame.width, height = sprite.frame.height;
+            for (let hand = 0; hand < fx.emitters.length; hand++) {
+                const emitter = fx.emitters[hand];
+                const px = points[hand * 2], py = points[hand * 2 + 1];
+                if (!Number.isFinite(px) || !Number.isFinite(py)) {
+                    emitter.stop();
+                    emitter.killAll();
+                    emitter.setVisible(false);
+                    continue;
+                }
+                const localX = (sprite.flipX ? width - px : px) - sprite.displayOriginX;
+                const localY = (sprite.flipY ? height - py : py) - sprite.displayOriginY;
+                const point = matrix.transformPoint(localX, localY);
+                emitter.setPosition(point.x, point.y);
+                emitter.setDepth(sprite.depth + (hand === 0 ? 0.08 : -0.06));
+                emitter.setAlpha(sprite.alpha);
+                emitter.setVisible(true);
+                if (!emitter.emitting) emitter.start();
+            }
+        }
+        for (const [enemy, fx] of effects) {
+            if (active.has(enemy)) continue;
+            this._destroyRedWolfPounceSmoke(fx);
+            effects.delete(enemy);
+        }
+    }
+
+    _destroyRedWolfPounceSmoke(fx) {
+        for (const emitter of fx.emitters) {
+            if (!emitter?.active) continue;
+            emitter.stop();
+            emitter.destroy();
+        }
     }
 
     /**

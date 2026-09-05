@@ -323,7 +323,7 @@ class BlackWolf extends Enemy {
                 this.x,
                 this.y,
                 this.config?.pounceHitDistance ?? 100,
-                { blocked: motionBlocked, skill: '红狼王飞扑' }
+                { blocked: motionBlocked, skill: '红狼飞扑' }
             )) {
                 this._dealPhysicalHit(hitTarget, this._getPounceDamage());
                 this._pounceDamaged = true;
@@ -1266,6 +1266,11 @@ class RedWolfKing extends BlackWolf {
         if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return;
         this._attackType = 'pounce';
         super._startPounce();
+    }
+
+    _spawnPounceSmoke() {
+        // 红狼双形态改由 GameScene 在最终贴图帧/镜像/深度同步后发射手爪烟雾。
+        // 不再调用基类按逻辑脚点生成的地面尾烟；攻击状态机和计时保持原样。
     }
 
     _getPounceDamage() {

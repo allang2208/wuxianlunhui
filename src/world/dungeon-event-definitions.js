@@ -535,7 +535,7 @@ export const NEW_EVENT_CONFIGS = {
             {
                 id: 'breakRoots', label: '力量破根', description: '砸开外层根须，抢先取走箱子', attribute: 'str', baseRate: 25,
                 success: { text: '你在囚笼完全苏醒前撕开一道缺口，带走箱中财物后重新压住根须。', gold: { min: 50, max: 80 }, specialItems: [{ type: 'reforge_ticket', count: 2 }] },
-                fail: { text: '断根触发了封印，牢笼骤然张开，被囚禁的红狼王带着怒火冲出。', combat: 'elite', forceMonsters: ['redWolfKing'], encounter: { combatWaves: 1, monstersPerWave: 1, tierWeights: { normal: 0, elite: 1 } } },
+                fail: { text: '断根触发了封印，牢笼骤然张开，被囚禁的红狼带着怒火冲出。', combat: 'elite', forceMonsters: ['redWolfKing'], encounter: { combatWaves: 1, monstersPerWave: 1, tierWeights: { normal: 0, elite: 1 } } },
             },
             {
                 id: 'readRootRunes', label: '精神安抚', description: '顺着菌斑脉动安抚活根', attribute: 'wis', baseRate: 30,
