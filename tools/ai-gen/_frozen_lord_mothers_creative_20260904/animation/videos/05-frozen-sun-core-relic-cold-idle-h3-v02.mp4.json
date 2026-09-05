@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-04T15:28:17.125593+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\05-frozen-sun-core-relic-cold-idle-h3-v02.mp4",
+    "bytes": 398393,
+    "sha256": "913f26fa29c37b6867086621e106b21258b794deb4e2d09422a046bcc585f131"
+  },
+  "promptId": "5f2f32d9-e060-4ef0-b86d-8f6026ca54f9",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 9042502,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact frozen-sun core relic from the first frame performs a minimal sealed cold-shell idle loop. It remains in one fixed orientation for all 124 frames: the broken stone ring stays on screen-left, the small spike stays on screen-right, and the shell opening keeps the same screen position. Exactly four lower supports stay planted with unchanged overlap and spacing.\n\nOnly a very small slow weight cycle passes through the shell and supports. The deep navy-black frozen mineral core keeps the same cold color and nearly constant low intensity; its existing faint cyan cracks dim and return once. The blue-gray ice shell remains opaque, frosted and cold. End in the exact first pose, position, scale, orientation, color and motion phase for a seamless loop.\n\nPreserve the ring, shell, core, four supports, proportions, material detail, fixed center root and contact line. Static orthographic-like camera, pure white background and full silhouette. No color-temperature transition, warm color, shell reddening, opening expansion, axial rotation, orbit, step, support swap, camera move, effect or crop.",
+  "effectivePrompt": "The exact frozen-sun core relic from the first frame performs a minimal sealed cold-shell idle loop. It remains in one fixed orientation for all 124 frames: the broken stone ring stays on screen-left, the small spike stays on screen-right, and the shell opening keeps the same screen position. Exactly four lower supports stay planted with unchanged overlap and spacing.\n\nOnly a very small slow weight cycle passes through the shell and supports. The deep navy-black frozen mineral core keeps the same cold color and nearly constant low intensity; its existing faint cyan cracks dim and return once. The blue-gray ice shell remains opaque, frosted and cold. End in the exact first pose, position, scale, orientation, color and motion phase for a seamless loop.\n\nPreserve the ring, shell, core, four supports, proportions, material detail, fixed center root and contact line. Static orthographic-like camera, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. No color-temperature transition, warm color, shell reddening, opening expansion, axial rotation, orbit, step, support swap, camera move, effect or crop.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact frozen-sun core relic from the first frame performs a minimal sealed cold-shell idle loop. It remains in one fixed orientation for all 124 frames: the broken stone ring stays on screen-left, the small spike stays on screen-right, and the shell opening keeps the same screen position. Exactly four lower supports stay planted with unchanged overlap and spacing.\n\nOnly a very small slow weight cycle passes through the shell and supports. The deep navy-black frozen mineral core keeps the same cold color and nearly constant low intensity; its existing faint cyan cracks dim and return once. The blue-gray ice shell remains opaque, frosted and cold. End in the exact first pose, position, scale, orientation, color and motion phase for a seamless loop.\n\nPreserve the ring, shell, core, four supports, proportions, material detail, fixed center root and contact line. Static orthographic-like camera, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. No color-temperature transition, warm color, shell reddening, opening expansion, axial rotation, orbit, step, support swap, camera move, effect or crop. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "31f3120eb8f2b6c3843ccb86b417a6fa74a99709fffd220ccc695dd6f9e2736c",
+  "effectivePromptSha256": "082011a679aae89658a5f9f973efd2b9fd7c9e8ee165b08a93eb485b4b71bd57",
+  "finalPromptSha256": "71a7ac56b3b5d184fb723b556f79c67d359bf85ef161a1a3b8b15a9c327644e9",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\05-frozen-sun-core-relic-cold-idle-h3-v02.txt",
+      "bytes": 1104,
+      "sha256": "477d317bdd4661fa1e1b30307ec247af8813df5bc4a08e8006ca0ba189fdae4b"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\05-frozen-sun-core-relic-cold-idle-v02-1024x576.png",
+      "bytes": 336058,
+      "sha256": "b7a57e36219ffd55da3e46f51dd477500e0185ee29451a8095cd9abbe565ec1a"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\05-frozen-sun-core-relic-cold-idle-v02-1024x576.png",
+      "bytes": 336058,
+      "sha256": "b7a57e36219ffd55da3e46f51dd477500e0185ee29451a8095cd9abbe565ec1a"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\05-frozen-sun-core-relic-cold-idle-h3-v02_contact.png",
+    "bytes": 418833,
+    "sha256": "3d4e244046d21bb9bd12b3a4e3e2be3466f51ff1ccfdec288767e788b5ccb30d"
+  },
+  "elapsedSeconds": 465.763
+}

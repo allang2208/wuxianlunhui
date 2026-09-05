@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "aurora-fate-weaver-partial-tether-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "tether_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_aurora_fate_weaver_tether_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/tether-body/formal-final/tether-body.png",
+      "frameWidth": 384,
+      "frameHeight": 256,
+      "frameCount": 105,
+      "endFrame": 104,
+      "footX": 192,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

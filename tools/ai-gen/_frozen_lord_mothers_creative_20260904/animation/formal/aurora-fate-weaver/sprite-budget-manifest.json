@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "aurora-fate-weaver-partial-body-cast-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "triangle_weave_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_aurora_fate_weaver_triangle_weave_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/formal-final/triangle-weave-body.png",
+      "frameWidth": 352,
+      "frameHeight": 256,
+      "frameCount": 81,
+      "endFrame": 80,
+      "footX": 176,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

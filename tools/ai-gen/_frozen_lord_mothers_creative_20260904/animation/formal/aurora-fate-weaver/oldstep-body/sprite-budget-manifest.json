@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "aurora-fate-weaver-partial-oldstep-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "oldstep_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_aurora_fate_weaver_oldstep_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/oldstep-body/formal-final/oldstep-body.png",
+      "frameWidth": 320,
+      "frameHeight": 256,
+      "frameCount": 85,
+      "endFrame": 84,
+      "footX": 160,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

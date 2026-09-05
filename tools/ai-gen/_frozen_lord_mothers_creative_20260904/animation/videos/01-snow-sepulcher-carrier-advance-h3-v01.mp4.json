@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-04T13:39:32.337003+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\01-snow-sepulcher-carrier-advance-h3-v01.mp4",
+    "bytes": 1208675,
+    "sha256": "8f7e5f01d655e50ba06b7dc2a686147ae473602375148bdec30257abcc2c70b7"
+  },
+  "promptId": "5099689f-0969-43fc-bda8-8cb5acc35fad",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 9041101,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact same snow-sepulcher carrier from the first frame performs one heavy in-place marching loop toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. The creature always faces screen-right: head, chest, long back, all knees, feet and the locomotion axis stay aligned to screen-right. It has exactly six massive load-bearing legs arranged as three readable pairs. The legs alternate in a slow stable wave: one front foot lifts and plants, the opposite middle foot follows, then the rear pair completes the cycle. Each planted foot compresses softly into the snow without translating the body across the canvas. The ruined tower, battlements, cairns and snow mass remain fused to the back and move only with restrained heavy inertia; no stones fall. The body settles subtly with weight, then returns exactly to the opening stance for a seamless loop. Preserve the exact silhouette, materials, proportions and topology. Fixed foot line and visual root. Pure white studio background. No camera movement, zoom, turn, perspective change, root travel, extra or missing legs, leg fusion, tower reconstruction, falling debris, attack, charge, text, border or shadow.",
+  "effectivePrompt": "The exact same snow-sepulcher carrier from the first frame performs one heavy in-place marching loop toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. The creature always faces screen-right: head, chest, long back, all knees, feet and the locomotion axis stay aligned to screen-right. It has exactly six massive load-bearing legs arranged as three readable pairs. The legs alternate in a slow stable wave: one front foot lifts and plants, the opposite middle foot follows, then the rear pair completes the cycle. Each planted foot compresses softly into the snow without translating the body across the canvas. The ruined tower, battlements, cairns and snow mass remain fused to the back and move only with restrained heavy inertia; no stones fall. The body settles subtly with weight, then returns exactly to the opening stance for a seamless loop. Preserve the exact silhouette, materials, proportions and topology. Fixed foot line and visual root. Pure white studio background. No camera movement, zoom, turn, perspective change, root travel, extra or missing legs, leg fusion, tower reconstruction, falling debris, attack, charge, text, border or shadow, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact same snow-sepulcher carrier from the first frame performs one heavy in-place marching loop toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. The creature always faces screen-right: head, chest, long back, all knees, feet and the locomotion axis stay aligned to screen-right. It has exactly six massive load-bearing legs arranged as three readable pairs. The legs alternate in a slow stable wave: one front foot lifts and plants, the opposite middle foot follows, then the rear pair completes the cycle. Each planted foot compresses softly into the snow without translating the body across the canvas. The ruined tower, battlements, cairns and snow mass remain fused to the back and move only with restrained heavy inertia; no stones fall. The body settles subtly with weight, then returns exactly to the opening stance for a seamless loop. Preserve the exact silhouette, materials, proportions and topology. Fixed foot line and visual root. Pure white studio background. No camera movement, zoom, turn, perspective change, root travel, extra or missing legs, leg fusion, tower reconstruction, falling debris, attack, charge, text, border or shadow, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "baef8e729504d33600ead4a7d1e74136068f9d374906a76ba2810fcdaf602552",
+  "effectivePromptSha256": "4181db4d9ad646fa8fb6468ef51fb959c2f860466b57fe57937e9b5fb03f5068",
+  "finalPromptSha256": "8a0b6cfbdb12008534b16f7b95aa3571ad269770dfc0d28fea9accfa13cf45ad",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\01-snow-sepulcher-carrier-advance-h3-v01.txt",
+      "bytes": 1201,
+      "sha256": "410634fd863372ad566e352d52522e4b5f0eabc4c38e5cd80cf74d537f752726"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\01-snow-sepulcher-carrier-locomotion-1024x576.png",
+      "bytes": 397794,
+      "sha256": "823693d9df5e20b561dc1781c9ae2905692d5b908c7aeb4ee50b87adab8f84e4"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\01-snow-sepulcher-carrier-locomotion-1024x576.png",
+      "bytes": 397794,
+      "sha256": "823693d9df5e20b561dc1781c9ae2905692d5b908c7aeb4ee50b87adab8f84e4"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\01-snow-sepulcher-carrier-advance-h3-v01_contact.png",
+    "bytes": 502904,
+    "sha256": "97eb6460b23a57bb89b99632314785c19cc84c40455e1b6c8953648890c26200"
+  },
+  "elapsedSeconds": 465.965
+}

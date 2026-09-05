@@ -1,0 +1,23 @@
+Built-in imagegen mode: precise-object-edit
+
+Identity/camera source:
+animation/reference-source/02-aurora-fate-weaver-action-ready-v02.png
+
+Rejected first edit cache:
+C:/Users/allan/.codex/generated_images/01a06c6a-de09-7fe3-b26e-a695b2134246/exec-e61f0f13-5c26-407e-a0ad-ee1bad9472b9.png
+Reason: the wide-V arm pose was readable, but only four grounded walking feet remained clearly traceable, so it was not copied into the project and was not submitted to Doubao.
+
+Accepted repair prompt:
+
+Use case: precise-object-edit
+Asset type: repaired action-specific first frame for a game boss animation
+Input images: Image 1 is the strict source of truth for body identity, six weight-bearing walking legs, foot positions, camera and framing. Image 2 is the pose candidate whose wide-V two-arm tether-catch gesture should be retained.
+Primary request: Repair Image 2 by restoring exactly the complete six weight-bearing walking legs and their planted foot layout from Image 1, while keeping Image 2's two smaller front weaving arms in the wide open V tether-catch preparation pose. The upper small weaving arm reaches diagonally up-right; the lower small weaving arm reaches diagonally down-right. Exactly eight limbs total: six walking legs ending on the ground plus two smaller raised weaving arms ending in open claw hands.
+Scene/backdrop: clean pure white studio background with no cast shadow.
+Style/medium: preserve the same realistic high-detail PBR icy-bone game-creature render and translucent cyan-violet aurora membrane.
+Composition/framing: preserve Image 1's exact screen-right low three-quarter body orientation, body scale, root position, margins and camera. All six walking feet must remain separated enough to be individually traceable; natural partial overlap is allowed only above the ankles, not at the grounded feet.
+Constraints: change only limb topology/placement needed to restore six grounded walking legs while retaining the two raised weaving arms. Preserve the head, torso, open thorny back ring, complete contained aurora membrane, materials, lighting and identity.
+Avoid: no visible threads, beams, ribbons outside the ring, magic lines, projectiles, target markers, extra or missing limbs, merged grounded feet, arm-to-leg role swaps, closed ring, missing membrane, camera rotation, body turn, zoom, crop, ground shadow, text, logo or watermark.
+
+Accepted workspace output:
+animation/action-keyframes/02-aurora-fate-weaver-tether-prepare-v02.png

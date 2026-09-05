@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\02-aurora-fate-weaver-oldstep-prepare-v01-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\02-aurora-fate-weaver-oldstep-body-doubao-v01.txt",
+  "promptChars": 668,
+  "promptSha256": "04244850ab60269fe73ef218e2695ca055a4c337e62e3c6586fe718ba434078b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-05T01:11:42.710Z",
+  "sourceUrlScheme": "https"
+}

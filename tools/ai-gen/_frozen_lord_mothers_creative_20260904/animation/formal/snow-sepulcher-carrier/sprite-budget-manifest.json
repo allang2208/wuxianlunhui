@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "snow-sepulcher-carrier-partial-plow-prepare-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "plow_prepare only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_snow_sepulcher_carrier_plow_prepare_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/snow-sepulcher-carrier/formal-final/plow-prepare.png",
+      "frameWidth": 480,
+      "frameHeight": 256,
+      "frameCount": 93,
+      "endFrame": 92,
+      "footX": 240,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

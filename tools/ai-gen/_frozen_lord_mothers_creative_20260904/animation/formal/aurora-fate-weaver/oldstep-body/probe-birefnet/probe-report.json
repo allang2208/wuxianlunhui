@@ -1,0 +1,102 @@
+{
+  "sourceVideo": "animation/videos/02-aurora-fate-weaver-oldstep-body-doubao-v01.mp4",
+  "decodedFrameCount": 121,
+  "sourceVideoFps": 24.0,
+  "probeFrames": [
+    0,
+    24,
+    40,
+    50,
+    62,
+    66,
+    84
+  ],
+  "topologyGate": "six weight-bearing walking legs, two smaller weaving arms, open ring and contained aurora membrane remain stable",
+  "cutout": "ComfyUI-RMBG BiRefNet-general via ai-asset pipeline module",
+  "frames": [
+    {
+      "sourceFrame": 0,
+      "bbox": [
+        233,
+        61,
+        912,
+        719
+      ],
+      "visiblePixels": 177299,
+      "semiTransparentPixels": 14709,
+      "semiTransparentRatio": 0.082962
+    },
+    {
+      "sourceFrame": 24,
+      "bbox": [
+        233,
+        74,
+        913,
+        719
+      ],
+      "visiblePixels": 177749,
+      "semiTransparentPixels": 14619,
+      "semiTransparentRatio": 0.082245
+    },
+    {
+      "sourceFrame": 40,
+      "bbox": [
+        233,
+        71,
+        913,
+        719
+      ],
+      "visiblePixels": 175130,
+      "semiTransparentPixels": 15272,
+      "semiTransparentRatio": 0.087204
+    },
+    {
+      "sourceFrame": 50,
+      "bbox": [
+        233,
+        65,
+        912,
+        719
+      ],
+      "visiblePixels": 175170,
+      "semiTransparentPixels": 15226,
+      "semiTransparentRatio": 0.086921
+    },
+    {
+      "sourceFrame": 62,
+      "bbox": [
+        233,
+        70,
+        1013,
+        719
+      ],
+      "visiblePixels": 178885,
+      "semiTransparentPixels": 14778,
+      "semiTransparentRatio": 0.082612
+    },
+    {
+      "sourceFrame": 66,
+      "bbox": [
+        233,
+        70,
+        989,
+        719
+      ],
+      "visiblePixels": 179892,
+      "semiTransparentPixels": 14747,
+      "semiTransparentRatio": 0.081977
+    },
+    {
+      "sourceFrame": 84,
+      "bbox": [
+        233,
+        61,
+        912,
+        719
+      ],
+      "visiblePixels": 177493,
+      "semiTransparentPixels": 15041,
+      "semiTransparentRatio": 0.084741
+    }
+  ]
+}

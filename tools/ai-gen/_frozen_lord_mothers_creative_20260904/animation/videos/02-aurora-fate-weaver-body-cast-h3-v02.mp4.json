@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-04T15:20:30.050711+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\02-aurora-fate-weaver-body-cast-h3-v02.mp4",
+    "bytes": 606114,
+    "sha256": "e1de92da93b575ecb5bc91ce51a3cc944714951a359367103490cab732585ed0"
+  },
+  "promptId": "f406ad3e-b1ae-4c76-bb65-b0621abbeea9",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 9042202,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact aurora fate-weaver from the first frame performs one body-only two-arm tension gesture and returns to rest. The video contains only the creature; gameplay draws every targeting shape and damage effect separately. The locked slightly elevated side-dominant camera and the creature's screen-right orientation never change.\n\nExactly six lower walking legs remain planted as six separate supports throughout. Exactly two raised forelimbs perform the gesture and never become walking legs. First both raised forelimbs draw slightly backward in parallel while the chest compresses. Then both forelimbs press forward together in one clean release beat; the open biological ring contracts subtly while its existing internal membrane stays contained inside the ring. Finally both arms and the membrane relax back to the exact opening pose. One physical gesture only.\n\nPreserve the open ring, contained membrane, head, six-plus-two limb roles, white ice-chitin material, scale, silhouette, fixed center root and foot line. Static wide framing, pure white background and full silhouette. No traced shape, line, beam, star, rune, projectile, detached ribbon, walking, limb exchange, ring closure, camera move or crop.",
+  "effectivePrompt": "The exact aurora fate-weaver from the first frame performs one body-only two-arm tension gesture and returns to rest. The video contains only the creature; gameplay draws every targeting shape and damage effect separately. The locked slightly elevated side-dominant camera and the creature's screen-right orientation never change.\n\nExactly six lower walking legs remain planted as six separate supports throughout. Exactly two raised forelimbs perform the gesture and never become walking legs. First both raised forelimbs draw slightly backward in parallel while the chest compresses. Then both forelimbs press forward together in one clean release beat; the open biological ring contracts subtly while its existing internal membrane stays contained inside the ring. Finally both arms and the membrane relax back to the exact opening pose. One physical gesture only.\n\nPreserve the open ring, contained membrane, head, six-plus-two limb roles, white ice-chitin material, scale, silhouette, fixed center root and foot line. Static wide framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. No traced shape, line, beam, star, rune, projectile, detached ribbon, walking, limb exchange, ring closure, camera move or crop.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact aurora fate-weaver from the first frame performs one body-only two-arm tension gesture and returns to rest. The video contains only the creature; gameplay draws every targeting shape and damage effect separately. The locked slightly elevated side-dominant camera and the creature's screen-right orientation never change.\n\nExactly six lower walking legs remain planted as six separate supports throughout. Exactly two raised forelimbs perform the gesture and never become walking legs. First both raised forelimbs draw slightly backward in parallel while the chest compresses. Then both forelimbs press forward together in one clean release beat; the open biological ring contracts subtly while its existing internal membrane stays contained inside the ring. Finally both arms and the membrane relax back to the exact opening pose. One physical gesture only.\n\nPreserve the open ring, contained membrane, head, six-plus-two limb roles, white ice-chitin material, scale, silhouette, fixed center root and foot line. Static wide framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. No traced shape, line, beam, star, rune, projectile, detached ribbon, walking, limb exchange, ring closure, camera move or crop. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "fd2c76978d65e7826200d69a64cee47ff3871de57ee57c393d4ced43624e9c81",
+  "effectivePromptSha256": "db45f1192e342bca84fb7cd618f0a2a0a3b050224381dbff1b00338e4bd4f5be",
+  "finalPromptSha256": "4164c8c96707f63c4cde5622295949469f5d5f244ca7c2403314a8143e0b7914",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\02-aurora-fate-weaver-body-cast-h3-v02.txt",
+      "bytes": 1216,
+      "sha256": "2beb4c19154cb27617b12b08211d4197928b8fd0893fe17e3e21b8f46d68963a"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\02-aurora-fate-weaver-body-cast-v02-1024x576.png",
+      "bytes": 310193,
+      "sha256": "a533db0a75dd4068069d98403dec88b547b4c98a049d9c2f67ade62e2f6298b5"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\02-aurora-fate-weaver-body-cast-h3-v02_contact.png",
+    "bytes": 395310,
+    "sha256": "3a38785f3db6024cfc75ae8326c187b261b95c7fe7729d0016cefcdb568d32b8"
+  },
+  "elapsedSeconds": 445.741
+}

@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "id": "aurora-fate-weaver-approved-body-action-family",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "approved formal body actions only; locomotion, VFX, damage and full boss dependency closure are not included",
+  "decodedRgbaMiB": 94.7188,
+  "bossTargetMiB": 128,
+  "bossHardStopMiB": 256,
+  "withinFamilyBossTarget": true,
+  "sheets": [
+    {
+      "action": "triangle_weave_body",
+      "textureKey": "enemy_aurora_fate_weaver_triangle_weave_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/formal-final/triangle-weave-body.png",
+      "frameWidth": 352,
+      "frameHeight": 256,
+      "frameCount": 81,
+      "endFrame": 80,
+      "footX": 176,
+      "footY": 240,
+      "decodedRgbaMiB": 27.8438
+    },
+    {
+      "action": "oldstep_body",
+      "textureKey": "enemy_aurora_fate_weaver_oldstep_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/oldstep-body/formal-final/oldstep-body.png",
+      "frameWidth": 320,
+      "frameHeight": 256,
+      "frameCount": 85,
+      "endFrame": 84,
+      "footX": 160,
+      "footY": 240,
+      "decodedRgbaMiB": 27.5
+    },
+    {
+      "action": "tether_body",
+      "textureKey": "enemy_aurora_fate_weaver_tether_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/aurora-fate-weaver/tether-body/formal-final/tether-body.png",
+      "frameWidth": 384,
+      "frameHeight": 256,
+      "frameCount": 105,
+      "endFrame": 104,
+      "footX": 192,
+      "footY": 240,
+      "decodedRgbaMiB": 39.375
+    }
+  ],
+  "dependencies": []
+}

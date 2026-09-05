@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-04T15:13:03.021988+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\01-snow-sepulcher-carrier-plow-windup-h3-v02.mp4",
+    "bytes": 571197,
+    "sha256": "9d94b6ff889a473c38371b5522ea1842a30db2789cb1f4201d86025609e8f216"
+  },
+  "promptId": "559d89b0-37ef-4c42-8c8f-d9ea9b3d565a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 9042102,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact snow-sepulcher carrier from the first frame performs one in-place plow-charge windup and recovery. This source contains only the stationary anticipation; runtime code supplies all travel. The locked camera keeps the creature broadside in the same slightly elevated side-dominant view for all 124 frames: rear and tail stay on screen-left, armored wedge head stays on screen-right, and the long chest-to-hip axis remains horizontal without yaw.\n\nFirst all six planted legs flex a little while the mountain-heavy torso settles straight downward. Then the head and chest press a short distance toward screen-right as the rear legs brace, like a massive animal loading force into the ground without taking a step. The ruined tower and cairns show only restrained backward inertia. Finally the body releases the tension and returns to the exact opening brace. One controlled weight-shift only.\n\nPreserve exactly six separate legs as three stable pairs, the fused central tower, cairns, snow-covered layered stone armor, cyan ice seams, scale and silhouette. The center root and common foot line remain fixed. Static wide framing, pure white background and full silhouette. No turn toward camera, diagonal lunge, gait cycle, screen translation, tower reconstruction, debris, trail, impact effect, camera move or crop.",
+  "effectivePrompt": "The exact snow-sepulcher carrier from the first frame performs one in-place plow-charge windup and recovery. This source contains only the stationary anticipation; runtime code supplies all travel. The locked camera keeps the creature broadside in the same slightly elevated side-dominant view for all 124 frames: rear and tail stay on screen-left, armored wedge head stays on screen-right, and the long chest-to-hip axis remains horizontal without yaw.\n\nFirst all six planted legs flex a little while the mountain-heavy torso settles straight downward. Then the head and chest press a short distance toward screen-right as the rear legs brace, like a massive animal loading force into the ground without taking a step. The ruined tower and cairns show only restrained backward inertia. Finally the body releases the tension and returns to the exact opening brace. One controlled weight-shift only.\n\nPreserve exactly six separate legs as three stable pairs, the fused central tower, cairns, snow-covered layered stone armor, cyan ice seams, scale and silhouette. The center root and common foot line remain fixed. Static wide framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. No turn toward camera, diagonal lunge, gait cycle, screen translation, tower reconstruction, debris, trail, impact effect, camera move or crop.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact snow-sepulcher carrier from the first frame performs one in-place plow-charge windup and recovery. This source contains only the stationary anticipation; runtime code supplies all travel. The locked camera keeps the creature broadside in the same slightly elevated side-dominant view for all 124 frames: rear and tail stay on screen-left, armored wedge head stays on screen-right, and the long chest-to-hip axis remains horizontal without yaw.\n\nFirst all six planted legs flex a little while the mountain-heavy torso settles straight downward. Then the head and chest press a short distance toward screen-right as the rear legs brace, like a massive animal loading force into the ground without taking a step. The ruined tower and cairns show only restrained backward inertia. Finally the body releases the tension and returns to the exact opening brace. One controlled weight-shift only.\n\nPreserve exactly six separate legs as three stable pairs, the fused central tower, cairns, snow-covered layered stone armor, cyan ice seams, scale and silhouette. The center root and common foot line remain fixed. Static wide framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. No turn toward camera, diagonal lunge, gait cycle, screen translation, tower reconstruction, debris, trail, impact effect, camera move or crop. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "67704a3dba86f2a2ab16e9ebb2b951a87401b1a427422e63d40857c9043a0d6d",
+  "effectivePromptSha256": "6233d87c6ddd8fd8488464d38e904cffd2b8aee8646d8c3536285c1af89afbd0",
+  "finalPromptSha256": "f8813d8ad6ef7347aa75c3b4b02231d26f31028c3458c30e82d8697c3c9fb717",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\01-snow-sepulcher-carrier-plow-windup-h3-v02.txt",
+      "bytes": 1322,
+      "sha256": "f754fc8bed6e58b4135db51c1e04a051916bb3ad4d56da4097017962444c297c"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\01-snow-sepulcher-carrier-plow-windup-v02-1024x576.png",
+      "bytes": 294121,
+      "sha256": "e4e7b521e750d5518764b0df19dbcd7e2489f37918527d86569b1fa7c527de7e"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\01-snow-sepulcher-carrier-plow-windup-h3-v02_contact.png",
+    "bytes": 333450,
+    "sha256": "6937747e90615240575d134a47923622b8d8e6bfc1bec9422a65da22d043568a"
+  },
+  "elapsedSeconds": 445.784
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "white-silence-bell-hart-partial-double-toll-body-package",
+  "profile": "boss",
+  "assetOnly": true,
+  "runtimeIntegrationActive": false,
+  "scope": "double_toll_body only; full boss dependency closure is not complete",
+  "sheets": [
+    {
+      "textureKey": "enemy_white_silence_bell_hart_double_toll_body_candidate",
+      "path": "tools/ai-gen/_frozen_lord_mothers_creative_20260904/animation/formal/white-silence-bell-hart/formal-final/double-toll-body.png",
+      "frameWidth": 192,
+      "frameHeight": 256,
+      "frameCount": 73,
+      "endFrame": 72,
+      "footX": 96,
+      "footY": 240
+    }
+  ],
+  "dependencies": []
+}

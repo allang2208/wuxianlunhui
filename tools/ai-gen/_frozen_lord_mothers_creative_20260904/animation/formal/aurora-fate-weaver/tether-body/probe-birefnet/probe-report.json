@@ -1,0 +1,128 @@
+{
+  "sourceVideo": "animation/videos/02-aurora-fate-weaver-tether-body-doubao-v01.mp4",
+  "decodedFrameCount": 121,
+  "sourceVideoFps": 24.0,
+  "probeFrames": [
+    0,
+    24,
+    32,
+    50,
+    54,
+    58,
+    78,
+    86,
+    104
+  ],
+  "topologyGate": "six weight-bearing walking legs, two smaller weaving arms, open ring and contained aurora membrane remain stable through the self-occluding reel gesture",
+  "cutout": "ComfyUI-RMBG BiRefNet-general via ai-asset pipeline module",
+  "frames": [
+    {
+      "sourceFrame": 0,
+      "bbox": [
+        197,
+        137,
+        865,
+        672
+      ],
+      "visiblePixels": 132654,
+      "semiTransparentPixels": 14755,
+      "semiTransparentRatio": 0.111229
+    },
+    {
+      "sourceFrame": 24,
+      "bbox": [
+        197,
+        131,
+        913,
+        672
+      ],
+      "visiblePixels": 134304,
+      "semiTransparentPixels": 15164,
+      "semiTransparentRatio": 0.112908
+    },
+    {
+      "sourceFrame": 32,
+      "bbox": [
+        197,
+        136,
+        959,
+        672
+      ],
+      "visiblePixels": 135662,
+      "semiTransparentPixels": 15600,
+      "semiTransparentRatio": 0.114992
+    },
+    {
+      "sourceFrame": 50,
+      "bbox": [
+        198,
+        127,
+        867,
+        672
+      ],
+      "visiblePixels": 135454,
+      "semiTransparentPixels": 13761,
+      "semiTransparentRatio": 0.101592
+    },
+    {
+      "sourceFrame": 54,
+      "bbox": [
+        197,
+        114,
+        766,
+        673
+      ],
+      "visiblePixels": 138353,
+      "semiTransparentPixels": 14152,
+      "semiTransparentRatio": 0.102289
+    },
+    {
+      "sourceFrame": 58,
+      "bbox": [
+        197,
+        130,
+        753,
+        673
+      ],
+      "visiblePixels": 128844,
+      "semiTransparentPixels": 12136,
+      "semiTransparentRatio": 0.094191
+    },
+    {
+      "sourceFrame": 78,
+      "bbox": [
+        197,
+        117,
+        753,
+        673
+      ],
+      "visiblePixels": 130472,
+      "semiTransparentPixels": 12847,
+      "semiTransparentRatio": 0.098466
+    },
+    {
+      "sourceFrame": 86,
+      "bbox": [
+        197,
+        126,
+        775,
+        673
+      ],
+      "visiblePixels": 136361,
+      "semiTransparentPixels": 14269,
+      "semiTransparentRatio": 0.104641
+    },
+    {
+      "sourceFrame": 104,
+      "bbox": [
+        197,
+        136,
+        870,
+        672
+      ],
+      "visiblePixels": 134215,
+      "semiTransparentPixels": 15742,
+      "semiTransparentRatio": 0.117289
+    }
+  ]
+}

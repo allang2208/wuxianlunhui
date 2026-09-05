@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-04T13:47:14.470415+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\02-aurora-fate-weaver-seek-band-h3-v01.mp4",
+    "bytes": 902129,
+    "sha256": "f1dc5dd130712c4b8f172fb2197a3e20b2139192b764dd7ed4a17905a254d0af"
+  },
+  "promptId": "7079f662-967a-439f-a49f-51c15347f07c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 9041201,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact same aurora fate-weaver from the first frame performs a controlled in-place stalking walk toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. The creature always faces screen-right and keeps the open biological ring and aurora membrane readable. It has exactly eight limbs with fixed jobs: exactly six lower load-bearing walking legs and exactly two raised weaving forelimbs. The six walking legs alternate in a clean tripod rhythm without crossing or merging. The two weaving forelimbs remain raised, never touch the ground and make only a small counterbalancing arc. The aurora membrane breathes faintly inside the open ring and the two trailing light ribbons lag gently without becoming limbs. The visual root and foot line remain fixed; the body does not travel across the canvas. End in exactly the opening pose for a seamless loop. Preserve identity, silhouette, thin limb topology, colors and proportions. Pure white studio background. No camera motion, turn, zoom, root travel, extra or missing limbs, role-swapping limbs, tangled legs, closed ring, duplicated ribbons, spell casting, text, border or shadow.",
+  "effectivePrompt": "The exact same aurora fate-weaver from the first frame performs a controlled in-place stalking walk toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. The creature always faces screen-right and keeps the open biological ring and aurora membrane readable. It has exactly eight limbs with fixed jobs: exactly six lower load-bearing walking legs and exactly two raised weaving forelimbs. The six walking legs alternate in a clean tripod rhythm without crossing or merging. The two weaving forelimbs remain raised, never touch the ground and make only a small counterbalancing arc. The aurora membrane breathes faintly inside the open ring and the two trailing light ribbons lag gently without becoming limbs. The visual root and foot line remain fixed; the body does not travel across the canvas. End in exactly the opening pose for a seamless loop. Preserve identity, silhouette, thin limb topology, colors and proportions. Pure white studio background. No camera motion, turn, zoom, root travel, extra or missing limbs, role-swapping limbs, tangled legs, closed ring, duplicated ribbons, spell casting, text, border or shadow, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact same aurora fate-weaver from the first frame performs a controlled in-place stalking walk toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. The creature always faces screen-right and keeps the open biological ring and aurora membrane readable. It has exactly eight limbs with fixed jobs: exactly six lower load-bearing walking legs and exactly two raised weaving forelimbs. The six walking legs alternate in a clean tripod rhythm without crossing or merging. The two weaving forelimbs remain raised, never touch the ground and make only a small counterbalancing arc. The aurora membrane breathes faintly inside the open ring and the two trailing light ribbons lag gently without becoming limbs. The visual root and foot line remain fixed; the body does not travel across the canvas. End in exactly the opening pose for a seamless loop. Preserve identity, silhouette, thin limb topology, colors and proportions. Pure white studio background. No camera motion, turn, zoom, root travel, extra or missing limbs, role-swapping limbs, tangled legs, closed ring, duplicated ribbons, spell casting, text, border or shadow, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "6e11c94f00767642d096ebc3c59c4032a8549a17032b1bceb320d6fba325828f",
+  "effectivePromptSha256": "33ef48d6fc96986bef1b728213cbfd9bc9fc01fa5901a4609fee986447643690",
+  "finalPromptSha256": "1c04b8875e2f6a4c6272f89e448d22187e7f697be4e62c0c3952bc41cf9a4471",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\02-aurora-fate-weaver-seek-band-h3-v01.txt",
+      "bytes": 1167,
+      "sha256": "b74c484b0ff5f2cca89a24badffcadd8582e9c9df8c5520ecd0bdb74882f9dda"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\02-aurora-fate-weaver-locomotion-1024x576.png",
+      "bytes": 288890,
+      "sha256": "1fba55d1de54ec4ee60797b2d32726ce4919e8a964f5e1eb6257e8127c5ce317"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\02-aurora-fate-weaver-locomotion-1024x576.png",
+      "bytes": 288890,
+      "sha256": "1fba55d1de54ec4ee60797b2d32726ce4919e8a964f5e1eb6257e8127c5ce317"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\02-aurora-fate-weaver-seek-band-h3-v01_contact.png",
+    "bytes": 495662,
+    "sha256": "35756605ec91be6b9c8d05c5d67347337805b9096be8260ae50a077d71f7669d"
+  },
+  "elapsedSeconds": 460.825
+}

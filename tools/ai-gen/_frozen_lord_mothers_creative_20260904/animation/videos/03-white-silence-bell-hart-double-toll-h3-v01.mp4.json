@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-04T14:45:35.258514+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-double-toll-h3-v01.mp4",
+    "bytes": 358690,
+    "sha256": "aece50ac81f3245a0cdcb53cfa257e85514c4e46fc70bc22382868eb72ca6f49"
+  },
+  "promptId": "331824b2-122a-4c43-8ce7-674584646c8a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 9042301,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact white-silence bell hart from the first frame performs one deliberate delayed-toll body action toward screen-right, then recovers. Locked slightly elevated side-dominant low three-quarter game camera. Exactly four hooves stay planted and separate on the common foot line. The head and antlers remain raised while the attached bell begins tilted backward inside the hollow rib frame. After a brief held anticipation, the bell swings forward exactly once around its original top mounting, reaches a clear release pose, rebounds slightly and settles; the later damaging echo is runtime VFX and does not require a second physical strike. The body absorbs the bell momentum through a restrained chest and leg compression, then returns to the exact opening pose. Keep the bell fully inside the rib cage, keep exactly three small hanging chime pendants, and preserve the beaked skull, antlers, four legs, materials, scale and topology. Pure white background and full silhouette. One physical toll only; no walking, turn, camera motion, warning ring, sound wave, frost circle, detached bell, extra pendants, antler change or cropping.",
+  "effectivePrompt": "The exact white-silence bell hart from the first frame performs one deliberate delayed-toll body action toward screen-right, then recovers. Locked slightly elevated side-dominant low three-quarter game camera. Exactly four hooves stay planted and separate on the common foot line. The head and antlers remain raised while the attached bell begins tilted backward inside the hollow rib frame. After a brief held anticipation, the bell swings forward exactly once around its original top mounting, reaches a clear release pose, rebounds slightly and settles; the later damaging echo is runtime VFX and does not require a second physical strike. The body absorbs the bell momentum through a restrained chest and leg compression, then returns to the exact opening pose. Keep the bell fully inside the rib cage, keep exactly three small hanging chime pendants, and preserve the beaked skull, antlers, four legs, materials, scale and topology. solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. One physical toll only; no walking, turn, camera motion, warning ring, sound wave, frost circle, detached bell, extra pendants, antler change or cropping.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact white-silence bell hart from the first frame performs one deliberate delayed-toll body action toward screen-right, then recovers. Locked slightly elevated side-dominant low three-quarter game camera. Exactly four hooves stay planted and separate on the common foot line. The head and antlers remain raised while the attached bell begins tilted backward inside the hollow rib frame. After a brief held anticipation, the bell swings forward exactly once around its original top mounting, reaches a clear release pose, rebounds slightly and settles; the later damaging echo is runtime VFX and does not require a second physical strike. The body absorbs the bell momentum through a restrained chest and leg compression, then returns to the exact opening pose. Keep the bell fully inside the rib cage, keep exactly three small hanging chime pendants, and preserve the beaked skull, antlers, four legs, materials, scale and topology. solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow and full silhouette. One physical toll only; no walking, turn, camera motion, warning ring, sound wave, frost circle, detached bell, extra pendants, antler change or cropping. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "db1829ab3102f7daab247db6a1c37a6bd5536ebcacfb226c13eedf94133f42f0",
+  "effectivePromptSha256": "dde5f94d210df57255218965305eade8e46e685d05fe24941cf912cad0b8b0c5",
+  "finalPromptSha256": "5344cca175e076794f42c05c25a2008b3256616ac7242b6eda8f8f0c0d664108",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\03-white-silence-bell-hart-double-toll-h3-v01.txt",
+      "bytes": 1136,
+      "sha256": "5f43f7840022a1c9f36cbe231717f503ac99e7ef28bdf89b0f64ef27cc959bd5"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\03-white-silence-bell-hart-double-toll-prepare-1024x576.png",
+      "bytes": 195327,
+      "sha256": "583a428edc0e316d9efef4dd01b65522a73a9075b62e353811d4b1ca5c04a255"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-double-toll-h3-v01_contact.png",
+    "bytes": 254137,
+    "sha256": "cd3fa4f8aaadec6a19548f5cd570d41394e7e46fd923af361ac2d3972bb0454f"
+  },
+  "elapsedSeconds": 445.473
+}

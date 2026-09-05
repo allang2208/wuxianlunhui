@@ -1,0 +1,6 @@
+Use case: precise-object-edit
+Asset type: production cold-idle keyframe for a Phaser game monster animation pipeline
+Input image: Image 1 is the exact approved frozen-sun core relic identity and edit target.
+Primary request: Change only the exposed inner core and nearby color spill from molten orange to a sealed, extremely dim cold-state core: deep navy-black frozen mineral with faint desaturated cyan light visible only inside narrow cracks. The surrounding ice shell must remain blue-gray and frost-white with no red, orange, amber, pink or warm glow anywhere. This is a dormant cold shell, not a thawing or hot phase.
+Identity locks: preserve exactly the same spherical ice shell, broken stone ring fixed on screen-left, small spike fixed on screen-right, exactly four planted supports, silhouette, proportions, camera, pose, scale, materials outside the requested color change and pure white background.
+Constraints: change only core temperature/color and remove warm spill; no geometry change, no rotation, no face, no added limbs, no VFX, particles, aura, shadow, floor, scenery, text, logo, watermark or cropping.

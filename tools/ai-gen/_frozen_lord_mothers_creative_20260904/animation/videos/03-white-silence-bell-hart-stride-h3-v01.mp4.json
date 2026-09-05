@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-04T13:55:11.686001+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-stride-h3-v01.mp4",
+    "bytes": 563427,
+    "sha256": "a4c9f08695247517beb35713219c623791d3168d97c34a903608512d3cc4350c"
+  },
+  "promptId": "4459a73a-05dc-44ae-9118-958be270a4de",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 9041301,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact same white-silence bell hart from the first frame performs one slow in-place walking loop toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. Its muzzle, neck, hollow rib frame, pelvis, knees, hooves and walking axis remain aligned to screen-right. Exactly four long legs stay anatomically distinct and alternate in a calm deer-like walk, with clear front and rear foot phases and no crossing through the hollow body. The suspended ice bell remains inside the rib cavity and swings only a few degrees from the body's inertia; it does not ring or emit a wave. The antlers, hollow frame and bell mounting remain rigidly identifiable. Fixed visual root and common hoof line; no movement across the canvas. The final pose returns exactly to the first pose for a seamless loop. Preserve the exact identity, silhouette, proportions, materials and topology. Pure white studio background. No camera motion, zoom, turn, extra legs, fused hooves, detached bell, antler growth, attack, magic ring, text, border or shadow.",
+  "effectivePrompt": "The exact same white-silence bell hart from the first frame performs one slow in-place walking loop toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. Its muzzle, neck, hollow rib frame, pelvis, knees, hooves and walking axis remain aligned to screen-right. Exactly four long legs stay anatomically distinct and alternate in a calm deer-like walk, with clear front and rear foot phases and no crossing through the hollow body. The suspended ice bell remains inside the rib cavity and swings only a few degrees from the body's inertia; it does not ring or emit a wave. The antlers, hollow frame and bell mounting remain rigidly identifiable. Fixed visual root and common hoof line; no movement across the canvas. The final pose returns exactly to the first pose for a seamless loop. Preserve the exact identity, silhouette, proportions, materials and topology. Pure white studio background. No camera motion, zoom, turn, extra legs, fused hooves, detached bell, antler growth, attack, magic ring, text, border or shadow, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact same white-silence bell hart from the first frame performs one slow in-place walking loop toward screen-right. Locked slightly elevated, side-dominant low three-quarter game camera. Its muzzle, neck, hollow rib frame, pelvis, knees, hooves and walking axis remain aligned to screen-right. Exactly four long legs stay anatomically distinct and alternate in a calm deer-like walk, with clear front and rear foot phases and no crossing through the hollow body. The suspended ice bell remains inside the rib cavity and swings only a few degrees from the body's inertia; it does not ring or emit a wave. The antlers, hollow frame and bell mounting remain rigidly identifiable. Fixed visual root and common hoof line; no movement across the canvas. The final pose returns exactly to the first pose for a seamless loop. Preserve the exact identity, silhouette, proportions, materials and topology. Pure white studio background. No camera motion, zoom, turn, extra legs, fused hooves, detached bell, antler growth, attack, magic ring, text, border or shadow, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "a81a6672781b20c7c2ac798c19b6d0bae4140d03c7a1287bdda8d407a1245a4c",
+  "effectivePromptSha256": "e8567371b8f2128c223e6aaac2b75fe2dd38e5eac9161c6264a09dcdfc686543",
+  "finalPromptSha256": "8c3dbfc371bf29348ecd6c29276f1e268ac3de482642782413bfc55a3fd8385e",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\03-white-silence-bell-hart-stride-h3-v01.txt",
+      "bytes": 1061,
+      "sha256": "9fe6158e3d53319e1830edf5a080cbad1de1a96665324917f5065bc7999cdaf9"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\03-white-silence-bell-hart-locomotion-1024x576.png",
+      "bytes": 202175,
+      "sha256": "ae51d650892b17accfe33bb27ff301a1c159f8ac899cf4f0324faf20e602123e"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\references\\03-white-silence-bell-hart-locomotion-1024x576.png",
+      "bytes": 202175,
+      "sha256": "ae51d650892b17accfe33bb27ff301a1c159f8ac899cf4f0324faf20e602123e"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\videos\\03-white-silence-bell-hart-stride-h3-v01_contact.png",
+    "bytes": 310775,
+    "sha256": "576a021ab366220cda7ce7b25de6b63318f0c5a40e15be4aed53bca86d625ad0"
+  },
+  "elapsedSeconds": 475.592
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\action-references\\02-aurora-fate-weaver-tether-prepare-v02-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_lord_mothers_creative_20260904\\animation\\prompts\\02-aurora-fate-weaver-cut-body-doubao-v01.txt",
+  "promptChars": 675,
+  "promptSha256": "0a4171d409b5e84f66fc9028eb7558b07863bff5c2aac2fcbfe653e11384ed79",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-05T01:58:14.286Z",
+  "sourceUrlScheme": "https"
+}

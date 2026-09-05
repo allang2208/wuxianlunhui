@@ -1,0 +1,5 @@
+The exact frozen-sun core relic from the first frame performs a minimal sealed cold-shell idle loop. It remains in one fixed orientation for all 124 frames: the broken stone ring stays on screen-left, the small spike stays on screen-right, and the shell opening keeps the same screen position. Exactly four lower supports stay planted with unchanged overlap and spacing.
+
+Only a very small slow weight cycle passes through the shell and supports. The deep navy-black frozen mineral core keeps the same cold color and nearly constant low intensity; its existing faint cyan cracks dim and return once. The blue-gray ice shell remains opaque, frosted and cold. End in the exact first pose, position, scale, orientation, color and motion phase for a seamless loop.
+
+Preserve the ring, shell, core, four supports, proportions, material detail, fixed center root and contact line. Static orthographic-like camera, pure white background and full silhouette. No color-temperature transition, warm color, shell reddening, opening expansion, axial rotation, orbit, step, support swap, camera move, effect or crop.
