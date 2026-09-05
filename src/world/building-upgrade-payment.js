@@ -7,3 +7,7 @@ import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 export function payBuildingUpgradeCost(cost = {}) {
     return CrossPlaneResourceSystem.pay(cost);
 }
+
+export function refundBuildingUpgradePayment(payment) {
+    CrossPlaneResourceSystem.refund(payment);
+}
