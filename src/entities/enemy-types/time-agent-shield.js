@@ -60,6 +60,8 @@ export class TimeAgentShield extends Enemy {
         });
         this._useStickFigure = false;
         this._usePacingAI = false;
+        // 与铠甲骑士共用伤害管线的弹反结果协议，免伤后不再施加击退和附效。
+        this.shieldSystem = { _lastParried: false };
         // 攻击决策完全自管：关闭 CombatSystem 的通用近战触发（同 mutant-3 模式）
         this.aiInterval = Number.MAX_SAFE_INTEGER;
 
