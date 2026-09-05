@@ -1,0 +1,44 @@
+{
+  "runtimeIntegrationActive": true,
+  "sharedVisualUnits": [
+    "bishop",
+    "archbishop"
+  ],
+  "sharedAssetDirectory": "assets/companions/hamster_bishop_archbishop_shared",
+  "assets": {
+    "idle": {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/sheets/interpolated/idle.png",
+      "destination": "assets/companions/hamster_bishop_archbishop_shared/idle.png",
+      "sha256": "d7740d49e8fd3b681d32316a2c21f9c2932c261d5538ec3c84e96fd08d16ca5e"
+    },
+    "moving": {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/sheets/interpolated/moving.png",
+      "destination": "assets/companions/hamster_bishop_archbishop_shared/moving.png",
+      "sha256": "055f2d2f58fb861d51a22f54accd498dbb025c3c3b4524fb17273e98b730cced"
+    },
+    "spellcast": {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/sheets/interpolated/spellcast.png",
+      "destination": "assets/companions/hamster_bishop_archbishop_shared/spellcast.png",
+      "sha256": "9e85a3ea6477890107f29b66503e1f5fe0ca238df69b623623e77c91fbfa7ebb"
+    },
+    "dying": {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/sheets/interpolated/dying.png",
+      "destination": "assets/companions/hamster_bishop_archbishop_shared/dying.png",
+      "sha256": "e0bda0a47f856b41e37a45fcdc9a6a1315036a783bc4d485590b6d4b2a9737be"
+    }
+  },
+  "sharedIcon": {
+    "path": "assets/ui/unit-icons/hamster-archbishop.png",
+    "sha256": "6b7810c59720700e1a18f8e0da45ca5d688de322e45e1e92138f7742deb4fe17"
+  },
+  "configCopies": {
+    "hamster-bishop-config.json": {
+      "destination": "public/data/hamster-bishop-config.json",
+      "identical": true
+    },
+    "hamster-archbishop-config.json": {
+      "destination": "public/data/hamster-archbishop-config.json",
+      "identical": true
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_archbishop_doubao_20260828\\references\\hamster-archbishop-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_archbishop_doubao_20260828\\prompts\\moving-doubao-v01.txt",
+  "promptChars": 2105,
+  "promptSha256": "631d901dca60115ca83a4e9173ff5c943539bc8049f1849606b23d67e0603a15",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T02:46:17.935Z",
+  "sourceUrlScheme": "https"
+}

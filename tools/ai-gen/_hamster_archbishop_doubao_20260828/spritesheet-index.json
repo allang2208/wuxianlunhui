@@ -1,0 +1,76 @@
+{
+  "asset": "hamster_bishop_archbishop_shared",
+  "date": "2026-08-28",
+  "sourceApproved": true,
+  "runtimeIntegrationActive": true,
+  "sharedVisualUnits": [
+    "bishop",
+    "archbishop"
+  ],
+  "pipeline": "Doubao Seedance 2.0 Mini -> BiRefNet -> fixed effective-body scale/footline -> whole-pixel body-root stabilization -> RIFE v4.6 RGB/Alpha 2x -> inserted-frame body-root stabilization",
+  "frameContract": {
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "feetY": 351,
+    "targetEffectiveBodyHeight": 129,
+    "cols": 8
+  },
+  "actions": {
+    "idle": {
+      "sheet": "sheets/interpolated/idle.png",
+      "frameCount": 54,
+      "frameRate": 12,
+      "repeat": -1,
+      "verticalRootY": 351,
+      "verticalRootStabilized": true,
+      "sourceFrames": [
+        8,
+        112
+      ],
+      "closureFrame": 116,
+      "preview": "previews/interpolated/hamster-archbishop-shared-idle-interpolated.gif",
+      "report": "idle-rife-report.json"
+    },
+    "moving": {
+      "sheet": "sheets/interpolated/moving.png",
+      "frameCount": 14,
+      "frameRate": 12,
+      "repeat": -1,
+      "verticalRootY": 351,
+      "verticalRootStabilized": true,
+      "sourceFrames": [
+        64,
+        88
+      ],
+      "closureFrame": 92,
+      "preview": "previews/interpolated/hamster-archbishop-shared-moving-interpolated.gif",
+      "report": "moving-rife-report.json"
+    },
+    "spellcast": {
+      "sheet": "sheets/interpolated/spellcast.png",
+      "frameCount": 61,
+      "frameRate": 12,
+      "repeat": 0,
+      "verticalRootY": 351,
+      "verticalRootStabilized": true,
+      "releaseFrameZeroBased": 30,
+      "futureConfigReleaseFrameOneBased": 31,
+      "preview": "previews/interpolated/hamster-archbishop-shared-spellcast-interpolated.gif",
+      "report": "spellcast-rife-report.json"
+    },
+    "dying": {
+      "sheet": "sheets/interpolated/dying.png",
+      "frameCount": 61,
+      "frameRate": 12,
+      "repeat": 0,
+      "stableCorpseSourceRange": [
+        68,
+        120
+      ],
+      "preview": "previews/interpolated/hamster-archbishop-shared-dying-interpolated.gif",
+      "report": "dying-rife-report.json"
+    }
+  },
+  "runtimeInstallReport": "runtime-install-report.json",
+  "runtimeSharedAssetDirectory": "assets/companions/hamster_bishop_archbishop_shared"
+}
