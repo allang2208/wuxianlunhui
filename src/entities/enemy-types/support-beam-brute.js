@@ -1,3 +1,4 @@
+import { startCorpseTimeline, updateCorpseTimeline } from './_shared/corpse-timeline.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import {
@@ -279,38 +280,18 @@ export class SupportBeamBrute extends Enemy {
     }
 
     onDeath(source) {
+        if (!this.active) return;
         this.active = false;
         this._beamBroken = true;
         this._breakTimer = 0;
         this._cancelAttack();
         this._animState = 'death';
-        const death = this._getDeathConfig();
-        this._deathAnimTimer = death.animMs ?? 5083;
-        this._corpseTimer = 0;
-        this._fadeTimer = 0;
-        this._deathRemoveDelay = this._deathAnimTimer
-            + (death.holdMs ?? 1000)
-            + (death.fadeMs ?? 300)
-            + 500;
+        startCorpseTimeline(this, { animMs: 5083, holdMs: 1000, fadeMs: 300, ...this._getDeathConfig() });
         if (typeof super.onDeath === 'function') super.onDeath(source);
     }
 
     _updateDeathSequence(dt) {
-        if (this._deathAnimTimer > 0) {
-            this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
-            if (this._deathAnimTimer <= 0) this._corpseTimer = this._getDeathConfig().holdMs ?? 1000;
-        } else if (this._corpseTimer > 0) {
-            this._corpseTimer = Math.max(0, this._corpseTimer - dt);
-            if (this._corpseTimer <= 0) this._fadeTimer = this._getDeathConfig().fadeMs ?? 300;
-        } else if (this._fadeTimer > 0) {
-            this._fadeTimer = Math.max(0, this._fadeTimer - dt);
-            const fadeMs = this._getDeathConfig().fadeMs ?? 300;
-            if (this._phaserSprite?.active) this._phaserSprite.setAlpha(Math.max(0, this._fadeTimer / fadeMs));
-            if (this._fadeTimer <= 0 && this._phaserSprite?.active) {
-                this._phaserSprite.destroy();
-                this._phaserSprite = null;
-            }
-        }
+        updateCorpseTimeline(this, dt);
     }
 
     _enterStunnedIdleAnimation() {

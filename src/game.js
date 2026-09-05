@@ -1710,7 +1710,15 @@ const pickupCfg = GAME_CONFIG.pickup || {};
 
         for (const [key, entity] of this.entities) {
             if (!entity.active) {
-                if (entity._deathTime && now - entity._deathTime > (entity._deathRemoveDelay || 0)) {
+                // 自管尸体依靠游戏dt推进；暂停/后台经过的墙钟不能提前截断它。
+                const corpsePlaying = entity._preserveCorpse
+                    && (entity._deathAnimTimer > 0 || entity._corpseTimer > 0 || entity._fadeTimer > 0);
+                if (!corpsePlaying && entity._deathTime
+                    && now - entity._deathTime > (entity._deathRemoveDelay || 0)) {
+                    if (entity._preserveCorpse) {
+                        entity._phaserSprite?.destroy();
+                        entity._phaserSprite = null;
+                    }
                     this.entities.delete(key);
                 }
                 continue;

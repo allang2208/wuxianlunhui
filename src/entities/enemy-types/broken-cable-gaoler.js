@@ -1,3 +1,4 @@
+import { startCorpseTimeline, updateCorpseTimeline } from './_shared/corpse-timeline.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { DamagePipeline } from '../../combat/damage-pipeline.js';
@@ -409,33 +410,14 @@ export class BrokenCableGaoler extends Enemy {
         if (!this.active) return;
         this._finishAction();
         this.active = false;
-        this._animState = 'dying';
         const death = this.config?.death || {};
-        this._deathAnimTimer = Math.max(1, Number(death.animMs) || 3417);
-        this._corpseTimer = 0;
-        this._fadeTimer = 0;
+        startCorpseTimeline(this, { animMs: 3417, holdMs: 1400, fadeMs: 300, ...death });
+        this._animState = 'dying';
         if (typeof super.onDeath === 'function') super.onDeath(source);
     }
 
     _updateDeathSequence(dt) {
-        const death = this.config?.death || {};
-        if (this._deathAnimTimer > 0) {
-            this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
-            if (this._deathAnimTimer <= 0) this._corpseTimer = Number(death.holdMs) || 1400;
-        } else if (this._corpseTimer > 0) {
-            this._corpseTimer = Math.max(0, this._corpseTimer - dt);
-            if (this._corpseTimer <= 0) this._fadeTimer = Number(death.fadeMs) || 300;
-        } else if (this._fadeTimer > 0) {
-            this._fadeTimer = Math.max(0, this._fadeTimer - dt);
-            const fadeMs = Number(death.fadeMs) || 300;
-            if (this._phaserSprite?.active) {
-                this._phaserSprite.setAlpha(Math.max(0, this._fadeTimer / fadeMs));
-                if (this._fadeTimer <= 0) {
-                    this._phaserSprite.destroy();
-                    this._phaserSprite = null;
-                }
-            }
-        }
+        updateCorpseTimeline(this, dt);
     }
 
     _getTextureKey() {
