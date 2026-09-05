@@ -3192,6 +3192,21 @@
   }
  },
  "abandonedMineDungeonBeginner": {
+  "expBudgetReference": "zombieBeginner",
+  "arenaLastWaveNormals": 3,
+  "tutorialRoute": {
+   "enabled": true,
+   "revealAll": true,
+   "steps": [
+    "combat",
+    "event",
+    "boss",
+    "reward"
+   ]
+  },
+  "chestBranches": {
+   "count": 0
+  },
   "mapExplorationBackgroundVariants": [
    "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png",
    "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png",
@@ -3251,8 +3266,8 @@
   "eliteCombatChance": 0,
   "encounters": {
    "normal": {
-    "combatWaves": 3,
-    "monstersPerWave": 5,
+    "combatWaves": 1,
+    "monstersPerWave": 3,
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -3260,17 +3275,7 @@
     "guaranteeAtLeastOneElite": false,
     "poolKeys": [
      "zombie",
-     "spitterZombie",
-     "minerZombie",
-     "coreDrillLarva",
-     "oreShardling",
-     "lanternMinerZombie",
-     "bombZombie",
-     "supportBeamBrute",
-     "coreDrillWorm",
-     "foremanZombie",
-     "oreSpider",
-     "mineCave"
+     "minerZombie"
     ],
     "matchPoolRanks": true
    },
@@ -3319,37 +3324,25 @@
    "rewardAfterBoss": true
   },
   "bossEncounter": {
-   "combatWaves": 3,
-   "monstersPerWave": 5,
+   "combatWaves": 2,
+   "monstersPerWave": 3,
    "monsterComposition": {
     "elite": 1,
-    "normal": 5
+    "normal": 2
    },
    "waveComposition": [
     {
-     "normal": 5
+     "normal": 3
     },
     {
-     "normal": 5
-    },
-    {
-     "normal": 4,
+     "normal": 2,
      "elite": 1
     }
    ],
    "poolKeys": [
     "zombie",
-    "spitterZombie",
     "minerZombie",
-    "coreDrillLarva",
-    "oreShardling",
-    "lanternMinerZombie",
-    "bombZombie",
-    "supportBeamBrute",
-    "coreDrillWorm",
-    "foremanZombie",
-    "oreSpider",
-    "mineCave"
+    "oreSpider"
    ],
    "matchPoolRanks": true
   },
