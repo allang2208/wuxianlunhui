@@ -1,0 +1,14 @@
+{
+  "method": "Existing sprite alpha only; no regenerated art, no body or timing changes",
+  "actions": {
+    "hookWinch": {
+      "farHookFade": {
+        "startOffsetX": 360,
+        "endOffsetX": 700,
+        "curve": "1 - smoothstep",
+        "space": "right-facing cell pixels relative to each frame's calibrated body root",
+        "preview": "tools/ai-gen/_broken_cable_gaoler_hook_fade_20260830/hook-fade-comparison.gif"
+      }
+    }
+  }
+}
