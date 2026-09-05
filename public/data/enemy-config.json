@@ -4101,6 +4101,7 @@
   },
   "id": "mineCave",
   "name": "矿洞",
+  "noPool": true,
   "type": "次级",
   "category": "monster",
   "family": "其他",
