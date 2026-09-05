@@ -2356,21 +2356,14 @@ class PolarNightCantorEnemy extends ZombieDogEnemy {
     }
 
     _clearCantorProjectiles() {
-        for (const projectile of [...this._iceSpikeSpikes, ...this._fireballSpikes]) {
-            projectile.active = false;
-            projectile.flyActive = false;
-        }
-        this._iceSpikeActive = false;
-        this._iceSpikeSpikes = [];
-        this._fireballActive = false;
-        this._fireballSpikes = [];
-        this._fireball = null;
+        this._iceSpikeSystem?.teardown?.();
+        this._fireballSystem?.teardown?.();
     }
 
-    onDeath(source) {
+    /** 自然死亡与 Game.removeEntity() 共用，避免测试怪移除后遗留施法文字/弹体。 */
+    _destroyCustomEffects() {
         this._cancelCantorCast();
         this._clearCantorProjectiles();
-        super.onDeath(source);
     }
 
     _getPhaserOptions() {

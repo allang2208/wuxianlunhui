@@ -7491,6 +7491,28 @@ export class GameScene extends Scene {
     /**
      * 同步非玩家施法者的冰锥/火球特效
      */
+    _destroyMagicCasterVisuals(caster, sprites) {
+        if (!sprites) return;
+        const visuals = new Set([
+            ...(sprites.iceSpikes || []),
+            ...(sprites.iceSpikeFly || []),
+            sprites.fireball,
+            sprites.fireballFly,
+            ...(sprites.fireballEmitters || []),
+        ]);
+        for (const visual of visuals) {
+            if (!visual) continue;
+            visual.stop?.();
+            visual.destroy?.();
+        }
+        sprites.iceSpikes = [];
+        sprites.iceSpikeFly = [];
+        sprites.fireball = null;
+        sprites.fireballFly = null;
+        sprites.fireballEmitters = null;
+        this.unregisterEnvironmentGlow(`fireball:${caster?.id || caster?.name || 'unknown'}`);
+    }
+
     _syncOtherMagicCasters(_game) {
         if (!_game.entities) return;
         const activeCasters = new Set();
@@ -7515,10 +7537,7 @@ export class GameScene extends Scene {
         // 清理不再施法的注册表条目
         for (const [caster, sprites] of this._magicSprites.entries()) {
             if (activeCasters.has(caster)) continue;
-            if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.destroy());
-            if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.destroy());
-            if (sprites.fireball) sprites.fireball.destroy();
-            if (sprites.fireballFly) sprites.fireballFly.destroy();
+            this._destroyMagicCasterVisuals(caster, sprites);
             this._magicSprites.delete(caster);
         }
     }
@@ -10150,11 +10169,8 @@ export class GameScene extends Scene {
         this._entityHudTexts.clear();
         // 清除通用施法者特效注册表
         if (this._magicSprites) {
-            for (const sprites of this._magicSprites.values()) {
-                if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.destroy());
-                if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.destroy());
-                if (sprites.fireball) sprites.fireball.destroy();
-                if (sprites.fireballFly) sprites.fireballFly.destroy();
+            for (const [caster, sprites] of this._magicSprites.entries()) {
+                this._destroyMagicCasterVisuals(caster, sprites);
             }
             this._magicSprites.clear();
         }

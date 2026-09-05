@@ -62,6 +62,7 @@ export class BoltSkillSystem {
         this.source = source;
         this.kind = kind;
         this.options = options;
+        this._spawnTextEffect = null;
     }
 
     _isPlayer() {
@@ -149,6 +150,35 @@ export class BoltSkillSystem {
 
     _spikes() { return this.source[this.kind.fields.spikes] || []; }
 
+    _clearSpawnText() {
+        const effect = this._spawnTextEffect;
+        this._spawnTextEffect = null;
+        if (!effect) return;
+        effect.active = false;
+        effect._destroyPhaserText?.();
+    }
+
+    /**
+     * 施法者死亡、被编辑器移除或切场时的强制回收入口。
+     * 与 _end() 的自然结算分开：销毁中的法术不追加冷却、连锁层数或施法后增益。
+     */
+    teardown() {
+        const src = this.source;
+        if (!src) return;
+        this._spikes().forEach((spike) => {
+            spike.active = false;
+            spike.flyActive = false;
+        });
+        src[this.kind.fields.active] = false;
+        src[this.kind.fields.timer] = 0;
+        src[this.kind.fields.spikes] = this.kind.fields.spikesArrayEmptyIsNull ? null : [];
+        if (this.kind.fields.alias) src[this.kind.fields.alias] = null;
+        this._clearSpawnText();
+        this._magicDamageMul = 1;
+        this._castContext = null;
+        this._castCooldownMs = null;
+    }
+
     trigger() {
         // 有飞行中的投射物，禁止再次操作
         if (this._spikes().some(s => s.flyActive)) return;
@@ -207,12 +237,15 @@ export class BoltSkillSystem {
         if (this.kind.img && (!src[this.kind.img.field] || src[this.kind.img.field].naturalWidth === 0 || src[this.kind.img.field].src !== this.kind.img.src)) {
             src[this.kind.img.field] = loadImage(this.kind.img.src);
         }
-        EffectManager.add(new FloatingTextEffect(
+        this._clearSpawnText();
+        const spawnTextEffect = new FloatingTextEffect(
             src.x,
             src.y - entitySurfaceZ(src) - 40,
             this.kind.spawnText(effect),
             this.kind.mpShortageColor
-        ));
+        );
+        this._spawnTextEffect = spawnTextEffect;
+        EffectManager.add(spawnTextEffect);
     }
 
     /** 玩家施法动作包装：播空手施法动画，第 8 帧触发 onRelease（魔法实际结算/发射） */
@@ -501,6 +534,7 @@ export class BoltSkillSystem {
         src[this.kind.fields.timer] = 0;
         src[this.kind.fields.spikes] = this.kind.fields.spikesArrayEmptyIsNull ? null : [];
         if (this.kind.fields.alias) src[this.kind.fields.alias] = null;
+        this._clearSpawnText();
         // 冷却在第一次施法时已按当时法杖/法袍快照结算，飞行途中切武器不再二次乘算。
         src[this.kind.fields.cooldown] = Number.isFinite(this._castCooldownMs)
             ? this._castCooldownMs
