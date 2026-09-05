@@ -335,7 +335,8 @@
       "assetPath": "assets/terrain/building-contact/church.png",
       "displayW": 293,
       "displayH": 230,
-      "footOffsetY": 114
+      "footOffsetY": 114,
+      "depthMode": "ground"
     },
     "displayW": 293,
     "displayH": 230,
