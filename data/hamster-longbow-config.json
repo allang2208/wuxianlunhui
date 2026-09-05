@@ -52,9 +52,12 @@
     "hudOffsetY": 119,
     "collisionWidth": 40,
     "collisionHeight": 100,
+    "projectileMuzzle": { "x": 0.623, "y": 0.492 },
     "projectileContentWidth": 448,
     "projectileLength": 112,
-    "projectileTipDirection": "right"
+    "projectileLeadOffset": 56,
+    "projectileTipDirection": "right",
+    "projectileTailAtMuzzle": true
   },
   "animations": {
     "idle": {
