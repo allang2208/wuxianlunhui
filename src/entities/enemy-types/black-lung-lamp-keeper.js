@@ -1,4 +1,8 @@
+import { attackFrameAt, attackFrameStartMs } from './_shared/attack-timing.js';
 import { startCorpseTimeline, updateCorpseTimeline } from './_shared/corpse-timeline.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { hasAttackLineOfSight } from '../../combat/melee-reach.js';
+import { canStartGroundSkill } from './_shared/attack-shapes.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { DamagePipeline } from '../../combat/damage-pipeline.js';
@@ -70,8 +74,12 @@ export class BlackLungLampKeeper extends Enemy {
         const slam = this._skill('pickaxeSlam');
         const cough = this._skill('blackLungCough');
         const overload = this._skill('lanternOverload');
+        const distance = this.target
+            ? distanceToEntityShape(this.target, this.collider?.x ?? this.x, this.collider?.y ?? this.y)
+            : Infinity;
         let reach = Number(slam.approachReach) || 230;
-        if ((this._cooldowns?.blackLungCough || 0) <= 0) {
+        if ((this._cooldowns?.blackLungCough || 0) <= 0
+            && distance >= (Number(cough.minTriggerRange) || 140)) {
             reach = Math.max(reach, Number(cough.triggerRange) || 400);
         }
         if ((this._cooldowns?.lanternOverload || 0) <= 0) {
@@ -92,15 +100,8 @@ export class BlackLungLampKeeper extends Enemy {
         attack.config.range = reach;
         attack.config.dynamicRange = reach;
         attack.range = reach;
-        attack.maxCooldown = Number(slam.cooldown) || 5200;
+        attack.maxCooldown = Number(slam.cooldown) || 3200;
         attack.baseMaxCooldown = attack.maxCooldown;
-    }
-
-    updateWhilePetrified(dt) {
-        if (this._action) this._finishAction();
-        if (this._pendingThrust?.active) this._pendingThrust.active = false;
-        this._clearAttackTelegraph?.();
-        super.updateWhilePetrified(dt);
     }
 
     _onCombatActionInterruptedByControl() {
@@ -115,7 +116,7 @@ export class BlackLungLampKeeper extends Enemy {
         }
 
         super.update(dt, entities);
-        if (!this.active) return;
+        if (!this.active || this._isDead) return;
         this._lastEntities = entities;
         const delta = Math.max(0, Number(dt) || 0);
         const cooldownDt = typeof this.getAttackIntervalDelta === 'function'
@@ -151,31 +152,33 @@ export class BlackLungLampKeeper extends Enemy {
         if (speed > 0.1) this.rotation = Math.atan2(this.vy, this.vx);
     }
 
-    triggerWeaponAnim() {
-        if (this._action || !this.active) return false;
-        const pending = this._pendingThrust?.active ? this._pendingThrust : null;
-        const target = pending?.primaryTarget || this.target;
-        if (!this._isValidTarget(target)) return false;
-        // 通用 ThrustAttack 只负责起手与冷却；命中只由专属动作帧结算。
-        if (pending) pending.active = false;
-
-        const sourceX = this.collider?.x ?? this.x;
-        const sourceY = this.collider?.y ?? this.y;
-        const distance = distanceToEntityShape(target, sourceX, sourceY);
+    _selectAttackAction(target) {
+        if (this._action || this.isCombatActionBlocked() || !this._isValidTarget(target)
+            || !canMeleeShareSurface(this, target)) return null;
+        const distance = distanceToEntityShape(target, this.collider?.x ?? this.x, this.collider?.y ?? this.y);
         const overload = this._skill('lanternOverload');
         const cough = this._skill('blackLungCough');
         const slam = this._skill('pickaxeSlam');
-        let action = null;
         if (this._cooldowns.lanternOverload <= 0
-            && distance <= (Number(overload.triggerRange) || 300)) {
-            action = 'lanternOverload';
-        } else if (this._cooldowns.blackLungCough <= 0
-            && distance >= (Number(cough.minTriggerRange) || 140)
-            && distance <= (Number(cough.triggerRange) || 400)) {
-            action = 'blackLungCough';
-        } else if (distance <= (Number(slam.approachReach) || 230)) {
-            action = 'pickaxeSlam';
-        }
+            && canStartGroundSkill(this, target, {
+                kind: 'ellipse', radiusX: overload.radiusX || 310, radiusY: overload.radiusY || 165,
+            })) return 'lanternOverload';
+        if (this._cooldowns.blackLungCough <= 0 && distance >= (cough.minTriggerRange || 140)
+            && canStartGroundSkill(this, target, {
+                kind: 'sector', range: Math.min(cough.triggerRange || 400, cough.range || 400),
+                arcDegrees: cough.arcDegrees || 100,
+            })) return 'blackLungCough';
+        if (canStartGroundSkill(this, target, {
+            range: Math.min(slam.approachReach || 230, slam.range || 250), width: slam.width || 150,
+        })) return 'pickaxeSlam';
+        return null;
+    }
+
+    triggerWeaponAnim() {
+        const pending = this._pendingThrust?.active ? this._pendingThrust : null;
+        const target = pending?.primaryTarget || this.target;
+        const action = this._selectAttackAction(target);
+        if (pending) pending.active = false;
         if (!action) return false;
         return this._startAction(action, target);
     }
@@ -190,7 +193,8 @@ export class BlackLungLampKeeper extends Enemy {
         const dy = targetY - sourceY;
         const worldAngle = Math.atan2(dy, dx);
         const groundAngle = Math.atan2(dy / PERSPECTIVE_SCALE_Y, dx);
-        const duration = Math.max(1, Number(cfg.duration) || 5083);
+        const duration = Math.max(1, Number(cfg.duration ?? this.config?.textures?.frameLayouts?.[action]?.duration)
+            || enemyConfigData.blackLungLampKeeper.attackSkills[action].duration);
 
         this._action = action;
         this._actionCfg = cfg;
@@ -227,18 +231,17 @@ export class BlackLungLampKeeper extends Enemy {
 
         const elapsedBefore = this._actionDuration - previous;
         const elapsedAfter = this._actionDuration - this._actionTimer;
-        const frameCount = Math.max(1, Number(this._actionCfg?.frames) || 61);
-        const frameMs = this._actionDuration / frameCount;
         const hitFrame = Number(
             this._actionCfg?.contactFrame
             ?? this._actionCfg?.releaseFrame
             ?? this._actionCfg?.impactFrame
             ?? 0
         );
-        const hitMs = Math.max(0, hitFrame) * frameMs;
+        const hitMs = attackFrameStartMs(this._layout(), hitFrame, this._actionDuration);
         if (!this._actionHitDone && elapsedBefore < hitMs && elapsedAfter >= hitMs) {
             this._actionHitDone = true;
             this._resolveActionHit();
+            if (this.isCombatActionBlocked() || !this._action) return;
         }
         if (this._actionTimer <= 0) this._finishAction();
     }
@@ -326,7 +329,9 @@ export class BlackLungLampKeeper extends Enemy {
     }
 
     _damageTargetsInShape(shape, cfg, skillId, originX, originY, afterHit, isMelee) {
+        const actionSnapshot = this._actionSnapshot;
         for (const target of this._collectTargets()) {
+            if (this.isCombatActionBlocked() || this._actionSnapshot !== actionSnapshot) break;
             if (!this._isValidTarget(target) || !shape.intersectsEntity(target)) continue;
             if (this._isWallBlocked(target, originX, originY)) continue;
             const tx = target.collider?.x ?? target.x;
@@ -339,8 +344,9 @@ export class BlackLungLampKeeper extends Enemy {
                 isMelee,
                 confirmedHitContext: { skillId },
             });
-            if (!result.hit) continue;
-            const parried = !!(isMelee && target.shieldSystem?._lastParried);
+            if (this.isCombatActionBlocked() || this._actionSnapshot !== actionSnapshot) break;
+            if (!result.hit || !target.active || target._isDead) continue;
+            const parried = result.parried;
             if (afterHit) afterHit(target, parried);
         }
     }
@@ -370,13 +376,7 @@ export class BlackLungLampKeeper extends Enemy {
     }
 
     _isWallBlocked(target, originX, originY) {
-        const tx = target.collider?.x ?? target.x;
-        const ty = target.collider?.y ?? target.y;
-        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
-        if (!WallSystem?.blocked?.(originX, originY, tx, ty, ignore)) return false;
-        return !(target._isDefenseStructure
-            && distanceToEntityShape(target, originX, originY)
-                <= Math.max(1, Number(this._actionCfg?.range) || Number(this._actionCfg?.radiusX) || 250));
+        return !hasAttackLineOfSight(this, target, originX, originY);
     }
 
     _finishAction() {
@@ -448,6 +448,10 @@ export class BlackLungLampKeeper extends Enemy {
             ? 'death'
             : (oneShot ? 'attack' : (this._animState === 'walking' ? 'walk' : 'idle'));
         return {
+            ...(this._action ? {
+                manualFrame: true,
+                frame: attackFrameAt(layout, this._actionDuration - this._actionTimer, this._actionDuration),
+            } : {}),
             spriteSize: this._visualSpriteSize,
             collisionWidth: Number(render.collisionWidth) || 112,
             collisionHeight: Number(render.collisionHeight) || 225,

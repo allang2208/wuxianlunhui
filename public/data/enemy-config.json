@@ -12830,6 +12830,10 @@
    "weight": 1,
    "assaultReady": true
   },
+  "attackTelegraph": {
+   "overlapWindup": true,
+   "durationMs": 350
+  },
   "id": "blackLungLampKeeper",
   "name": "黑肺提灯长",
   "type": "领主",
@@ -12858,10 +12862,10 @@
   "luck": 10,
   "attackRange": 400,
   "attackDistance": 400,
-  "aiInterval": 1500,
+  "aiInterval": 150,
   "attack": {
    "type": "thrust",
-   "cooldown": 5200,
+   "cooldown": 3200,
    "range": 400,
    "dynamicRange": 400,
    "width": 150,
@@ -12880,14 +12884,14 @@
     "approachReach": 90,
     "range": 92,
     "width": 150,
-    "duration": 5083,
+    "duration": 1700,
     "frames": 61,
     "contactFrame": 32,
     "damageMul": 1.35,
     "damageType": "physical",
     "knockback": 80,
     "crippleMs": 2500,
-    "cooldown": 5200
+    "cooldown": 3200
    },
    "blackLungCough": {
     "comment": "中距扇区减益；第20帧向锁定方向喷出黑肺咳雾",
@@ -12896,7 +12900,7 @@
     "triggerRange": 400,
     "range": 400,
     "arcDegrees": 105,
-    "duration": 5083,
+    "duration": 2120,
     "frames": 61,
     "releaseFrame": 20,
     "damageMul": 1.15,
@@ -12911,7 +12915,7 @@
     "triggerRange": 300,
     "radiusX": 310,
     "radiusY": 165,
-    "duration": 5083,
+    "duration": 2250,
     "frames": 61,
     "releaseFrame": 30,
     "damageMul": 1.65,
@@ -12986,7 +12990,7 @@
      "frameCount": 61,
      "footY": 599,
      "authoredBodyHeight": 460,
-     "duration": 5083,
+     "duration": 1700,
      "contactFrame": 32,
      "repeat": 0
     },
@@ -12998,7 +13002,8 @@
      "frameCount": 61,
      "footY": 503,
      "authoredBodyHeight": 460,
-     "duration": 5083,
+     "duration": 2120,
+     "frameDurations": [40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 40.163934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.913934, 31.91396],
      "releaseFrame": 20,
      "repeat": 0
     },
@@ -13010,7 +13015,7 @@
      "frameCount": 61,
      "footY": 503,
      "authoredBodyHeight": 460,
-     "duration": 5083,
+     "duration": 2250,
      "releaseFrame": 30,
      "repeat": 0
     },
@@ -13032,7 +13037,7 @@
   "skills": [
    {
     "name": "沉镐镇压",
-    "desc": "锁定起手方向，5.083秒动作第32帧重砸前方92×150像素矩形，造成物攻×1.35物理伤害、击退80像素并致残2.5秒；冷却5.2秒。"
+    "desc": "锁定起手方向，1.7秒动作第32帧重砸前方92×150像素矩形，造成物攻×1.35物理伤害、击退80像素并致残2.5秒；冷却3.2秒。"
    },
    {
     "name": "黑肺咳雾",
