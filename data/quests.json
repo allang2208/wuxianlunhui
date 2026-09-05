@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 5,
   "quests": [
     {
       "id": "explore_rift_1",
@@ -48,6 +48,123 @@
           "radius": 1500
         }
       }
+    },
+    {
+      "id": "first_city_founding",
+      "name": "初次位面探索",
+      "type": "主线指引",
+      "giver": "小鼠大王",
+      "location": "主神空间 · 小鼠大王与中央祭坛",
+      "desc": "从小鼠大王处领取一枚直接放入背包的 F 级时空锚点代币，前往中央祭坛完成第一次钥匙出征。成功通关废弃矿洞·初级后，大地图权限与首城选址将一并开启；首次成功前若钥匙耗尽，可返回免费补领。",
+      "scene": "main",
+      "mode": "guide",
+      "hiddenUntilAccepted": true,
+      "activeHints": {
+        "claim_starter_key": "靠近小鼠大王并点击交谈，领取直接放入背包的 F 级时空锚点代币。",
+        "open_expedition_altar": "携带 F 级钥匙前往小鼠大王下方的中央祭坛，选择“首次 F 级探索”。",
+        "complete_first_dungeon": "按基础战斗→随机事件→首领战→奖励房的固定单线完成新手试炼；领取奖励后才会解锁大地图。",
+        "claim_founding": "首次探索已完成，大地图已解锁。返回主神空间与小鼠大王交谈，从合法候选中选择首座位面城市。"
+      },
+      "objectives": [
+        {
+          "id": "claim_starter_key",
+          "text": "领取小鼠大王赠送的 F 级时空锚点代币",
+          "target": 1
+        },
+        {
+          "id": "open_expedition_altar",
+          "text": "前往中央祭坛并打开钥匙出征",
+          "target": 1
+        },
+        {
+          "id": "complete_first_dungeon",
+          "text": "完成废弃矿洞·初级的四房新手试炼",
+          "target": 1
+        },
+        {
+          "id": "claim_founding",
+          "text": "返回小鼠大王处开启首城选址并确认位面",
+          "target": 1
+        }
+      ],
+      "rewards": [
+        {
+          "type": "key",
+          "text": "启程补给：F 级时空锚点代币 ×1"
+        },
+        {
+          "type": "infrastructure",
+          "text": "大地图权限、可选合法位面首城、市政厅与首座传送门"
+        }
+      ]
+    },
+    {
+      "id": "first_plane_settlement",
+      "name": "首城建设入门",
+      "type": "主线指引",
+      "giver": "小鼠大王（通讯）",
+      "location": "首座位面城市",
+      "desc": "进入首座位面后建立完整的基础经营闭环：先建仓库承接资源，再实际入库 300 能源并领取建设补给，安置首批居民，启动麦田风车的粮食生产，最后调任农夫、建造研究所并产出首批科研进度。所有目标都以真实建筑、岗位、入库和科研结果为准。",
+      "mode": "guide",
+      "hiddenUntilAccepted": true,
+      "activeHints": {
+        "build_first_warehouse": "按 B 打开建筑菜单，在市政厅附近建造首座免费仓库。",
+        "gather_energy_ore": "攻击能源矿脉，让 300 能源实际进入首城仓库；达标后领取 1200 能源建设补给。",
+        "build_first_house": "建造首座免费房屋，让第一名居民落户。",
+        "operate_first_windmill": "建造麦田风车，并在建筑详情中安排至少 1 名农夫。",
+        "build_research_institute": "建造一座研究所；若能源不足，继续开采矿脉。",
+        "start_technology_research": "从风车撤下农夫并调任为研究员，再按 Y 打开科技树选择研究目标。",
+        "produce_first_research_progress": "保持研究员在岗，让研究所产出首批真实科研进度。"
+      },
+      "objectives": [
+        {
+          "id": "build_first_warehouse",
+          "text": "建造首座仓库",
+          "target": 1
+        },
+        {
+          "id": "gather_energy_ore",
+          "text": "采集并入库 300 能源矿石",
+          "target": 300
+        },
+        {
+          "id": "claim_construction_subsidy",
+          "text": "结算首城建设补给",
+          "target": 1,
+          "hidden": true
+        },
+        {
+          "id": "build_first_house",
+          "text": "建造首座房屋并安置居民",
+          "target": 1
+        },
+        {
+          "id": "operate_first_windmill",
+          "text": "建造麦田风车并安排农夫",
+          "target": 1
+        },
+        {
+          "id": "build_research_institute",
+          "text": "建造研究所",
+          "target": 1
+        },
+        {
+          "id": "start_technology_research",
+          "text": "安排研究员并启动科技研究",
+          "target": 1
+        },
+        {
+          "id": "produce_first_research_progress",
+          "text": "产出首批真实科研进度",
+          "target": 1
+        }
+      ],
+      "rewards": [
+        {
+          "type": "tutorial",
+          "text": "完成首城仓储、采矿、人口、粮食与科研闭环"
+        }
+      ]
     }
   ]
 }

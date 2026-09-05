@@ -82,6 +82,7 @@ export const PartySystem = {
         const i = this._members.findIndex(m => m.id === companionId);
         if (i < 0) return false;
         const member = this._members[i];
+        if (member._strategicArmyId) return false;
         this._members.splice(i, 1);
         // 移出队伍的队员同时退出选中（避免轮盘目标指向已离队单位）
         const si = this._selectedIds.indexOf(companionId);
@@ -137,6 +138,31 @@ export const PartySystem = {
     /** 档案库（供存档系统持久化；serialize 与恢复接口预留） */
     serializeRoster() {
         return JSON.parse(JSON.stringify(this._roster));
+    },
+
+    serializeState() {
+        return { members: this._members.map((member) => ({ data: member.serialize(), active: member.active,
+            position: { x: member.x, y: member.y, z: member.z || 0 },
+            armyId: member._strategicArmyId || null })), roster: this.serializeRoster() };
+    },
+
+    restoreState(state) {
+        if (!Array.isArray(state?.members)) return;
+        this._members.forEach((member) => member._destroyPhaserSprite?.());
+        this._members = state.members.slice(0, this._maxSize).map((record) => {
+            const member = Companion.fromSerialized(record.data);
+            member.active = record.active !== false;
+            member._strategicArmyId = record.armyId || null;
+            if (Number.isFinite(record.position?.x) && Number.isFinite(record.position?.y)) {
+                member.x = record.position.x; member.y = record.position.y; member.z = record.position.z || 0;
+                member.collider?.syncPosition?.();
+            }
+            return member;
+        });
+        this._aiInstances = {};
+        this._selectedIds = [];
+        this.restoreRoster(state.roster || {});
+        this._notify();
     },
 
     restoreRoster(roster) {

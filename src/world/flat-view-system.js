@@ -190,6 +190,10 @@ export const FlatViewSystem = {
             this._updateIndicator(0, 0);
             return;
         }
+        if (!this.enabled || !scene?.add) {
+            this._updateIndicator(0, 0);
+            return;
+        }
         this._ensureScene(scene);
         const graphics = this._graphics;
         graphics.clear();

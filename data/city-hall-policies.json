@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "mode": "planning-only",
+  "defaultBudget": 8,
+  "branches": [
+    { "id": "livelihood", "name": "民生保障", "mark": "Ⅰ", "summary": "从粮食保障走向公共服务", "target": "public_welfare" },
+    { "id": "industry", "name": "产业建设", "mark": "Ⅱ", "summary": "组织能源、生产与仓储", "target": "industrial_network" },
+    { "id": "administration", "name": "行政统筹", "mark": "Ⅲ", "summary": "统筹岗位、科研与应急事务", "target": "civil_service" }
+  ],
+  "nodes": [
+    { "id": "census", "branch": "livelihood", "name": "民生登记", "era": 1, "cost": 1, "requires": [], "position": "root", "description": "以人口与粮食储备作为城镇发展的起点。", "proposal": "规划目标：建立人口与粮食供需提醒。" },
+    { "id": "food_security", "branch": "livelihood", "name": "粮食保障", "era": 1, "cost": 1, "requires": ["census"], "position": "left", "description": "优先保障农场岗位，减少生产中断。", "proposal": "收益草案：食物产出 +10%；能源产出 −5%。" },
+    { "id": "housing_plan", "branch": "livelihood", "name": "宜居规划", "era": 2, "cost": 2, "requires": ["census"], "position": "right", "description": "让住房建设与岗位扩张相互配合。", "proposal": "收益草案：住房人口容量 +10%。" },
+    { "id": "public_health", "branch": "livelihood", "name": "公共卫生", "era": 2, "cost": 2, "requires": ["food_security", "housing_plan"], "position": "joint", "description": "将食物供应与医疗服务纳入共同计划。", "proposal": "收益草案：野战医院治疗效率 +10%。" },
+    { "id": "public_welfare", "branch": "livelihood", "name": "公共福利", "era": 3, "cost": 3, "requires": ["public_health"], "position": "capstone", "description": "以稳定供给和基本服务支撑成熟城镇。", "proposal": "规划目标：按粮食储备下限提示优先补岗。" },
+    { "id": "production_ledger", "branch": "industry", "name": "生产登记", "era": 1, "cost": 1, "requires": [], "position": "root", "description": "建立生产设施、岗位与仓储之间的联系。", "proposal": "规划目标：统一展示产业运行与缺岗情况。" },
+    { "id": "energy_priority", "branch": "industry", "name": "能源优先", "era": 1, "cost": 1, "requires": ["production_ledger"], "position": "left", "description": "集中劳动力，保障核心能源供应。", "proposal": "收益草案：能源产出 +10%；食物产出 −5%。" },
+    { "id": "storage_network", "branch": "industry", "name": "仓储网络", "era": 2, "cost": 2, "requires": ["production_ledger"], "position": "right", "description": "让库存容量随产业规模有序增长。", "proposal": "收益草案：仓库容量 +10%。" },
+    { "id": "production_coordination", "branch": "industry", "name": "协同生产", "era": 2, "cost": 2, "requires": ["energy_priority", "storage_network"], "position": "joint", "description": "统筹原料、岗位和成品存储，减少闲置。", "proposal": "规划目标：提示缺料、缺岗与满仓设施。" },
+    { "id": "industrial_network", "branch": "industry", "name": "产业一体化", "era": 3, "cost": 3, "requires": ["production_coordination"], "position": "capstone", "description": "按产业优先级协调全城资源与岗位。", "proposal": "规划目标：配置产业补岗顺序与资源保留线。" },
+    { "id": "public_registry", "branch": "administration", "name": "行政建制", "era": 1, "cost": 1, "requires": [], "position": "root", "description": "以岗位登记与清晰的事务分工作为治理基础。", "proposal": "规划目标：岗位变更记录与缺岗提醒。" },
+    { "id": "labor_coordination", "branch": "administration", "name": "劳务统筹", "era": 1, "cost": 1, "requires": ["public_registry"], "position": "left", "description": "优先安排空闲人口，避免关键岗位缺员。", "proposal": "规划目标：可保存的手动补岗优先级。" },
+    { "id": "research_support", "branch": "administration", "name": "科研扶持", "era": 2, "cost": 2, "requires": ["public_registry"], "position": "right", "description": "持续保障科研设施所需的岗位与物资。", "proposal": "收益草案：本位面科研产出 +10%。" },
+    { "id": "emergency_reserve", "branch": "administration", "name": "应急储备", "era": 2, "cost": 2, "requires": ["labor_coordination", "research_support"], "position": "joint", "description": "为短缺与战争预留必要的劳力和物资。", "proposal": "规划目标：设定空闲人口与仓储警戒线。" },
+    { "id": "civil_service", "branch": "administration", "name": "现代政务", "era": 3, "cost": 3, "requires": ["emergency_reserve"], "position": "capstone", "description": "形成可调整、可追踪的全城发展路线。", "proposal": "规划目标：根据警戒线建议调整发展队列。" }
+  ]
+}

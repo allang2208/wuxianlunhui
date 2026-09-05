@@ -1,0 +1,113 @@
+{
+  "version": 5,
+  "campId": "expedition_camp",
+  "maxTroops": 24,
+  "tickMs": 1000,
+  "terrainRules": { "passMultiplier": 1.6, "riverCrossingMultiplier": 2 },
+  "playerArmies": { "maxDetachments": 4, "combatStepGameMs": 10000 },
+  "settlers": {
+    "population": 10, "food": 300, "energy": 500, "maxTeams": 4,
+    "minCityDistance": 5, "marchMultiplier": 1.25, "reconRadius": 1,
+    "cityStructures": [
+      { "key": "core", "name": "新城市政营地", "visual": "explorer_camp", "hp": 2400, "def": 40, "x": 2500, "y": 1024 },
+      { "key": "supply", "name": "拓荒物资站", "visual": "warehouse", "hp": 900, "def": 20, "x": 2280, "y": 1398 }
+    ]
+  },
+  "supply": { "foodPerUnitPerDay": 1, "initialDays": 8, "capacityDays": 16, "emptyMarchMultiplier": 2, "emptyCombatMultiplier": 0.5, "convoySpeedMultiplier": 0.7, "convoyCapacity": 240, "maxConvoys": 8 },
+  "scheduling": { "arrivalBudgetMs": 3, "maxArrivalsPerFrame": 64, "farIdleDecisionMs": 10000 },
+  "march": {
+    "baseDaysPerCell": 0.5,
+    "maxRouteStops": 8,
+    "terrain": {
+      "desert": { "name": "沙漠", "multiplier": 1.25 },
+      "snow": { "name": "雪地", "multiplier": 1.5 },
+      "forest": { "name": "森林", "multiplier": 1.4 },
+      "ruins": { "name": "遗迹", "multiplier": 1.2 },
+      "mine": { "name": "矿区", "multiplier": 1.75 }
+    }
+  },
+  "maxEnemyArmies": 10,
+  "encounterGraceTicks": 8,
+  "campaign": {
+    "enemyDecisionTicks": 30, "townSpawnTicks": 180, "siegeStepTicks": 10,
+    "townsPerPlane": 1, "outpostsPerPlane": 1,
+    "repairCost": { "energy": 400, "gold": 100 }, "repairRatio": 0.35
+  },
+  "sites": {
+    "town": { "name": "敌方城镇", "guardMultiplier": 2, "defenseDps": 36, "structures": [
+      { "key": "core", "name": "城镇核心", "visual": "explorer_camp", "hp": 2400, "def": 40, "x": 2500, "y": 1024 },
+      { "key": "barracks", "name": "敌军兵营", "visual": "hamster_barracks", "hp": 1200, "def": 25, "x": 2280, "y": 650 },
+      { "key": "supply", "name": "敌军补给站", "visual": "warehouse", "hp": 900, "def": 20, "x": 2280, "y": 1398 }
+    ] },
+    "outpost": { "name": "敌方据点", "guardMultiplier": 1, "defenseDps": 18, "structures": [
+      { "key": "core", "name": "据点指挥所", "visual": "explorer_camp", "hp": 1200, "def": 25, "x": 2500, "y": 1024 },
+      { "key": "supply", "name": "补给设施", "visual": "warehouse", "hp": 600, "def": 15, "x": 2320, "y": 1380 }
+    ] }
+  },
+  "battle": {
+    "width": 6144, "height": 4096, "retreatDelayMs": 10000,
+    "playerSpawn": { "u": -0.5, "v": 0 },
+    "enemySpawn": { "u": 0.12, "v": 0 },
+    "retreat": { "u": -0.76, "v": 0, "radius": 220 },
+    "structurePositions": {
+      "core": { "u": 0.56, "v": 0 },
+      "barracks": { "u": 0.34, "v": -0.23 },
+      "supply": { "u": 0.34, "v": 0.23 }
+    }
+  },
+  "siege": {
+    "center": { "u": 0.28, "v": 0 },
+    "rangedDefenders": { "version": 1, "type": "spitterZombie", "town": 2, "outpost": 1 },
+    "ai": { "decisionMs": 250, "intelMs": 500, "redeployMs": 3000,
+      "predictionMs": 1500, "predictionMaxDistance": 320, "observationRadius": 900,
+      "alertRadius": 650, "meleeEngageRadius": 360, "leashRadius": 420,
+      "returnRadius": 100, "arriveRadius": 36, "orderChangeDistance": 64,
+      "alarmMs": 10000, "maxDecisionsPerFrame": 4, "maxLosChecksPerDecision": 4 },
+    "presets": {
+      "town": {
+        "name": "围墙城镇", "halfI": 8, "halfJ": 7, "gateJ": 1,
+        "wallHp": 1200, "gateHp": 1600, "wallTexture": "obstacle_block_brick",
+        "cornerTowers": { "tier": 2, "positions": [
+          { "key": "north", "i": -8, "j": -7 },
+          { "key": "east", "i": 7, "j": -7 },
+          { "key": "south", "i": 7, "j": 6 },
+          { "key": "west", "i": -8, "j": 6 }
+        ] },
+        "stairTextureSuffix": "brick",
+        "stairs": [
+          { "key": "west", "wall": { "i": -8, "j": -3 }, "dir": "e1", "ascendingSign": -1 },
+          { "key": "east", "wall": { "i": 8, "j": 3 }, "dir": "e1", "ascendingSign": 1 },
+          { "key": "south", "wall": { "i": 3, "j": 7 }, "dir": "e2", "ascendingSign": 1 }
+        ],
+        "facilities": { "core": { "i": 3, "j": -3 }, "barracks": { "i": -2, "j": -3 }, "supply": { "i": 3, "j": 2 } },
+        "rally": { "i": -4, "j": 1 },
+        "posts": [ { "role": "gate", "i": -5, "j": 2 },
+          { "role": "patrol", "i": 0, "j": 2 }, { "role": "reserve", "i": 4, "j": -1 } ]
+      },
+      "outpost": {
+        "name": "围墙据点", "halfI": 6, "halfJ": 5, "gateJ": 0,
+        "wallHp": 700, "gateHp": 900, "wallTexture": "obstacle_block_sand",
+        "stairTextureSuffix": "sand",
+        "stairs": [
+          { "key": "west", "wall": { "i": -6, "j": -2 }, "dir": "e1", "ascendingSign": -1 }
+        ],
+        "facilities": { "core": { "i": 2, "j": -2 }, "supply": { "i": 1, "j": 2 } },
+        "rally": { "i": -3, "j": 0 },
+        "posts": [ { "role": "gate", "i": -3, "j": 1 },
+          { "role": "patrol", "i": -1, "j": -2 }, { "role": "reserve", "i": 3, "j": 0 } ]
+      }
+    }
+  },
+  "enemyTypes": {
+    "desert_patrol": { "name": "荒原狼群", "sceneId": "scene8", "order": "wander", "vision": 2, "roster": [{ "type": "blackWolf", "count": 4 }] },
+    "frozen_patrol": { "name": "雪原游猎队", "sceneId": "scene9", "order": "patrol", "vision": 3, "roster": [{ "type": "blackWolf", "count": 3 }, { "type": "brownBear", "count": 1 }] },
+    "forest_raiders": { "name": "林地伏击群", "sceneId": "scene10", "order": "hunt", "vision": 2, "roster": [{ "type": "brownSnake", "count": 3 }, { "type": "evilTreant", "count": 1 }] },
+    "ruin_watch": { "name": "遗迹守卫", "sceneId": "scene11", "order": "patrol", "vision": 2, "roster": [{ "type": "zombie", "count": 5 }, { "type": "zombieDog", "count": 2 }] },
+    "mine_roamers": { "name": "矿区游荡队", "sceneId": "scene12", "order": "wander", "vision": 2, "roster": [{ "type": "minerZombie", "count": 4 }, { "type": "oreSpider", "count": 2 }] }
+  },
+  "floors": {
+    "scene8": { "tiles": ["floor_sand_seamless"], "continuous": true, "glow": false, "backgroundColor": "#160f0a" },
+    "scene9": { "tiles": ["floor_snow_fresh_seamless"], "continuous": true, "glow": false, "backgroundColor": "#101a2b" },
+    "scene10": { "tiles": ["floor_grass_forest_seamless"], "continuous": true, "glow": false, "backgroundColor": "#102015" }
+  }
+}

@@ -15,6 +15,9 @@ import { SystemUI } from './system-ui.js';
 import { TypewriterText } from './typewriter-text.js';
 import { MailboxPanel } from './mailbox-panel.js';
 import { MailStore } from '../systems/mail-store.js';
+import { WorldProgressionSystem } from '../world/world-progression-system.js';
+import { EventBus } from '../core/event-bus.js';
+import { FirstExpeditionTutorial } from '../quest/first-expedition-tutorial.js';
 
 const NPCDialogue = {
     _active: false,
@@ -25,6 +28,31 @@ const NPCDialogue = {
     _dialogueQueue: [], // 对话队列
     _dialogueIndex: 0, // 当前对话索引
     _isInPostQuestDialogue: false, // 是否在进行任务后对话
+
+    _getTutorialGreeting(npc) {
+        const stage = FirstExpeditionTutorial.getStage();
+        if (npc.id === 'npc_mouse_king') {
+            const founding = WorldProgressionSystem.getFoundingState();
+            if (founding.skipAuthorized && ['awaiting_king', 'selecting'].includes(founding.status)) {
+                return founding.status === 'selecting'
+                    ? '首城授予已经批准。航图只保留正式位面候选，你可以继续完成选址。'
+                    : '既然你决定跳过试炼，我就直接替你开启首城授予。选定地块后，新手建设任务也不会再打扰你。';
+            }
+            if (stage === 'receive_key') return '欢迎正式加入。轮回者的第一课，是学会用时空锚点为自己开路。我先送你一枚 F 级钥匙。确认领取后，它会直接放进你的背包。';
+            if (stage === 'replace_key') return '第一次探索还没完成，而你身上已经没有 F 级钥匙了。别担心，我会免费补发一枚；只要首战尚未成功，就不会让你被困在这里。';
+            if (stage === 'open_altar') return 'F 级钥匙已经在你手上。去我下方的中央祭坛，点击祭坛并选择“首次 F 级探索”。';
+            if (stage === 'complete_dungeon') return '祭坛已经记住了你的轮回印记。选择“废弃矿洞·初级”并活着完成探索，主神才会向你开放位面航图。';
+            if (stage === 'claim_founding') return WorldProgressionSystem.getFoundingState().status === 'selecting'
+                ? '首城授予已经批准。航图只保留当前真正符合条件的位面，你可以继续完成选址。'
+                : '你从废弃矿洞活着回来了。主神已经承认你的资格：大地图权限现已解封。接下来由你从合法位面中选择第一座城市。';
+        }
+        if (npc.id === 'npc_altar') {
+            if (stage === 'receive_key') return '祭坛没有检测到可用的 F 级锚点。先去找小鼠大王领取新手钥匙。';
+            if (stage === 'replace_key') return '祭坛没有检测到可用的 F 级锚点。返回小鼠大王处免费补领，再来建立坐标。';
+            if (stage === 'open_altar' || stage === 'complete_dungeon') return '祭坛与 F 级锚点发生共鸣。选择“废弃矿洞·初级”，成功通关后才会解锁位面航图。';
+        }
+        return null;
+    },
 
     // 打开对话界面
     open(npc) {
@@ -84,7 +112,7 @@ const NPCDialogue = {
             // 正常模式
             this._dialogueMode = 'npc';
             this._isInPostQuestDialogue = false;
-            this._currentText = npc.getRandomGreeting();
+            this._currentText = this._getTutorialGreeting(npc) || npc.getRandomGreeting();
             this._optionsVisible = true;
             if (this._typewriter) this._typewriter.setText(this._currentText);
 
@@ -110,8 +138,9 @@ const NPCDialogue = {
         let typeButtons = '';
         let closeText = '👋 再见';
         if (npcType === 'altar') {
+            const firstExpedition = ['open_altar', 'complete_dungeon'].includes(FirstExpeditionTutorial.getStage());
             typeButtons = `
-                <button class="npc-option-btn" id="npcOptionExpedition" onclick="NPCDialogue.openExpedition()">⚔️ 钥匙出征</button>
+                <button class="npc-option-btn${firstExpedition ? ' npc-option-btn--primary' : ''}" id="npcOptionExpedition" onclick="NPCDialogue.openExpedition()">⚔️ ${firstExpedition ? '首次 F 级探索' : '钥匙出征'}</button>
                 <button class="npc-option-btn" id="npcOptionFusion" onclick="NPCDialogue.openFusion()">🔮 祭品合成</button>
             `;
             closeText = '👋 退出';
@@ -195,12 +224,72 @@ const NPCDialogue = {
         return this._active;
     },
 
+    // 关闭对话界面
     openMailbox() {
         const npc = this._currentNPC;
         if (!npc || npc.id !== 'npc_mouse_king') return;
-        this.close(); // 先结束旧对话，避免其延迟回调随后关闭信箱。
+        this.close(); // Set _active=false now; the old goodbye timer cannot close the mailbox.
         MailboxPanel.open(npc);
     },
+
+    claimStarterDungeonKey() {
+        const npc = this._currentNPC;
+        if (!npc || npc.id !== 'npc_mouse_king') return;
+        const result = FirstExpeditionTutorial.grantStarterKey();
+        if (!result.ok) {
+            this._currentText = result.reason;
+        } else if (result.duplicate) {
+            this._currentText = '你已经持有可用的 F 级时空锚点，不会重复发放。现在去中央祭坛，选择“首次 F 级探索”。';
+        } else {
+            this._currentText = result.replacement
+                ? '新的 F 级时空锚点已经直接放进背包。继续从中央祭坛挑战废弃矿洞·初级；在首次成功之前，钥匙遗失或探索失败都可以再来补领。'
+                : '收好，F 级时空锚点已经直接放进背包。去我下方的中央祭坛，选择“首次 F 级探索”，目标是废弃矿洞·初级。成功通关后，大地图才会开启。';
+        }
+        this._typewriter?.setText(this._currentText);
+        this._updateDialogueButtons(npc);
+    },
+
+    acceptFirstFounding() {
+        const npc = this._currentNPC;
+        const sceneManager = typeof window !== 'undefined' ? window.SceneManager : null;
+        if (!npc || npc.id !== 'npc_mouse_king' || !sceneManager || sceneManager.isLoading) return;
+        const result = WorldProgressionSystem.beginFirstFoundingSelection();
+        if (!result.ok) {
+            this._currentText = `小鼠大王：${result.reason}`;
+            this._typewriter?.setText(this._currentText);
+            this._updateDialogueButtons(npc);
+            return;
+        }
+        const panel = typeof window !== 'undefined' ? window.WorldSwitchPanel : null;
+        this.close();
+        if (!panel?.openFirstFoundingSelection?.()) {
+            sceneManager.showTopNotification('首城候选已经批准，但位面航图暂时无法打开；再次与小鼠大王交谈即可继续', {
+                tone: 'warning',
+            });
+        }
+    },
+
+    async enterFirstFoundingWorld() {
+        const npc = this._currentNPC;
+        const sceneManager = typeof window !== 'undefined' ? window.SceneManager : null;
+        const founding = WorldProgressionSystem.getFoundingState();
+        if (!npc || npc.id !== 'npc_mouse_king' || founding.status !== 'founded'
+            || !founding.sceneId || !sceneManager || sceneManager.isLoading) return;
+        const player = Game.player;
+        this.close();
+        try {
+            const entered = await sceneManager.switchScene(founding.sceneId, player);
+            if (!entered) {
+                sceneManager.showTopNotification('首城已建立，但本次传送未完成；可从主神空间传送门再次前往', { tone: 'warning' });
+            }
+        } catch (error) {
+            console.error('[NPCDialogue] 首城授予后的位面传送失败:', error);
+            Game.syncMainHubWorldPortals?.();
+            sceneManager.showTopNotification('首城已完整登记，但本次传送失败；请从主神空间传送门重试', { tone: 'warning' });
+        }
+    },
+
+
 
     // 关闭对话界面
     close(keepBackpack = false) {
@@ -332,7 +421,8 @@ const NPCDialogue = {
         // 不走 goodbye()：避免其300ms延迟关闭与新打开的出征工作区互相覆盖。
         if (this._currentNPC) ExpeditionSystem._anchorNPC = this._currentNPC; // 锚点供距离自动关闭
         this.close(true);
-        ExpeditionSystem.open(player);
+        const opened = ExpeditionSystem.open(player);
+        if (opened) EventBus.emit('tutorial:first-expedition-altar-opened');
     },
 
     // 选择祭品合成（祭坛）
@@ -362,11 +452,11 @@ const NPCDialogue = {
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
         if (UIState.isOpen('craft')) CraftSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
-        
+
         // 恢复随机问候语
         this._currentText = npc.getRandomGreeting();
         if (this._typewriter) this._typewriter.setText(this._currentText);
-        
+
         ShopSystem.open(npc);
     },
 
@@ -379,14 +469,14 @@ const NPCDialogue = {
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('craft')) CraftSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
-        
+
         // 显示强化提示
         this._currentText = '改造可以强化武器基础伤害，同时也会强化人物属性的影响数值，改造完后不可退回。';
         if (this._typewriter) this._typewriter.setText(this._currentText);
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
-        
+
         EnhanceSystem.open(npc);
     },
 
@@ -399,7 +489,7 @@ const NPCDialogue = {
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
-        
+
         // 清除当前对话并显示改造提示（高亮段「后续的改造需要 4 张」走 typewriter 既有红字抖动样式）
         this._currentText = '改造装备需要支付改造券，初次改造只需要 1 张，后续的改造需要 4 张。请注意选择。';
         if (this._typewriter) {
@@ -409,7 +499,7 @@ const NPCDialogue = {
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
-        
+
         CraftSystem.open(npc);
     },
 
@@ -422,14 +512,14 @@ const NPCDialogue = {
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
         if (UIState.isOpen('craft')) CraftSystem.close();
-        
+
         // 显示附魔提示
         this._currentText = '附魔可以为你的装备注入神秘力量，但需要消耗魔法粉尘。请放入装备和附魔卷轴，我会为你进行附魔。';
         if (this._typewriter) this._typewriter.setText(this._currentText);
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
-        
+
         EnchantSystem.open(npc);
     },
 

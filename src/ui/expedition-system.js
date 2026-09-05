@@ -6,7 +6,7 @@ import { SceneManager } from '../world/scene-manager.js';
  */
 
 import { UIState } from './ui-state.js';
-import { getElement } from '../utils/dom-utils.js';
+import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { EquipManager } from './equip-manager.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { SystemUI } from './system-ui.js';
@@ -28,6 +28,7 @@ import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { resolveDungeonEnemyPreloadTypes } from '../world/dungeon-enemy-preload.js';
 import { isDungeonKeyCostIgnored } from '../config/dev-cheats.js';
 import { MailStore } from '../systems/mail-store.js';
+import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
 import {
     countDungeonKeys,
     getDungeonKeyRequirement,
@@ -36,9 +37,35 @@ import {
 
 export const ExpeditionSystem = {
     _isOpen: false,
+    _worldTarget: null,
+
+    getDepartureBlockReason({ allowLoading = false } = {}) {
+        if (getElementIfExists('dungeonExitRetryBtn')) return '上次返回尚未完成，请先重试返回主神空间';
+        if (this._departing && !allowLoading) return '正在准备出征，请稍候';
+        if (window.WorldStrategySystem?.active) return '亲征军团尚在外，请先撤军，再准备普通地牢';
+        if (SceneManager.isLoading && !allowLoading) return '场景正在加载，请稍候';
+        if (!Game.player || Game.player.data?.hp <= 0) return '角色当前无法出征';
+        if (SceneManager.isDungeonRunActive()) return '当前地牢尚未结算，请先结束本次探险';
+        if (MailStore.run?.status === 'active') return '上次探险战利品尚未结算，暂时不能出征';
+        if (Game._observerMode) return '当前为观察视野，请先返回本体，再回到主神空间准备远征';
+        if (SceneManager.isQuestInstance()) return '请先完成或撤离当前调查任务';
+        if (!['main', 'scene7'].includes(SceneManager.currentScene)) return '请先通过原有离场入口返回主神空间，目标会保留';
+        return '';
+    },
+
     // 打开出征准备面板
-    open(player) {
-        if (UIState.isOpen('expedition')) return;
+    open(player, { worldId = null } = {}) {
+        if (UIState.isOpen('expedition')) return false;
+        // scene7's original preparation room opens during switchScene's loading phase.
+        const blocked = this.getDepartureBlockReason({ allowLoading: true });
+        const binding = worldId ? WorldProgressionSystem.getWorldExpeditionTarget(worldId) : null;
+        if (blocked || (binding && !binding.ok)) {
+            SceneManager.showTopNotification(blocked || binding.reason, { color: '#ff7766' });
+            return false;
+        }
+        this._worldTarget = binding?.target || null;
+        this._preparationVersion = (this._preparationVersion || 0) + 1;
+        if (worldId) this._anchorNPC = null;
         UIState.open('expedition');
         this._isOpen = true;
         // 打开出征面板时关闭组队面板
@@ -64,7 +91,7 @@ export const ExpeditionSystem = {
 
         // 刷新逐级解锁状态，并默认选中第一个已解锁的低级地牢。
         this._refreshDungeonOptions();
-        const defaultDungeon = this._getFirstUnlockedDungeon() || 'zombieBeginner';
+        const defaultDungeon = this._worldTarget?.dungeonType || this._getFirstUnlockedDungeon() || 'abandonedMineBeginner';
         this.selectedDungeon = defaultDungeon;
         const select = getElement('expeditionDungeonSelect');
         if (select) select.value = defaultDungeon;
@@ -76,8 +103,9 @@ export const ExpeditionSystem = {
         // 更新UI
         this._subscribeParty();
         this._renderMemberBar(player);
-        this._showMessage('出征时将自动从背包或仓库消耗对应等级钥匙');
-
+        this._renderWorldTarget();
+        this.refreshDungeonKeyRequirement();
+        return true;
     },
 
     // 关闭出征准备面板
@@ -85,6 +113,9 @@ export const ExpeditionSystem = {
         if (!UIState.isOpen('expedition')) return;
         UIState.close('expedition');
         this._isOpen = false;
+        this._worldTarget = null;
+        this._anchorNPC = null;
+        this._preparationVersion = (this._preparationVersion || 0) + 1;
 
         // 隐藏面板和覆盖层
         const panel = getElement('expeditionPanel');
@@ -158,6 +189,16 @@ export const ExpeditionSystem = {
 
     // 地牢选择变更
     onDungeonSelect(value) {
+        if (this._worldTarget) {
+            const binding = WorldProgressionSystem.getWorldExpeditionTarget(this._worldTarget.sceneId, value);
+            if (!binding.ok) {
+                this._showMessage(binding.reason, 'error');
+                const select = getElement('expeditionDungeonSelect');
+                if (select) select.value = this.selectedDungeon;
+                return;
+            }
+            this._worldTarget = binding.target;
+        }
         if (!this.isDungeonUnlocked(value)) {
             this._showMessage(this._getDungeonLockMessage(value), 'error');
             const select = getElement('expeditionDungeonSelect');
@@ -165,37 +206,77 @@ export const ExpeditionSystem = {
             return;
         }
         this.selectedDungeon = value;
+        this._preparationVersion = (this._preparationVersion || 0) + 1;
         this._updateDungeonInfo(value);
         this._updateRulePanelCurrent();
+        this._renderWorldTarget();
     },
 
     isDungeonUnlocked(dungeonType) {
-        const required = DungeonConfig.getDungeonUnlockRequirement(dungeonType);
-        return !required || WorldProgressionSystem.hasCompletedDungeon(required);
+        return WorldProgressionSystem.getDungeonUnlockStatus(dungeonType).ok;
     },
 
     _getDungeonLockMessage(dungeonType) {
-        const list = DungeonConfig.getDungeonList();
-        const required = DungeonConfig.getDungeonUnlockRequirement(dungeonType);
-        const currentName = list[dungeonType]?.name || dungeonType;
-        const requiredName = list[required]?.name || required;
-        return required ? `需先通关${requiredName}，才能解锁${currentName}` : '';
+        return WorldProgressionSystem.getDungeonUnlockStatus(dungeonType).reason;
     },
 
     _refreshDungeonOptions() {
         const select = getElement('expeditionDungeonSelect');
         if (!select) return;
         const list = DungeonConfig.getDungeonList();
+        const targetTypes = this._worldTarget ? new Set(WorldProgressionSystem.getWorldExpeditionDungeons(this._worldTarget.sceneId)) : null;
         select.querySelectorAll('option').forEach((option) => {
-            const required = DungeonConfig.getDungeonUnlockRequirement(option.value);
             const locked = !this.isDungeonUnlocked(option.value);
+            const outsideTarget = targetTypes && !targetTypes.has(option.value);
             const baseLabel = option.dataset.baseLabel || list[option.value]?.name || option.value;
-            option.disabled = locked;
+            option.hidden = !!outsideTarget;
+            option.disabled = locked || !!outsideTarget;
             option.textContent = locked
-                ? `${baseLabel}（未解锁：先通关${list[required]?.name || required}）`
+                ? `${baseLabel}（未解锁：${this._getDungeonLockMessage(option.value)}）`
                 : baseLabel;
             option.title = locked ? this._getDungeonLockMessage(option.value) : '';
         });
+        select.querySelectorAll('optgroup').forEach((group) => {
+            group.hidden = Array.from(group.querySelectorAll('option')).every((option) => option.hidden);
+        });
+    },
+
+    _renderWorldTarget() {
+        const info = getElement('expeditionPanel')?.querySelector('.expedition-info');
+        if (!info) return;
+        let card = getElement('expeditionWorldTarget');
+        if (!card) {
+            card = document.createElement('section');
+            card.id = 'expeditionWorldTarget';
+            card.className = 'expedition-world-target';
+            card.setAttribute('aria-label', '本次远征的世界目标');
+            info.appendChild(card);
+        }
+        card.replaceChildren();
+        card.hidden = !this._worldTarget;
+        if (!this._worldTarget) return;
+        const target = this._worldTarget;
+        const world = WorldProgressionSystem.getWorldConfig(target.sceneId);
+        const title = document.createElement('strong');
+        title.textContent = `目标：${world?.name || target.sceneId} · 地块 ${target.cellId}`;
+        const description = document.createElement('p');
+        description.textContent = target.purpose === 'connect'
+            ? '完成所选地牢，获得此处的接通资格；失败或撤离仍保留原目标格。'
+            : '再次探索此位面的地牢，获取原有战利品；不会重复生成位面或自动重建传送门。';
+        const free = document.createElement('button');
+        free.type = 'button';
+        free.className = 'bp-button bp-button--muted';
+        free.textContent = '解除本次目标，自由选本';
+        free.onclick = () => {
+            if (SceneManager.isLoading) return;
+            this._worldTarget = null;
+            this._preparationVersion++;
+            this._refreshDungeonOptions();
+            this._renderWorldTarget();
+            getElement('expeditionDungeonSelect')?.focus({ preventScroll: true });
+            this._showMessage('已切换为自由探索；地图中的信标位置仍保留');
+        };
+        card.append(title, description, free);
     },
 
     _getFirstUnlockedDungeon() {
@@ -219,18 +300,33 @@ export const ExpeditionSystem = {
     },
 
     _consumeDungeonKey(grade) {
-        if (isDungeonKeyCostIgnored()) return true;
-        const backpack = EquipManager.backpackItems || [];
-        const bpIndex = backpack.findIndex((item) => isDungeonKeyItem(item, grade));
-        if (bpIndex >= 0) {
-            const item = backpack[bpIndex];
-            if ((item.stack || 1) > 1) item.stack -= 1;
-            else backpack.splice(bpIndex, 1);
-            EquipManager.updateInventorySlots?.();
-            return true;
+        if (isDungeonKeyCostIgnored()) return { refund() {} };
+        // 提交区内不刷新 UI、不 await；失败回执只还原这一次同步扣费。
+        for (const items of [EquipManager.backpackItems || [], WarehouseSystem.items || []]) {
+            const index = items.findIndex(item => isDungeonKeyItem(item, grade));
+            if (index < 0) continue;
+            const item = items[index];
+            const stack = item.stack || 1;
+            let refunded = false;
+            const receipt = { refund() {
+                if (refunded) return;
+                item.stack = stack;
+                if (!items.includes(item)) items.splice(index, 0, item);
+                refunded = true;
+            } };
+            if (stack > 1) item.stack = stack - 1;
+            else items.splice(index, 1);
+            return receipt;
         }
-        return WarehouseSystem.consumeMaterial((item) => isDungeonKeyItem(item, grade), 1) === 1;
+        return null;
     },
+
+    /** 当前选择地牢的配置等级。 */
+
+
+
+
+
 
     /** 开发开关切换时同步已打开的出征说明，不改变选择或解锁状态。 */
     refreshDungeonKeyRequirement() {
@@ -247,11 +343,19 @@ export const ExpeditionSystem = {
         const panel = getElement('expeditionRulePanel');
         if (panel) panel.style.display = 'block';
         this._updateRulePanelCurrent();
+        this._showMessage(isDungeonKeyCostIgnored()
+            ? '开发调试：地牢免钥匙已开启，不检查、不消耗对应等级代币'
+            : '出征时将自动从背包或仓库消耗对应等级钥匙');
     },
+
+    /** 出征条件说明弹窗：创建（一次）并显示 */
+
 
     _hideRulePanel() {
         const panel = getElement('expeditionRulePanel');
         if (panel) panel.style.display = 'none';
+        const help = getElement('expeditionRuleHelp');
+        if (help?.open) help.close();
     },
 
     _buildRulePanel() {
@@ -259,29 +363,47 @@ export const ExpeditionSystem = {
         const panel = document.createElement('div');
         panel.id = 'expeditionRulePanel';
         panel.className = 'expedition-rule-panel';
-        const rows = GRADE_ORDER.map((g, i) => {
-            const rarity = RARITY_ORDER[i];
-            const color = RARITY_COLORS[rarity] || '#c0c0c0';
-            // 推荐等级段（与经验系统 bands 同源：combat-formulas enemy.expValue.bands）
-            const expCfg = COMBAT_FORMULAS.enemy?.expValue || {};
-            const band = (expCfg.bands || {})[g];
-            const bandText = band ? ` · 推荐Lv.${band[0]}~${band[1] - 1}` : '';
-            // 衰减预警：玩家等级超该档锚定等级+宽限 → 标红（防误刷低级本）
-            const playerLv = (typeof Game !== 'undefined' && Game.player && Game.player.data && Game.player.data.level) || 1;
-            const anchor = (expCfg.anchors || {})[g] ?? 3;
-            const grace = expCfg.decay?.graceLevels ?? 5;
-            const decayText = (playerLv - anchor > grace) ? ' <b style="color:#c0392b">⚠经验衰减</b>' : '';
-            const key = getDungeonKeyRequirement(g);
-            return `<div class="rule-item" style="color:${color}">${g} 级地牢 — ${key.name}${bandText}${decayText}</div>`;
-        }).join('');
         panel.innerHTML = `
-            <div class="rule-title">⚠ 出征条件</div>
-            <div class="rule-desc" id="expeditionKeyRuleDescription"></div>
-            ${rows}
+            <header class="expedition-rule-header">
+                <span class="expedition-grade-badge" id="expeditionGradeBadge">F</span>
+                <div><div class="rule-title" id="expeditionGradeTitle">F级地牢</div>
+                <div class="rule-desc" id="expeditionDungeonTier"></div></div>
+            </header>
             <div class="rule-current" id="expeditionRuleCurrent"></div>
             <div class="rule-rewards" id="expeditionRuleRewards"></div>
+            <div class="expedition-unlock-preview" id="expeditionUnlockPreview"></div>
+            <div class="expedition-risk" id="expeditionRuleRisk"></div>
+            <button type="button" class="bp-button expedition-help-button" id="expeditionRuleHelpButton">详细规则与奖励说明</button>
         `;
+        panel.querySelector('#expeditionRuleHelpButton').onclick = () => this._openRuleHelp();
         document.body.appendChild(panel);
+    },
+
+    _openRuleHelp() {
+        let dialog = getElement('expeditionRuleHelp');
+        if (!dialog) {
+            dialog = document.createElement('dialog');
+            dialog.id = 'expeditionRuleHelp';
+            dialog.className = 'expedition-rule-help';
+            dialog.setAttribute('aria-labelledby', 'expeditionRuleHelpTitle');
+            const expCfg = COMBAT_FORMULAS.enemy?.expValue || {};
+            const rows = GRADE_ORDER.map((grade) => {
+                const band = expCfg.bands?.[grade];
+                const key = getDungeonKeyRequirement(grade);
+                return `<li><strong>${grade}级</strong> · ${key.name}${band ? ` · 推荐 Lv.${band[0]}~${band[1] - 1}` : ''}</li>`;
+            }).join('');
+            dialog.innerHTML = `<form method="dialog" class="expedition-help-shell">
+                <header><div><small>EXPEDITION PROTOCOL</small><h2 id="expeditionRuleHelpTitle">地牢出征规则</h2></div>
+                <button type="submit" class="bp-button bp-button--muted" aria-label="关闭帮助">关闭</button></header>
+                <section><h3>双重解锁</h3><p>地牢必须同时满足两项条件：全局等级已从 F 逐级解锁到目标等级；同一地牢系列的前置难度已经成功通关。失败、安全撤离和放弃均不会解锁新等级。</p></section>
+                <section><h3>钥匙与推荐等级</h3><ul>${rows}</ul><p>玩家等级明显超过低级地牢时，怪物经验会进入衰减区间。</p></section>
+                <section><h3>结算差异</h3><p>成功通关会登记系列进度并解锁下一全局等级；失败、安全撤离或放弃不解锁。无论结果如何，本次出征都会按地牢等级推进入侵集结周期，世界时间也会继续流逝。</p></section>
+                <section><h3>奖励构成</h3><p>左侧摘要显示当前配置的基础通关奖励、祭品品质范围、宝箱材料、武器品质与事件档位。实际掉落仍以本次房间、敌人和事件结算为准。</p></section>
+            </form>`;
+            document.body.appendChild(dialog);
+        }
+        if (!dialog.open) dialog.showModal();
+        dialog.querySelector('button')?.focus({ preventScroll: true });
     },
 
     /** 更新说明弹窗中的当前需求高亮 */
@@ -289,23 +411,39 @@ export const ExpeditionSystem = {
         const el = getElement('expeditionRuleCurrent');
         if (!el) return;
         const ignoreKeyCost = isDungeonKeyCostIgnored();
-        const description = getElement('expeditionKeyRuleDescription');
-        if (description) description.textContent = ignoreKeyCost
-            ? '开发调试：进入地牢无需持有或消耗钥匙，地牢解锁条件仍生效。以下为正常模式对应钥匙：'
-            : '进入地牢会自动检测并消耗背包或仓库中的对应等级钥匙：';
         const list = DungeonConfig.getDungeonList();
         const d = list[this.selectedDungeon] || {};
         const grade = d.grade || 'F';
-        const rarity = RARITY_ORDER[Math.max(0, GRADE_ORDER.indexOf(grade))] || 'common';
-        const color = RARITY_COLORS[rarity] || '#c0c0c0';
         const key = getDungeonKeyRequirement(grade);
         const keyCount = ignoreKeyCost ? 0 : this._getKeyCount(grade);
         const band = (COMBAT_FORMULAS.enemy?.expValue?.bands || {})[grade];
-        const bandText = band ? ` · 推荐等级 Lv.${band[0]}~${band[1] - 1}` : '';
+        const bandText = d.recLevel ? ` · 推荐等级 ${d.recLevel}` : band ? ` · 推荐等级 Lv.${band[0]}~${band[1] - 1}` : '';
         const keyRequirement = ignoreKeyCost
             ? '开发调试：免钥匙进入，不检查或消耗代币'
-            : `需要 <b style="color:${color}">${key.name} ×1</b> · 持有 <b style="color:${keyCount > 0 ? '#7affc8' : '#ff6b6b'}">${keyCount}</b>`;
-        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> ${keyRequirement}${bandText}`;
+            : `需要 <b>${key.name} ×1</b> · 持有 <b class="${keyCount > 0 ? 'rule-ok' : 'rule-danger'}">${keyCount}</b>`;
+        const badge = getElement('expeditionGradeBadge');
+        const title = getElement('expeditionGradeTitle');
+        const tier = getElement('expeditionDungeonTier');
+        if (badge) { badge.textContent = grade; badge.dataset.grade = grade; }
+        if (title) title.textContent = `${grade}级地牢`;
+        if (tier) tier.textContent = `${d.name || this.selectedDungeon}${d.tier ? ` · ${d.tier}` : ''}`;
+        el.innerHTML = `<div>${keyRequirement}</div><div>${bandText.replace(/^ · /, '') || `推荐等级 ${d.recLevel || '未标注'}`}</div><div>基础通关奖励：${d.reward || '按结算表发放'}</div>`;
+        const risk = getElement('expeditionRuleRisk');
+        const fraction = WorldProgressionSystem.config.invasion?.dungeonProgressByGrade?.[grade] || 0;
+        if (risk) risk.textContent = `风险：任何结局都会推进入侵集结 ${Math.round(fraction * 100)}%，世界时间持续流逝。`;
+        const unlockPreview = getElement('expeditionUnlockPreview');
+        if (unlockPreview) {
+            const hypotheticalGrade = GRADE_ORDER[Math.min(GRADE_ORDER.length - 1, GRADE_ORDER.indexOf(grade) + 1)];
+            const unlocked = Object.entries(list).filter(([type, info]) => {
+                const gradeReady = GRADE_ORDER.indexOf(info.grade || 'F') <= GRADE_ORDER.indexOf(hypotheticalGrade);
+                const seriesReady = !info.unlockAfter || info.unlockAfter === this.selectedDungeon
+                    || WorldProgressionSystem.hasCompletedDungeon(info.unlockAfter);
+                return type !== this.selectedDungeon && gradeReady && seriesReady && !this.isDungeonUnlocked(type);
+            }).map(([, info]) => info.name);
+            unlockPreview.textContent = unlocked.length
+                ? `成功后解锁：${unlocked.join('、')}`
+                : '成功后：登记本系列通关进度；若已到最高等级则不再开放新等级。';
+        }
         this._updateRulePanelRewards(grade);
     },
 
@@ -365,18 +503,19 @@ export const ExpeditionSystem = {
         if (nameEl) nameEl.textContent = d.name || '';
         if (nodeCountEl) nodeCountEl.textContent = d.nodeCount || '';
         if (battleRatioEl) battleRatioEl.textContent = d.battleRatio || '';
-        if (levelEl) levelEl.textContent = d.level || '';
+        if (levelEl) levelEl.textContent = `${d.grade || 'F'} 级${d.recLevel ? ` · 推荐 ${d.recLevel}` : ''}`;
         if (rewardEl) rewardEl.textContent = d.reward || '';
     },
 
     // 确认出征 — 自动从背包优先、仓库其次消耗对应等级钥匙
     async depart() {
-        if (SceneManager?.isLoading) return;
-        if (MailStore.run?.status === 'active') {
-            this._showMessage('上次探险战利品尚未结算，暂时不能再次出征', 'error');
-            return;
-        }
-        const dungeonType = this.selectedDungeon || 'zombieBeginner';
+        if (this._departing || SceneManager?.isLoading) return;
+        if (!this._isOpen || !UIState.isOpen('expedition')) return;
+        const blocked = this.getDepartureBlockReason();
+        if (blocked) { this._showMessage(blocked, 'error'); return; }
+        const preparationVersion = this._preparationVersion;
+        const target = this._worldTarget ? { ...this._worldTarget } : null;
+        const dungeonType = this.selectedDungeon || this._getFirstUnlockedDungeon() || 'abandonedMineBeginner';
         if (!this.isDungeonUnlocked(dungeonType)) {
             this._refreshDungeonOptions();
             this._showMessage(this._getDungeonLockMessage(dungeonType), 'error');
@@ -389,63 +528,37 @@ export const ExpeditionSystem = {
             this._updateRulePanelCurrent();
             return;
         }
-        const dungeonEnemyTypes = resolveDungeonEnemyPreloadTypes(dungeonType);
-        SceneManager?.showLoadingScreen?.({ sceneId: 'scene7', dungeonType });
-        SceneManager?.setProgress?.(10);
-        // 先让浏览器绘制 loading，再执行地牢资源预载。
-        if (SceneManager?.delay) await SceneManager.delay(50);
-
-        // 入场只校验整个生态的资源登记；贴图由战斗系统按实际波次加载并驻留。
-        // 这样仍能在扣钥匙前拦截配置缺失，又不会把所有候选怪物一次上传到显存。
+        const player = Game.player;
+        const previousRun = MailStore.run;
+        let entryRunId = null;
+        let runtimeStarted = false;
+        let keyReceipt = null;
+        let committed = false;
+        this._departing = true;
         try {
+            const dungeonEnemyTypes = resolveDungeonEnemyPreloadTypes(dungeonType);
+            SceneManager.showLoadingScreen({ sceneId: 'scene7', dungeonType });
+            SceneManager.setProgress(10);
+            await SceneManager.delay(50);
+            // 登记校验和资源准备均在扣费之前；怪物贴图仍由实际战斗波次加载。
             RuntimeAssetManager.validateEnemyTypes(dungeonEnemyTypes, { required: true });
             RuntimeAssetManager.setDungeonEnemyTypes([]);
-            SceneManager?.setProgress?.(45);
-        } catch (error) {
-            RuntimeAssetManager.setDungeonEnemyTypes([]);
-            SceneManager?.hideLoadingScreen?.();
-            console.error('[ExpeditionSystem] 地牢怪物资源登记校验失败:', dungeonType, error);
-            const detail = error?.message || '未知资源登记错误';
-            this._showMessage(`地牢怪物资源登记失败：${detail}（未消耗钥匙）`, 'error');
-            return;
-        }
-        // loading 的异步等待后重新读取开关，提示与此刻实际扣费行为保持一致。
-        const ignoreKeyCost = isDungeonKeyCostIgnored();
-        if (!this._consumeDungeonKey(grade)) {
-            RuntimeAssetManager.setDungeonEnemyTypes([]);
-            SceneManager?.hideLoadingScreen?.();
-            this._showMessage(`${key.name} 消耗失败，请重试`, 'error');
-            this._updateRulePanelCurrent();
-            return;
-        }
-
-        this._showMessage(ignoreKeyCost
-            ? '开发调试：免钥匙进入地牢，未消耗代币，准备出征...'
-            : `${key.name} 已消耗，准备出征...`, 'success');
-
-        // 关闭面板和覆盖层
-        this._isOpen = false;
-        const panel = getElement('expeditionPanel');
-        if (panel) panel.classList.remove('active');
-        const overlay = getElement('expeditionOverlay');
-        if (overlay) overlay.classList.remove('active');
-        UIState.close('expedition');
-        this._hideRulePanel(); // 出征后左侧条件栏一并隐藏（面板清理完整还原）
-        document.body.classList.remove('expedition-preparing');
-
-        SceneManager?.setProgress?.(55);
-
-        // 初始化地牢（传入选中的地牢类型）+ 切换场景状态到 scene7
-        if (DungeonMapSystem) {
-            const player = Game.player;
-
-            // 仅允许在主神空间现场保存主场景快照。正常流程已由 main -> scene7 的
-            // switchScene 保存过一次；若此处处于出征准备场景仍重复保存，会用 scene7
-            // 的精简实体覆盖主神空间，导致资源失败或撤离后返回到错误空间。
-            if (SceneManager?.currentScene === 'main'
-                && typeof SceneManager._saveMainSceneState === 'function') {
-                SceneManager._saveMainSceneState();
+            SceneManager.setProgress(45);
+            const changed = preparationVersion !== this._preparationVersion || !this._isOpen
+                || !UIState.isOpen('expedition') || this.selectedDungeon !== dungeonType;
+            const lateBlock = this.getDepartureBlockReason({ allowLoading: true });
+            const currentTarget = target ? WorldProgressionSystem.getWorldExpeditionTarget(target.sceneId, dungeonType) : null;
+            const staleTarget = currentTarget && (!currentTarget.ok
+                || currentTarget.target.cellId !== target.cellId || currentTarget.target.worldEpoch !== target.worldEpoch);
+            if (changed || lateBlock || staleTarget) {
+                throw new Error(lateBlock || (staleTarget ? '世界目标已变化，请重新选择' : '出征准备已变更，请重新确认'));
             }
+            // 先保存主城，再把后续部分初始化明确标为 scene7，失败回城不能覆盖主城快照。
+            if (SceneManager.currentScene === 'main') SceneManager._saveMainSceneState();
+            runtimeStarted = true;
+            SceneManager.currentScene = 'scene7';
+            this.close();
+            SceneManager.setProgress(55);
             // 仓鼠兵种及其他场景友军留在主神空间：只从地牢运行态暂存，不销毁、不改坐标。
             // 正式队友由 PartySystem.members 独立管理，继续随玩家进入地牢。
             if (SceneManager && typeof SceneManager.parkFriendlyUnitsForDungeon === 'function') {
@@ -473,8 +586,12 @@ export const ExpeditionSystem = {
             player.x = 1024;
             player.y = 1024;
 
-            DungeonMapSystem.init('scene7', player, dungeonType);
-            SceneManager.currentScene = 'scene7';
+            try {
+                // 加载遮罩下只保留目标说明；世界探险记录在资源就绪后才提交。
+                DungeonMapSystem.init('scene7', player, dungeonType, { worldExpedition: target });
+            } finally {
+                if (MailStore.run !== previousRun) entryRunId = MailStore.run?.id;
+            }
             // 地牢 active=true 后重算全局30分钟献祭效果，并登记地牢特效图标。
             if (player?.calculateCombatStats) player.calculateCombatStats();
             if (player) syncTributeBuffs(player);
@@ -485,13 +602,57 @@ export const ExpeditionSystem = {
             if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
                 SoundManager.playBgmForScene('scene7', { dungeonType });
             }
-        }
-        if (SceneManager?.waitForMinimumLoadingDuration) {
             await SceneManager.waitForMinimumLoadingDuration();
+            SceneManager.setProgress(100);
+            await SceneManager.delay(100);
+            if (!DungeonMapSystem.active || SceneManager.currentScene !== 'scene7'
+                || MailStore.run?.id !== entryRunId || player !== Game.player || player.data.hp <= 0) {
+                throw new Error('出征现场已变化，未提交本次出征');
+            }
+            // 扣费到绑定之间没有异步等待或 UI 回调；任何未提交错误立即使用回执退还。
+            keyReceipt = this._consumeDungeonKey(grade);
+            if (!keyReceipt) throw new Error(`${key.name} 不足，请重新准备`);
+            const binding = target ? WorldProgressionSystem.beginWorldExpedition(target) : null;
+            if (binding && !binding.ok) throw new Error(binding.reason);
+            DungeonMapSystem.worldExpedition = binding ? Object.freeze({ ...binding.target }) : null;
+            committed = true;
+        } catch (error) {
+            if (!committed) keyReceipt?.refund();
+            console.error('[ExpeditionSystem] 出征未完成:', dungeonType, error);
+            const detail = `出征未完成：${error?.message || '未知错误'}（未消耗钥匙）`;
+            if (!runtimeStarted) {
+                this._showMessage(detail, 'error');
+            } else {
+                // 回城使用与其他出口相同的重试界面，初始化失败不计作完成过一局。
+                SceneManager.hideLoadingScreen();
+                await DungeonMapSystem._returnToMainWithRetry('entry_failure', {
+                    player, detail,
+                    beforeSettle: () => {
+                        if (entryRunId && MailStore.run?.id === entryRunId) {
+                            PlayerRewardDelivery.finishRun('load_failure');
+                            MailStore.state = { ...MailStore.state, run: previousRun };
+                            MailStore.notify();
+                        }
+                    },
+                    onReturned: (returnedPlayer) => {
+                        if (this.open(returnedPlayer, { worldId: target?.sceneId || null })) {
+                            this.onDungeonSelect(dungeonType);
+                            const select = getElement('expeditionDungeonSelect');
+                            if (select) select.value = this.selectedDungeon;
+                            this._showMessage(detail, 'error');
+                        }
+                    },
+                });
+            }
+        } finally {
+            this._departing = false;
+            try { if (!committed) RuntimeAssetManager.setDungeonEnemyTypes([]); }
+            finally { SceneManager.hideLoadingScreen(); }
+            if (keyReceipt) {
+                try { EquipManager.updateInventorySlots?.(); } catch (error) { console.warn('[Expedition] 背包刷新失败', error); }
+                try { WarehouseSystem._refreshAll?.(); } catch (error) { console.warn('[Expedition] 仓库刷新失败', error); }
+            }
         }
-        SceneManager?.setProgress?.(100);
-        if (SceneManager?.delay) await SceneManager.delay(100);
-        SceneManager?.hideLoadingScreen?.();
     },
 
     // 从出征准备返回主神空间（保留，用于外部调用）

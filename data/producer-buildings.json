@@ -63,9 +63,10 @@
     "mdef": 60,
     "tex": "thatch_hut",
     "displayW": 256,
-    "displayH": 213,
-    "footOffsetY": 105,
-    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.691388, "widthRatio": 1, "depthRatio": 0.61244, "scaleMode": "strict" },
+    "displayH": 217,
+    "footOffsetY": 107,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.698157, "widthRatio": 1, "depthRatio": 0.589862, "scaleMode": "strict" },
+    "assetCutoutHash": "8D443BFA753466A961BD22219AA6683563D399E810FED0DEEC981D0F7549F331",
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
@@ -85,7 +86,7 @@
         { "slot": "spearman", "role": "长枪兵", "unitKey": "militia", "unitName": "仓鼠民兵", "profile": "中低伤害、中等耐久、低抗性" },
         { "slot": "scout", "role": "斥候", "unitKey": "scout", "unitName": "仓鼠斥候", "profile": "标记增益、高伤害、高视野" }
       ] },
-      { "id": "thatch_hut_level_2", "level": 2, "name": "斥候营地", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "thatch_hut_lv2", "assetPath": "assets/terrain/thatch_hut_lv2.png", "displayW": 256, "displayH": 187, "footOffsetY": 93 }, "lines": [
+      { "id": "thatch_hut_level_2", "level": 2, "name": "斥候营地", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "thatch_hut_lv2", "assetPath": "assets/terrain/thatch_hut_lv2.png", "displayW": 256, "displayH": 214, "footOffsetY": 106, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.696262, "widthRatio": 1, "depthRatio": 0.598131, "scaleMode": "strict" } }, "lines": [
         { "slot": "spearman", "role": "长枪兵", "fromUnitName": "仓鼠民兵", "unitKey": "halberd", "unitName": "仓鼠长戟", "profile": "中等伤害、中高耐久、长柄攻击距离；反骑倍率待统一审计" },
         { "slot": "scout", "role": "斥候", "fromUnitName": "仓鼠斥候", "unitKey": "ranger", "unitName": "仓鼠游侠", "profile": "高机动、中高射程、稳定单体物理输出" }
       ] },
@@ -167,6 +168,49 @@
     "unitCap": 0,
     "defaultUnitType": "",
     "unitTypes": [],
+    "buildingTiers": [
+      { "id": "blacksmith_level_1", "level": 1, "name": "仓鼠铁匠铺", "baseline": true },
+      { "id": "blacksmith_level_2", "level": 2, "name": "中世纪兵工厂", "visual": { "tex": "blacksmith_lv2", "assetPath": "assets/terrain/blacksmith_lv2.png", "displayW": 290, "displayH": 278, "footOffsetY": 138, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.766187, "widthRatio": 0.882759, "depthRatio": 0.460432, "scaleMode": "strict" } } },
+      {
+        "id": "blacksmith_industrial",
+        "level": 3,
+        "name": "蒸汽军工厂",
+        "visual": {
+          "tex": "blacksmith_industrial",
+          "assetPath": "assets/terrain/blacksmith_industrial.png",
+          "displayW": 258.417946,
+          "displayH": 258.138425,
+          "footOffsetY": 127.847255,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.747337278,
+            "widthRatio": 0.990643275,
+            "depthRatio": 0.495857988,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "7DCEC280FC6D40D23207C285720DD6045A3512667EB80EB94141C4968C4CF497"
+        }
+      },
+      {
+        "id": "blacksmith_level_3",
+        "level": 4,
+        "name": "现代机械工厂",
+        "visual": {
+          "tex": "blacksmith_lv3",
+          "assetPath": "assets/terrain/blacksmith_lv3.png",
+          "displayW": 290,
+          "displayH": 267,
+          "footOffsetY": 132,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.756554,
+            "widthRatio": 0.882759,
+            "depthRatio": 0.479401,
+            "scaleMode": "strict"
+          }
+        }
+      }
+    ],
     "upgradeProject": "blacksmith_special"
   },
   "church": {
@@ -178,6 +222,7 @@
     "def": 80,
     "mdef": 120,
     "tex": "church",
+    "defaultMirror": true,
     "groundContact": {
       "textureKey": "church_ground_contact",
       "assetPath": "assets/terrain/building-contact/church.png",
@@ -225,6 +270,7 @@
     "displayH": 230,
     "footOffsetY": 114,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.717391, "widthRatio": 0.927536, "depthRatio": 0.556522, "scaleMode": "strict" },
+    "perimeterTile": "road",
     "sellRefundRatio": 0,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -240,11 +286,90 @@
     "buildLimit": 1,
     "modules": {}
   },
+  "city_hall": {
+    "id": "city_hall",
+    "name": "市政大厅 · 玩家基地",
+    "playerBase": true,
+    "playerBuildable": false,
+    "buildLimit": 1,
+    "cost": 0,
+    "hp": 5000,
+    "radius": 256,
+    "footprintCells": 4,
+    "def": 80,
+    "mdef": 80,
+    "tex": "city_hall_lv1",
+    "assetPath": "assets/terrain/city_hall_lv1.png",
+    "displayW": 517.321016,
+    "displayH": 354.868966,
+    "footOffsetY": 174.491954,
+    "visualFootprint": { "centerXRatio": 0.499428571, "centerYRatio": 0.631011609, "widthRatio": 0.989714286, "depthRatio": 0.721393035, "scaleMode": "strict" },
+    "assetCutoutHash": "44334405AE7A21F44A88E71183B065CB56601BE40962158A3264B539CE364DB1",
+    "autoFootprint": false,
+    "perimeterTile": "road",
+    "sellRefundRatio": 0,
+    "spawnEnabled": false,
+    "unitCap": 0,
+    "defaultUnitType": "",
+    "unitTypes": [],
+    "buildingTiers": [
+      { "id": "city_hall_base", "level": 1, "name": "古典议事厅", "baseline": true },
+      { "id": "city_hall_level_2", "level": 2, "name": "自治市政厅", "visual": {
+        "tex": "city_hall", "assetPath": "assets/terrain/city_hall.png",
+        "displayW": 517.314879, "displayH": 414.615034, "footOffsetY": 204.974943,
+        "visualFootprint": { "centerXRatio": 0.500570776, "centerYRatio": 0.685654008, "widthRatio": 0.989726027, "depthRatio": 0.617440225, "scaleMode": "strict" },
+        "assetCutoutHash": "094A7CA00B6AEC7E5B3F67D6CB31B7F0199C3B87C4ACFD397FB5034EA9006FA2"
+      } },
+      {
+        "id": "city_hall_industrial",
+        "level": 3,
+        "name": "近代市政大厅",
+        "visual": {
+          "tex": "city_hall_industrial",
+          "assetPath": "assets/terrain/city_hall_industrial.png",
+          "displayW": 516.790643,
+          "displayH": 415.262673,
+          "footOffsetY": 205.271889,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.686079545,
+            "widthRatio": 0.990730012,
+            "depthRatio": 0.616477273,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "48842CF06300B6F91E7171E1ABD4BCE05DFCD8F81ED6E6425678AA4E0CCD4BE3"
+        }
+      },
+      {
+        "id": "city_hall_level_3",
+        "level": 4,
+        "name": "现代市政中心",
+        "visual": {
+          "tex": "city_hall_lv3",
+          "assetPath": "assets/terrain/city_hall_lv3.png",
+          "displayW": 517.932793,
+          "displayH": 400.258661,
+          "footOffsetY": 197.17321,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.67282127,
+            "widthRatio": 0.988545246,
+            "depthRatio": 0.639586411,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "07E1D09000FCB544E30E44B58ED46BDC58C6AA8201F4B807B87ABF3385FF8DB0"
+        }
+      }
+    ],
+    "panelMode": "detail",
+    "panelDescription": "本位面的玩家基地，默认古典议事厅；依次随住房优化、近代市政治理、现代住宅体系演进为自治、近代与现代市政中心。每个位面一座，位置、耐久与4×4占地保持不变；不能出售、回收或打包，不替代传送门的旅行与入侵核心职责。"
+  },
   "portal": {
     "id": "portal",
     "name": "传送门",
     "playerBuildable": false,
-    "cost": 2000,
+    "cost": 2500,
+    "currency": "energy",
     "hp": 3000,
     "radius": 256,
     "footprintCells": 4,
@@ -260,7 +385,17 @@
       "textureKey": "portal",
       "displayW": 512,
       "displayH": 452,
-      "footOffsetY": 224
+      "footOffsetY": 224,
+      "depthMode": "ground",
+      "alignToBody": true
+    },
+    "shadowCaster": {
+      "contactPolygon": [
+        [-124.8, -110.9],
+        [-68.2, -90.6],
+        [125.4, -186.4],
+        [68.8, -207.9]
+      ]
     },
     "autoFootprint": false,
     "perimeterTile": "none",
@@ -278,7 +413,8 @@
       { "sceneId": "main", "label": "主神空间", "icon": "🏛️" },
       { "sceneId": "scene9", "label": "世界-123·雪原", "icon": "❄️" },
       { "sceneId": "scene10", "label": "世界-124·林地", "icon": "🌲" },
-      { "sceneId": "scene11", "label": "世界-125·地牢遗迹", "icon": "🕯️" }
+      { "sceneId": "scene11", "label": "世界-125·地牢遗迹", "icon": "🕯️" },
+      { "sceneId": "scene12", "label": "世界-126·矿洞", "icon": "⛏️" }
     ]
   },
   "snow_castle": {
@@ -347,13 +483,14 @@
       "assetPath": "assets/terrain/building-contact/research_institute.png",
       "displayW": 256,
       "displayH": 273,
-      "footOffsetY": 135
+      "footOffsetY": 135,
+      "depthMode": "ground"
     },
     "displayW": 256,
-    "displayH": 265,
-    "footOffsetY": 131,
-    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75283, "widthRatio": 1, "depthRatio": 0.483019, "scaleMode": "strict" },
-    "assetCutoutHash": "469DA350249931CC34034F85B1121B901F9D9617F932C78EE435B4932026F4FF",
+    "displayH": 204,
+    "footOffsetY": 102,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.686275, "widthRatio": 1, "depthRatio": 0.627451, "scaleMode": "strict" },
+    "assetCutoutHash": "64621A848273509D1F871F5A6088E6E48A72B0B73806CD8EBDCD00006F3AF663",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -413,7 +550,7 @@
     "defaultUnitType": "",
     "unitTypes": [],
     "economyType": "weather_forecast",
-    "panelDescription": "安排一名气象员后，监测本位面未来天气并同步到顶部时间进度栏。",
+    "panelDescription": "安排一名气象员后，监测本位面未来天气，并侦察大地图中基地周围2格的位面入侵军团；发现后同步到顶部事件时间栏。多座同类设施不叠加范围，撤岗或摧毁后停止新情报探测。",
     "upgradeProject": "weather_forecast_analysis"
   },
   "high_energy_laboratory": {
@@ -623,7 +760,7 @@
         { "slot": "mobile_ranged", "role": "射手", "unitKey": "shooter", "unitName": "仓鼠射手", "profile": "叠加毒液、相对重火力、高机动" },
         { "slot": "heavy_fire", "role": "重火力", "unitKey": "crossbow", "unitName": "仓鼠弩手", "profile": "重型弩箭贯穿两个目标，固定 25% 物理护甲穿透" }
       ] },
-      { "id": "shooting_range_level_2", "level": 2, "name": "靶场二级编制", "plannedEffectiveResearchCost": 1560, "lines": [
+      { "id": "shooting_range_level_2", "level": 2, "name": "靶场二级编制", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "shooting_range_lv2", "assetPath": "assets/terrain/shooting_range_lv2.png", "displayW": 290, "displayH": 253, "footOffsetY": 125, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.741107, "widthRatio": 0.882759, "depthRatio": 0.505929, "scaleMode": "strict" } }, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠射手", "unitKey": "longbow", "unitName": "仓鼠长弓", "profile": "英格兰长弓远射；高单发、长拉弓周期、900px基础射程" },
         { "slot": "heavy_fire", "role": "重火力", "unitKey": "crossbow", "unitName": "仓鼠弩手", "profile": "二级继续保留弩手；仓鼠火枪由后续黑火药科技单独加入" }
       ] },
@@ -687,6 +824,168 @@
       ] }
     ],
     "upgradeProject": "cavalry_charge"
+  },
+  "engineer_camp": {
+    "id": "engineer_camp",
+    "name": "工程师营地",
+    "cost": 1800,
+    "hp": 2000,
+    "radius": 256,
+    "def": 60,
+    "mdef": 60,
+    "footprintCells": 4,
+    "tex": "engineer_camp",
+    "assetPath": "assets/terrain/engineer_camp.png",
+    "displayW": 512,
+    "displayH": 370,
+    "footOffsetY": 183,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.654517,
+      "widthRatio": 0.990826,
+      "depthRatio": 0.678288,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "83D4EAA1BEE173E42FE8F8DADFFBC7EBE4886F63EA6FB1BD08653DECA905DAE2",
+    "thumbnailPath": "assets/ui/building-thumbnails/engineer_camp.png",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": true,
+    "buildWarning": "科研依次将后续招募切换为投石组、野战炮组、榴弹炮组；已有低级部队保留。各级器械均占用2军事人口，近身目标进入最小射程时需要后撤展开。",
+    "panelDescription": "工程师营地 → 工程工坊 → 载具工厂，依次招募双人投石机、古典野战炮、现代榴弹炮。提供远程抛射范围火力，无经济岗位与资源产出。",
+    "spawnIntervalMs": 75000,
+    "spawnRadius": 180,
+    "defaultUnitType": "hamster_catapult_crew",
+    "unitTypes": [
+      { "key": "hamster_catapult_crew", "name": "仓鼠投石组", "roleLabel": "工程器械 · 抛射范围火力", "spawnIntervalMs": 65000, "spawnFoodCost": 200, "spawnEnergyCost": 65 },
+      { "key": "hamster_field_cannon_crew", "name": "仓鼠野战炮组", "roleLabel": "工程器械 · 古典野战火炮", "spawnIntervalMs": 85000, "spawnFoodCost": 300, "spawnEnergyCost": 135 },
+      { "key": "industrial_artillery_crew", "name": "仓鼠近代炮兵组", "roleLabel": "工程器械 · 近代高速炮击", "spawnIntervalMs": 105000, "spawnFoodCost": 410, "spawnEnergyCost": 210 },
+      { "key": "hamster_howitzer_crew", "name": "仓鼠榴弹炮组", "roleLabel": "工程器械 · 现代远程范围火力", "spawnIntervalMs": 120000, "spawnFoodCost": 480, "spawnEnergyCost": 260 }
+    ],
+    "upgradeProject": "combat_standard",
+    "recruitmentTiers": [
+      {
+        "id": "engineer_camp_level_1",
+        "level": 1,
+        "name": "工程师营地",
+        "plannedEffectiveResearchCost": 270,
+        "visual": {
+          "tex": "engineer_camp",
+          "assetPath": "assets/terrain/engineer_camp.png",
+          "displayW": 512,
+          "displayH": 370,
+          "footOffsetY": 183,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.654517,
+            "widthRatio": 0.990826,
+            "depthRatio": 0.678288,
+            "scaleMode": "strict"
+          }
+        },
+        "lines": [
+          {
+            "slot": "artillery",
+            "role": "工程器械",
+            "unitKey": "hamster_catapult_crew",
+            "unitName": "仓鼠投石组",
+            "profile": "两名工程师操作木制投石机；慢速推进、850射程、石弹抛射与72半径物理范围伤害。"
+          }
+        ],
+        "baseline": true
+      },
+      {
+        "id": "engineer_camp_level_2",
+        "level": 2,
+        "name": "工程工坊",
+        "plannedEffectiveResearchCost": 1560,
+        "visual": {
+          "tex": "engineering_workshop",
+          "assetPath": "assets/terrain/engineering_workshop.png",
+          "displayW": 512,
+          "displayH": 411,
+          "footOffsetY": 203,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.684173,
+            "widthRatio": 0.990762,
+            "depthRatio": 0.620144,
+            "scaleMode": "strict"
+          }
+        },
+        "lines": [
+          {
+            "slot": "artillery",
+            "role": "工程器械",
+            "unitKey": "hamster_field_cannon_crew",
+            "unitName": "仓鼠野战炮组",
+            "profile": "双人古典野战炮：1000射程、220最小射程、95半径物理范围伤害；炮口闪光时发射铁弹，攻击后恢复待机。",
+            "fromUnitName": "仓鼠投石组"
+          }
+        ]
+      },
+      {
+        "id": "engineer_camp_industrial",
+        "level": 3,
+        "name": "近代炮兵工坊",
+        "plannedEffectiveResearchCost": 1950,
+        "visual": {
+          "tex": "engineer_camp_industrial",
+          "assetPath": "assets/terrain/engineer_camp_industrial.png",
+          "displayW": 517.321016,
+          "displayH": 415.396226,
+          "footOffsetY": 205.283019,
+          "visualFootprint": {
+            "centerXRatio": 0.499428571,
+            "centerYRatio": 0.686046512,
+            "widthRatio": 0.989714286,
+            "depthRatio": 0.61627907,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "CB8ECDAC0B1F921EACEACE30FEE61A856D1E8EB793EC7E150AA230B0B97DA5CA"
+        },
+        "note": "近代建筑与仓鼠近代炮兵组均已完成；科研后切换为本级完整编制。",
+        "lines": [
+          {
+            "slot": "artillery",
+            "role": "工程器械",
+            "fromUnitName": "仓鼠野战炮组",
+            "unitKey": "industrial_artillery_crew",
+            "unitName": "仓鼠近代炮兵组",
+            "profile": "双人近代57毫米高速炮：1080射程、270最小射程、105半径物理范围伤害；低伸弹道于炮口闪光时发射。"
+          }
+        ]
+      },
+      {
+        "id": "engineer_camp_level_3",
+        "level": 4,
+        "name": "载具工厂",
+        "plannedEffectiveResearchCost": 4680,
+        "visual": {
+          "tex": "vehicle_factory",
+          "assetPath": "assets/terrain/vehicle_factory.png",
+          "displayW": 512,
+          "displayH": 423,
+          "footOffsetY": 209,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.692414,
+            "widthRatio": 0.990878,
+            "depthRatio": 0.604138,
+            "scaleMode": "strict"
+          }
+        },
+        "lines": [
+          {
+            "slot": "artillery",
+            "role": "工程器械",
+            "unitKey": "hamster_howitzer_crew",
+            "unitName": "仓鼠榴弹炮组",
+            "profile": "双人现代榴弹炮：1150射程、250最小射程、125半径范围物理伤害；抬炮开火后退壳装弹。",
+            "fromUnitName": "仓鼠近代炮兵组"
+          }
+        ]
+      }
+    ]
   },
   "house": {
     "id": "house",
@@ -785,6 +1084,17 @@
     "displayW": 300,
     "displayH": 303,
     "footOffsetY": 150,
+    "workingEffect": {
+      "type": "chimney_smoke",
+      "tipXRatio": 0.29,
+      "tipYRatio": 0.28,
+      "radius": 15,
+      "rise": 58,
+      "drift": 14,
+      "cycleMs": 4600,
+      "puffCount": 5,
+      "colors": ["#ababab", "#c9c9cd", "#e6e6e6"]
+    },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
@@ -806,15 +1116,15 @@
     "assetPath": "assets/terrain/grand_mall.png",
     "thumbnailPath": "assets/ui/building-thumbnails/grand_mall.png",
     "displayW": 300,
-    "displayH": 379,
-    "footOffsetY": 188,
+    "displayH": 386,
+    "footOffsetY": 191,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.827177, "widthRatio": 0.853333, "depthRatio": 0.337731, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "grand_mall",
     "upgradeProject": "grand_mall_economy",
-    "panelDescription": "覆盖范围内的人口带来商业金币；商场按秒消耗当前位面仓库能源，每名职员固定提供 10% 工作效率。",
+    "panelDescription": "覆盖范围内的实际居民带来商业金币；商场按秒结算当前位面仓库能源，每名职员提供10%工作效率。实际营业还提供本位面商业幸福度，按居民覆盖、岗位和营业时长折算，每20秒计入目标，最高+10点；空房不计。",
     "buildWarning": "每个位面只能建造 1 座；需要职员、范围人口与仓库能源才能按秒营业。"
   },
   "trading_company": {
@@ -868,7 +1178,7 @@
     "assetPath": "assets/terrain/stock_exchange.png",
     "thumbnailPath": "assets/ui/building-thumbnails/stock_exchange.png",
     "displayW": 512,
-    "displayH": 543,
+    "displayH": 542,
     "footOffsetY": 269,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.759669, "widthRatio": 1.0, "depthRatio": 0.471455, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
@@ -892,8 +1202,8 @@
     "tex": "computing_center",
     "assetPath": "assets/terrain/computing_center.png",
     "displayW": 512,
-    "displayH": 452,
-    "footOffsetY": 223,
+    "displayH": 453,
+    "footOffsetY": 224,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.710177, "widthRatio": 1.0, "depthRatio": 0.566372, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
@@ -916,9 +1226,9 @@
     "assetPath": "assets/terrain/market.png",
     "displayW": 276,
     "displayH": 206,
-    "footOffsetY": 101,
+    "footOffsetY": 102,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.679612, "widthRatio": 0.927536, "depthRatio": 0.621359, "scaleMode": "strict" },
-    "assetCutoutHash": "1D5732EB75CCB3365BA54FCC0C0C48A57D95615658D9E490F1D3C77CFA6E1113",
+    "assetCutoutHash": "A42A4C3511AA9E177193F0AF4478C75018C1280FF28E02E2BBD3A57FDF2A5654",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
@@ -977,7 +1287,7 @@
     "hp": 2600, "radius": 256, "footprintCells": 4, "def": 65, "mdef": 90,
     "tex": "jungle_temple", "assetPath": "assets/terrain/jungle_temple.png",
     "thumbnailPath": "assets/ui/building-thumbnails/jungle_temple.png",
-    "displayW": 512, "displayH": 543, "footOffsetY": 269,
+    "displayW": 512, "displayH": 545, "footOffsetY": 270,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.759669, "widthRatio": 1, "depthRatio": 0.471455, "scaleMode": "strict" },
     "assetCutoutHash": "DD9824667150DEC0CAA7EA963C1593B66DBFD58C672E882918B1DA6BF99F88E7",
     "perimeterTile": "road",
@@ -1040,6 +1350,15 @@
     "displayW": 308,
     "displayH": 323,
     "footOffsetY": 160,
+    "workingEffect": {
+      "type": "forge_sparks",
+      "tipXRatio": 0.69,
+      "tipYRatio": 0.67,
+      "radius": 14,
+      "cycleMs": 1700,
+      "sparkCount": 8,
+      "colors": ["#ffb324", "#ff613c", "#ffef72"]
+    },
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.797214, "widthRatio": 0.831169, "depthRatio": 0.396285, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
@@ -1062,8 +1381,8 @@
     "assetPath": "assets/terrain/planar_resonator.png",
     "thumbnailPath": "assets/ui/building-thumbnails/planar_resonator.png",
     "displayW": 556,
-    "displayH": 446,
-    "footOffsetY": 220,
+    "displayH": 447,
+    "footOffsetY": 221,
     "workingEffect": {
       "type": "crystal_tip_sparkle",
       "tipXRatio": 0.502,
@@ -1114,8 +1433,8 @@
     "assetPath": "assets/terrain/field_hospital.png",
     "thumbnailPath": "assets/ui/building-thumbnails/field_hospital.png",
     "displayW": 300,
-    "displayH": 244,
-    "footOffsetY": 121,
+    "displayH": 254,
+    "footOffsetY": 126,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
@@ -1137,12 +1456,123 @@
     "displayW": 288,
     "displayH": 245,
     "footOffsetY": 121,
+    "workingEffect": {
+      "type": "chimney_smoke",
+      "tipXRatio": 0.29,
+      "tipYRatio": 0.07,
+      "radius": 14,
+      "rise": 54,
+      "drift": 13,
+      "cycleMs": 4400,
+      "puffCount": 5,
+      "colors": ["#a0a0a0", "#c4c4c4", "#e6e6e6"]
+    },
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.732653, "widthRatio": 0.888889, "depthRatio": 0.522449, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "bakery",
-    "upgradeProject": "bakery_economy"
+    "upgradeProject": "bakery_economy",
+    "panelDescription": "一名面包师沿道路完成取粮、加工和送仓；建筑提供 10 个经济岗位，每人提高 10% 最终成品效率。",
+    "buildWarning": "必须通过连续道路连接至少一座仓库；岗位不增加面包师精灵或物流任务数量。"
+  },
+  "desert_cookhouse": {
+    "id": "desert_cookhouse",
+    "name": "沙地炊坊",
+    "cost": 9500,
+    "currency": "energy",
+    "hp": 2500,
+    "radius": 128,
+    "def": 60,
+    "mdef": 65,
+    "tex": "desert_cookhouse",
+    "assetPath": "assets/terrain/desert_cookhouse.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/desert_cookhouse.png",
+    "displayW": 300,
+    "displayH": 232,
+    "footOffsetY": 115,
+    "workingEffect": {
+      "type": "chimney_smoke",
+      "tipXRatio": 0.3,
+      "tipYRatio": 0.03,
+      "radius": 14,
+      "rise": 56,
+      "drift": 14,
+      "cycleMs": 4600,
+      "puffCount": 5,
+      "colors": ["#9b9188", "#c5b8aa", "#e2d7c9"]
+    },
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.719828, "widthRatio": 0.853333, "depthRatio": 0.551724, "scaleMode": "strict" },
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "desert_cookhouse",
+    "upgradeProject": "desert_cookhouse_economy",
+    "panelDescription": "一名炊坊伙计沿道路完成取粮、沙炉加工和送仓；建筑提供 10 个经济岗位，每人提高 10% 最终成品效率，并在干旱中维持正常粮食天气倍率。",
+    "buildWarning": "必须通过连续道路连接至少一座仓库；岗位不增加伙计精灵或物流任务数量。"
+  },
+  "frost_smokehouse": {
+    "id": "frost_smokehouse",
+    "name": "雪原熏制坊",
+    "cost": 9800,
+    "currency": "energy",
+    "hp": 2800,
+    "radius": 128,
+    "def": 70,
+    "mdef": 70,
+    "tex": "frost_smokehouse",
+    "assetPath": "assets/terrain/frost_smokehouse.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/frost_smokehouse.png",
+    "displayW": 300,
+    "displayH": 259,
+    "footOffsetY": 128,
+    "workingEffect": {
+      "type": "chimney_smoke",
+      "tipXRatio": 0.205,
+      "tipYRatio": 0.045,
+      "radius": 14,
+      "rise": 60,
+      "drift": 12,
+      "cycleMs": 5000,
+      "puffCount": 5,
+      "colors": ["#88919b", "#b4bdc6", "#d7dde2"]
+    },
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.747104, "widthRatio": 0.853333, "depthRatio": 0.494208, "scaleMode": "strict" },
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "frost_smokehouse",
+    "upgradeProject": "frost_smokehouse_economy",
+    "panelDescription": "一名熏制坊伙计沿道路完成取粮、冷熏加工和送仓；10个经济岗位各提高10%最终成品效率。雪原位面产出提高35%，其他位面产出降至85%。",
+    "buildWarning": "必须通过连续道路连接至少一座仓库；岗位不增加伙计精灵或物流任务数量。"
+  },
+  "cannery": {
+    "id": "cannery",
+    "buildLimit": 2,
+    "footprintCells": 4,
+    "name": "罐头加工厂",
+    "cost": 12000,
+    "currency": "energy",
+    "hp": 2800,
+    "radius": 256,
+    "def": 70,
+    "mdef": 75,
+    "tex": "cannery",
+    "assetPath": "assets/terrain/cannery.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/cannery.png",
+    "displayW": 512,
+    "displayH": 356,
+    "footOffsetY": 176,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.610662, "widthRatio": 0.990011, "depthRatio": 0.76252, "scaleMode": "strict" },
+    "shadowCaster": { "height": 270 },
+    "perimeterTile": "road",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "cannery",
+    "upgradeProject": "cannery_economy",
+    "panelDescription": "罐装工按批次消耗本位面仓库能源，把工业加工产能转化为现有食物资源；基础6个岗位可扩编至10个，每人发挥10%配置产能，罐头只作为建筑视觉身份。",
+    "buildWarning": "占地 4×4，四周自动生成道路；每个位面最多 2 座。需要罐装工、本位面仓库和足够能源。"
   },
   "desert_cookhouse": {
     "id": "desert_cookhouse",
@@ -1240,16 +1670,27 @@
     "tex": "chain_restaurant",
     "assetPath": "assets/terrain/chain_restaurant.png",
     "displayW": 300,
-    "displayH": 319,
-    "footOffsetY": 158,
+    "displayH": 321,
+    "footOffsetY": 159,
+    "workingEffect": {
+      "type": "chimney_smoke",
+      "tipXRatio": 0.55,
+      "tipYRatio": 0.06,
+      "radius": 15,
+      "rise": 64,
+      "drift": 15,
+      "cycleMs": 4900,
+      "puffCount": 6,
+      "colors": ["#a0a0a0", "#c4c4c4", "#e6e6e6"]
+    },
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.799373, "widthRatio": 0.853333, "depthRatio": 0.401254, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "chain_restaurant",
     "upgradeProject": "chain_restaurant_economy",
-    "panelDescription": "外卖员沿连续道路从仓库领取食材，返店加工后把更多成品送回可达仓库；单批基础产出显著高于面包屋。",
-    "buildWarning": "必须通过连续道路连接至少一座仓库；建筑固定提供 1 个外卖员岗位。"
+    "panelDescription": "一名外卖员沿连续道路从仓库领取食材，返店加工后把更多成品送回可达仓库；10 个经济岗位各提高 10% 最终成品效率。",
+    "buildWarning": "必须通过连续道路连接至少一座仓库；岗位不增加外卖员精灵或物流任务数量。"
   },
   "cheese_farm": {
     "id": "cheese_farm",
@@ -1267,31 +1708,89 @@
     "panelAssetPath": "assets/terrain/cheese_farm.png",
     "thumbnailPath": "assets/ui/building-thumbnails/cheese_farm.png",
     "displayW": 512,
-    "displayH": 293,
+    "displayH": 292,
     "footOffsetY": 144,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.554608, "widthRatio": 1, "depthRatio": 0.87372, "scaleMode": "strict" },
+    "roadsideAccess": { "xRatio": 0.681514, "yRatio": 0.747082, "clearRadius": 96 },
     "groundContact": {
       "textureKey": "cheese_farm_base",
       "assetPath": "assets/terrain/cheese_farm_base.png",
       "displayW": 512,
-      "displayH": 293,
+      "displayH": 292,
       "footOffsetY": 144
     },
     "foregroundOverlay": {
       "textureKey": "cheese_farm_foreground_occluder",
       "assetPath": "assets/terrain/cheese_farm_foreground_occluder.png",
       "displayW": 512,
-      "displayH": 293,
+      "displayH": 292,
       "footOffsetY": 144
     },
-    "perimeterTile": "none",
+    "perimeterTile": "front_road",
+    "frontRoadSide": "i_positive",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "cheese_farm",
     "upgradeProject": "cheese_farm_economy",
-    "panelDescription": "一名牛倌在牧场加工奶酪，并沿连续道路把成品送入可达仓库；黑白奶牛只在建筑内的前方与右侧安全草地活动。",
-    "buildWarning": "占地 4×4，不自动生成外围道路；需要玩家手动铺设连续道路连接至少一座仓库。建筑固定提供 1 个牛倌岗位。"
+    "panelDescription": "一名牛倌在牧场加工和配送奶酪；10 个经济岗位各提高 10% 最终成品效率，黑白奶牛仍只在建筑内安全草地活动。",
+    "buildWarning": "占地 4×4，仅正门侧生成道路；需要继续连接仓库。岗位不增加牛倌精灵或物流任务数量。"
+  },
+  "corn_farm": {
+    "id": "corn_farm",
+    "name": "玉米农场",
+    "cost": 4500,
+    "currency": "energy",
+    "hp": 3600,
+    "radius": 256,
+    "footprintCells": 4,
+    "def": 70,
+    "mdef": 65,
+    "tex": "corn_farm",
+    "assetPath": "assets/terrain/corn_farm.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/corn_farm.png",
+    "displayW": 512,
+    "displayH": 319,
+    "footOffsetY": 157,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.591026, "widthRatio": 1, "depthRatio": 0.80354, "scaleMode": "strict" },
+    "roadsideAccess": { "xRatio": 0.72467, "yRatio": 0.732743, "clearRadius": 104 },
+    "perimeterTile": "front_road",
+    "frontRoadSide": "i_positive",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "corn_farm",
+    "upgradeProject": "corn_farm_economy",
+    "panelDescription": "一名农夫在田间收获并配送玉米；10 个经济岗位各提高 10% 最终成品效率，基础成长上限与奶酪农场相当。",
+    "buildWarning": "占地 4×4，仅正门侧生成道路；需要继续连接仓库。岗位不增加农夫精灵或物流任务数量。"
+  },
+  "mushroom_farm": {
+    "id": "mushroom_farm",
+    "name": "蘑菇农场",
+    "cost": 4500,
+    "currency": "energy",
+    "hp": 3600,
+    "radius": 256,
+    "footprintCells": 4,
+    "def": 70,
+    "mdef": 65,
+    "tex": "mushroom_farm",
+    "assetPath": "assets/terrain/mushroom_farm.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/mushroom_farm.png",
+    "displayW": 512,
+    "displayH": 311,
+    "footOffsetY": 153,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.580386, "widthRatio": 1, "depthRatio": 0.823151, "scaleMode": "strict" },
+    "roadsideAccess": { "xRatio": 0.70838, "yRatio": 0.792279, "clearRadius": 104 },
+    "perimeterTile": "front_road",
+    "frontRoadSide": "i_positive",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "mushroom_farm",
+    "upgradeProject": "mushroom_farm_economy",
+    "panelDescription": "奶酪农场科技旁支的同级食物建筑。10个菌农岗位，六组基础菌床在满岗、无其他加成时每20秒培养180食物；无阳光位面为270，有阳光位面为90，运输往返另计。成品由一名可见菌农沿道路送入仓库。",
+    "buildWarning": "占地4×4，仅正门侧生成4格道路，需连接仓库并安排岗位；有阳光位面产量-50%，入夜不解除。满仓保留成品，断路或撤空岗位暂停物流。"
   },
   "steam_power_plant": {
     "id": "steam_power_plant",
@@ -1307,15 +1806,65 @@
     "assetPath": "assets/terrain/steam_power_plant.png",
     "thumbnailPath": "assets/ui/building-thumbnails/steam_power_plant.png",
     "displayW": 300,
-    "displayH": 302,
+    "displayH": 301,
     "footOffsetY": 149,
+    "workingEffect": {
+      "type": "steam_puff",
+      "tipXRatio": 0.52,
+      "tipYRatio": 0.07,
+      "radius": 16,
+      "rise": 62,
+      "drift": 12,
+      "cycleMs": 2800,
+      "puffCount": 6,
+      "colors": ["#c0c8de", "#dfe4db", "#f8f8f8"]
+    },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "steam_power_plant",
     "upgradeProject": "steam_power_plant_economy",
-    "panelDescription": "两名锅炉工沿连续道路从仓库领取食物，在电站锅炉内加工后把能源送回可达仓库。",
-    "buildWarning": "必须通过连续道路连接至少一座仓库；建筑提供 2 个锅炉工岗位。"
+    "panelDescription": "最多两名锅炉工沿道路维护两条物流线；10 个经济岗位各提高 10% 最终能源效率。",
+    "buildWarning": "必须通过连续道路连接至少一座仓库；岗位不增加两条锅炉物流线或可见锅炉工上限。"
+  },
+  "oil_power_plant": {
+    "id": "oil_power_plant",
+    "buildLimit": 2,
+    "footprintCells": 4,
+    "name": "燃油发电厂",
+    "cost": 7000,
+    "currency": "energy",
+    "hp": 3800,
+    "radius": 256,
+    "def": 95,
+    "mdef": 80,
+    "tex": "oil_power_plant",
+    "assetPath": "assets/terrain/oil_power_plant.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/oil_power_plant.png",
+    "displayW": 512,
+    "displayH": 397,
+    "footOffsetY": 196,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.663324, "widthRatio": 0.991111, "depthRatio": 0.65616, "scaleMode": "strict" },
+    "shadowCaster": { "height": 330 },
+    "workingEffect": {
+      "type": "chimney_smoke",
+      "tipXRatio": 0.16,
+      "tipYRatio": 0.045,
+      "radius": 22,
+      "rise": 96,
+      "drift": 24,
+      "cycleMs": 3900,
+      "puffCount": 8,
+      "colors": ["#55575a", "#74777a", "#989a9d"]
+    },
+    "perimeterTile": "road",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "oil_power_plant",
+    "upgradeProject": "oil_power_plant_economy",
+    "panelDescription": "燃油技师按批次消耗玩家可支配金币作为外购燃油成本，向本位面仓库输出高密度能源；基础3个岗位可扩编至5个，每人发挥20%配置产能，仅在实际发电时从烟囱排放深灰烟。",
+    "buildWarning": "占地 4×4，四周自动生成道路；每个位面最多 2 座。需要燃油技师、可支配金币和本位面仓库空间。"
   },
   "oil_power_plant": {
     "id": "oil_power_plant",
@@ -1375,8 +1924,8 @@
     "cost": 9000,
     "currency": "energy",
     "hp": 4200,
-    "radius": 128,
-    "footprintCells": 2,
+    "radius": 256,
+    "footprintCells": 4,
     "def": 95,
     "mdef": 90,
     "tex": "wind_power_plant_body",
@@ -1398,13 +1947,13 @@
       "repeat": -1
     },
     "displayW": 512,
-    "displayH": 440,
-    "footOffsetY": 218,
+    "displayH": 477,
+    "footOffsetY": 237,
     "visualFootprint": {
       "centerXRatio": 0.5,
-      "centerYRatio": 0.718615,
+      "centerYRatio": 0.703,
       "widthRatio": 1,
-      "depthRatio": 0.554113,
+      "depthRatio": 0.586,
       "scaleMode": "strict"
     },
     "perimeterTile": "none",
@@ -1414,7 +1963,7 @@
     "economyType": "wind_power_plant",
     "upgradeProject": "wind_power_plant_economy",
     "panelDescription": "风机技师维持叶轮与发电机稳定运转，无需燃料即可持续向本位面能源仓库供能。",
-    "buildWarning": "占地 2×2，不自动生成外围道路；每个位面最多建造 2 座，必须先建造能源仓库才能接收电力。"
+    "buildWarning": "占地 4×4，不自动生成外围道路；每个位面最多建造 2 座，必须先建造能源仓库才能接收电力。"
   },
   "solar_power_plant": {
     "id": "solar_power_plant",
@@ -1431,8 +1980,8 @@
     "assetPath": "assets/terrain/solar_power_plant.png",
     "thumbnailPath": "assets/ui/building-thumbnails/solar_power_plant.png",
     "displayW": 512,
-    "displayH": 410,
-    "footOffsetY": 202,
+    "displayH": 411,
+    "footOffsetY": 203,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.680488, "widthRatio": 1, "depthRatio": 0.62439, "scaleMode": "strict" },
     "perimeterTile": "road",
     "sellRefundRatio": 0.5,
@@ -1526,9 +2075,9 @@
     "assetPath": "assets/terrain/deep_drill.png",
     "thumbnailPath": "assets/ui/building-thumbnails/deep_drill.png",
     "displayW": 300,
-    "displayH": 333,
-    "footOffsetY": 165,
-    "perimeterTile": "none",
+    "displayH": 316,
+    "footOffsetY": 156,
+    "perimeterTile": "road",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
@@ -1552,8 +2101,8 @@
     "assetPath": "assets/terrain/tavern.png",
     "thumbnailPath": "assets/ui/building-thumbnails/tavern.png",
     "displayW": 300,
-    "displayH": 333,
-    "footOffsetY": 165,
+    "displayH": 337,
+    "footOffsetY": 167,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.747748, "widthRatio": 0.853333, "depthRatio": 0.384384, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,

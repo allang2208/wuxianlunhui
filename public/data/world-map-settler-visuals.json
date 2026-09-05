@@ -1,0 +1,43 @@
+{
+  "path": "assets/ui/world-map/settler-flag.png",
+  "frameSize": 256,
+  "anchor": [
+    0.5,
+    0.814104825258255
+  ],
+  "bounds": [
+    0.20703125,
+    0.09375,
+    0.79296875,
+    0.8828125
+  ],
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 55.0,
+    "elevationReference": "above XY ground plane; 90 degrees is top-down",
+    "azimuthDegrees": 0,
+    "azimuthReference": "from -Y toward +X; camera on -Y looking toward +Y",
+    "rollDegrees": 0,
+    "worldUp": "+Z",
+    "source": "data/world-map-layout.json",
+    "orthoScale": 2.1,
+    "resolution": 256,
+    "anchor": [
+      0.5,
+      0.814104825258255
+    ],
+    "target": [
+      0,
+      0,
+      1.2
+    ]
+  },
+  "modelPose": {
+    "rootYawDegrees": 0,
+    "staffAxis": "+Z",
+    "clothGlobalLeanDegrees": 16.69924423399362,
+    "clothPresentation": "user-selected readability priority",
+    "localFoldAmplitude": 0.024
+  },
+  "label": "移民队"
+}

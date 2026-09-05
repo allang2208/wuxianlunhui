@@ -1,10 +1,15 @@
 import { PhaserGame } from './phaser/PhaserGame.js';
+import { GameRuntime } from './utils/game-runtime.js';
 import { EventBus } from './core/event-bus.js';
 import { SoundManager } from './ui/sound-manager.js';
 import { ItemFactory } from './items/item-factory.js';
 import { Renderer } from './world/renderer.js';
+import { pickStructureAtScreen } from './world/structure-picking.js';
 import { SceneManager } from './world/scene-manager.js';
 import { TroopLineSystem } from './world/troop-line-system.js';
+import { WorldStrategySystem } from './world/world-strategy-system.js';
+import { newWorldMap } from './world/world-map-cells.js';
+import { advanceCombatClock } from './combat/combat-clock.js';
 import { Camera } from './world/camera.js';
 import { Input } from './ui/input.js';
 import { StatusBar } from './ui/status-bar.js';
@@ -104,6 +109,20 @@ import { resetAbilityLevels } from './world/ability-store.js';
 import { resetWorld122Snapshot } from './world/world122-snapshot.js';
 import { TechnologySystem } from './world/technology-system.js';
 
+// 同心单位没有可归一化的法线：按固定顺序尝试地面八方向，不引入逐帧随机方向。
+const COINCIDENT_SEPARATION_DIRECTIONS = [
+    [1, 0], [0, 1], [-1, 0], [0, -1],
+    [Math.SQRT1_2, Math.SQRT1_2], [-Math.SQRT1_2, Math.SQRT1_2],
+    [-Math.SQRT1_2, -Math.SQRT1_2], [Math.SQRT1_2, -Math.SQRT1_2],
+];
+
+function commitSeparatedPosition(entity, position) {
+    entity.x = position.x;
+    entity.y = position.y;
+    // 下一碰撞对必须读取本次分离后的中心；兼容只有几何字段的旧式 collider 占位对象。
+    if (typeof entity.collider?.syncPosition === 'function') entity.collider.syncPosition();
+}
+
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
     isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), friendlyUnits: [], _pickupNearbyFlag: false, _observerMode: false, _observerHomeScene: null, _worldPlayerPos: {},
@@ -147,6 +166,7 @@ export const Game = {
             return;
         }
         SoundManager.init(); Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init();
+        GameRuntime.init(this);
         GameUIManager.init(this.player); GameUIManager.initAttackRangeToggle();
         // 侍从队伍系统（左侧固定组队栏）
         PartySystem.init();
@@ -168,6 +188,7 @@ export const Game = {
         this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
         this.RTSCommand = RTSCommand;     // RTS 指挥模式（探针可直接驱动 enabled/setEnabled）
         this.TroopLineSystem = TroopLineSystem;
+        window.WorldStrategySystem = WorldStrategySystem;
         this.FlatViewSystem = FlatViewSystem; // 指挥/建筑模式仅 Space 压平；离开模式自动恢复
         this.Input = Input;               // 模式级快捷键隔离只清理按键状态，不绕过 Input 处理流程
         // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
@@ -192,14 +213,17 @@ export const Game = {
             TechnologySystem.reset();
             QuestStore.reset();
             FlatViewSystem.reset();
+            newWorldMap(); // Only a new run rolls terrain; saves restore their own layout.
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
             window.World122SandstormSystem?.reset?.();
             window.World122DroughtSystem?.reset?.();
             window.World125FogTideSystem?.reset?.();
+            window.World126WeatherSystem?.reset?.();
             window.WorldWeatherSystem?.reset?.();
             window.WorldDestructionChallengeSystem?.reset?.();
             TroopLineSystem.reset();
+            WorldStrategySystem.reset();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 12288×8192 主神空间尺寸（2026-08-21 菱形化）
             SceneManager.init();
@@ -207,50 +231,33 @@ export const Game = {
             SceneManager._inMainHub = true;
             SoundManager.playBgmForScene('main');
             Renderer.generateWorld();
+            SceneManager.setProgress(26);
             // 初始化 Phaser 渲染系统（渐进式迁移）
             if (PhaserGame && !PhaserGame.isReady) {
+                window.__phaserSceneReady = false;
                 PhaserGame.init();
             }
+            // BootScene 的真实 Loader 百分比负责 30%—82%；等 GameScene.create 完成后
+            // 才物化玩家，避免加载层提前消失、地形或贴图仍在后台建立。
+            const phaserReadyDeadline = Date.now() + 30000;
+            while (!window.__phaserSceneReady && Date.now() < phaserReadyDeadline) {
+                await SceneManager.delay(16);
+            }
+            if (!window.__phaserSceneReady) {
+                const error = new Error('主神空间渲染场景初始化超时');
+                error.code = 'PHASER_READY_TIMEOUT';
+                throw error;
+            }
+            SceneManager.setProgress(84);
             await this.spawnPlayer();
+            SceneManager.setProgress(88);
             this.spawnTargets(); this.spawnEnemy(); this.spawnTestTargets(); this.spawnNPC();
+            SceneManager.setProgress(92);
             // 新局清理状态栏残留 buff 图标（上一局的增益/减益不带到新局）
             if (StatusBar && typeof StatusBar.clear === 'function') StatusBar.clear();
             GameUIManager.refreshGameTime();
-            // 在主角右边地上生成G18和SAIGA-12K（额外保留）
-            // 使用主神空间固定原点，不随分辨率变化
-            const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
-                GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
-            );
-            const lootCfg = GAME_CONFIG.loot?.drops?.mainHub || {};
-            const g18 = lootCfg.g18 || { x: 120, y: 0 };
-            const saiga12k = lootCfg.saiga12k || { x: 160, y: 0 };
-            this.dropItem(origin.x + g18.x, origin.y + g18.y, EquipDataManager.G18_PISTOL_ITEM);
-            this.dropItem(origin.x + saiga12k.x, origin.y + saiga12k.y, EquipDataManager.SAIGA12K_ITEM);
-            // 学徒长杖（2026-08-02 新武器测试；偏移配置 game-config loot.drops.mainHub.apprenticeStaff）
-            const staffCfg = lootCfg.apprenticeStaff || { x: 200, y: 80 };
-            this.dropItem(origin.x + staffCfg.x, origin.y + staffCfg.y, EquipDataManager.APPRENTICE_STAFF_ITEM);
-            // 在主神空间横向生成所有武器
-            this.spawnAllWeapons();
-            // 在出生点附近生成所有附魔卷轴（供测试拾取）
-            const scrollCfg = lootCfg.scrollBase || { x: 200, y: 0, spacing: 40 };
-            const scrollBaseX = origin.x + scrollCfg.x;
-            const scrollBaseY = origin.y + scrollCfg.y;
-            this.dropItem(scrollBaseX, scrollBaseY, EnchantScrollItems.enchant_scroll_heavy);
-            this.dropItem(scrollBaseX + scrollCfg.spacing, scrollBaseY, EnchantScrollItems.enchant_scroll_sharp);
-            this.dropItem(scrollBaseX + scrollCfg.spacing * 2, scrollBaseY, EnchantScrollItems.enchant_scroll_tarantula);
-            this.dropItem(scrollBaseX + scrollCfg.spacing * 3, scrollBaseY, EnchantScrollItems.enchant_scroll_skeleton);
-            // 生成一些魔法晶尘（供测试）
-            const magicDusts = lootCfg.magicDust || [{ x: 200, y: 40 }, { x: 240, y: 40, stack: 999 }];
-            for (const md of magicDusts) {
-                const item = md.stack ? { ...MagicDustItem, stack: md.stack } : MagicDustItem;
-                this.dropItem(origin.x + md.x, origin.y + md.y, item);
-            }
-            // 生成强化石和改造券（各10份，供测试）
-            const matCfg = lootCfg.materials || { baseX: 280, baseY: 40, spacingX: 30, spacingY: 40, count: 10 };
-            for (let i = 0; i < matCfg.count; i++) {
-                this.dropItem(origin.x + matCfg.baseX + i * matCfg.spacingX, origin.y + matCfg.baseY, { ...EnhancementItems.enhance_stone });
-                this.dropItem(origin.x + matCfg.baseX + i * matCfg.spacingX, origin.y + matCfg.baseY + matCfg.spacingY, { ...EnhancementItems.modify_ticket });
-            }
+            // 主神空间不再预放测试掉落物。武器与法杖统一从小鼠铁匠商店购买，
+            // 避免大量常驻 DropItem 每帧更新、异步图标占位和独立发光纹理拖慢主城。
             // EventBus 解耦：订阅 Player 的拾取事件（使用具名回调以便取消订阅）
             this._onPickup = this._onPickup || ((px, py, range) => this.tryPickupItem(px, py, range));
             EventBus.off('player:pickup', this._onPickup); EventBus.on('player:pickup', this._onPickup);
@@ -275,15 +282,39 @@ export const Game = {
             this._tacticalSquadAI = new TacticalSquadAI();
             // 主神空间只物化已接入网络的世界传送门；回城时会再次同步构造/摧毁状态。
             this.syncMainHubWorldPortals();
+            SceneManager.setProgress(96);
+            if (typeof SceneManager.prepareRuntimeVisualAssets === 'function') {
+                await SceneManager.prepareRuntimeVisualAssets({ startProgress: 96, endProgress: 99 });
+            } else {
+                SceneManager.setProgress(99);
+            }
             // 初始主神空间状态缓存：与 switchScene 离开时的保存同口径——
             // 出征 depart() 绕开 switchScene 清实体，任何返回路径（放弃/撤离/通关/死亡）
             // 都靠这份缓存恢复主神空间，而不是重新生成
             SceneManager._saveMainSceneState();
-            this.isRunning = true; this.lastTime = performance.now(); this.loop(this.lastTime);
+            this.isRunning = true;
+            GameRuntime.startLoop();
+            await SceneManager.waitForMinimumLoadingDuration();
+            SceneManager.setProgress(100);
+            await SceneManager.delay(160);
+            SceneManager.hideLoadingScreen();
+            EventBus.emit('game:new-run-ready');
         } catch(e) {
+            SceneManager.hideLoadingScreen();
             const el = document.createElement('div');
             el.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(0,0,0,0.95);color:#ff4444;font-family:monospace;font-size:14px;padding:20px;overflow:auto;white-space:pre-wrap;';
-            el.textContent = 'ERROR: ' + e.message + '\n\nStack:\n' + e.stack;
+            const detail = document.createElement('pre');
+            detail.style.cssText = 'margin:0;white-space:pre-wrap;font:inherit;';
+            detail.textContent = 'ERROR: ' + e.message + '\n\nStack:\n' + e.stack;
+            el.appendChild(detail);
+            if (e?.code === 'PHASER_READY_TIMEOUT') {
+                const retry = document.createElement('button');
+                retry.type = 'button';
+                retry.textContent = '重新加载并重试';
+                retry.style.cssText = 'margin-top:20px;padding:10px 16px;cursor:var(--bp-cursor-pointer, pointer);';
+                retry.addEventListener('click', () => window.location.reload());
+                el.appendChild(retry);
+            }
             document.body.appendChild(el);
         }
     },
@@ -391,6 +422,8 @@ export const Game = {
             npcType: shopCfg.npcType || 'ruler',
             sprite: shopCfg.sprite,
             wander: shopCfg.wander,
+            wanderGuard: () => QuestStore.getStatus('first_city_founding') !== 'completed'
+                && QuestStore.getObjectiveProgress('first_city_founding', 'claim_starter_key') < 1,
             clickArea: shopCfg.clickArea,
             collisionShape: shopCfg.collisionShape,
             collisionWidth: shopCfg.collisionWidth,
@@ -1160,9 +1193,9 @@ export const Game = {
         EquipDataManager.SINGULARITY_LOOM_LMG_ITEM,    // 奇点织机 (weapon36)
         EquipDataManager.CELESTIAL_CARTOGRAPHER_LMG_ITEM, // 天穹测绘者 (weapon37)
         EquipDataManager.GRAVE_COVENANT_CANTOR_LMG_ITEM,  // 冥约颂炮 (weapon38)
-        EquipDataManager.AKM_ITEM,                     // AKM (weapon7)           
+        EquipDataManager.AKM_ITEM,                     // AKM (weapon7)
         EquipDataManager.STG44_ITEM,                   // STG-44 (weapon23)
-        EquipDataManager.M416_ITEM,                  // M416 (weapon21)           
+        EquipDataManager.M416_ITEM,                  // M416 (weapon21)
         EquipDataManager.QBZ95_ITEM,                   // QBZ-95 (weapon24)
         EquipDataManager.FRONTIER_RIFLE_ITEM,          // 边境突击步枪 (weapon25)
         EquipDataManager.VENGEANCE_RIFLE_ITEM,         // 复仇之神 (weapon26)
@@ -1170,7 +1203,7 @@ export const Game = {
         EquipDataManager.ZERO_POINT_RIFLE_ITEM,        // 零点仲裁 (weapon28)
         EquipDataManager.CORONA_CADENCE_RIFLE_ITEM,    // 日冕裁律 (weapon29)
         EquipDataManager.TERMINAL_ECHO_RIFLE_ITEM,     // 终末回声 (weapon30)
-        EquipDataManager.REVOLVER357_ITEM,      // .357麦格农左轮 (weapon22)       
+        EquipDataManager.REVOLVER357_ITEM,      // .357麦格农左轮 (weapon22)
         EquipDataManager.QBZ191_ITEM,                  // QBZ-191 (weapon8)
         EquipDataManager.G18_PISTOL_ITEM,               // G18 (weapon9)
         EquipDataManager.DESERT_EAGLE_ITEM,            // 沙漠之鹰 (weapon10)
@@ -1265,6 +1298,7 @@ export const Game = {
             // 枪械手感：hitstop（击杀冻结）期间世界 dt 缩放；GunFeel 自身按真实时间衰减
             GunFeel.update(rawDt);
             const dt = rawDt * GunFeel.timeScale();
+            advanceCombatClock(dt);
             this.frameCount++; this.fpsTimer += rawDt;
             if (this.fpsTimer >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.fpsTimer = 0; }
             const updateStartedAt = PerformanceMonitor.begin();
@@ -1312,9 +1346,15 @@ export const Game = {
         if (SoundManager && typeof SoundManager.update === 'function') SoundManager.update(dt);
         // 位面献祭是全场景30分钟状态；必须在地牢地图/事件分支提前返回前推进到期结算。
         World122TributeSystem.update(this.player);
+        WorldStrategySystem.update(dt);
         // 异步加载时冻结旧实体更新，避免 teardown 后的同一帧继续结算并把旧位面视觉
         // 重新塞回共享管理器。输入仍需收尾，防止按键边沿泄漏到目标场景。
         if (SceneManager.isLoading) {
+            Input.update();
+            return;
+        }
+        // 战略地图与遭遇战装载阶段没有本地实时战斗更新。
+        if (WorldStrategySystem.inMap || (WorldStrategySystem.active && WorldStrategySystem._busy)) {
             Input.update();
             return;
         }
@@ -1875,6 +1915,15 @@ EffectManager.update(dt);
         // NPC 对话逐字更新
         NPCDialogue.update();
     },
+
+
+
+    // 判断敌人是否正锁定某个目标并已进入攻击范围（用于关闭该组合的玩家-敌人推开）
+
+
+    // 实体碰撞体积解析：防止目标间堆叠（支持矩形、六边形、圆形）
+
+
     _checkNPCDistance() {
         if (!this.player) return;
         let activeNPC = NPCDialogue._currentNPC;
@@ -1939,6 +1988,9 @@ EffectManager.update(dt);
     },
     // 实体碰撞体积解析：防止目标间堆叠（支持矩形、六边形、圆形）
     resolveCollisions() {
+        const separationStartedAt = PerformanceMonitor.begin();
+        let separationPairs = 0;
+        let coincidentPairs = 0;
         const entities = this._collisionEntities || (this._collisionEntities = []);
         entities.length = 0;
         for (const entity of this.entities.values()) {
@@ -1967,6 +2019,9 @@ EffectManager.update(dt);
                 const j = indexOf.get(bRaw);
                 if (j === undefined || j <= i) continue;
                 const b = bRaw;
+                // 钻地/相位移动实体在动作窗口内临时退出单位间分离；墙体与安全落点
+                // 仍由各自技能在恢复实体身份前显式校验。
+                if (a._skipEntitySeparation || b._skipEntitySeparation) continue;
                 // 友方单位进入入口队列或取得楼梯/城墙表面身份后互相穿行；这里只关闭单位间分离，
                 // 墙体、防坠线、建筑碰撞和入口 Portal 许可仍由各自系统继续约束。
                 if (shouldIgnoreFriendlyElevatedSeparation(a, b)) continue;
@@ -1981,6 +2036,7 @@ EffectManager.update(dt);
                     (b === player && this._isEnemyAttackingTarget(a, player))
                 )) continue;
                 // Phase 1：统一使用地面圆形 footprint 做实体间分离
+                separationPairs++;
                 const radiusA = a.groundRadius;
                 const radiusB = b.groundRadius;
                 // footprint 位置统一取 Collider 偏移后坐标（与命中椭圆/阴影同源，
@@ -2032,26 +2088,24 @@ EffectManager.update(dt);
                             const shareIso = immIso ? 0 : (immOther ? 1 : 0.5);
                             const shareOther = immOther ? 0 : (immIso ? 1 : 0.5);
                             if (shareIso > 0) {
-                                const movedIso = WallSystem.resolve(
-                                    isoEnt.x, isoEnt.y,
+                                const movedIso = WallSystem.resolveEntityMove(
+                                    isoEnt, isoEnt.x, isoEnt.y,
                                     isoEnt.x - push.x * shareIso,
                                     isoEnt.y - push.y * shareIso,
                                     isoEnt.groundRadius,
                                     WallSystem.ignoreForEntity?.(isoEnt) || null
                                 );
-                                isoEnt.x = movedIso.x;
-                                isoEnt.y = movedIso.y;
+                                commitSeparatedPosition(isoEnt, movedIso);
                             }
                             if (shareOther > 0) {
-                                const movedOther = WallSystem.resolve(
-                                    other.x, other.y,
+                                const movedOther = WallSystem.resolveEntityMove(
+                                    other, other.x, other.y,
                                     other.x + push.x * shareOther,
                                     other.y + push.y * shareOther,
                                     other.groundRadius,
                                     WallSystem.ignoreForEntity?.(other) || null
                                 );
-                                other.x = movedOther.x;
-                                other.y = movedOther.y;
+                                commitSeparatedPosition(other, movedOther);
                             }
                         }
                     }
@@ -2087,24 +2141,55 @@ EffectManager.update(dt);
                             const nx2 = ddx / d2, ny2 = ddy / d2;
                             const shareR = immR ? 0 : (immO ? 1 : 0.5);
                             const shareO = immO ? 0 : (immR ? 1 : 0.5);
-                            const mr = WallSystem.resolve(rectEnt.x, rectEnt.y,
+                            const mr = WallSystem.resolveEntityMove(rectEnt, rectEnt.x, rectEnt.y,
                                 rectEnt.x - nx2 * overlap * shareR, rectEnt.y - ny2 * overlap * shareR * PERSPECTIVE_SCALE_Y, rectEnt.groundRadius,
                                 WallSystem.ignoreForEntity?.(rectEnt) || null);
-                            rectEnt.x = mr.x; rectEnt.y = mr.y;
-                            const mo = WallSystem.resolve(other.x, other.y,
+                            commitSeparatedPosition(rectEnt, mr);
+                            const mo = WallSystem.resolveEntityMove(other, other.x, other.y,
                                 other.x + nx2 * overlap * shareO, other.y + ny2 * overlap * shareO * PERSPECTIVE_SCALE_Y, otherR,
                                 WallSystem.ignoreForEntity?.(other) || null);
-                            other.x = mo.x; other.y = mo.y;
+                            commitSeparatedPosition(other, mo);
                         }
                     }
                     continue;
                 }
 
-                if (dist > 0 && dist < minDist) {
+                if (dist < minDist) {
                     // 不可分离单位（如站桩 Boss）：自身纹丝不动，由对方承担全部重叠位移；双方均不可动则跳过
                     const immA = !!a.noSeparation;
                     const immB = !!b.noSeparation;
                     if (immA && immB) continue;
+                    if (dist <= 1e-6) {
+                        coincidentPairs++;
+                        // 同点坠落后即使待命也能分开。每对每方最多2px地面小步，找不到合法方向就保持原位。
+                        const stepA = immA ? 0 : Math.min(2, minDist / (immB ? 1 : 2));
+                        const stepB = immB ? 0 : Math.min(2, minDist / (immA ? 1 : 2));
+                        const ignoreA = WallSystem.ignoreForEntity?.(a) || null;
+                        const ignoreB = WallSystem.ignoreForEntity?.(b) || null;
+                        for (const [nx, ny] of COINCIDENT_SEPARATION_DIRECTIONS) {
+                            // 与普通分离共用地面圆心/高架脚点规则，helper返回实体坐标。
+                            const ca = immA ? { x: a.x, y: a.y } : WallSystem.resolveEntityMove(
+                                a, a.x, a.y, a.x - nx * stepA, a.y - ny * stepA * PERSPECTIVE_SCALE_Y,
+                                radiusA, ignoreA
+                            );
+                            const cb = immB ? { x: b.x, y: b.y } : WallSystem.resolveEntityMove(
+                                b, b.x, b.y, b.x + nx * stepB, b.y + ny * stepB * PERSPECTIVE_SCALE_Y,
+                                radiusB, ignoreB
+                            );
+                            const moveAX = ca.x - a.x, moveAY = (ca.y - a.y) * invScale;
+                            const moveBX = cb.x - b.x, moveBY = (cb.y - b.y) * invScale;
+                            // 墙边滑动在屏幕空间投影，仍须按地面尺度限制最终位移。
+                            if (moveAX * moveAX + moveAY * moveAY > stepA * stepA + 1e-8
+                                || moveBX * moveBX + moveBY * moveBY > stepB * stepB + 1e-8) continue;
+                            const separatedX = dx + moveBX - moveAX;
+                            const separatedY = dy + moveBY - moveAY;
+                            if (separatedX * separatedX + separatedY * separatedY <= dist * dist + 1e-8) continue;
+                            if (!immA) commitSeparatedPosition(a, ca);
+                            if (!immB) commitSeparatedPosition(b, cb);
+                            break;
+                        }
+                        continue;
+                    }
                     const overlap = minDist - dist;
                     // 在逆透视空间求法线，位移量再变换回世界空间（Y × SCALE_Y）
                     const nx = dx / dist;
@@ -2119,23 +2204,26 @@ EffectManager.update(dt);
                     };
 
                     // 用 WallSystem 校验，避免分离把实体推进墙里
-                    const na = WallSystem.resolve(
-                        a.x, a.y,
+                    const na = WallSystem.resolveEntityMove(
+                        a, a.x, a.y,
                         a.x + moveA.x, a.y + moveA.y,
                         radiusA,
                         WallSystem.ignoreForEntity?.(a) || null
                     );
-                    const nb = WallSystem.resolve(
-                        b.x, b.y,
+                    const nb = WallSystem.resolveEntityMove(
+                        b, b.x, b.y,
                         b.x + moveB.x, b.y + moveB.y,
                         radiusB,
                         WallSystem.ignoreForEntity?.(b) || null
                     );
-                    a.x = na.x; a.y = na.y;
-                    b.x = nb.x; b.y = nb.y;
+                    commitSeparatedPosition(a, na);
+                    commitSeparatedPosition(b, nb);
                 }
             }
         }
+        PerformanceMonitor.end('collision.separation', separationStartedAt);
+        PerformanceMonitor.setCounter('collision.separationPairs', separationPairs);
+        PerformanceMonitor.setCounter('collision.coincidentPairs', coincidentPairs);
     },
     render() {
         // ===== 渲染前置检查：Canvas 未就绪时跳过 =====

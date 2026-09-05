@@ -9,15 +9,23 @@
  * - 升级：玩家支付金币升级（攻击/耐久成长），升级费用指数递增。
  */
 import { Game } from '../game.js';
+import { createRegisteredEnemy, enemyConstructor } from '../entities/enemy-registry.js';
+import { createInvasionSummonContext, bindInvasionUnit } from './invasion-summon-budget.js';
+import { captureInvasionUnit, restoreInvasionUnitState, restoreInvasionPhase } from './invasion-unit-state.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth, structureDepthAtY } from './structure-depth.js';
 import { pathFinder } from '../ai/pathfinder.js';
+import { costedSurfaceRoute } from '../ai/surface-route-cost-search.js';
+import { commandTransitGraph, resetCommandTransitGraphs } from '../ai/command-transit-graph.js';
 import { Combatant } from '../entities/combatant.js';
 import { getAmmoConfig, resolveGunAttackInterval } from '../config/gun-ammo.js';
 import {
     BlackWolf, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie,
     Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, PoisonMaggot, MinerZombie,
-    LanternMinerZombie, ForemanZombie, OreSpider, Witch,
+    LanternMinerZombie, ForemanZombie, OreSpider, Witch, BrownBearEnemy, BrownSnakeEnemy, EvilTreantEnemy,
+    RedWolfKing, WerewolfKingEnemy, BlackKingCobraEnemy, MedusaEnemy, BlackBearEnemy,
+    SmallRotbogRhinocerosBeetleEnemy, RotbogRhinocerosBeetleKingEnemy,
+    CarnivorousPitcherEnemy, PurpleBlightAncientEnemy, CoreDrillLarva, CoreDrillWorm, DeepVeinMother,
 } from '../entities/enemy-types.js';
 import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../config/weapon-attack-config.js';
 import { GoldManager } from '../systems/gold-manager.js';
@@ -50,7 +58,7 @@ import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
-import { Renderer } from './renderer.js';
+import { pickStructureAtScreen } from './structure-picking.js';
 // SceneManager 导入已于 2026-08-15 移除：E 键修理监听器停用后不再引用
 import { loadImage } from '../utils/image-loader.js';
 import { BuildingSinkEffect } from '../effects/building-sink.js';
@@ -95,6 +103,11 @@ import {
 } from './unified-elevated-navigation.js';
 import { ElevatedTopology } from './elevated-topology.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
+import { ElevatedGarrison } from '../ai/elevated-garrison.js';
+import {
+    applyWallCollapseHealthLoss, resolveWallCollapseLanding,
+    getWallCollapseDiagnostics, clearWallCollapseDiagnostics,
+} from './wall-collapse.js';
 import {
     projectileTargetZ,
     wallHitSupportsTarget,
@@ -102,6 +115,9 @@ import {
 import {
     registerWallBattlement,
     unregisterWallBattlement,
+    clearWallBattlementRegistry,
+    wallBattlementsSupportedBy,
+    WALL_BATTLEMENT_GRID_FOOT,
 } from './wall-battlement.js';
 
 // ==================== 配置 ====================
@@ -109,6 +125,10 @@ import {
 const stairCfg = defenseStructuresJson.wallStaircase || {};
 const wallWalkCfg = defenseStructuresJson.wallWalk || {};
 const battlementCfg = defenseStructuresJson.wallBattlement || {};
+const battlementDisplayWidth = Math.max(1, Number(battlementCfg.displayWidth) || 65);
+const battlementSourceWidth = Math.max(1, Number(battlementCfg.sourceWidth) || 346);
+const battlementSourceHeightHigh = Math.max(1, Number(battlementCfg.sourceHeightHigh) || 1267);
+const battlementSourceHeightLow = Math.max(1, Number(battlementCfg.sourceHeightLow) || 1155);
 
 export const WALL_BATTLEMENT_CONFIG = Object.freeze({
     id: battlementCfg.id || 'wall_battlement',
@@ -116,11 +136,19 @@ export const WALL_BATTLEMENT_CONFIG = Object.freeze({
     cost: Math.max(0, Number(battlementCfg.cost) || 25),
     hp: Math.max(1, Number(battlementCfg.hp) || 800),
     damageReduction: Math.max(0, Math.min(1, Number(battlementCfg.damageReduction) || 0.5)),
-    attachRadius: Math.max(32, Number(battlementCfg.attachRadius) || 120),
-    logicalSide: Math.max(1, Number(battlementCfg.logicalSide) || 64),
-    displayWidth: Math.max(1, Number(battlementCfg.displayWidth) || 96),
-    displayHeightHigh: Math.max(1, Number(battlementCfg.displayHeightHigh) || 238),
-    displayHeightLow: Math.max(1, Number(battlementCfg.displayHeightLow) || 217),
+    attachRadius: Math.max(32, Number(battlementCfg.attachRadius) || 36),
+    // 女墙必须永远是主墙半槽，物理边长从 BLOCK_GRID 派生；JSON 不得另建几何真源。
+    logicalSide: WALL_BATTLEMENT_GRID_FOOT.w,
+    displayWidth: battlementDisplayWidth,
+    sourceWidth: battlementSourceWidth,
+    sourceHeightHigh: battlementSourceHeightHigh,
+    sourceHeightLow: battlementSourceHeightLow,
+    // 显示高度必须由正式 PNG 宽高比派生；禁止再把同一张图强设为 65x238/217，
+    // 否则纵向缩放率会比横向高约 48%，砖缝、横带与顶帽都会被拉扭。
+    displayHeightHigh: battlementDisplayWidth
+        * battlementSourceHeightHigh / battlementSourceWidth,
+    displayHeightLow: battlementDisplayWidth
+        * battlementSourceHeightLow / battlementSourceWidth,
     highHeight: Math.max(1, Number(battlementCfg.highHeight) || 220),
     lowHeight: Math.max(1, Number(battlementCfg.lowHeight) || 196),
     standardWallHeight: Math.max(1, Number(battlementCfg.standardWallHeight) || 160),
@@ -636,8 +664,7 @@ const TOWER_FIRE_SOUNDS = {
     weapon39: 'assets/sounds/weapons/s686_fire.mp3',
     weapon40: 'assets/sounds/weapons/m870_fire.wav',
     weapon41: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
-    // Sonniss candidate remains local-only; the public build keeps the existing generic blast.
-    weapon42: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    weapon42: 'assets/sounds/weapons/spas12_fire.wav',
     weapon43: 'assets/sounds/weapons/gunshot_600ms_open.wav',
     weapon44: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
     weapon45: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
@@ -689,11 +716,26 @@ const ROLE_POOLS = {
 };
 
 const MONSTER_FACTORY = {
+    redWolfKing: RedWolfKing,
+    werewolfKing: WerewolfKingEnemy,
+    blackKingCobra: BlackKingCobraEnemy,
+    medusa: MedusaEnemy,
+    blackBear: BlackBearEnemy,
+    smallRotbogRhinocerosBeetle: SmallRotbogRhinocerosBeetleEnemy,
+    rotbogRhinocerosBeetleKing: RotbogRhinocerosBeetleKingEnemy,
+    carnivorousPitcher: CarnivorousPitcherEnemy,
+    purpleBlightAncient: PurpleBlightAncientEnemy,
+    coreDrillLarva: CoreDrillLarva,
+    coreDrillWorm: CoreDrillWorm,
+    deepVeinMother: DeepVeinMother,
     zombie: Zombie,
     minerZombie: MinerZombie,
     fatZombie: FatZombie,
     zombieDog: ZombieDogEnemy,
     blackWolf: BlackWolf,
+    brownBear: BrownBearEnemy,
+    brownSnake: BrownSnakeEnemy,
+    evilTreant: EvilTreantEnemy,
     spitterZombie: SpitterZombie,
     flySwarm: FlySwarm,
     lanternMinerZombie: LanternMinerZombie,
@@ -919,13 +961,18 @@ export const BLOCK_FOOT_OFFSET = BLOCK_VISUAL.footOffsetY;
 
 /** 女墙为标准 128×128 墙格的半边长、半边深方形，占地面积严格为 1/4 格。 */
 export const WALL_BATTLEMENT_FOOT = Object.freeze({
-    w: BLOCK_FOOT.w / 2,
-    d: BLOCK_FOOT.d / 2,
+    w: WALL_BATTLEMENT_GRID_FOOT.w,
+    d: WALL_BATTLEMENT_GRID_FOOT.d,
     offY: 0,
     thick: BLOCK_FOOT.thick / 2,
 });
 
 export const WALL_BATTLEMENT_VISUAL = Object.freeze({
+    // 64 是地面逻辑边长，不可直接当透明画布宽度。正式贴图有效 alpha 宽 328/346；
+    // 显示画布宽 65 后主体约 61.6px，正好是主墙运行时有效宽约 122.9px 的一半。
+    // 新正式图在 Blender 中自然延长墙身至 346x1267/1155，运行时宽高只用一个
+    // 65/346 比例缩放，约为 238/217px；不再对旧 346x856/781 图做纵向拉伸。
+    // 64x32 footprint、半槽中心、碰撞、接地前顶点和逻辑掩护高度仍保持独立。
     w: WALL_BATTLEMENT_CONFIG.displayWidth,
     highH: WALL_BATTLEMENT_CONFIG.displayHeightHigh,
     lowH: WALL_BATTLEMENT_CONFIG.displayHeightLow,
@@ -934,11 +981,22 @@ export const WALL_BATTLEMENT_VISUAL = Object.freeze({
     groundFrontY: WALL_BATTLEMENT_FOOT.d / 2,
 });
 
-export function wallBattlementFootOffsetY(variant = 'high') {
-    const height = variant === 'low'
+/** 女墙预览、正式实体与接地共用的不可变视觉档案。 */
+export function wallBattlementVisualProfile(variant = 'high') {
+    const safeVariant = variant === 'low' ? 'low' : 'high';
+    const height = safeVariant === 'low'
         ? WALL_BATTLEMENT_VISUAL.lowH
         : WALL_BATTLEMENT_VISUAL.highH;
-    return height / 2 - WALL_BATTLEMENT_VISUAL.groundFrontY;
+    return {
+        variant: safeVariant,
+        width: WALL_BATTLEMENT_VISUAL.w,
+        height,
+        footOffsetY: height / 2 - WALL_BATTLEMENT_VISUAL.groundFrontY,
+    };
+}
+
+export function wallBattlementFootOffsetY(variant = 'high') {
+    return wallBattlementVisualProfile(variant).footOffsetY;
 }
 
 function _closestPointOnPolygon(x, y, vertices) {
@@ -1444,8 +1502,9 @@ function appendUniqueRouteTarget(route, target) {
     return route;
 }
 
-function finalizeSurfaceRoute(route) {
+function finalizeSurfaceRoute(route, fromCurrentSurface = false) {
     if (!Array.isArray(route)) return [];
+    if (route.length) route[0].fromCurrentSurface = fromCurrentSurface;
     for (let index = 1; index < route.length; index++) {
         const previous = route[index - 1];
         const current = route[index];
@@ -1468,6 +1527,20 @@ function finalizeSurfaceRoute(route) {
         }
     }
     return route;
+}
+
+/** 从当前楼梯进度向出口继续，禁止重规划把已在梯上的单位送回已通过的航点。 */
+function stairTraversalPoints(staircase, unit, direction) {
+    const down = direction === 'down';
+    const nodes = (staircase.routePoints?.() || []).map((node) => ({ ...node }));
+    if (down) nodes.reverse();
+    if (unit?._surfaceKind !== 'stairs'
+        || !wallStairsShareGroup(unit._surfaceStaircase, staircase)) return nodes;
+    const z = Number(unit.z) || 0;
+    return nodes.filter((node) => node.surfaceKind === 'ground' ? down
+        : (down ? Number(node.z) < z - 1
+            || (unit._elevatedNavigationBridge && Number(node.z) <= z + 1)
+            : Number(node.z) >= z - 1));
 }
 
 function _blockWallComponent(startWall, index) {
@@ -1902,6 +1975,8 @@ function _clampBlockWallFootprintToSupport(unit, x, y, wall, index) {
     if (supported) return { x, y, support: supported };
     const geometry = blockWallTopWalkGeometry(wall);
     if (!geometry) return null;
+    // 搬迁复用节点对象时旧承托引用也会移动；恢复只能发生在原地附近。
+    if (Math.hypot(x - geometry.center.x, y - geometry.center.y) > 192) return null;
     const safe = _blockWallFootprintSupport(
         unit,
         geometry.center.x,
@@ -1937,7 +2012,8 @@ function _nearestBlockWallFootprintSupport(unit, x, y, index, preferredWall = nu
     const candidates = walls
         .filter((wall, position) => wall?.active && walls.indexOf(wall) === position)
         .map((wall) => ({ wall, geometry: blockWallTopWalkGeometry(wall) }))
-        .filter((candidate) => candidate.geometry)
+        .filter((candidate) => candidate.geometry
+            && Math.hypot(x - candidate.geometry.center.x, y - candidate.geometry.center.y) <= 192)
         .sort((left, right) =>
             Math.hypot(x - left.geometry.center.x, y - left.geometry.center.y)
             - Math.hypot(x - right.geometry.center.x, y - right.geometry.center.y));
@@ -2196,7 +2272,11 @@ class DefenseCover extends Combatant {
         const eff = mirror ? (orient === 'v' ? 'h' : 'v') : orient;
         const isBlock = !!config.block; // 2026-08-17：1×1 方格块（单一贴图）
         const isBattlement = !!config.battlement;
-        const battlementVariant = config.battlementVariant === 'low' ? 'low' : 'high';
+        // attachment 的 edge + slot 是高低段唯一真源；调用方参数只用于旧入口兜底。
+        const attachmentVariant = config.attachment?.variant;
+        const battlementVariant = attachmentVariant === 'low' || attachmentVariant === 'high'
+            ? attachmentVariant
+            : (config.battlementVariant === 'low' ? 'low' : 'high');
         const hp = config.hp ?? (isBattlement
             ? WALL_BATTLEMENT_CONFIG.hp
             : (DEFENSE_CONFIG.covers.hp[grade] ?? 400));
@@ -2343,15 +2423,18 @@ class DefenseCover extends Combatant {
             ? `obstacle_cover_${grade}_${orient}`
             : `obstacle_cover_${grade}_v${variant}_${orient}`;
         const aspect = isBlock ? (BLOCK_VISUAL.w / BLOCK_VISUAL.h) : ((COVER_ASPECT[grade] && COVER_ASPECT[grade][orient]) || 1);
+        const battlementVisual = isBattlement
+            ? wallBattlementVisualProfile(battlementVariant)
+            : null;
         const sizeH = isBattlement
-            ? (battlementVariant === 'high' ? WALL_BATTLEMENT_VISUAL.highH : WALL_BATTLEMENT_VISUAL.lowH)
+            ? battlementVisual.height
             : isBlock ? BLOCK_VISUAL.h : Math.round(COVER_DISPLAY_W / aspect);
         const footOff = isBattlement
-            ? wallBattlementFootOffsetY(battlementVariant)
+            ? battlementVisual.footOffsetY
             : isBlock ? BLOCK_FOOT_OFFSET : sizeH / 2;
         this.spriteCfg = {
             idleKey: tex,
-            size: isBattlement ? WALL_BATTLEMENT_VISUAL.w : (isBlock ? BLOCK_VISUAL.w : COVER_DISPLAY_W),
+            size: isBattlement ? battlementVisual.width : (isBlock ? BLOCK_VISUAL.w : COVER_DISPLAY_W),
             sizeH,
             footOffsetY: footOff,
         };
@@ -2401,7 +2484,18 @@ class DefenseCover extends Combatant {
         this.active = true; // 保持活跃让中性精灵继续渲染；下沉结束时由特效置 false
         this.hittable = false;
         this._sinking = true;
+        // 女墙是方块墙的强依附件。支撑墙死亡时必须在同一事务内先拆掉全部
+        // 女墙碰撞与槽位注册，不能等休眠带 update 后补做，否则会留下幽灵阻挡。
+        if (this._isBlockCover && !this._isWallBattlement) {
+            for (const battlement of wallBattlementsSupportedBy([this])) {
+                if (!battlement?.active || battlement._sinking) continue;
+                battlement.hp = 0;
+                if (battlement.data) battlement.data.hp = 0;
+                battlement.onDeath(this);
+            }
+        }
         this.removeFromCollision();
+        if (!this._isWallBattlement) DefenseSystem?.commitElevatedTopologyChange?.();
         if (EffectManager) {
             EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '掩体被摧毁', '#ff8855'));
             EffectManager.add(new BuildingSinkEffect(this));
@@ -4316,6 +4410,46 @@ export const DefenseSystem = {
     },
 
     teardown() {
+        resetCommandTransitGraphs();
+        // 快照已在离场入口捕获；卸载旧载体不是坍塌，不能把其引用带到下一世界扣血。
+        clearWallCollapseDiagnostics();
+        const surfaceUnits = new Set([
+            Game?.player,
+            ...(Game?.PartySystem?.members || []),
+            ...(Game?.friendlyUnits || []),
+            ...this._elevatedNavUnits,
+        ]);
+        for (const unit of surfaceUnits) {
+            if (unit) {
+                unit._surfaceLandingDiagnostic = null;
+                unit._surfaceLandingBlocked = false;
+            }
+            if (!unit || (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs'
+                && !unit._surfaceNavCommand && !unit._surfaceExitCommand
+                && !unit._surfaceRouteActive && !unit._surfaceNavWaiting)) continue;
+            const transition = { kind: 'scene_teardown', fromKind: unit._surfaceKind, toKind: 'ground' };
+            unit.z = 0;
+            unit._surfaceTargetZ = 0;
+            commitElevatedSurfaceIdentity(unit, null, null, 0, transition);
+            unifiedElevatedNavigation.commitFlags(unit, null);
+            ElevatedNavigationController.onSurfaceTransition(unit, transition);
+            unit._surfaceMoveAxes = null;
+            unit._surfaceMoveMinAlignment = null;
+            unit._surfaceMoveChosenAxis = null;
+            unit._surfacePortalOverrideMargin = null;
+            unit._surfaceInputIntent = null;
+            unit._surfaceQueryMotionIntent = null;
+            unit._surfaceRenderDepth = null;
+            unit._wallWalkSupportRadius = null;
+            unit._surfaceWasSharedSeam = false;
+            unit.vx = 0;
+            unit.vy = 0;
+            unit.isMoving = false;
+            unit.collider?.syncPosition?.();
+        }
+        // 场景切换直接清空 Game.entities，不会逐个触发女墙 removeFromCollision()。
+        // 先清专用注册表，杜绝旧场景对象在下一张地图形成幽灵槽位或幽灵掩护。
+        clearWallBattlementRegistry();
         this._clearWallTopGuardSegs();
         World122TributeSystem.teardown();
         this.active = false;
@@ -4358,6 +4492,8 @@ export const DefenseSystem = {
           this._managedConfig = null;
           this._managedResolved = null;
           this._worldId = null;
+          this._strategicSpawnPending = [];
+          this._strategicSpawnRetry = 0;
           this._elevatedNavUnits.clear();
           ElevatedNavigationController.reset();
           if (this._goldGranted) this._goldGranted.clear();
@@ -4392,12 +4528,19 @@ export const DefenseSystem = {
             ensureWallStairGroups(this.staircases);
             this._refreshElevatedTopologyRevision();
         }
-        if (this.gate) this.gate.update(dt); // 友军靠近自动开门 / 离开延时关门
-        for (const g of this.gates) { if (g && g.active) g.update(dt); } // 已放置的铁栅栏门
+        // BuildableGate（含基地门）统一由 Game.entities 的休眠带累计毫秒更新。
+        // 此处不得再次驱动，否则会重复感应、累计关门时间。
         this._updateElevatedSurfaceStates(dt);
         this._grantMonsterGold(dt);
         this._updateHud(dt);
         if (this._managedExternally && !this._managedConfig) return;
+        if (this._managedConfig && this._strategicSpawnPending?.length) {
+            this._strategicSpawnRetry = (this._strategicSpawnRetry || 0) + dt;
+            if (this._strategicSpawnRetry >= 750) {
+                this._strategicSpawnRetry = 0;
+                this._spawnStrategicPending();
+            }
+        }
         if (this._managedExternally && this.base
             && (this.base._portalDestroyed || this.base.hp <= 0 || this.base.active === false)) {
             this._onBaseDestroyed();
@@ -4417,7 +4560,7 @@ export const DefenseSystem = {
                 break;
             case 'wave':
                 // 波内怪物全部死亡 → 波次结束：最后一波胜利，否则进入波间休息
-                if (this._aliveCount() === 0) {
+                if (this._aliveCount() === 0 && !this._strategicSpawnPending?.length) {
                     const victoryWave = this._managedConfig?.waveCount
                         || DEFENSE_CONFIG.spawn.victoryWave || 10;
                     if (this._wave >= victoryWave) {
@@ -4466,6 +4609,24 @@ export const DefenseSystem = {
     invalidateElevatedTopology() {
         elevatedTopology.invalidate();
         this._wallStairGroupCheckTimer = 0;
+    },
+
+    /**
+     * 楼梯新增、拆除与读档恢复属于玩家可见的原子事务：同一事务内立即刷新
+     * topology revision 与墙顶防坠线，不能把 Portal 开口延迟到下一次 250ms 轮询。
+     * 周期轮询仍保留，继续负责热更新和外部脚本改动的自愈。
+     */
+    refreshElevatedTopologyNow() {
+        return this._refreshElevatedTopologyRevision();
+    },
+
+    /**
+     * 墙体/塔楼事务提交入口：结构集合与依附件全部改完后，一次性发布 topology
+     * revision 并同步重建墙顶防坠线，禁止把旧 guard 暴露到下一帧移动查询。
+     */
+    commitElevatedTopologyChange() {
+        this.invalidateElevatedTopology();
+        return this.refreshElevatedTopologyNow();
     },
 
     _clearWallTopGuardSegs() {
@@ -4552,6 +4713,11 @@ export const DefenseSystem = {
         };
     },
 
+    /** 只读最近32次落地失败，不触发几何重建、寻路或逐帧日志。 */
+    debugWallCollapseLandings() {
+        return getWallCollapseDiagnostics();
+    },
+
     isWallStairAttachmentEligible(wall, stepX, stepY) {
         if (!wall?._isBlockCover || !wall?._isWalkableWall) return false;
         const topology = _blockWallIndex(Game?.entities);
@@ -4571,6 +4737,10 @@ export const DefenseSystem = {
             spawnPoints: (config?.spawnPoints || []).map((point) => ({ ...point })),
         };
         this._managedResolved = onResolved || null;
+        this._strategicSpawnPending = config.strategicRoster ? config.strategicRoster.map((record) => ({ ...record })) : [];
+        this._invasionSummonContext = createInvasionSummonContext(
+            [...(config.waveRosters || []), this._strategicSpawnPending], config.summonLedger);
+        this._strategicSpawnRetry = 0;
         this._wave = Math.max(1, Number(config?.startWave) || 1);
         this._phase = 'wave';
         this._phaseTimer = 0;
@@ -4579,11 +4749,12 @@ export const DefenseSystem = {
     },
 
     stopManagedInvasion({ clearMonsters = true } = {}) {
+        this._invasionSummonContext = null;
         if (clearMonsters && Game?.entities) {
             for (const [key, entity] of Array.from(Game.entities.entries())) {
                 if (!entity?._defenseMonster) continue;
                 // 位面毁灭挑战与五日入侵并行；结束普通入侵不能清掉无尽挑战怪潮。
-                if (entity._destructionChallengeMonster) continue;
+                if (entity._destructionChallengeMonster || entity._mineWeather) continue;
                 entity.active = false;
                 entity._destroyPhaserSprite?.();
                 Game.entities.delete(key);
@@ -4591,14 +4762,16 @@ export const DefenseSystem = {
         }
         this._managedConfig = null;
         this._managedResolved = null;
+        this._strategicSpawnPending = [];
         this._phase = 'prep';
         this._phaseTimer = 0;
         this._wave = 0;
         this.defeated = false;
         this.victory = false;
+        RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
     },
 
-    getManagedInvasionState() {
+    getManagedInvasionState({ includeRoster = false } = {}) {
         if (!this._managedConfig) return null;
         return {
             worldId: this._worldId,
@@ -4606,7 +4779,34 @@ export const DefenseSystem = {
             waveCount: this._managedConfig.waveCount,
             phase: this._phase,
             alive: this._aliveCount(),
+            summonLedger: this._invasionSummonContext?.ledger || null,
+            roster: includeRoster ? [
+                ...(this._strategicSpawnPending || []),
+                ...Array.from(Game.entities.values()).filter((unit) => unit._strategicSiegeRecord && unit.active !== false && unit.hp > 0)
+                    .map((unit) => captureInvasionUnit(unit, unit._strategicSiegeRecord)),
+            ] : null,
         };
+    },
+
+    _spawnStrategicPending() {
+        const pending = this._strategicSpawnPending || [];
+        this._strategicSpawnPending = [];
+        let alive = this._aliveCount();
+        for (const record of pending) {
+            if (alive >= (this._managedConfig?.maxAlive || 60)) { this._strategicSpawnPending.push(record); continue; }
+            const unit = this._spawnMonster(1, null, 1, record.type, { ignoreManagedScaling: true, invasionRecord: record });
+            if (!unit) { this._strategicSpawnPending.push(record); continue; }
+            alive++;
+            unit.maxHp *= record.hpMul || 1;
+            unit.hp = Math.max(1, unit.maxHp * record.hpRatio);
+            if (unit.data) {
+                unit.data.hp = unit.hp; unit.data.maxHp = unit.maxHp;
+                unit.data.atk *= record.atkMul || 1; unit.data.matk *= record.atkMul || 1;
+            }
+            unit._strategicSiegeRecord = record;
+            bindInvasionUnit(unit, record, this._invasionSummonContext);
+            restoreInvasionUnitState(unit, record);
+        }
     },
 
     /** 实体分离后的高架最终提交，不重复推进卡死看门狗。 */
@@ -5205,6 +5405,7 @@ export const DefenseSystem = {
                     wallSurface.x = graph.x;
                     wallSurface.y = graph.y;
                     wallSurface.wall = graph.wall || wallSurface.wall;
+                    wallSurface.z = Number(wallSurface.wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
                 }
             }
             const staircase = (this.staircases || []).find((candidate) =>
@@ -5232,8 +5433,9 @@ export const DefenseSystem = {
                     staircaseId: null,
                     renderDepth,
                     route: [],
-                    unreachable: true,
-                    reason: '需要连接至该城墙区域的城墙楼梯',
+                    // 拾取不代表地面接近：已在同一墙链的单位不需要楼梯。
+                    unreachable: false,
+                    reason: null,
                 };
             }
             const route = staircase && typeof staircase.routePoints === 'function'
@@ -5267,14 +5469,8 @@ export const DefenseSystem = {
         return { x, y, z: 0, surfaceKind: 'ground', route: [] };
     },
 
-    /**
-     * 按单位当前表面补全 RTS 移动路线。
-     * resolveSurfaceTarget 负责目标侧；这里补“墙顶/楼梯 → 地面”的反向下楼路线。
-     */
-    routeSurfaceMoveForUnit(unit, target) {
-        if (!unit || !target) return target;
-        const Game = (typeof window !== 'undefined') ? window.Game : null;
-        const fitGroundPortalsToUnit = (route) => (route || []).map((step) => {
+    _fitSurfaceRoutePortals(unit, route) {
+        return (route || []).map((step) => {
             if (step?.surfaceKind !== 'ground' || !step.staircaseId) return { ...step };
             const staircase = (this.staircases || []).find((entry) => entry?.id === step.staircaseId);
             const portal = staircase?.groundPortal?.();
@@ -5291,6 +5487,140 @@ export const DefenseSystem = {
             );
             return safePoint ? { ...step, x: safePoint.x, y: safePoint.y } : { ...step };
         });
+    },
+
+    /** 候选按一座楼梯一批产出；路线长度包含真实墙链转角与踏步高度。 */
+    *_costedSurfaceCandidates(unit, target) {
+        const entities = Game?.entities;
+        const onSurface = unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs';
+        const startWall = unit._surfaceWall || unit._surfaceStaircase?.wall;
+        const targetWall = target.surfaceKind === 'wall_walk' ? _walkableWallById(target.wallId, entities) : null;
+        if (!onSurface) {
+            yield { kind: 'departure', id: 'current', route: [{ x: unit.x, y: unit.y, z: 0, surfaceKind: 'ground' }] };
+        }
+        if (target.surfaceKind === 'ground') {
+            yield { kind: 'arrival', id: 'ground', route: [{ x: target.x, y: target.y, z: 0, surfaceKind: 'ground' }] };
+        }
+        for (const staircase of this.staircases || []) {
+            if (!staircase?.active || staircase._sinking || typeof staircase.routePoints !== 'function') {
+                yield null; continue;
+            }
+            if (targetWall && staircaseServesWall(staircase, targetWall, entities)
+                && !ElevatedNavigationController.isPortalUnavailable(unit, staircase.id)) {
+                const walls = blockWallTopRoute(staircase.wall, targetWall, entities);
+                if (walls.length || staircase.wall === targetWall) {
+                    const route = this._fitSurfaceRoutePortals(unit, staircase.routePoints());
+                    appendWallTopRoutePoints(route, walls, target.z);
+                    appendUniqueRouteTarget(route, { x: target.x, y: target.y, z: target.z,
+                        surfaceKind: 'wall_walk', wallId: target.wallId });
+                    yield { kind: 'arrival', id: staircase.id, staircaseId: staircase.id, route,
+                        penalty: () => ElevatedNavigationController.portalPenalty(staircase.id, 'up', unit) };
+                }
+            }
+            if (onSurface && (unit._surfaceKind === 'stairs' ? staircase === unit._surfaceStaircase
+                : staircaseServesWall(staircase, startWall, entities))) {
+                const route = [{ x: unit.x, y: unit.y, z: Number(unit.z) || 0,
+                    surfaceKind: unit._surfaceKind, wallId: startWall?.id,
+                    staircaseId: unit._surfaceStaircase?.id }];
+                if (unit._surfaceKind === 'wall_walk') {
+                    const walls = blockWallTopRoute(startWall, staircase.wall, entities);
+                    if (!walls.length && startWall !== staircase.wall) { yield null; continue; }
+                    appendWallTopRoutePoints(route, walls, Number(startWall?._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ);
+                }
+                for (const point of stairTraversalPoints(staircase, unit, 'down')) appendUniqueRouteTarget(route, point);
+                yield { kind: 'departure', id: staircase.id, staircaseId: staircase.id,
+                    route: this._fitSurfaceRoutePortals(unit, route),
+                    penalty: () => ElevatedNavigationController.portalPenalty(staircase.id, 'down', unit) };
+            }
+            yield null;
+        }
+    },
+
+    /** O(墙边+楼梯)高架连接图，不枚举每对楼梯的组合。 */
+    *_commandTransitEdges(unit, topology) {
+        const pointFor = wall => {
+            const geometry = blockWallTopWalkGeometry(wall);
+            return geometry ? { ...geometry.center, z: Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ,
+                surfaceKind: 'wall_walk', wallId: wall.id } : null;
+        };
+        for (const wall of topology.values()) {
+            const from = pointFor(wall);
+            if (!from) { yield null; continue; }
+            for (const neighbor of topology.neighbors(wall)) {
+                if (String(wall.id) >= String(neighbor.id)) continue;
+                const to = pointFor(neighbor);
+                if (to) yield { from: `wall:${wall.id}`, to: `wall:${neighbor.id}`, route: [from, to] };
+            }
+            yield null;
+        }
+        for (const stair of this.staircases || []) {
+            if (!stair?.active || stair._sinking || !stair.wall?.active || !pointFor(stair.wall)) {
+                yield null; continue;
+            }
+            if (unit.blockedPortals?.has(ElevatedNavigationController._stairTrafficKey(stair))) { yield null; continue; }
+            const route = this._fitSurfaceRoutePortals(unit, stair.routePoints());
+            appendWallTopRoutePoints(route, [stair.wall], stair.targetTopZ);
+            if (route[0]?.surfaceKind === 'ground' && route.length > 1) {
+                yield { from: `portal:${stair.id}`, to: `wall:${stair.wall.id}`, route,
+                    penalty: unit.portalPenalties?.get(ElevatedNavigationController._stairTrafficKey(stair)) || 0 };
+            }
+        }
+    },
+
+    commandTransitGraphForUnit(unit) {
+        const radius = Number(unit.groundRadius) || Number(unit.collisionRadius) || 20;
+        if (radius > WALL_WALK_CONFIG.maxUnitRadius || !this.staircases?.length) return null;
+        const offset = WallSystem.getEntityMoveOffset(unit);
+        const topology = _blockWallIndex(Game?.entities);
+        const revision = this.elevatedNavigationRevision();
+        const blocked = [...(unit._surfaceFailedPortals || [])].filter(([, failure]) =>
+            failure.revision === revision && failure.until > Date.now()).map(([id]) => id).sort();
+        const penalties = [...(unit._surfacePortalPenalties || [])].filter(([, entry]) =>
+            entry.revision === revision && entry.until > Date.now()).map(([id, entry]) => [id, entry.cost])
+            .sort(([left], [right]) => String(left).localeCompare(String(right)));
+        const key = `${revision}:${pathFinder.getTopologyVersion()}:${radius}:${offset.x},${offset.y}:${blocked.join(',')}`
+            + `:${JSON.stringify(penalties)}`;
+        const size = { groundRadius: radius, blockedPortals: new Set(blocked), portalPenalties: new Map(penalties) };
+        return commandTransitGraph(pathFinder, key, offset, () => this._commandTransitEdges(size, topology));
+    },
+
+    /** 游标的结构可达性，不创建搜索任务，也不承诺地面障碍已经求解。 */
+    canRouteSurfaceTarget(unit, target) {
+        if (!unit || !target || target.unreachable) return false;
+        if (target.surfaceKind !== 'wall_walk' && target.surfaceKind !== 'stairs') return true;
+        if ((Number(unit.groundRadius) || Number(unit.collisionRadius) || 20) > WALL_WALK_CONFIG.maxUnitRadius) return false;
+        if (target.surfaceKind === 'stairs') {
+            return this.staircases.some(stair => stair?.active && !stair._sinking && stair.id === target.staircaseId);
+        }
+        const wall = _walkableWallById(target.wallId, Game?.entities);
+        if (!wall?.active || wall._sinking) return false;
+        const start = unit._surfaceWall || unit._surfaceStaircase?.wall;
+        if ((unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')
+            && start && blockWallTopRoute(start, wall, Game?.entities).length) return true;
+        return this.staircases.some(stair => !stair?._sinking && staircaseServesWall(stair, wall, Game?.entities));
+    },
+
+    /** 从单位当前承载面补齐路线；显式 RTS 和自主规划共用同一入口。 */
+    routeSurfaceMoveForUnit(unit, target) {
+        if (!unit || !target) return target;
+        target = { ...target, navigationPending: false, navigationStatus: null, unreachable: false, reason: null };
+        if (target.surfaceKind === 'stairs') return this.planSurfaceRouteForUnit(unit, target);
+        const Game = (typeof window !== 'undefined') ? window.Game : null;
+        const fitGroundPortalsToUnit = (route) => this._fitSurfaceRoutePortals(unit, route);
+        const onSurface = unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs';
+        const targetWall = target.surfaceKind === 'wall_walk'
+            ? _walkableWallById(target.wallId, Game?.entities) : null;
+        const sameWallRoute = onSurface && targetWall && blockWallTopRoute(
+            unit._surfaceWall || unit._surfaceStaircase?.wall, targetWall, Game?.entities).length > 0;
+        const needsGroundLeg = target.surfaceKind === 'wall_walk' ? !sameWallRoute
+            : target.surfaceKind === 'ground' && onSurface;
+        if (needsGroundLeg && !target._navigationSafetyExit
+            && (unit._faction === 'companion' || unit._faction === 'player')) {
+            const planned = costedSurfaceRoute(unit, target, this.elevatedNavigationRevision(),
+                () => this._costedSurfaceCandidates(unit, target));
+            if (planned.route.length) finalizeSurfaceRoute(planned.route, true);
+            return planned;
+        }
         // 地面单位上墙时按“每个单位”选择最近的可用楼梯。resolveSurfaceTarget 只负责确定
         // 被点击的墙顶；若所有选中单位复用它碰到的第一座楼梯，远处单位很容易从错误一侧
         // 直冲墙体，多个楼梯并存时也无法利用更近入口。
@@ -5307,6 +5637,7 @@ export const DefenseSystem = {
                 : [];
             let chosen = null;
             for (const staircase of candidates) {
+                if (ElevatedNavigationController.isPortalUnavailable(unit, staircase.id)) continue;
                 const stairRoute = staircase.routePoints();
                 const entry = stairRoute[0];
                 if (!entry) continue;
@@ -5329,7 +5660,7 @@ export const DefenseSystem = {
                     surfaceKind: 'wall_walk',
                     wallId: target.wallId,
                 });
-                finalizeSurfaceRoute(route);
+                finalizeSurfaceRoute(route, true);
                 return {
                     ...target,
                     staircaseId: chosen.staircase.id,
@@ -5339,6 +5670,8 @@ export const DefenseSystem = {
                     routeRevision: this.elevatedNavigationRevision(),
                 };
             }
+            return { ...target, route: [], unreachable: true,
+                reason: '没有可达楼梯入口，等待重试', routeRevision: this.elevatedNavigationRevision() };
         }
         if (target.surfaceKind === 'wall_walk'
             && (unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')) {
@@ -5351,7 +5684,8 @@ export const DefenseSystem = {
             const startWall = unit._surfaceWall || currentStaircase?.wall || null;
             const wallPath = blockWallTopRoute(startWall, targetWall, Game?.entities);
             if (targetWall && startWall && wallPath.length) {
-                const route = fitGroundPortalsToUnit(currentStaircase?.routePoints?.() || []);
+                const route = fitGroundPortalsToUnit(currentStaircase
+                    ? stairTraversalPoints(currentStaircase, unit, 'up') : []);
                 appendWallTopRoutePoints(route, wallPath, target.z);
                 appendUniqueRouteTarget(route, {
                     x: target.x,
@@ -5360,7 +5694,7 @@ export const DefenseSystem = {
                     surfaceKind: 'wall_walk',
                     wallId: target.wallId,
                 });
-                finalizeSurfaceRoute(route);
+                finalizeSurfaceRoute(route, true);
                 return {
                     ...target,
                     staircaseId: currentStaircase?.id || target.staircaseId || null,
@@ -5373,7 +5707,8 @@ export const DefenseSystem = {
             const connectedStairs = (wall) => (this.staircases || []).filter((staircase) =>
                 typeof staircase?.routePoints === 'function'
                 && staircaseServesWall(staircase, wall, Game?.entities));
-            const descentCandidates = startWall ? connectedStairs(startWall) : [];
+            const descentCandidates = currentStaircase ? [currentStaircase]
+                : (startWall ? connectedStairs(startWall) : []);
             const ascentCandidates = targetWall ? connectedStairs(targetWall) : [];
             let descent = null;
             for (const staircase of descentCandidates) {
@@ -5386,6 +5721,7 @@ export const DefenseSystem = {
             const descentRoute = descent?.staircase.routePoints?.() || [];
             const descentEntry = descentRoute[0] || unit;
             for (const staircase of ascentCandidates) {
+                if (ElevatedNavigationController.isPortalUnavailable(unit, staircase.id)) continue;
                 const stairRoute = staircase.routePoints();
                 const entry = stairRoute[0];
                 if (!entry) continue;
@@ -5394,7 +5730,15 @@ export const DefenseSystem = {
                 if (!ascent || score < ascent.score) ascent = { staircase, stairRoute, score };
             }
             if (descent && ascent) {
-                const route = fitGroundPortalsToUnit(descentRoute).reverse();
+                const route = [];
+                if (unit._surfaceKind === 'wall_walk') {
+                    appendWallTopRoutePoints(route,
+                        blockWallTopRoute(startWall, descent.staircase.wall, Game?.entities),
+                        Number(startWall?._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ);
+                }
+                for (const node of stairTraversalPoints(descent.staircase, unit, 'down')) {
+                    appendUniqueRouteTarget(route, node);
+                }
                 const ascentEntry = ascent.stairRoute[0];
                 route.push({
                     x: ascentEntry.x,
@@ -5418,7 +5762,7 @@ export const DefenseSystem = {
                     wallId: target.wallId,
                 });
                 const fittedRoute = fitGroundPortalsToUnit(route);
-                finalizeSurfaceRoute(fittedRoute);
+                finalizeSurfaceRoute(fittedRoute, true);
                 return {
                     ...target,
                     staircaseId: descent.staircase.id,
@@ -5444,7 +5788,9 @@ export const DefenseSystem = {
                 routeRevision: this.elevatedNavigationRevision(),
             };
         }
-        if (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs') return target;
+        if (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs') {
+            return { ...target, navigationPending: false, unreachable: false, navigationStatus: null };
+        }
 
         const wall = unit._surfaceWall || unit._surfaceStaircase?.wall || null;
         const currentStaircase = unit._surfaceKind === 'stairs'
@@ -5481,12 +5827,12 @@ export const DefenseSystem = {
                 Number(wall?._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ
             );
         }
-        for (const step of staircase.routePoints().map((point) => ({ ...point })).reverse()) {
+        for (const step of stairTraversalPoints(staircase, unit, 'down')) {
             appendUniqueRouteTarget(downRoute, step);
         }
         downRoute.push({ x: target.x, y: target.y, z: 0, surfaceKind: 'ground' });
         const fittedDownRoute = fitGroundPortalsToUnit(downRoute);
-        finalizeSurfaceRoute(fittedDownRoute);
+        finalizeSurfaceRoute(fittedDownRoute, true);
         return {
             ...target,
             staircaseId: staircase.id,
@@ -5541,10 +5887,11 @@ export const DefenseSystem = {
             const targetZ = Number(target.z) || 0;
             const route = [];
 
-            if (unit._surfaceKind === 'wall_walk') {
-                const Game = (typeof window !== 'undefined') ? window.Game : null;
-                const startWall = unit._surfaceWall || null;
-                const wallPath = blockWallTopRoute(startWall, staircase.wall, Game?.entities);
+            const Game = (typeof window !== 'undefined') ? window.Game : null;
+            const startWall = unit._surfaceWall || null;
+            const wallPath = unit._surfaceKind === 'wall_walk'
+                ? blockWallTopRoute(startWall, staircase.wall, Game?.entities) : [];
+            if (unit._surfaceKind === 'wall_walk' && wallPath.length) {
                 appendWallTopRoutePoints(
                     route,
                     wallPath,
@@ -5582,6 +5929,11 @@ export const DefenseSystem = {
                         route: [],
                     })
                     : null;
+                if (!descent || descent.unreachable) {
+                    return { ...target, route: [], unreachable: true, reason: '无法离开当前高架区域' };
+                }
+                if (descent.navigationPending) return { ...target, route: [], navigationPending: true,
+                    navigationStatus: 'pending', routeRevision: this.elevatedNavigationRevision() };
                 for (const node of descent?.route || []) appendUniqueRouteTarget(route, { ...node });
                 for (const node of staircase.routePoints(target, targetSegmentIndex)) {
                     appendUniqueRouteTarget(route, { ...node });
@@ -5591,9 +5943,10 @@ export const DefenseSystem = {
                     appendUniqueRouteTarget(route, { ...node });
                 }
             }
+            // 楼梯目标也要按单位半径外移地面入口，与墙顶目标使用同一契约。
             return {
                 ...target,
-                route: finalizeSurfaceRoute(route),
+                route: finalizeSurfaceRoute(this._fitSurfaceRoutePortals(unit, route), true),
                 routeRevision: this.elevatedNavigationRevision(),
             };
         }
@@ -5624,8 +5977,86 @@ export const DefenseSystem = {
         });
     },
 
+    stairExitRouteForUnit(unit, direction = null) {
+        const staircase = unit?._surfaceStaircase;
+        if (!staircase?.active || staircase._sinking) return null;
+        const up = direction === 'up' || (!direction
+            && (Number(unit.z) || 0) >= staircase.targetTopZ / 2);
+        const wall = staircase.wall;
+        // 沉陷结构为渲染保留active，但已不在可走拓扑中，不能再当作安全出口。
+        const geometry = wall?.active && !wall._sinking && blockWallTopWalkGeometry(wall);
+        if (up && geometry) {
+            const point = this.routeSurfaceMoveForUnit(unit, {
+                ...geometry.center, z: Number(wall._wallTopZ) || staircase.targetTopZ,
+                wallId: wall.id, surfaceKind: 'wall_walk', route: [], _navigationSafetyExit: true,
+            });
+            if (point && !point.unreachable) return point;
+        }
+        const groundPoint = stairGroupGroundPoint(staircase, staircase.groundPortal?.()?.entry,
+            WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius
+                + (Number(unit.groundRadius) || Number(unit.collisionRadius) || 20) + 4);
+        return groundPoint ? this.routeSurfaceMoveForUnit(unit, {
+            ...groundPoint, z: 0, surfaceKind: 'ground', route: [], _navigationSafetyExit: true,
+        }) : null;
+    },
+
+    /** 仅在搬迁两次确认时查询，不把整条连通墙上的单位误当作塔顶占用者。 */
+    wallTowerOccupant(tower) {
+        if (!tower?._isWallTower) return null;
+        const units = new Set([
+            Game.player,
+            ...(Game.PartySystem?.members || []),
+            ...(Game.friendlyUnits || []),
+            ...this._elevatedNavUnits,
+            ...Game.entities.values(),
+        ]);
+        for (const unit of units) {
+            if (!unit || unit.active === false || unit.isStructure || unit.hp <= 0) continue;
+            if (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs') continue;
+            if ([unit._surfaceRef, unit._surfaceWall, unit._surfaceStaircase?.wall]
+                .some((carrier) => carrier === tower || wallTowerOwnerOf(carrier) === tower)) return unit;
+            // 接缝处脚底已进入塔顶，但中心点的承托身份可能仍属于邻墙。
+            const radius = Math.min(Number(unit.groundRadius) || Number(unit.collisionRadius) || 20,
+                WALL_WALK_CONFIG.surfaceUnitRadius);
+            for (const node of tower._wallTowerWalkNodes || []) {
+                const geometry = blockWallTopWalkGeometry(node);
+                if (geometry && pointInIsoFootprint(unit.x, unit.y, geometry.footprint, radius)) return unit;
+            }
+        }
+        return null;
+    },
+
     trackElevatedNavigationUnit(unit) {
         if (unit?.active !== false) this._elevatedNavUnits.add(unit);
+    },
+
+    /** Pre-battle deployment only. Use the same support geometry and atomic surface commit as movement. */
+    deployUnitOnWallTop(unit, wall) {
+        if (!unit?.active || !wall?.active || wall._sinking || !wall._isWalkableWall) return false;
+        const geometry = blockWallTopWalkGeometry(wall);
+        if (!geometry) return false;
+        const z = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+        const radius = Math.min(Number(unit.groundRadius) || Number(unit.collisionRadius) || 20,
+            WALL_WALK_CONFIG.surfaceUnitRadius);
+        const support = this._wallWalkSurfaceAt({ z, groundRadius: radius }, geometry.center.x, geometry.center.y);
+        if (!support) return false;
+        const previous = { x: unit.x, y: unit.y, z: Number(unit.z) || 0 };
+        unit.x = geometry.center.x; unit.y = geometry.center.y; unit.z = z;
+        this.trackElevatedNavigationUnit(unit);
+        this._updateElevatedSurfaceStates(0, { elevatedOnly: true });
+        if (unit._surfaceKind === 'wall_walk') return true;
+        Object.assign(unit, previous);
+        commitElevatedSurfaceIdentity(unit, null, null, previous.z);
+        unit._surfaceTargetZ = previous.z;
+        unit._surfaceRenderDepth = null;
+        this.untrackElevatedNavigationUnit(unit);
+        unit.collider?.syncPosition?.();
+        return false;
+    },
+
+    untrackElevatedNavigationUnit(unit) {
+        this._elevatedNavUnits.delete(unit);
+        ElevatedGarrison.forget(unit);
     },
 
     /**
@@ -5635,15 +6066,15 @@ export const DefenseSystem = {
     _updateElevatedSurfaceStates(dt = 16, options = null) {
         const elevatedOnly = !!options?.elevatedOnly;
         const reconcileOnly = !!options?.reconcileOnly;
-        const units = [];
+        const units = new Set();
         const Game = (typeof window !== 'undefined') ? window.Game : null;
-        if (Game && Game.player) units.push(Game.player);
+        if (Game && Game.player) units.add(Game.player);
         if (Game && Game.PartySystem && Array.isArray(Game.PartySystem.members)) {
-            for (const m of Game.PartySystem.members) if (m && m.active !== false) units.push(m);
+            for (const m of Game.PartySystem.members) if (m && m.active !== false) units.add(m);
         }
         if (Game && Array.isArray(Game.friendlyUnits)) {
             for (const u of Game.friendlyUnits) {
-                if (u && u !== Game.player && u.active !== false && !units.includes(u)) units.push(u);
+                if (u && u !== Game.player && u.active !== false) units.add(u);
             }
         }
         for (const u of this._elevatedNavUnits || []) {
@@ -5651,7 +6082,7 @@ export const DefenseSystem = {
                 this._elevatedNavUnits.delete(u);
                 continue;
             }
-            if (!units.includes(u)) units.push(u);
+            units.add(u);
         }
         for (const u of units) {
             if (elevatedOnly
@@ -5699,6 +6130,8 @@ export const DefenseSystem = {
                 };
             };
             let queried = querySurfaceAt(attemptedX, attemptedY);
+            // 保存当前实际脚下的承托；后续扫掠/回夹找到的邻墙不能免除真实坍塌。
+            const attemptedSurface = queried.surface;
             let surface = queried.surface;
             let staircase = queried.staircase;
             let surfaceTransition = null;
@@ -6145,24 +6578,43 @@ export const DefenseSystem = {
             const previousStaircase = u._surfaceStaircase || null;
             const atStairTop = u._surfaceKind === 'stairs' && previousStaircase
                 && previousZ >= (Number(previousStaircase.targetTopZ) || 0) - 2;
+            const supportingWall = u._surfaceKind === 'wall_walk' ? u._surfaceWall
+                : (atStairTop ? previousStaircase.wall : null);
+            const collapsedWall = supportingWall
+                && (!supportingWall.active || supportingWall._sinking);
             const carrierRemoved = (u._surfaceKind === 'wall_walk'
                 && (!u._surfaceWall?.active || u._surfaceWall?._sinking))
                 || (u._surfaceKind === 'stairs' && (!previousStaircase?.active
+                    || previousStaircase._sinking
                     || (atStairTop && (!previousStaircase.wall?.active
                         || previousStaircase.wall?._sinking))));
             if (carrierRemoved) {
-                surface = null;
-                staircase = null;
-                surfaceTransition = {
-                    kind: 'carrier_removed',
-                    fromKind: u._surfaceKind,
-                    toKind: 'ground',
-                    staircase: previousStaircase,
-                };
-                const portal = previousStaircase?.groundPortal?.();
-                if (portal?.groundPoint) {
-                    u.x = portal.groundPoint.x;
-                    u.y = portal.groundPoint.y;
+                const survivingWallSupport = attemptedSurface?.kind === 'wall_walk'
+                    && attemptedSurface.validatedSupport
+                    && attemptedSurface.wall?.active && !attemptedSurface.wall._sinking;
+                if (survivingWallSupport) {
+                    // 移动与结构损毁可发生在同帧：已走到完好邻墙/塔顶时，旧引用失效不等于失去承托。
+                    // 只恢复首次查询的原XY，不把回夹/滑移到别处的结果当成免摔落点；楼梯FIFO保持原规则。
+                    u.x = attemptedX;
+                    u.y = attemptedY;
+                    surface = attemptedSurface;
+                    staircase = null;
+                    surfaceTransition = null;
+                    u._surfaceSweepClamped = false;
+                    u._surfaceBoundarySlid = false;
+                    u._surfaceBoundaryInset = 0;
+                    u._surfaceEdgeRecovered = false;
+                    u._surfaceHandoffRecovered = false;
+                } else {
+                    surface = null;
+                    staircase = null;
+                    surfaceTransition = {
+                        kind: 'carrier_removed',
+                        fromKind: u._surfaceKind,
+                        toKind: 'ground',
+                        staircase: previousStaircase,
+                        collapseHealthLoss: !!collapsedWall,
+                    };
                 }
             }
             let transitioningToGround = surfaceTransition?.toKind === 'ground';
@@ -6188,18 +6640,6 @@ export const DefenseSystem = {
                         surface = null;
                         staircase = null;
                         transitioningToGround = true;
-                        const portal = previousStaircase?.groundPortal?.();
-                        const lastGround = u._elevatedState?.lastGround;
-                        if (portal?.groundPoint) {
-                            u.x = portal.groundPoint.x;
-                            u.y = portal.groundPoint.y;
-                        } else if (Number.isFinite(lastGround?.x)
-                            && Number.isFinite(lastGround?.y)
-                            && Math.hypot(lastGround.x - u.x, lastGround.y - u.y) <= 192
-                            && WallSystem.canMoveTo(lastGround.x, lastGround.y, u.groundRadius || 20)) {
-                            u.x = lastGround.x;
-                            u.y = lastGround.y;
-                        }
                     } else {
                         u.z = previousZ;
                         u._surfaceNavRetryAt = 0;
@@ -6212,6 +6652,26 @@ export const DefenseSystem = {
                 }
             } else {
                 u._surfaceUnsupportedFrames = 0;
+            }
+            if (surfaceTransition?.kind === 'carrier_removed'
+                || surfaceTransition?.kind === 'support_invalidated') {
+                u._ai?.onSurfaceSupportLost?.();
+                if (u === Game?.player) {
+                    // 存活/致死都先中断旧动作，防止Tween或施法回调按高架起点回写位置；不施加眩晕。
+                    u._cancelAllActionsForStun?.();
+                    // 副手可独立攻击；不能仅凭主手isAttacking决定是否还需停止Tween。
+                    if (u._activeAttackTweens?.length) u.clearAttackTweens?.();
+                }
+                const landing = resolveWallCollapseLanding(u, { x: attemptedX, y: attemptedY });
+                u.x = landing.x;
+                u.y = landing.y;
+                u.vx = 0;
+                u.vy = 0;
+                u.isMoving = false;
+                u._surfaceInputIntent = null;
+                u._surfaceQueryMotionIntent = null;
+                u._wallWalkSupportRadius = null;
+                u._surfaceLandingBlocked = landing.blocked;
             }
             let targetZ = surface ? surface.z : 0;
             const currentZ = Math.max(0, Number(u.z) || 0);
@@ -6317,6 +6777,9 @@ export const DefenseSystem = {
                 : null;
             u._surfacePortalOverrideMargin = null;
             u._surfaceMoveChosenAxis = null;
+            // 身份/碰撞/导航全部提交到地面后再结算一次；reconcile的第二次提交不会重复扣血。
+            if (surfaceTransition?.collapseHealthLoss) applyWallCollapseHealthLoss(u);
+            ElevatedGarrison.observe(u);
         }
     },
 
@@ -6329,13 +6792,18 @@ export const DefenseSystem = {
         this._phase = 'wave';
         this._phaseTimer = 0;
         if (this._managedExternally && this._managedConfig) {
-            let alive = this._aliveCount();
-            const types = this._managedConfig.waves?.[this._wave - 1] || [];
-            RuntimeAssetManager.prefetchEnemyTypes(types);
-            for (const type of types) {
-                if (alive >= (this._managedConfig.maxAlive || DEFENSE_CONFIG.spawn.maxAlive)) break;
-                if (this._spawnMonster(this._wave, null, 1, type)) alive++;
+            const managed = this._managedConfig;
+            if (!(managed.strategicRoster && this._wave === managed.strategicRosterWave)) {
+                this._strategicSpawnPending = managed.waveRosters
+                    ? (managed.waveRosters[this._wave - 1] || []).map((record) => ({ ...record }))
+                    : (managed.waves?.[this._wave - 1] || []).map((type, slot) => ({
+                    type, slot: `wave_${this._wave}_${slot}`, hpRatio: 1,
+                    hpMul: (1 + (this._wave - 1) * (managed.hpPerWave || 0)) * (managed.cycleHpMul || 1),
+                    atkMul: (1 + (this._wave - 1) * (managed.atkPerWave || 0)) * (managed.cycleAtkMul || 1),
+                }));
             }
+            RuntimeAssetManager.prefetchEnemyTypes(this._strategicSpawnPending.map((record) => record.type));
+            this._spawnStrategicPending();
             this._announce(`第 ${this._wave}/${this._managedConfig.waveCount} 波入侵！`, '#ff7755');
             return;
         }
@@ -6622,7 +7090,7 @@ export const DefenseSystem = {
         }
         let n = 0;
         for (const e of Game.entities.values()) {
-            if (e && e._defenseMonster && !e._destructionChallengeMonster
+            if (e && e._defenseMonster && !e._destructionChallengeMonster && !e._mineWeather
                 && e.active && e.hp > 0) n++;
         }
         this._aliveCountCache = n;
@@ -6641,7 +7109,7 @@ export const DefenseSystem = {
         const wave = this._wave || 1;
         let grantedThisFrame = 0;
         for (const e of Game.entities.values()) {
-            if (!e || !e._defenseMonster || e._destructionChallengeMonster || !e._noGoldDrop) continue;
+            if (!e || !e._defenseMonster || e._destructionChallengeMonster || e._mineWeather || !e._noGoldDrop) continue;
             if (e.hp > 0 || e.active) continue;
             if (this._goldGranted.has(e.id)) continue;
             this._goldGranted.add(e.id);
@@ -6667,7 +7135,7 @@ export const DefenseSystem = {
 
     _spawnMonster(wave, pool, hpMulExtra = 1, forceType = null, options = {}) {
         const type = forceType || this._pickMonsterType(pool);
-        const Factory = MONSTER_FACTORY[type];
+        const Factory = MONSTER_FACTORY[type] || enemyConstructor(type);
         if (!Factory) return;
         const spawnPoints = options.spawnPoints?.length
             ? options.spawnPoints
@@ -6676,7 +7144,10 @@ export const DefenseSystem = {
                 : DEFENSE_CONFIG.spawnPoints);
         if (!spawnPoints?.length) return;
         const pt = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
-        const monster = new Factory(pt.x, pt.y);
+        const monster = Number.isInteger(options.invasionRecord?.invasionWave)
+            ? createRegisteredEnemy(type, pt.x, pt.y) : new Factory(pt.x, pt.y);
+        if (!monster) return;
+        restoreInvasionPhase(monster, options.invasionRecord);
         const radius = monster.groundRadius || monster.collisionRadius || 20;
         const orderedSpawnPoints = [pt, ...spawnPoints.filter((point) => point !== pt)];
         let safeSpawn = null;
@@ -6690,6 +7161,7 @@ export const DefenseSystem = {
         monster.y = safeSpawn.y;
         monster.collider?.syncPosition?.();
         monster._defenseMonster = true;
+        monster._defenseMonsterType = type;
         if (options.destructionChallenge) {
             monster._destructionChallengeMonster = true;
             monster._destructionChallengeWorldId = options.sceneId || this._worldId;
@@ -6740,15 +7212,47 @@ export const DefenseSystem = {
         return monster;
     },
 
+    // Interception uses the same constructors as base defense, without the
+    // dungeon-only decorators that introduce extra encounters such as mine caves.
+    createInvasionMonster(type, x, y) {
+        return createRegisteredEnemy(type, x, y);
+    },
+
+    /** 只在新周期/新阶级选型时扫描一次；存量与死亡视觉仍在时避免继续引入图集。 */
+    pickDestructionChallengeMonsterType(tier, {
+        preferredType = null, sceneId = this._worldId, worldEpoch = null, maxActiveTypes = 2,
+    } = {}) {
+        const pool = tier === 'lord' ? LORD_POOL : (tier === 'elite' ? ELITE_POOL : NORMAL_POOL);
+        if (pool.some((entry) => entry.type === preferredType)) return preferredType;
+        const poolTypes = new Set(pool.map((entry) => entry.type));
+        const residentTypes = new Set();
+        for (const entity of Game.entities?.values?.() || []) {
+            if (!entity?._destructionChallengeMonster || entity._destructionChallengeTier !== tier) continue;
+            if (sceneId && entity._destructionChallengeWorldId !== sceneId) continue;
+            if (worldEpoch !== null
+                && Number(entity._destructionChallengeEpoch) !== Number(worldEpoch)) continue;
+            const hasVisual = entity._phaserSprite?.active
+                || entity._dying || entity._deathAnimTimer > 0 || entity._corpseTimer > 0;
+            if ((entity.active === false || !(entity.hp > 0)) && !hasVisual) continue;
+            const type = entity._defenseMonsterType || entity.config?.type || entity.type;
+            if (poolTypes.has(type)) residentTypes.add(type);
+        }
+        const limit = Math.max(1, Math.floor(Number(maxActiveTypes) || 1));
+        const candidates = residentTypes.size >= limit
+            ? pool.filter((entry) => residentTypes.has(entry.type)) : pool;
+        return this._pickMonsterType(candidates);
+    },
+
     /** 位面毁灭挑战复用正式防守怪工厂，但不参与五日入侵的清波/胜利计数。 */
     spawnDestructionChallengeMonster({
-        tier = 'normal', spawnPoints = null, sceneId = null, worldEpoch = 0,
+        tier = 'normal', type = null, spawnPoints = null, sceneId = null, worldEpoch = 0,
     } = {}) {
         if (!this.active || !this._managedExternally || !this.base || this.base._portalDestroyed
             || this.base.active === false || this.base.hp <= 0) return null;
         if (sceneId && this._worldId !== sceneId) return null;
         const pool = tier === 'lord' ? LORD_POOL : (tier === 'elite' ? ELITE_POOL : NORMAL_POOL);
-        return this._spawnMonster(1, pool, 1, null, {
+        if (type && !pool.some((entry) => entry.type === type)) return null;
+        return this._spawnMonster(1, pool, 1, type, {
             spawnPoints,
             destructionChallenge: true,
             destructionTier: tier,
@@ -6949,12 +7453,8 @@ export const DefenseSystem = {
             this._setHoverTower(null);
             return;
         }
-        const mw = Renderer.screenToWorld(mx, my);
-        let hit = null;
-        for (const t of this._iterActiveTowers()) {
-            if (pointHitsTower(mw.x, mw.y, t)) { hit = t; break; }
-        }
-        this._setHoverTower(hit);
+        const hit = pickStructureAtScreen(Game, mx, my);
+        this._setHoverTower(hit?._isDefenseTower ? hit : null);
     },
 
     _setHoverTower(t) {
@@ -6974,113 +7474,117 @@ export const DefenseSystem = {
      * @param {object} player 玩家
      * @returns {boolean} 是否消费本次点击
      */
-    tryInteract(mx, my, player) {
+    tryInteract(mx, my, player, options = {}) {
         if (!this.active || !player) return false;
+        const t = options.entity === undefined
+            ? pickStructureAtScreen(Game, mx, my) : options.entity;
+        if (!t?.active || !t._isDefenseTower) return false;
+        if (!Game?._buildMode && !options.remote
+            && Math.hypot(t.x - player.x, t.y - player.y) > 260) return false;
         const panel = this._ensurePanel();
-        // 建设模式（B 打开建筑面板）无视距离，2026-08-16 用户口径
-        const buildMode = !!(Game && Game._buildMode);
-        const inReach = (t, r) => {
-            const pdx = t.x - player.x;
-            const pdy = t.y - player.y;
-            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) return false;
-            const pos = Renderer.worldToScreen(t.x, t.y);
-            return Math.hypot(mx - pos.x, my - pos.y) < r;
-        };
-        // 点击目标：优先自身 towers 数组，同时兜底扫描 Game.entities（测试/运行期
-        // 直接入实体表的塔也要可点；按实体 id 去重，避免同塔重复命中）
-        const candidates = this._iterActiveTowers();
-        for (const t of candidates) {
-            if (!t.active) continue;
-            // 命中判定 = 整塔矩形（基座/机械臂/挂载武器全视觉范围）；非建设模式限 260px
-            const pdx = t.x - player.x;
-            const pdy = t.y - player.y;
-            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
-            const mw = Renderer.screenToWorld(mx, my);
-            if (!pointHitsTower(mw.x, mw.y, t)) continue;
-            if (panel.isOpen && panel.tower === t) {
-                panel.close();
-            } else {
-                panel.openFor(t, player);
-            }
-            Game?.BuildingSystem?._keepOnlyBuildingDetailPanel?.(panel.isOpen ? panel : null);
-            return true;
+        if (panel.isOpen && panel.tower === t) {
+            panel.close();
+        } else {
+            panel.openFor(t, player);
         }
-        return false;
+        Game?.BuildingSystem?._keepOnlyBuildingDetailPanel?.(panel.isOpen ? panel : null);
+        return true;
     },
 };
 
 // ==================== 基地铁栅栏滑动门（2026-08-15）====================
 // Blender 建模 + 掩体同款砖墙/铸铁贴图 + 16 帧横向缩进动画；关闭=阻挡门洞，打开=放行。
-/** 最近友军单位（玩家/侍从；排除同为 player 阵营的防御塔/掩体/基地）。
- *  侍从不在 Game.entities 里（存于 PartySystem._members），必须单独扫描，
- *  否则门只对玩家有反应。 */
-function nearbyFriendlyUnit(cx, cy) {
-    let best = null;
-    let bestD = Infinity;
+/** 任意友军贴近门段即可开门；先命中就返回，不由离门中心最近的单位替其他人决定。 */
+function hasFriendlyUnitNearGate(segment, radius = 65) {
+    if (!segment) return false;
+    const dx = segment.x2 - segment.x1;
+    const dy = segment.y2 - segment.y1;
+    const len2 = dx * dx + dy * dy;
     const scan = (e) => {
-        if (!e || !e.active) return;
-        if (e._isDefenseStructure || e._isDefenseTower || e._isDefenseCover) return;
-        if (e._faction !== 'player' && e._faction !== 'companion') return;
+        if (!e || !e.active) return false;
+        if (e._isDefenseStructure || e._isDefenseTower || e._isDefenseCover) return false;
+        if (e._faction !== 'player' && e._faction !== 'companion') return false;
         // 墙顶与门洞分属不同移动表面，墙上单位不能隔着高度触发地面城门。
-        if (e._surfaceKind === 'wall_walk') return;
-        const d = Math.hypot(e.x - cx, e.y - cy);
-        if (d < bestD) { bestD = d; best = e; }
+        if (e._surfaceKind === 'wall_walk') return false;
+        const t = len2 > 0 ? Math.max(0, Math.min(1,
+            ((e.x - segment.x1) * dx + (e.y - segment.y1) * dy) / len2)) : 0;
+        const px = e.x - (segment.x1 + t * dx);
+        const py = e.y - (segment.y1 + t * dy);
+        return px * px + py * py <= radius * radius;
     };
-    if (Game && Game.player) scan(Game.player);
+    if (Game && scan(Game.player)) return true;
     if (Game && Game.entities) {
-        for (const e of Game.entities.values()) scan(e);
+        for (const e of Game.entities.values()) if (scan(e)) return true;
     }
     // 侍从挂在 Game.PartySystem（party-system.js 单例，game.js 挂载），不在 entities
     const party = (Game && Game.PartySystem) || null;
     if (party && Array.isArray(party.members)) {
-        for (const e of party.members) scan(e);
+        for (const e of party.members) if (scan(e)) return true;
     }
-    return best;
+    return false;
 }
 
-/** 关门瞬间把"嵌进门段内"的单位沿面线法线推开（2026-08-16 三修）。
+/** 关门瞬间把真正嵌入有限门段的单位局部推开。
  *  - 只在 close() 瞬间调用一次（不每帧推——每帧直接改坐标会与移动系统 resolve 打架：
  *    开门时玩家被弹开/瞬移，双门接缝处卡柱子，实测更严重）；
- *  - 只推真正重叠门段（距离 < halfThick + 单位半径 + 2）的单位，不推只是靠近的；
- *  - 目标位置经 WallSystem.resolve 校验/滑动（不推进别的墙/柱子/接缝）。
+ *  - 门身按法向推出，端点按最近点径向推出；位移不超过重叠深度 + 安全余量；
+ *  - 与普通移动共用 Collider 偏移和墙体解析，不接管楼梯/墙顶/桥接导航。
  *  @returns {string[]} 被推开单位的 id 列表（调试用） */
 function unstickUnitsFromGate(A, B, halfThick) {
     const dx = B.x - A.x;
     const dy = B.y - A.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len;
-    const uy = dy / len;
-    const nx = -uy;
-    const ny = ux;
     const pushed = [];
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-6) return pushed;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const closestPoint = (x, y) => {
+        const t = Math.max(0, Math.min(1,
+            ((x - A.x) * dx + (y - A.y) * dy) / (len * len)));
+        return { x: A.x + dx * t, y: A.y + dy * t };
+    };
+    const seen = new Set();
     const push = (u) => {
-        if (!u || !u.active) return;
+        if (!u || seen.has(u)) return;
+        seen.add(u);
+        if (!u.active || u.immovable) return;
         if (u._isDefenseStructure || u._isDefenseTower || u._isDefenseCover) return;
+        if (u._surfaceKind === 'wall_walk' || u._surfaceKind === 'stairs'
+            || u._elevatedNavigationBridge) return;
         const r = u.groundRadius || u.collisionRadius || 20;
         const thresh = halfThick + r + 2; // 只推真正嵌进门段的单位
-        const t = Math.max(0, Math.min(1, ((u.x - A.x) * ux + (u.y - A.y) * uy) / len));
-        const cx = A.x + ux * t * len;
-        const cy = A.y + uy * t * len;
-        const off = (u.x - cx) * nx + (u.y - cy) * ny; // 有符号法向偏移
-        const dist = Math.abs(off);
+        const offset = WallSystem.getEntityMoveOffset(u);
+        const x = u.x + offset.x, y = u.y + offset.y;
+        const nearest = closestPoint(x, y);
+        const rx = x - nearest.x, ry = y - nearest.y;
+        // 必须包含端点以外的切向距离，不能把整条延长线附近的远处单位吸到门端。
+        const dist = Math.hypot(rx, ry);
         if (dist >= thresh) return;
-        const side = off >= 0 ? 1 : -1;
-        const tx = cx + nx * (thresh + 1) * side;
-        const ty = cy + ny * (thresh + 1) * side;
-        // 经移动系统同一 resolve 校验/切向滑动，避免推进别的墙/柱子/双门接缝
-        let ex = tx;
-        let ey = ty;
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const er = WallSystem.resolve(u.x, u.y, tx, ty, r);
-            if (er) { ex = er.x; ey = er.y; }
-        }
-        u.x = ex;
-        u.y = ey;
+        const pushDistance = thresh + 1 - dist;
+        const tx = u.x + (dist > 1e-6 ? rx / dist : nx) * pushDistance;
+        const ty = u.y + (dist > 1e-6 ? ry / dist : ny) * pushDistance;
+        const resolved = WallSystem.resolveEntityMove(u, u.x, u.y, tx, ty, r);
+        const moved = Math.hypot(resolved.x - u.x, resolved.y - u.y);
+        if (!Number.isFinite(moved) || moved < 1e-6 || moved > pushDistance + 1e-6) return;
+        const nextX = resolved.x + offset.x, nextY = resolved.y + offset.y;
+        const nextNearest = closestPoint(nextX, nextY);
+        // 受阻时不把部分滑移当作排障成功，也不跨门换边；无合法局部落点则保持原位。
+        if (Math.hypot(nextX - nextNearest.x, nextY - nextNearest.y) < thresh) return;
+        const side = rx * nx + ry * ny;
+        const nextSide = (nextX - A.x) * nx + (nextY - A.y) * ny;
+        if (side * nextSide < -1e-6) return;
+        u.x = resolved.x;
+        u.y = resolved.y;
+        if (typeof u.collider?.syncPosition === 'function') u.collider.syncPosition();
         pushed.push(u.id || u.name || 'unit');
     };
     if (Game && Game.player) push(Game.player);
     if (Game && Game.entities) {
         for (const e of Game.entities.values()) push(e);
+    }
+    const party = Game && Game.PartySystem;
+    if (party && Array.isArray(party.members)) {
+        for (const member of party.members) push(member);
     }
     return pushed;
 }
@@ -7335,24 +7839,14 @@ const _CoverGate = {
         // 栅栏滑出后 RB 边出现大洞，基地"围不拢"。改为点到门线段的距离，
         // 只有单位真正贴到门洞（≤65px）才开，离开后快速关，菱形平时保持闭合。
         const OPEN_TOUCH = 65;
-        const CLOSE_LINGER_S = 0.8; // dt 单位为秒
-        const f = nearbyFriendlyUnit((this._detectX ?? this._cx), (this._detectY ?? this._cy));
-        let near = false;
-        if (f) {
-            const s = this._gateSeg;
-            const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
-            const len = Math.hypot(dx, dy) || 1;
-            const t = Math.max(0, Math.min(1, ((f.x - s.x1) * dx + (f.y - s.y1) * dy) / (len * len)));
-            const px = s.x1 + t * dx;
-            const py = s.y1 + t * dy;
-            near = Math.hypot(f.x - px, f.y - py) <= OPEN_TOUCH;
-        }
+        const CLOSE_LINGER_MS = 800;
+        const near = hasFriendlyUnitNearGate(this._gateSeg, OPEN_TOUCH);
         if (near) {
             this._closeTimer = 0;
             if (this.state === 'closed' || this.state === 'closing') this.open();
         } else {
-            this._closeTimer = (this._closeTimer || 0) + dt;
-            if ((this.state === 'open' || this.state === 'opening') && this._closeTimer >= CLOSE_LINGER_S) {
+            this._closeTimer = (this._closeTimer || 0) + Math.max(0, Number(dt) || 0);
+            if ((this.state === 'open' || this.state === 'opening') && this._closeTimer >= CLOSE_LINGER_MS) {
                 this.close();
             }
         }
@@ -7481,6 +7975,9 @@ const wallStairGroupRegistry = createWallStairGroupRegistry({
 const rebuildWallStairGroups = (staircases = null) => {
     const result = wallStairGroupRegistry.rebuild(staircases);
     elevatedTopology.invalidate();
+    // 组边界与墙梯 Portal 是同一个碰撞事务。先完成楼梯侧轨重建，再立即让墙顶
+    // 外轮廓消费新楼梯集合，避免旧 guard 在楼梯口继续阻挡墙顶单位。
+    DefenseSystem?.refreshElevatedTopologyNow?.();
     return result;
 };
 const ensureWallStairGroups = (staircases = null) =>
@@ -7505,8 +8002,74 @@ ElevatedNavigationController.configure({
         DefenseSystem.planSurfaceRouteForUnit(unit, surfaceTarget),
     replanRoute: (unit, point) =>
         DefenseSystem.replanSurfaceRouteForUnit(unit, point),
+    exitRoute: (unit, direction) => DefenseSystem.stairExitRouteForUnit(unit, direction),
     trackUnit: (unit) => DefenseSystem.trackElevatedNavigationUnit(unit),
 }, WALL_WALK_CONFIG.surfaceNavigation);
+
+ElevatedGarrison.configure({
+    maxUnitRadius: WALL_WALK_CONFIG.maxUnitRadius,
+    revision: () => DefenseSystem.elevatedNavigationRevision(),
+    context: (goal) => {
+        const wall = _walkableWallById(goal.wallId, Game?.entities);
+        if (!wall?.active || wall._sinking || wall._wallTowerOwner?._sinking) return null;
+        const geometry = blockWallTopWalkGeometry(wall);
+        const line = wall._faceLine;
+        const center = geometry?.center || (line?.length === 2
+            ? { x: (line[0].x + line[1].x) / 2, y: (line[0].y + line[1].y) / 2 } : null);
+        if (!center) return null;
+        const topology = _blockWallIndex(Game?.entities);
+        return { wall, center, id: wall.id, z: Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ,
+            componentId: topology.componentId(wall),
+            legacyWalls: geometry ? null : new Set(collectConnectedWalkableWalls(wall, Game?.entities)) };
+    },
+    candidate: (unit, context, point, portalClearance) => {
+        const topology = _blockWallIndex(Game?.entities);
+        const radius = Math.min(Number(unit.groundRadius) || Number(unit.collisionRadius) || 20,
+            WALL_WALK_CONFIG.surfaceUnitRadius);
+        // 与移动使用同一完整脚底承托检测；不拿立面、贴图尺寸或塔楼中心当作可驻守面积。
+        const support = _blockWallFootprintSupport({ groundRadius: radius }, point.x, point.y,
+            topology, context.wall);
+        // 不同高度的墙塔接缝只用于通过，不能把具有来向滞回的载体作为永久站位。
+        if (support?.connector?.wallTowerTransition
+            && Math.abs(support.connector.topZA - support.connector.topZB) > 12) return null;
+        let wall = support?.wall;
+        if (context.legacyWalls) {
+            const surface = DefenseSystem._wallWalkSurfaceAt({ z: context.z, groundRadius: radius,
+                _surfaceKind: 'wall_walk', _surfaceWall: context.wall }, point.x, point.y);
+            wall = surface?.wall;
+            if (!wall || !context.legacyWalls.has(wall)
+                || surface.distance + radius > (Number(wall._wallWalkWidth) || WALL_WALK_CONFIG.laneWidth) / 2) return null;
+        } else if (!wall || topology.componentId(wall) !== context.componentId) return null;
+        if (!wall.active || wall._sinking || wall._wallTowerOwner?._sinking) return null;
+        const z = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+        if (Math.abs(z - context.z) > 12) return null;
+        // Portal及其连接面只用于通行，不能成为永久驻守位。
+        for (const staircase of topology.nearbyStaircases(point.x, point.y, 256)) {
+            if (!staircase.active || staircase._sinking || Math.abs(staircase.targetTopZ - z) > 12) continue;
+            const connector = staircase.wallConnectorSurface?.();
+            if (connector?.footprint && pointInIsoFootprint(point.x, point.y,
+                connector.footprint, radius + portalClearance)) return null;
+        }
+        return { x: point.x, y: point.y, z, surfaceKind: 'wall_walk', wallId: wall.id, route: [] };
+    },
+    route: (unit, point) => DefenseSystem.routeSurfaceMoveForUnit(unit, point),
+    followTarget: (unit, command) => {
+        // 玩家通过独立RTS控制器持有命令，不属于士兵的默认跟随行为，更不能跟随自己。
+        if (unit === Game?.player || unit._rtsController) return null;
+        return !command?.mode || command.mode === 'follow' ? Game?.player : null;
+    },
+    evacuate: (unit) => {
+        const point = DefenseSystem.routeSurfaceMoveForUnit(unit, {
+            x: unit.x, y: unit.y, z: 0, surfaceKind: 'ground', route: [],
+        });
+        if (point?.unreachable) return point;
+        // 只走到已按单位半径外移的梯外入口；不能继续寻路到城墙正下方。
+        const index = point?.route?.findIndex((node) => node.surfaceKind === 'ground') ?? -1;
+        if (index < 0) return null;
+        const route = point.route.slice(0, index + 1);
+        return { ...point, ...route[index], route };
+    },
+}, wallWalkCfg.garrison || {});
 
 class WallStaircase extends Combatant {
     constructor(x, y, config = {}) {
@@ -8566,18 +9129,26 @@ class BuildableGate extends Combatant {
         // 非精灵中心 _spriteCx/_spriteCy（等距偏移使门外单位够不到检测半径）
         this._detectX = (this._gateSeg.x1 + this._gateSeg.x2) / 2;
         this._detectY = (this._gateSeg.y1 + this._gateSeg.y2) / 2;
-        if (WallSystem && WallSystem.isoSegments) WallSystem.isoSegments.push(this._gateSeg);
-        // 裁剪与门共线/重叠的掩体碰撞段（贴柱走位不被掩体段截停）
+        try {
+            if (WallSystem && WallSystem.isoSegments) WallSystem.isoSegments.push(this._gateSeg);
+            // 四墙换门要等旧中段拆除后再裁剪，准备阶段不能改动旧墙碰撞。
+            if (!config.deferCoverTrim) this.trimAdjacentCovers();
+            this.state = 'closed';
+            this._frame = 0;
+            this._closeTimer = 0;
+            this.gateMode = 'auto';
+            this._initGateSprite(cfg);
+            if (this._isGate4) applyResearchHp(this, hp);
+            this.rebuildCollider();
+        } catch (error) {
+            // 构造尚未返回，外层拿不到 this；门自身负责撤销已登记的碰撞/视觉。
+            this.destroy();
+            throw error;
+        }
+    }
+
+    trimAdjacentCovers() {
         trimCoverSegsForGate(this, this._faceLine[0], this._faceLine[1]);
-        this.state = 'closed';
-        this._frame = 0;
-        this._closeTimer = 0;
-        // 门模式（2026-08-15 建筑面板按钮）：'auto' 友军靠近自动开关（默认）；
-        // 'locked' 常锁——任何单位经过都不开；'open' 常开——门口保持敞开
-        this.gateMode = 'auto';
-        this._initGateSprite(cfg);
-        if (this._isGate4) applyResearchHp(this, hp);
-        this.rebuildCollider();
     }
 
     _initGateSprite(cfg) {
@@ -8662,8 +9233,10 @@ class BuildableGate extends Combatant {
      * locked = 常锁（无论谁经过都不打开）；open = 常开（保持门口敞开）；auto = 原自动逻辑
      */
     setMode(mode) {
+        if (!['auto', 'locked', 'open'].includes(mode)) return;
         const previousMode = this.gateMode;
         this.gateMode = mode;
+        if (previousMode !== mode) this._closeTimer = 0;
         if (mode === 'locked') this.close();
         else if (mode === 'open') this.open();
         // 模式变化会改变玩家/侍从的自动门成本；除清缓存外，还要让已持有的旧路径重算。
@@ -8690,24 +9263,14 @@ class BuildableGate extends Combatant {
         }
         // 2026-08-17：同基地门——点到门线段 ≤65px 才开，离开 0.8s 后关（菱形平时闭合）
         const OPEN_TOUCH = 65;
-        const CLOSE_LINGER_S = 0.8;
-        const f = nearbyFriendlyUnit((this._detectX ?? this._spriteCx), (this._detectY ?? this._spriteCy));
-        let near = false;
-        if (f) {
-            const s = this._gateSeg;
-            const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
-            const len = Math.hypot(dx, dy) || 1;
-            const t = Math.max(0, Math.min(1, ((f.x - s.x1) * dx + (f.y - s.y1) * dy) / (len * len)));
-            const px = s.x1 + t * dx;
-            const py = s.y1 + t * dy;
-            near = Math.hypot(f.x - px, f.y - py) <= OPEN_TOUCH;
-        }
+        const CLOSE_LINGER_MS = 800;
+        const near = hasFriendlyUnitNearGate(this._gateSeg, OPEN_TOUCH);
         if (near) {
             this._closeTimer = 0;
             if (this.state === 'closed' || this.state === 'closing') this.open();
         } else {
-            this._closeTimer = (this._closeTimer || 0) + dt;
-            if ((this.state === 'open' || this.state === 'opening') && this._closeTimer >= CLOSE_LINGER_S) {
+            this._closeTimer = (this._closeTimer || 0) + Math.max(0, Number(dt) || 0);
+            if ((this.state === 'open' || this.state === 'opening') && this._closeTimer >= CLOSE_LINGER_MS) {
                 this.close();
             }
         }
@@ -8797,6 +9360,13 @@ class BuildableGate extends Combatant {
         this.hittable = false;
         this._sinking = true;
         this._teardownCollision();
+        // 门体损毁不等于门柱损毁。解除失效分组，让存活柱及其女墙按独立结构保存。
+        for (const part of this._buildGroup || []) {
+            if (!part?._isBlockCover || part._buildGroupRoot !== this) continue;
+            delete part._buildGroupRoot;
+            delete part._buildGroup;
+        }
+        this._buildGroup = null;
         // 从防守系统移除：基地门（this.gate）与玩家建造门（gates 数组）统一清理
         if (DefenseSystem && DefenseSystem.gates) {
             const i = DefenseSystem.gates.indexOf(this);

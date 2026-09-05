@@ -1,4 +1,3 @@
-
 import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
 import { mailId } from '../systems/mail-store.js';
 import { createGoldItem } from '../world/economy-gold-routing.js';
@@ -19,11 +18,16 @@ import { BasePanel } from './panels/base-panel.js';
 import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 import { QuestRegistry } from '../quest/quest-registry.js';
 import { QuestStore } from '../quest/quest-store.js';
+import { FirstExpeditionTutorial, FIRST_EXPEDITION_QUEST_ID } from '../quest/first-expedition-tutorial.js';
+import {
+    FirstPlaneSettlementTutorial,
+    FIRST_PLANE_SETTLEMENT_QUEST_ID,
+} from '../quest/first-plane-settlement-tutorial.js';
 
 function createLegacyQuestView(definition) {
     const view = {
         ...definition,
-        objectives: definition.objectives.map((objective) => {
+        objectives: definition.objectives.filter((objective) => !objective.hidden).map((objective) => {
             const objectiveView = { ...objective };
             Object.defineProperty(objectiveView, 'current', {
                 enumerable: true,
@@ -223,7 +227,8 @@ export const QuestSystem = {
         const archiveSummary = panel.querySelector('#questArchiveSummary');
         if (!listCol || !detailCol || !overview) return;
 
-        const quests = Object.values(this.QUESTS);
+        const quests = Object.values(this.QUESTS).filter((quest) =>
+            !quest.hiddenUntilAccepted || quest.accepted || quest.completed);
         const activeCount = quests.filter(quest => quest.accepted && !quest.completed).length;
         const completedCount = quests.filter(quest => quest.completed).length;
         const availableCount = quests.length - activeCount - completedCount;
@@ -240,7 +245,7 @@ export const QuestSystem = {
             return;
         }
 
-        if (!this.QUESTS[this._selectedQuest]) this._selectedQuest = quests[0].id;
+        if (!quests.some((quest) => quest.id === this._selectedQuest)) this._selectedQuest = quests[0].id;
 
         // 渲染任务列表
         listCol.innerHTML = quests.map(quest => {
@@ -291,7 +296,7 @@ export const QuestSystem = {
                 </div>`;
         }).join('');
 
-        const rewardTypeLabels = { level: '成长', gold: '货币', weapon: '装备' };
+        const rewardTypeLabels = { level: '成长', gold: '货币', weapon: '装备', key: '补给', infrastructure: '基建' };
         const rewardsHtml = quest.rewards.map(reward => `
             <div class="quest-reward-item">
                 <span>${rewardTypeLabels[reward.type] || '奖励'}</span>
@@ -315,9 +320,15 @@ export const QuestSystem = {
                     <span>行动记录与奖励已归档。</span>
                 </div>`;
         } else {
-            const activeHint = QuestState.isInQuest()
+            const currentObjective = quest.objectives.find((objective) =>
+                Number(objective.current) < Number(objective.target));
+            const activeHint = quest.id === FIRST_EXPEDITION_QUEST_ID
+                ? FirstExpeditionTutorial.getActiveHint()
+                : quest.id === FIRST_PLANE_SETTLEMENT_QUEST_ID
+                ? FirstPlaneSettlementTutorial.getActiveHint()
+                : quest.activeHints?.[currentObjective?.id] || quest.activeHint || (QuestState.isInQuest()
                 ? '当前正在任务世界执行行动目标。'
-                : '任务已接受，可返回小鼠侍从进入任务世界。';
+                : '任务已接受，可返回小鼠侍从进入任务世界。');
             actionHtml = `
                 <div class="quest-action-state quest-action-state--active">
                     <strong>行动进行中</strong>
@@ -499,15 +510,13 @@ export const QuestState = {
     },
 
     _createRewardWeapon() {
-        const weaponKeys = Object.keys(ItemDatabase.items || {}).filter(key => {
+        const keys = Object.keys(ItemDatabase.items || {}).filter(key => {
             const item = ItemDatabase.items[key];
-            return item && (item.rarity === 'rare' || item.rarity === 'epic')
-                && String(item.category || '').startsWith('weapon');
+            return item && ['rare', 'epic'].includes(item.rarity) && String(item.category || '').startsWith('weapon');
         });
-        if (weaponKeys.length === 0) return null;
-        const key = weaponKeys[Math.floor(Math.random() * weaponKeys.length)];
-        return ItemDatabase.createInstance(key);
+        return keys.length ? ItemDatabase.createInstance(keys[Math.floor(Math.random() * keys.length)]) : null;
     }
+
 };
 
 QuestStore.subscribe(() => QuestSystem.refresh());

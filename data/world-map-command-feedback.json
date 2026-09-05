@@ -1,0 +1,12 @@
+{
+  "badgeSize": 36,
+  "pointerOffset": [28, 22],
+  "confirmDurationMs": 520,
+  "reducedConfirmDurationMs": 180,
+  "hoverPeriodMs": { "move": 1400, "attack": 1000, "enter": 1600, "blocked": 0 },
+  "previewDelayMs": 80,
+  "armyFrameMs": 50,
+  "armySwayPeriodMs": 1600,
+  "armySwayRadians": 0.012,
+  "arrivalPulseMs": 1600
+}

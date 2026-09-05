@@ -8,20 +8,23 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, PolarNightCantorEnemy, IceCrownLynxEnemy, GlacierbackWarOxEnemy, AbyssCrystalRavagerEnemy, FrostboundCenturionEnemy, PolarNightHighPriestEnemy, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createSmallRotbogRhinocerosBeetle as createSmallRotbogRhinocerosBeetleBase, createReedShadowSickleMantis as createReedShadowSickleMantisBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createRotbogRhinocerosBeetleKing as createRotbogRhinocerosBeetleKingBase, createRotTideToadAncestor as createRotTideToadAncestorBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, BrokenCableGaoler, BlackLungLampKeeper, SealedShaftRockWraith, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron, StitchfaceHeadsman, WaxfaceMourner, PleatDevourer, HollowOvum } from '../entities/enemy-types.js';
-import { DeepVeinMother } from '../entities/enemy-types/deep-vein-mother.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createSmallRotbogRhinocerosBeetle as createSmallRotbogRhinocerosBeetleBase, createReedShadowSickleMantis as createReedShadowSickleMantisBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createRotbogRhinocerosBeetleKing as createRotbogRhinocerosBeetleKingBase, createRotTideToadAncestor as createRotTideToadAncestorBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, BrokenCableGaoler, BlackLungLampKeeper, SealedShaftRockWraith, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { CoreDrillLarva, OreShardling } from '../entities/enemy-types/mine-small-monsters.js';
 import { CoffinWard } from '../entities/enemy-types/coffin-ward.js';
 import { ShroudThrall } from '../entities/enemy-types/shroud-thrall.js';
+import { StitchfaceHeadsman } from '../entities/enemy-types/stitchface-headsman.js';
+import { WaxfaceMourner } from '../entities/enemy-types/waxface-mourner.js';
 import { OssuaryCaster } from '../entities/enemy-types/ossuary-caster.js';
 import { KnellAttendant } from '../entities/enemy-types/knell-attendant.js';
+import { DeepVeinMother } from '../entities/enemy-types/deep-vein-mother.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { hasEnemyFamily } from '../config/enemy-family.js';
 import enemyConfigData from '../../data/enemy-config.json';
+import { registeredEnemyFactories } from '../entities/enemy-registry.js';
 
 // ==================== 僵尸工厂（从 enemy-config.json 读取属性） ====================
 export function createBlackWolf(x, y) {
@@ -78,60 +81,6 @@ function createBrownBear(x, y) {
     return createBrownBearBase(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
     });
-}
-
-function createFrozenNormalEnemy(EnemyType, configKey, x, y) {
-    const cfg = enemyConfigData[configKey] || {};
-    return new EnemyType(x, y, {
-        ...cfg,
-        showWeapon: false,
-        ai: {
-            ...(cfg.ai || {}),
-            aggroRange: 9999,
-            loseTimeout: 999999,
-            alertRange: 9999
-        }
-    });
-}
-
-function createSnowManeLynx(x, y) {
-    return createFrozenNormalEnemy(SnowManeLynxEnemy, 'snowManeLynx', x, y);
-}
-
-function createFrostbackMuskOx(x, y) {
-    return createFrozenNormalEnemy(FrostbackMuskOxEnemy, 'frostbackMuskOx', x, y);
-}
-
-function createAbyssRimeBeast(x, y) {
-    return createFrozenNormalEnemy(AbyssRimeBeastEnemy, 'abyssRimeBeast', x, y);
-}
-
-function createFrostboundSpearman(x, y) {
-    return createFrozenNormalEnemy(FrostboundSpearmanEnemy, 'frostboundSpearman', x, y);
-}
-
-function createPolarNightCantor(x, y) {
-    return createFrozenNormalEnemy(PolarNightCantorEnemy, 'polarNightCantor', x, y);
-}
-
-function createIceCrownLynx(x, y) {
-    return createFrozenNormalEnemy(IceCrownLynxEnemy, 'iceCrownLynx', x, y);
-}
-
-function createGlacierbackWarOx(x, y) {
-    return createFrozenNormalEnemy(GlacierbackWarOxEnemy, 'glacierbackWarOx', x, y);
-}
-
-function createAbyssCrystalRavager(x, y) {
-    return createFrozenNormalEnemy(AbyssCrystalRavagerEnemy, 'abyssCrystalRavager', x, y);
-}
-
-function createFrostboundCenturion(x, y) {
-    return createFrozenNormalEnemy(FrostboundCenturionEnemy, 'frostboundCenturion', x, y);
-}
-
-function createPolarNightHighPriest(x, y) {
-    return createFrozenNormalEnemy(PolarNightHighPriestEnemy, 'polarNightHighPriest', x, y);
 }
 
 function createEvilTreant(x, y) {
@@ -334,6 +283,14 @@ export function createShroudThrall(x, y) {
     return new ShroudThrall(x, y, { ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 } });
 }
 
+export function createStitchfaceHeadsman(x, y) {
+    return new StitchfaceHeadsman(x, y, { ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 } });
+}
+
+export function createWaxfaceMourner(x, y) {
+    return new WaxfaceMourner(x, y, { ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 } });
+}
+
 export function createOssuaryCaster(x, y) {
     return new OssuaryCaster(x, y, { ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 } });
 }
@@ -406,6 +363,15 @@ export function createBlackLungLampKeeper(x, y) {
     });
 }
 
+export function createDeepVeinMother(x, y) {
+    const cfg = enemyConfigData.deepVeinMother;
+    return new DeepVeinMother(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: { ...cfg.ai, aggroRange: 9999, alertRange: 9999, loseTimeout: 999999 },
+    });
+}
+
 export function createSealedShaftRockWraith(x, y) {
     const cfg = enemyConfigData.sealedShaftRockWraith;
     if (!cfg) {
@@ -442,15 +408,6 @@ export function createForemanZombie(x, y) {
             loseTimeout: 999999,
             alertRange: 9999
         }
-    });
-}
-
-export function createDeepVeinMother(x, y) {
-    const cfg = enemyConfigData.deepVeinMother;
-    return new DeepVeinMother(x, y, {
-        ...cfg,
-        showWeapon: false,
-        ai: { ...cfg.ai, aggroRange: 9999, alertRange: 9999, loseTimeout: 999999 },
     });
 }
 
@@ -701,19 +658,10 @@ export function createTimeAgentShield(x, y) {
 // 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
 // 导出供碰撞体积编辑器（src/ui/collision-editor.js）按配置键生成预览怪
 export const ZOMBIE_FACTORY_MAP = {
+    ...registeredEnemyFactories('dungeon'),
     blackWolf: createBlackWolf,
     redWolfKing: createRedWolfKing,
     brownBear: createBrownBear,
-    snowManeLynx: createSnowManeLynx,
-    frostbackMuskOx: createFrostbackMuskOx,
-    abyssRimeBeast: createAbyssRimeBeast,
-    frostboundSpearman: createFrostboundSpearman,
-    polarNightCantor: createPolarNightCantor,
-    iceCrownLynx: createIceCrownLynx,
-    glacierbackWarOx: createGlacierbackWarOx,
-    abyssCrystalRavager: createAbyssCrystalRavager,
-    frostboundCenturion: createFrostboundCenturion,
-    polarNightHighPriest: createPolarNightHighPriest,
     evilTreant: createEvilTreant,
     purpleBlightAncient: createPurpleBlightAncient,
     carnivorousPitcher: createCarnivorousPitcher,
@@ -723,8 +671,8 @@ export const ZOMBIE_FACTORY_MAP = {
     reedShadowSickleMantis: createReedShadowSickleMantis,
     blackKingCobra: createBlackKingCobra,
     medusa: createMedusa,
-    rotbogRhinocerosBeetleKing: createRotbogRhinocerosBeetleKing,
     werewolfKing: createWerewolfKing,
+    rotbogRhinocerosBeetleKing: createRotbogRhinocerosBeetleKing,
     rotTideToadAncestor: createRotTideToadAncestor,
     blackBear: createBlackBear,
     zombie: createBasicZombie,
@@ -739,14 +687,16 @@ export const ZOMBIE_FACTORY_MAP = {
     coreDrillLarva: createCoreDrillLarva,
     coffinWard: createCoffinWard,
     shroudThrall: createShroudThrall,
+    stitchfaceHeadsman: createStitchfaceHeadsman,
+    waxfaceMourner: createWaxfaceMourner,
     ossuaryCaster: createOssuaryCaster,
     knellAttendant: createKnellAttendant,
     oreShardling: createOreShardling,
     brokenCableGaoler: createBrokenCableGaoler,
     blackLungLampKeeper: createBlackLungLampKeeper,
     sealedShaftRockWraith: createSealedShaftRockWraith,
-    foremanZombie: createForemanZombie,
     deepVeinMother: createDeepVeinMother,
+    foremanZombie: createForemanZombie,
     oreSpider: createOreSpider,
     mineCave: createMineCave,
     tombstone: createTombstone,
@@ -759,14 +709,6 @@ export const ZOMBIE_FACTORY_MAP = {
     shounao: createShounao,
     flySwarm: createFlySwarm,
     flyHand: createFlyHand,
-    coffinWard: (x, y) => new CoffinWard(x, y),
-    shroudThrall: (x, y) => new ShroudThrall(x, y),
-    ossuaryCaster: (x, y) => new OssuaryCaster(x, y),
-    knellAttendant: (x, y) => new KnellAttendant(x, y),
-    stitchfaceHeadsman: (x, y) => new StitchfaceHeadsman(x, y),
-    waxfaceMourner: (x, y) => new WaxfaceMourner(x, y),
-    pleatDevourer: (x, y) => new PleatDevourer(x, y),
-    hollowOvum: (x, y) => new HollowOvum(x, y),
     timeAgentAssault: createTimeAgentAssault,
     timeAgentShield: createTimeAgentShield
 };
@@ -860,6 +802,9 @@ export class ZombieDungeonMapGenerator {
      */
     generate() {
         const cfg = this._genCfg;
+        if (cfg.tutorialRoute?.enabled === true) {
+            return this._generateTutorialRoute(cfg.tutorialRoute);
+        }
         const rows = cfg.grid.rows;
         const mainRow = cfg.grid.mainRow ?? 1;
         const shortestCombatPath = cfg.shortestCombatPath;
@@ -953,6 +898,34 @@ export class ZombieDungeonMapGenerator {
             }
         }
 
+        return { nodes, edges };
+    }
+
+    /**
+     * 新手试炼固定路线：入口 → 战斗 → 随机事件 → Boss → 奖励。
+     * 只由地牢配置显式开启；不生成网格分支、宝箱岔路或随机精英节点。
+     */
+    _generateTutorialRoute(routeConfig = {}) {
+        const cfg = this._genCfg;
+        const row = cfg.grid?.mainRow ?? 0;
+        const colSpacing = cfg.grid?.colSpacing ?? 160;
+        const rowSpacing = cfg.grid?.rowSpacing ?? 140;
+        const configuredSteps = Array.isArray(routeConfig.steps) ? routeConfig.steps : [];
+        const steps = configuredSteps.length ? configuredSteps : ['combat', 'event', 'boss', 'reward'];
+        const nodes = ['start', ...steps].map((type, col) => {
+            const node = this._createNode(col, row, colSpacing, rowSpacing, type);
+            node.tutorialStep = col;
+            node.tutorialStepCount = steps.length;
+            if (type === 'combat') {
+                node.isElite = false;
+                node.eliteChance = 0;
+            }
+            return node;
+        });
+        const edges = [];
+        for (let index = 1; index < nodes.length; index++) {
+            edges.push({ from: nodes[index - 1].id, to: nodes[index].id });
+        }
         return { nodes, edges };
     }
 
@@ -1197,6 +1170,7 @@ export class ZombieDungeonCombat {
         this._arenaMode = false;
         this._currentWave = 0;
         this._totalWaves = this._encounter.combatWaves;
+        this._nextWaveTemplate = null;
     }
 
     /**
@@ -1212,6 +1186,12 @@ export class ZombieDungeonCombat {
 
     reset() {
         this._currentWave = 0;
+        this._nextWaveTemplate = null;
+    }
+
+    /** 当前物理房对应的战斗语义只消费一次，不能泄漏到下一逻辑波次。 */
+    setNextWaveTemplate(template) {
+        this._nextWaveTemplate = template && typeof template === 'object' ? template : null;
     }
 
     get isComplete() {
@@ -1232,6 +1212,8 @@ export class ZombieDungeonCombat {
     nextWaveMonsterClasses() {
         if (this.isComplete) return [];
         this._currentWave++;
+        const waveTemplate = this._nextWaveTemplate;
+        this._nextWaveTemplate = null;
 
         const { monsterPool } = this.config;
         const monstersPerWave = this._encounter.monstersPerWave;
@@ -1245,8 +1227,11 @@ export class ZombieDungeonCombat {
         // 怪物池白名单优先。matchPoolRanks=true 时，白名单仍按 enemy-config rank
         // 匹配 normal/elite/lord/boss 槽位；未开启时保留旧版跨阶级占位池语义。
         // 其次按 family 限定（如中级 Boss 只刷僵尸类领主），无匹配时退回原池兜底。
-        const poolKeys = Array.isArray(this._encounter.poolKeys)
-            ? this._encounter.poolKeys.filter(key => ZOMBIE_FACTORY_MAP[key] && !enemyConfigData[key]?.noPool)
+        const configuredPoolKeys = Array.isArray(waveTemplate?.poolKeys)
+            ? waveTemplate.poolKeys
+            : this._encounter.poolKeys;
+        const poolKeys = Array.isArray(configuredPoolKeys)
+            ? configuredPoolKeys.filter(key => ZOMBIE_FACTORY_MAP[key] && !enemyConfigData[key]?.noPool)
             : [];
         const matchPoolRanks = this._encounter.matchPoolRanks === true;
         const poolFamily = this._encounter.poolFamily || null;
@@ -1278,7 +1263,12 @@ export class ZombieDungeonCombat {
         };
 
         // 事件强制怪物占位数：强制怪从总数中扣减，剩余名额才由怪物池随机（如 1 骑士 + 4 普通）
-        const forcedCount = (this._currentWave === this._forceMonstersWave && Array.isArray(this._forceMonsters)) ? this._forceMonsters.length : 0;
+        const templateForcedKeys = Array.isArray(waveTemplate?.forceMonsters)
+            ? waveTemplate.forceMonsters.filter(key => ZOMBIE_FACTORY_MAP[key])
+            : [];
+        const eventForcedCount = (this._currentWave === this._forceMonstersWave && Array.isArray(this._forceMonsters))
+            ? this._forceMonsters.length : 0;
+        const forcedCount = eventForcedCount + templateForcedKeys.length;
         const drawTarget = Math.max(0, monstersPerWave - forcedCount);
 
         if (composition && typeof composition === 'object') {
@@ -1308,7 +1298,11 @@ export class ZombieDungeonCombat {
                 const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
                 classes.push({ MonsterClass, tier });
             }
+        }
 
+        // 房间模板强制怪属于本房语义，逐波消费；与事件强制怪并存时共同占用总怪数。
+        for (const key of templateForcedKeys) {
+            classes.unshift({ MonsterClass: ZOMBIE_FACTORY_MAP[key], tier: 'template', rank: enemyConfigData[key]?.rank });
         }
 
         // 事件强制怪物（如诅咒铠甲必刷铠甲骑士）：默认首波插入，竞技场压轴波插入（forceArenaWaves）；不参与怪物池随机
@@ -1319,19 +1313,21 @@ export class ZombieDungeonCombat {
             }
         }
 
-        // 配比或强制生成的领主/首领已经承担强敌名额，不能再被“缺精英”兜底替换。
+        // 来源与阶级分开：配比与强制生成的精英/领主/首领都已承担强敌名额。
+        // 不能把逐波配比的领主当成“缺精英”，再随机替换掉压轴强敌。
+        const isForced = (entry) => entry.tier === 'forced' || entry.tier === 'template';
         const hasStrongEnemy = classes.some(entry => ['elite', 'lord', 'boss'].includes(entry.tier)
-            || (entry.tier === 'forced' && ['elite', 'lord', 'boss'].includes(entry.rank)));
+            || (isForced(entry) && ['elite', 'lord', 'boss'].includes(entry.rank)));
         const needsElite = this._isElite || (!composition && this._encounter.guaranteeAtLeastOneElite);
         if (needsElite && !hasStrongEnemy) {
+            // 必须继续消费本房模板 poolKeys；否则主题模板指定的精英职责会被全局随机池覆盖。
             const pool = getPool('elite');
             const eliteClass = pool[Math.floor(Math.random() * pool.length)];
-            if (classes.length > 0) {
-                const replaceable = classes.map((entry, index) => entry.tier === 'forced' ? -1 : index)
-                    .filter(index => index >= 0);
+            const replaceable = classes.map((entry, index) => isForced(entry) ? -1 : index)
+                .filter(index => index >= 0);
+            if (replaceable.length > 0) {
                 const idx = replaceable[Math.floor(Math.random() * replaceable.length)];
-                if (idx === undefined) classes.push({ MonsterClass: eliteClass, tier: 'elite' });
-                else classes[idx] = { MonsterClass: eliteClass, tier: 'elite' };
+                classes[idx] = { MonsterClass: eliteClass, tier: 'elite' };
             } else {
                 classes.push({ MonsterClass: eliteClass, tier: 'elite' });
             }
@@ -1359,6 +1355,34 @@ export class ZombieDungeonCombat {
             }
             for (let i = classes.length - 1; i >= 0 && normalCount > target; i--) {
                 if (classes[i].tier === 'normal') { classes.splice(i, 1); normalCount--; }
+            }
+        }
+
+        // 战斗语义模板只为本波附加出生职责；怪物类型与数量仍由上方唯一编组链决定。
+        // 精英夹击优先把既有 elite 槽放到正面，其余单位再左右交替；显式强化仅在模板声明时应用。
+        const spawnPattern = waveTemplate?.spawnPattern;
+        if (spawnPattern && typeof spawnPattern === 'object' && classes.length > 0) {
+            const roles = Array.isArray(spawnPattern.roles)
+                ? spawnPattern.roles.filter((role) => typeof role === 'string' && role)
+                : [];
+            const eliteRole = typeof spawnPattern.eliteRole === 'string'
+                ? spawnPattern.eliteRole : null;
+            const eliteIndex = eliteRole
+                ? Math.max(0, classes.findIndex((record) => record.tier === 'elite'))
+                : -1;
+            let roleCursor = 0;
+            for (let i = 0; i < classes.length; i++) {
+                const record = classes[i];
+                record.templateId = waveTemplate.id;
+                if (i === eliteIndex) {
+                    record.spawnRole = eliteRole;
+                    if (spawnPattern.eliteModifier && typeof spawnPattern.eliteModifier === 'object') {
+                        record.templateModifier = { ...spawnPattern.eliteModifier };
+                    }
+                } else if (roles.length > 0) {
+                    record.spawnRole = roles[roleCursor % roles.length];
+                    roleCursor++;
+                }
             }
         }
 
@@ -1393,10 +1417,10 @@ export class ZombieDungeonShop {
             shopId: blacksmithCfg.shopId || 'blacksmith',
             getRandomGreeting() {
                 const greetings = [
-                    '地牢里照样能开炉，缺什么就来找我。',
-                    '武器钝了、护甲裂了，都能在这里处理。',
-                    '先把装备收拾利索，再去对付那些僵尸。',
-                    '火候正好，挑件趁手的再出发。'
+                    '地牢里的临时炉火也够用。买东西、强化、附魔或改造，都交给我。',
+                    '能在这种地方遇到铁匠，说明你的运气不错。装备拿来看看？',
+                    '小鼠大王已经把装备和物资事务全交给我了。',
+                    '外面的僵尸可不会等你整备，动作快点。'
                 ];
                 return greetings[Math.floor(Math.random() * greetings.length)];
             }

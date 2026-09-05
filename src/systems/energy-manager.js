@@ -1,3 +1,5 @@
+import { EconomyFlowSystem } from '../world/economy-flow-system.js';
+
 /**
  * EnergyManager — 世界-122 仓库能源唯一真源。
  *
@@ -207,7 +209,7 @@ class EnergyManagerImpl {
     }
 
     /** 存入能源并返回实际入库量；容量不足时允许部分入库并提示满仓。 */
-    depositEnergy(amount) {
+    depositEnergy(amount, { accounting } = {}) {
         let remain = Math.max(0, Math.floor(Number(amount) || 0));
         if (remain <= 0) return 0;
         const requested = remain;
@@ -222,13 +224,14 @@ class EnergyManagerImpl {
             if (remain <= 0) break;
         }
         const added = requested - remain;
+        EconomyFlowSystem.record('energy', added, accounting);
         if (added > 0) this._notifyUpdate();
         if (remain > 0) this._notifyFull();
         return added;
     }
 
     /** 显式物流岗位向已经到达的指定仓库交付能源，返回实际入库量。 */
-    depositEnergyToWarehouse(warehouseOrId, amount) {
+    depositEnergyToWarehouse(warehouseOrId, amount, { accounting } = {}) {
         const warehouse = typeof warehouseOrId === 'object'
             ? warehouseOrId
             : this.getWarehouseById(warehouseOrId);
@@ -240,18 +243,40 @@ class EnergyManagerImpl {
         ));
         if (accepted <= 0) return 0;
         warehouse.storedEnergy = Math.max(0, Math.floor(Number(warehouse.storedEnergy) || 0)) + accepted;
+        EconomyFlowSystem.record('energy', accepted, accounting);
         this._notifyUpdate();
         return accepted;
     }
 
     /** 兼容原调用：全部存入返回 true，部分/无法存入返回 false。 */
-    addEnergy(amount) {
+    addEnergy(amount, options) {
         const requested = Math.max(0, Math.floor(Number(amount) || 0));
-        return requested > 0 && this.depositEnergy(requested) === requested;
+        return requested > 0 && this.depositEnergy(requested, options) === requested;
     }
 
-    deductEnergy(amount) {
+    /** 多资源一次预检、一次提交；不足时不扣任何资源。 */
+    deductResources({ energy = 0, food = 0 }, { accounting, notify = true } = {}) {
+        energy = Math.max(0, Math.floor(Number(energy) || 0));
+        food = Math.max(0, Math.floor(Number(food) || 0));
+        const warehouses = this.getWarehouses();
+        const available = (key) => warehouses.reduce((sum, warehouse) => sum + Math.max(0, Number(warehouse[key]) || 0), 0);
+        if (available('storedEnergy') < energy || available('storedFood') < food) return false;
+        for (const [key, amount] of [['storedEnergy', energy], ['storedFood', food]]) {
+            let remain = amount;
+            for (let i = warehouses.length - 1; i >= 0 && remain > 0; i--) {
+                const take = Math.min(Math.max(0, Number(warehouses[i][key]) || 0), remain);
+                warehouses[i][key] -= take; remain -= take;
+            }
+        }
+        EconomyFlowSystem.record('energy', -energy, accounting);
+        EconomyFlowSystem.record('food', -food, accounting);
+        if (notify) this._notifyUpdate();
+        return true;
+    }
+
+    deductEnergy(amount, { accounting } = {}) {
         let remain = Math.max(0, Math.floor(Number(amount) || 0));
+        const requested = remain;
         if (remain <= 0) return true;
         if (this.getEnergy() < remain) return false;
         const warehouses = this.getWarehouses();
@@ -261,12 +286,13 @@ class EnergyManagerImpl {
             warehouse.storedEnergy -= take;
             remain -= take;
         }
+        EconomyFlowSystem.record('energy', -(requested - remain), accounting);
         this._notifyUpdate();
         return true;
     }
 
     /** 存入粮食并返回实际入库量；粮食与能源共享仓库容量。 */
-    depositFood(amount) {
+    depositFood(amount, { accounting } = {}) {
         let remain = Math.max(0, Math.floor(Number(amount) || 0));
         if (remain <= 0) return 0;
         const requested = remain;
@@ -281,13 +307,14 @@ class EnergyManagerImpl {
             if (remain <= 0) break;
         }
         const added = requested - remain;
+        EconomyFlowSystem.record('food', added, accounting);
         if (added > 0) this._notifyUpdate();
         if (remain > 0) this._notifyFull();
         return added;
     }
 
     /** 面包师等显式搬运岗位向指定仓库交货，返回实际入库粮食。 */
-    depositFoodToWarehouse(warehouseOrId, amount) {
+    depositFoodToWarehouse(warehouseOrId, amount, { accounting } = {}) {
         const warehouse = typeof warehouseOrId === 'object'
             ? warehouseOrId
             : this.getWarehouseById(warehouseOrId);
@@ -299,12 +326,13 @@ class EnergyManagerImpl {
         ));
         if (accepted <= 0) return 0;
         warehouse.storedFood = Math.max(0, Math.floor(Number(warehouse.storedFood) || 0)) + accepted;
+        EconomyFlowSystem.record('food', accepted, accounting);
         this._notifyUpdate();
         return accepted;
     }
 
     /** 面包师等显式搬运岗位只从到达的仓库取粮，库存不足时不产生部分扣除。 */
-    deductFoodFromWarehouse(warehouseOrId, amount) {
+    deductFoodFromWarehouse(warehouseOrId, amount, { accounting } = {}) {
         const warehouse = typeof warehouseOrId === 'object'
             ? warehouseOrId
             : this.getWarehouseById(warehouseOrId);
@@ -314,12 +342,14 @@ class EnergyManagerImpl {
         const stored = Math.max(0, Math.floor(Number(warehouse.storedFood) || 0));
         if (stored < requested) return false;
         warehouse.storedFood = stored - requested;
+        EconomyFlowSystem.record('food', -requested, accounting);
         this._notifyUpdate();
         return true;
     }
 
-    deductFood(amount) {
+    deductFood(amount, { accounting } = {}) {
         let remain = Math.max(0, Math.floor(Number(amount) || 0));
+        const requested = remain;
         if (remain <= 0) return true;
         if (this.getFood() < remain) return false;
         const warehouses = this.getWarehouses();
@@ -329,6 +359,7 @@ class EnergyManagerImpl {
             warehouse.storedFood -= take;
             remain -= take;
         }
+        EconomyFlowSystem.record('food', -(requested - remain), accounting);
         this._notifyUpdate();
         return true;
     }
@@ -374,13 +405,13 @@ class EnergyManagerImpl {
 
     _flushPendingEnergy() {
         if (this._pendingEnergy <= 0 || !this.hasWarehouse()) return;
-        const added = this.depositEnergy(this._pendingEnergy);
+        const added = this.depositEnergy(this._pendingEnergy, { accounting: { ignore: true } });
         this._pendingEnergy = Math.max(0, this._pendingEnergy - added);
     }
 
     _flushPendingFood() {
         if (this._pendingFood <= 0 || !this.hasWarehouse()) return;
-        const added = this.depositFood(this._pendingFood);
+        const added = this.depositFood(this._pendingFood, { accounting: { ignore: true } });
         this._pendingFood = Math.max(0, this._pendingFood - added);
     }
 

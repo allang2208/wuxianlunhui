@@ -1,9 +1,9 @@
 /**
  * 经验系统（唯一口径，2026-07-28 重构；配置：data/combat-formulas.json enemy.expValue，勿硬编码）
  *
- * pacing 闭环：每场经验产出预算 = 升级曲线段成本 / pacingRuns（2.5 场/段），
+ * pacing 闭环：每场经验产出预算 = 升级曲线段成本 / pacingRuns（当前 5 场/段），
  * 按地牢配置的"加权击杀"（普通×1/精英×2/领主×4/首领×10）分摊到每只怪物——
- * 同级地牢 2~3 场升一段是构造出来的；探索越多升级越快（全清≈2 场，直奔 Boss≈3.5 场）。
+ * 同级地牢约 5 场升一段是构造出来的；探索越完整，单场获得的段预算比例越高。
  *
  * 压级衰减：玩家等级超怪物有效等级 graceLevels 级后每级 -slope，下限 floor[rank]。
  * 怪物有效等级：L_m = anchors[grade] + (配置等级 - 3)（保留种间相对差异）。
@@ -163,6 +163,20 @@ function _analyzeDungeon(dungeonType) {
     return s;
 }
 
+/**
+ * 短教学地牢不能因为自身击杀量很少，就把整档经验预算反向放大到每只怪物上。
+ * 配置可显式指定一个同档常规地牢，复用其单怪与清房预算分母；怪物等级、掉落
+ * 和实际房间构成仍读取当前地牢，不伪造参考地牢的通关或结算。
+ */
+function _expBudgetReferenceDungeon(dungeonType) {
+    const cfg = dungeonConfigData[DUNGEON_BLOCK_KEY[dungeonType]];
+    const reference = cfg?.expBudgetReference;
+    if (!reference || !DUNGEON_BLOCK_KEY[reference]) return dungeonType;
+    return getGradeForDungeon(reference) === getGradeForDungeon(dungeonType)
+        ? reference
+        : dungeonType;
+}
+
 /** 地牢各档战斗的单场加权经验（单位：普通怪基础经验的倍数） */
 export function getDungeonFightWeights(dungeonType) {
     const s = _analyzeDungeon(dungeonType);
@@ -190,7 +204,8 @@ export function getDungeonExpBase(dungeonType) {
     const runs = cfg.pacingRuns ?? 5.0;
     const explore = cfg.exploreFactor ?? 0.8;
     const share = cfg.roomBonus?.share ?? 0;
-    const base = (1 - share) * getBandCost(grade) / (runs * explore * getWeightedKills(dungeonType));
+    const budgetDungeon = _expBudgetReferenceDungeon(dungeonType);
+    const base = (1 - share) * getBandCost(grade) / (runs * explore * getWeightedKills(budgetDungeon));
     _baseCache.set(key, base);
     return base;
 }
@@ -203,7 +218,8 @@ export function getRoomClearBonus(dungeonType) {
     if (share <= 0) return 0;
     const runs = cfg.pacingRuns ?? 5.0;
     const explore = cfg.exploreFactor ?? 0.8;
-    return (share * getBandCost(grade)) / (runs * explore * getCombatNodeCount(dungeonType));
+    const budgetDungeon = _expBudgetReferenceDungeon(dungeonType);
+    return (share * getBandCost(grade)) / (runs * explore * getCombatNodeCount(budgetDungeon));
 }
 
 /** 单场战斗节点经验预估（地图悬停显示用）：清剿奖 + 预估击杀经验（按 waveComposition 构成加权） */

@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "cellCount": 2745,
+  "render": {
+    "chunkWorldSize": 16,
+    "overviewScale": 12,
+    "maxOverviewSide": 1536,
+    "overviewThreshold": 18,
+    "maxDetailedCells": 1000,
+    "bakeCellsPerFrame": 96,
+    "bakeBudgetMs": 3
+  },
+  "fog": {
+    "unexplored": "rgba(3, 7, 11, 0.90)",
+    "explored": "rgba(8, 15, 21, 0.52)",
+    "edgeWidth": 1.2
+  },
+  "pathCacheLimit": 128
+}

@@ -10,6 +10,7 @@
  * - 新矿堆固定光向、不镜像；显示宽度仅按格坐标做96%～104%稳定微缩放。
  */
 import { Game } from '../game.js';
+import { EventBus } from '../core/event-bus.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
@@ -200,6 +201,7 @@ class EnergyNode extends DamageableEntity {
                 alignToBody: !!rubblePair,
                 ...(!rubblePair ? { footOffsetY: 0 } : {}),
                 depthMode: 'ground',
+                shadowControlled: true,
             };
         }
         this.footOffsetY = footOffsetY;
@@ -244,7 +246,20 @@ class EnergyNode extends DamageableEntity {
             if (minerBackpack) {
                 source.addMinedEnergy(energy);
             } else if (directToWarehouse && EnergyManager) {
-                EnergyManager.depositEnergy(energy);
+                const stored = EnergyManager.depositEnergy(energy);
+                if (stored > 0) {
+                    try {
+                        EventBus.emit('world:energy-ore-gathered', {
+                            sceneId: globalThis.SceneManager?.currentScene || null,
+                            nodeId: this.id,
+                            sourceId: source?.id || null,
+                            amount: stored,
+                            destination: 'warehouse',
+                        });
+                    } catch (error) {
+                        console.error('[EnergyNode] 矿石入库事件分发失败:', error);
+                    }
+                }
             } else if (Game && typeof Game.dropItem === 'function') {
                 const ang = Math.random() * Math.PI * 2;
                 const r = 20 + Math.random() * 34; // 节点周围散落，避免全部重叠

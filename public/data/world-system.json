@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "storyGeneration": {
     "initialInstance": {
       "enabled": true,
@@ -86,8 +86,8 @@
       "name": "世界-122-沙漠",
       "icon": "🏜️",
       "description": "荒漠防线",
-      "initialPortal": true,
-      "constructionEnabled": false,
+      "constructionEnabled": true,
+      "requirements": { "completedDungeons": ["abandonedMineBeginner"] },
       "portalSpawn": { "x": 4200, "y": 4096 },
       "featureBuilding": { "cfgKey": "desert_mansion", "offsetX": -330, "offsetY": 180 },
       "resetPolicy": { "baseSeed": 122008 }
@@ -101,6 +101,12 @@
       "constructionEnabled": true,
       "requirements": { "completedDungeons": ["frozenBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
+      "featureBuilding": {
+        "cfgKey": "snow_castle",
+        "offsetX": -330,
+        "offsetY": 180,
+        "migrationId": "scene9_snow_castle_initial_v1"
+      },
       "resetPolicy": { "baseSeed": 123009 }
     },
     "scene10": {
@@ -134,17 +140,31 @@
       "icon": "⛏️",
       "description": "废弃矿洞位面",
       "constructionEnabled": true,
+      "requirements": { "completedDungeons": ["abandonedMineBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
       "resetPolicy": { "baseSeed": 126012 }
     }
+  },
+  "playerBase": {
+    "cfgKey": "city_hall",
+    "preferredOffsetX": 640,
+    "preferredOffsetY": 0,
+    "searchRadius": 1536,
+    "searchStep": 128,
+    "portalClearance": 96,
+    "rebuildCost": { "gold": 1500, "energy": 1500 }
   },
   "portal": {
     "maxHp": 5000,
     "def": 90,
     "mdef": 90,
+    "constructionCost": { "gold": 1500, "energy": 2500 },
     "rebuildCost": { "gold": 1000, "energy": 2500 }
   },
   "destructionChallenge": {
+    "waveComposition": {
+      "maxActiveTypesPerTier": { "normal": 2, "elite": 1, "lord": 1 }
+    },
     "spawnIntervalMs": 5000,
     "normalPerBatch": 6,
     "softMaxAlive": 36,
@@ -161,6 +181,7 @@
     "spawnSpreadPx": 150
   },
   "invasion": {
+    "waveComposition": { "sameTypePerRank": true },
     "intervalDays": 5,
     "dungeonProgressByGrade": {
       "F": 0.1,

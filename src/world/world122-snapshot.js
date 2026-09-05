@@ -15,23 +15,39 @@
 // 由 SceneManager.init() 在 Game 初始化完成后注入运行时依赖。
 import { settleWorld122 } from './world122-sim.js'; // 纯数据结算（无 Game 依赖链），可静态导入
 import { BuildingRoadSystem } from './building-road-system.js';
+import { WallSystem } from './wall-system.js';
+import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
 import { getUnitKind } from './unit-upgrade-store.js';
 import { normalizeRecruitMode } from './recruit-mode.js';
+import { normalizeCityHallPolicyPlan } from './city-hall-policy-plan.js';
 import worldSystemConfig from '../../data/world-system.json';
 import { WorldInstanceSystem } from './world-instance-system.js';
 import producerBuildingsConfig from '../../data/producer-buildings.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { WorldProductionWeather } from './world-production-weather.js';
+import { syncSnapshotBuildingTiers } from './building-tier.js';
 import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
 import {
     getBuildingContinuousCategory,
+    isBuildingContinuousUpgradeOccupied,
     getBuildingUpgradeProgressKeys,
     normalizeBuildingContinuousTarget,
 } from './building-upgrade-projects.js';
+import { getSnapshotContinuousUpgradeTargets } from './building-continuous-upgrade-state.js';
 import { FogOfWarSystem } from './fog-of-war-system.js';
 import { setCrossPlaneSnapshotProvider } from './cross-plane-resource-system.js';
 import { takeLegacyLocalResearchLevels } from './ability-store.js';
 import { blockCellOf } from './gate4-grid.js';
-import { createWallBattlementAttachment } from './wall-battlement.js';
+import {
+    createWallBattlementAttachment,
+    isWallBattlementSupportWall,
+    WALL_BATTLEMENT_GRID_FOOT,
+    wallBattlementAttachmentsOverlap,
+    wallBattlements,
+    wallBattlementsAtSlot,
+    wallBattlementGateInteriorContainsCell,
+} from './wall-battlement.js';
+import { isoFootprintsOverlap } from '../physics/iso-footprint.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -53,6 +69,7 @@ let GoldManager = null;
 let PopulationEconomySystem = null;
 let getWorldEpoch = null;
 let canPersistWorld = null;
+let canSerializeWorld = null;
 let getWorldGenerationContext = null;
 
 export function configureWorld122SnapshotRuntime(deps = {}) {
@@ -77,6 +94,7 @@ export function configureWorld122SnapshotRuntime(deps = {}) {
         PopulationEconomySystem,
         getWorldEpoch,
         canPersistWorld,
+        canSerializeWorld,
         getWorldGenerationContext,
     } = deps);
 }
@@ -85,9 +103,44 @@ const SNAPSHOT_VERSION = 1;
 
 // 多世界驻留：scene8~scene12 共用同一套建筑协议，按逻辑 worldId 分槽保存。
 const _storedByWorld = {};
-setCrossPlaneSnapshotProvider(() => _storedByWorld);
+
+function isSerializableWorld(sceneId) {
+    return !canSerializeWorld || canSerializeWorld(sceneId);
+}
+
+/** 正式系统只看可写入存档的位面；开发直连快照仅保留在当前运行内存中。 */
+function serializedWorldSnapshots() {
+    return Object.fromEntries(Object.entries(_storedByWorld)
+        .filter(([sceneId]) => isSerializableWorld(sceneId)));
+}
+
+setCrossPlaneSnapshotProvider(() => serializedWorldSnapshots());
 
 const _clone = (o) => JSON.parse(JSON.stringify(o));
+
+/** 等级、快照和位面世代均恢复后执行；保留同类首项，不取消已付款读条。 */
+export function reconcileWorldContinuousUpgrades() {
+    const occupied = new Set();
+    for (const sceneId of Object.keys(_storedByWorld).sort()) {
+        if (!isSerializableWorld(sceneId)) continue;
+        const snapshot = _storedByWorld[sceneId];
+        if (!isWorldSnapshotCurrent(sceneId, snapshot)) continue;
+        for (const structure of snapshot.structures || []) {
+            const category = getBuildingContinuousCategory(structure);
+            if (!category) continue;
+            const targets = getSnapshotContinuousUpgradeTargets(structure);
+            if (occupied.has(category)) {
+                targets.continuous = null;
+                targets.economyContinuous = null;
+            } else if (targets.continuous || targets.economyContinuous) {
+                occupied.add(category);
+                // 同一研究所的全局项目和本栋项目也只允许一个持续目标。
+                if (targets.continuous) targets.economyContinuous = null;
+            }
+            Object.assign(structure, targets);
+        }
+    }
+}
 const LOCAL_RESEARCH_MODULE_IDS = new Set(['research_staff', 'research_base_points']);
 
 function _resolveSnapshotWorldConfig(worldId) {
@@ -200,6 +253,49 @@ function _initialFeatureStructure(spawn, feature) {
         parallelQueues: {},
         unitRoster: {},
     };
+}
+
+function _isGeneratedWorldFeatureStructure(structure, sceneId) {
+    const featureCfg = producerBuildingsConfig[structure?.cfgKey];
+    if (!structure || featureCfg?.featureWorldId !== sceneId) return false;
+    // 所有首次赠送的位面特色建筑都以 0 成本写入基础快照；玩家后来建造的同类建筑保留原配置。
+    if (structure.buildCost != null && Number(structure.buildCost) === 0) return true;
+
+    // 兼容未记录造价的旧基础快照：仍可由当前位面配置及确定性出生坐标识别。
+    const worldConfig = worldSystemConfig.worlds?.[sceneId];
+    const feature = worldConfig?.featureBuilding;
+    if (!structure || !feature?.cfgKey || structure.cfgKey !== feature.cfgKey) return false;
+    const spawn = worldConfig.portalSpawn || { x: 0, y: 0 };
+    const expectedX = (Number(spawn.x) || 0) + (Number(feature.offsetX) || 0);
+    const expectedY = (Number(spawn.y) || 0) + (Number(feature.offsetY) || 0);
+    return Math.abs((Number(structure.x) || 0) - expectedX) < 0.5
+        && Math.abs((Number(structure.y) || 0) - expectedY) < 0.5;
+}
+
+function _attachRestoredBuildingRoads(entity, structure, sceneId) {
+    const generatedFeature = _isGeneratedWorldFeatureStructure(structure, sceneId);
+    const attached = BuildingRoadSystem.attach(entity, {
+        allowOverlap: true,
+        // 位面首次生成的特色建筑始终使用完整道路环；普通建造继续遵循自身 perimeterTile。
+        kind: generatedFeature ? 'road' : null,
+    });
+    if (!attached || !generatedFeature) return attached;
+
+    // 与玩家建造成功后的净空口径一致：主体格和完整道路环逐格清除散布障碍，
+    // 同时擦除地表烘焙的小草、蕨类等纯视觉装饰。资源点、建筑、墙和传送门不在清理集合中。
+    const zones = (entity._buildingRoadLayout?.reservationCells || []).map((cell) => ({
+        x: cell.x,
+        y: cell.y,
+        radius: ONE_CELL_BUILDING_FOOT.clearRadius,
+    }));
+    if (zones.length === 0) return attached;
+    WallSystem.removeScatterObstaclesInZones?.(zones);
+    const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+    if (scene?.eraseDecoBatch) scene.eraseDecoBatch(zones);
+    else if (scene?.eraseDecoAt) {
+        for (const zone of zones) scene.eraseDecoAt(zone.x, zone.y, zone.radius);
+    }
+    return attached;
 }
 
 function _ensureInitialFeatureBuilding(snapshot, sceneId, includeInitialFeatureBuilding) {
@@ -375,7 +471,7 @@ export function captureWorld(sceneId = 'scene8') {
             structures.push({
                 kind: 'wall_battlement',
                 x: e.x, y: e.y, hp: Math.ceil(e.hp), maxHp: Math.ceil(e.maxHp),
-                variant: e.battlementVariant || attachment.variant || 'high',
+                variant: attachment.variant || e.battlementVariant || 'high',
                 wallCell: { ...attachment.wallCell },
                 edge: attachment.edge,
                 slot: attachment.slot,
@@ -383,12 +479,13 @@ export function captureWorld(sceneId = 'scene8') {
             });
         } else if (e._isGate4 && e._buildGroupRoot === e) {
             // 4格门整组：门主体 + 石柱（整组回收口径的镜像）
+            const gateMirror = !!e._facingLeft;
             const pillars = (e._buildGroup || [])
                 .filter((p) => p && p._isBlockCover && alive(p))
                 .map((p) => ({ x: p.x, y: p.y, hp: Math.ceil(p.hp), maxHp: Math.ceil(p.maxHp) }));
             structures.push({
                 kind: 'gate4', x: e.x, y: e.y, hp: Math.ceil(e.hp), maxHp: Math.ceil(e.maxHp),
-                mirror: !!e.mirror, dir: e.mirror ? 'e1' : 'e2',
+                mirror: gateMirror, dir: gateMirror ? 'e1' : 'e2',
                 gateMode: ['auto', 'locked', 'open'].includes(e.gateMode) ? e.gateMode : 'auto',
                 pillars,
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
@@ -450,6 +547,7 @@ export function captureWorld(sceneId = 'scene8') {
                 ...(h._restoredMinerWorkers || []).map((worker) => ({ ...worker })),
             ] : undefined,
             modules: { ...(h.modules || {}) },
+            economyContinuous: h._economyContinuous || null,
             upgrade: h._upgrade ? {
                 moduleId: h._upgrade.moduleId,
                 totalMs: h._upgrade.totalMs,
@@ -485,6 +583,9 @@ export function captureWorld(sceneId = 'scene8') {
         ) : {};
         structures.push({
             kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y,
+            cityHallPolicyPlan: p._isPlayerBase ? normalizeCityHallPolicyPlan(p._cityHallPolicyPlan, p.level) : undefined,
+            playerBaseRoadCells: p._isPlayerBase
+                ? (p._buildingRoadLayout?.roadCells || []).map(({ i, j }) => ({ i, j })) : undefined,
             hp: Math.ceil(p.hp), maxHp: Math.ceil(p.maxHp), mirror: !!p._facingLeft,
             troopProducer: !!p._isTroopProducer,
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0, recruitMode: normalizeRecruitMode(p._recruitMode),
@@ -518,6 +619,7 @@ export function captureWorld(sceneId = 'scene8') {
             troopLineDeployedRoster,
             upgrade: _snapshotUpgrade(p._upgrade),
             continuous: _snapshotContinuous(p._continuous),
+            economyContinuous: p._economyContinuous || null,
             titheTimerMs: p.units?.find((unit) => unit?._isHamsterPriest && unit.active !== false)?._ai?._titheTimer || 0,
             storedEnergy: p._isEnergyWarehouse ? (p.storedEnergy || 0) : undefined,
             storedFood: p._isEnergyWarehouse ? (p.storedFood || 0) : undefined,
@@ -647,6 +749,8 @@ export function captureWorld(sceneId = 'scene8') {
                 phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
                 completedBatches: p._bakeryJob?.completedBatches || 0,
                 offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+                workerOutputWeightedWorkMs: p._bakeryJob?.workerOutputWeightedWorkMs || 0,
+                workerOutputWorkMs: p._bakeryJob?.workerOutputWorkMs || 0,
             } : undefined,
             bakeryPendingTributeIds: p._economyType === 'bakery'
                 ? [...(p._bakeryPendingTributeIds || [])] : undefined,
@@ -672,6 +776,8 @@ export function captureWorld(sceneId = 'scene8') {
                 phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
                 completedBatches: p._bakeryJob?.completedBatches || 0,
                 offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+                workerOutputWeightedWorkMs: p._bakeryJob?.workerOutputWeightedWorkMs || 0,
+                workerOutputWorkMs: p._bakeryJob?.workerOutputWorkMs || 0,
             } : undefined,
             desertCookhouseOutputRemainder: p._economyType === 'desert_cookhouse'
                 ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
@@ -695,6 +801,8 @@ export function captureWorld(sceneId = 'scene8') {
                 phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
                 completedBatches: p._bakeryJob?.completedBatches || 0,
                 offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+                workerOutputWeightedWorkMs: p._bakeryJob?.workerOutputWeightedWorkMs || 0,
+                workerOutputWorkMs: p._bakeryJob?.workerOutputWorkMs || 0,
             } : undefined,
             frostSmokehouseOutputRemainder: p._economyType === 'frost_smokehouse'
                 ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
@@ -718,12 +826,14 @@ export function captureWorld(sceneId = 'scene8') {
                 phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
                 completedBatches: p._bakeryJob?.completedBatches || 0,
                 offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+                workerOutputWeightedWorkMs: p._bakeryJob?.workerOutputWeightedWorkMs || 0,
+                workerOutputWorkMs: p._bakeryJob?.workerOutputWorkMs || 0,
             } : undefined,
             chainRestaurantOutputRemainder: p._economyType === 'chain_restaurant'
                 ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
             cheeseFarmModules: p._economyType === 'cheese_farm'
                 ? { ...(p.modules || {}) } : undefined,
-            cheeseFarmUpgrade: p._cheeseFarmUpgrade ? {
+            cheeseFarmUpgrade: p._economyType === 'cheese_farm' && p._cheeseFarmUpgrade ? {
                 moduleId: p._cheeseFarmUpgrade.moduleId,
                 totalMs: p._cheeseFarmUpgrade.totalMs,
                 remainMs: p._cheeseFarmUpgrade.remainMs,
@@ -740,8 +850,58 @@ export function captureWorld(sceneId = 'scene8') {
                 phaseTotalMs: p._cheeseFarmJob?.phaseTotalMs || 0,
                 completedBatches: p._cheeseFarmJob?.completedBatches || 0,
                 offlineProgressMs: p._cheeseFarmJob?.offlineProgressMs || 0,
+                workerOutputWeightedWorkMs: p._cheeseFarmJob?.workerOutputWeightedWorkMs || 0,
+                workerOutputWorkMs: p._cheeseFarmJob?.workerOutputWorkMs || 0,
             } : undefined,
             cheeseFarmOutputRemainder: p._economyType === 'cheese_farm'
+                ? Math.max(0, Number(p._cheeseFarmOutputRemainder) || 0) : undefined,
+            cornFarmModules: p._economyType === 'corn_farm'
+                ? { ...(p.modules || {}) } : undefined,
+            cornFarmUpgrade: p._economyType === 'corn_farm' && p._cheeseFarmUpgrade ? {
+                moduleId: p._cheeseFarmUpgrade.moduleId,
+                totalMs: p._cheeseFarmUpgrade.totalMs,
+                remainMs: p._cheeseFarmUpgrade.remainMs,
+            } : null,
+            cornFarmJob: p._economyType === 'corn_farm' ? {
+                phase: p._cheeseFarmJob?.phase,
+                x: p._cheeseFarmJob?.x,
+                y: p._cheeseFarmJob?.y,
+                targetWarehouseId: p._cheeseFarmJob?.targetWarehouseId ?? null,
+                pendingFood: p._cheeseFarmJob?.pendingFood || 0,
+                processRemainMs: p._cheeseFarmJob?.processRemainMs || 0,
+                processTotalMs: p._cheeseFarmJob?.processTotalMs || 0,
+                phaseRemainMs: p._cheeseFarmJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._cheeseFarmJob?.phaseTotalMs || 0,
+                completedBatches: p._cheeseFarmJob?.completedBatches || 0,
+                offlineProgressMs: p._cheeseFarmJob?.offlineProgressMs || 0,
+                workerOutputWeightedWorkMs: p._cheeseFarmJob?.workerOutputWeightedWorkMs || 0,
+                workerOutputWorkMs: p._cheeseFarmJob?.workerOutputWorkMs || 0,
+            } : undefined,
+            cornFarmOutputRemainder: p._economyType === 'corn_farm'
+                ? Math.max(0, Number(p._cheeseFarmOutputRemainder) || 0) : undefined,
+            mushroomFarmModules: p._economyType === 'mushroom_farm'
+                ? { ...(p.modules || {}) } : undefined,
+            mushroomFarmUpgrade: p._economyType === 'mushroom_farm' && p._cheeseFarmUpgrade ? {
+                moduleId: p._cheeseFarmUpgrade.moduleId,
+                totalMs: p._cheeseFarmUpgrade.totalMs,
+                remainMs: p._cheeseFarmUpgrade.remainMs,
+            } : null,
+            mushroomFarmJob: p._economyType === 'mushroom_farm' ? {
+                phase: p._cheeseFarmJob?.phase,
+                x: p._cheeseFarmJob?.x,
+                y: p._cheeseFarmJob?.y,
+                targetWarehouseId: p._cheeseFarmJob?.targetWarehouseId ?? null,
+                pendingFood: p._cheeseFarmJob?.pendingFood || 0,
+                processRemainMs: p._cheeseFarmJob?.processRemainMs || 0,
+                processTotalMs: p._cheeseFarmJob?.processTotalMs || 0,
+                phaseRemainMs: p._cheeseFarmJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._cheeseFarmJob?.phaseTotalMs || 0,
+                completedBatches: p._cheeseFarmJob?.completedBatches || 0,
+                offlineProgressMs: p._cheeseFarmJob?.offlineProgressMs || 0,
+                workerOutputWeightedWorkMs: p._cheeseFarmJob?.workerOutputWeightedWorkMs || 0,
+                workerOutputWorkMs: p._cheeseFarmJob?.workerOutputWorkMs || 0,
+            } : undefined,
+            mushroomFarmOutputRemainder: p._economyType === 'mushroom_farm'
                 ? Math.max(0, Number(p._cheeseFarmOutputRemainder) || 0) : undefined,
             steamModules: p._economyType === 'steam_power_plant'
                 ? { ...(p.modules || {}) } : undefined,
@@ -765,6 +925,8 @@ export function captureWorld(sceneId = 'scene8') {
                     phaseTotalMs: job.phaseTotalMs || 0,
                     completedBatches: job.completedBatches || 0,
                     offlineProgressMs: job.offlineProgressMs || 0,
+                    workerOutputWeightedWorkMs: job.workerOutputWeightedWorkMs || 0,
+                    workerOutputWorkMs: job.workerOutputWorkMs || 0,
                 })) : undefined,
             steamOutputRemainder: p._economyType === 'steam_power_plant'
                 ? Math.max(0, Number(p._steamOutputRemainder) || 0) : undefined,
@@ -903,6 +1065,9 @@ export function captureWorld(sceneId = 'scene8') {
         capturedAt: Date.now(),
         capturedGameTimeMs: EnvironmentLightingSystem.serializeTime().elapsedMs || 0,
         starterWarehouseGrantClaimed: !!Game?._starterWarehouseGrantClaimedByScene?.[sceneId],
+        // 赠送基地被毁后仍保存标记，防止通过切场/读档免费重生；位面重建会清掉整个快照。
+        playerBaseEstablished: !!_storedByWorld[sceneId]?.playerBaseEstablished
+            || structures.some((structure) => producerBuildingsConfig[structure.cfgKey]?.playerBase === true),
         featureBuildingMigrations: _clone(_storedByWorld[sceneId]?.featureBuildingMigrations || {}),
         populationEconomy: PopulationEconomySystem?.serializeState?.() || { storageVersion: 2, foodStored: 0 },
         // 波次/结算参数随快照封存（后台结算与配置同生命周期，防版本间口径漂移）
@@ -937,8 +1102,93 @@ export function getWorldSnapshot(sceneId) {
     return isWorldSnapshotCurrent(sceneId, snapshot) ? snapshot : null;
 }
 
+/** 只登记本世代赠送资格，不改变传送门核心、资源或已有建筑。 */
+export function markWorldPlayerBaseEstablished(sceneId) {
+    if (!worldSystemConfig.worlds?.[sceneId] || (canPersistWorld && !canPersistWorld(sceneId))) return false;
+    const snapshot = getWorldSnapshot(sceneId) || ensureWorldBaseSnapshot(sceneId, {
+        worldEpoch: getWorldEpoch?.(sceneId),
+    });
+    if (!snapshot) return false;
+    snapshot.playerBaseEstablished = true;
+    return true;
+}
+
+export function canCreateWorldPlayerBaseSnapshot(sceneId) {
+    const baseCfg = worldSystemConfig.playerBase || {};
+    return !!worldSystemConfig.worlds?.[sceneId]
+        && !!producerBuildingsConfig[baseCfg.cfgKey || 'city_hall'];
+}
+
+/**
+ * 在位面快照中登记一座完整耐久的新市政厅。
+ * 首城授予和异地付费重建共用此入口，避免只改赠送标记却没有后台锚点。
+ */
+export function ensureWorldPlayerBaseSnapshot(sceneId, { x = null, y = null } = {}) {
+    if (!canCreateWorldPlayerBaseSnapshot(sceneId)) return null;
+    const snapshot = getWorldSnapshot(sceneId);
+    if (!snapshot) return null;
+    const worldCfg = worldSystemConfig.worlds[sceneId];
+    const baseCfg = worldSystemConfig.playerBase || {};
+    const producerCfg = producerBuildingsConfig[baseCfg.cfgKey || 'city_hall'];
+    const cfgKey = producerCfg.id || baseCfg.cfgKey || 'city_hall';
+    const oldRecord = (snapshot.structures || []).find((structure) => structure?.cfgKey === cfgKey);
+    const spawn = worldCfg.portalSpawn || { x: 0, y: 0 };
+    const recordX = x != null && Number.isFinite(Number(x)) ? Number(x)
+        : (oldRecord?.x != null && Number.isFinite(Number(oldRecord.x)) ? Number(oldRecord.x)
+            : (Number(spawn.x) || 0) + (Number(baseCfg.preferredOffsetX) || 640));
+    const recordY = y != null && Number.isFinite(Number(y)) ? Number(y)
+        : (oldRecord?.y != null && Number.isFinite(Number(oldRecord.y)) ? Number(oldRecord.y)
+            : (Number(spawn.y) || 0) + (Number(baseCfg.preferredOffsetY) || 0));
+    const hp = Math.max(1, Number(producerCfg.hp) || 5000);
+    snapshot.structures = (snapshot.structures || []).filter((structure) => structure?.cfgKey !== cfgKey);
+    snapshot.structures.push({
+        kind: 'producer',
+        id: `world_player_base_${sceneId}`,
+        cfgKey,
+        x: recordX,
+        y: recordY,
+        hp,
+        maxHp: hp,
+        buildCost: 0,
+        buildCurrency: 'energy',
+    });
+    snapshot.playerBaseEstablished = true;
+    snapshot.backgroundLedger = null;
+    return snapshot;
+}
+
+/** 已付费重建前清掉旧市政厅记录与一次性赠送标记；其他位面内容原样保留。 */
+export function prepareWorldPlayerBaseRebuild(sceneId) {
+    const snapshot = getWorldSnapshot(sceneId);
+    if (!snapshot) return false;
+    const cfgKey = worldSystemConfig.playerBase?.cfgKey || 'city_hall';
+    snapshot.structures = (snapshot.structures || []).filter((structure) => structure?.cfgKey !== cfgKey);
+    snapshot.playerBaseEstablished = false;
+    snapshot.backgroundLedger = null;
+    return true;
+}
+
+/** 移民在已崩塌位面的原城址重建市政厅；传送门不随移民赠送。 */
+export function ensureSettlerRestoredWorldSnapshot(sceneId, {
+    worldEpoch, generation = null,
+} = {}) {
+    if (!canCreateWorldPlayerBaseSnapshot(sceneId)) return null;
+    const snapshot = ensureWorldBaseSnapshot(sceneId, {
+        portalHp: worldSystemConfig.portal?.maxHp,
+        worldEpoch,
+        generation,
+        replace: true,
+        includeInitialFeatureBuilding: false,
+    });
+    if (!snapshot) return null;
+    snapshot.structures = (snapshot.structures || []).filter((structure) => structure?.cfgKey !== 'portal');
+    if (!ensureWorldPlayerBaseSnapshot(sceneId)) return null;
+    snapshot.initializedByPortal = false;
+    return snapshot;
+}
+
 export function getWorldSnapshots() {
-    return _storedByWorld;
+    return serializedWorldSnapshots();
 }
 
 /** 只有当前位面世代的快照才允许恢复、保存或参与后台结算。 */
@@ -972,6 +1222,7 @@ export const resetWorldSnapshots = resetWorld122Snapshot;
 
 /** 主存档序列化：在 122 内取实况，否则取驻留 */
 export function serializeWorld122Scene() {
+    if (!isSerializableWorld('scene8')) return null;
     if (canPersistWorld && !canPersistWorld('scene8')) {
         delete _storedByWorld.scene8;
         return null;
@@ -991,10 +1242,10 @@ export function serializeWorldScenes() {
         else if (canPersistWorld && !canPersistWorld(liveSceneId)) delete _storedByWorld[liveSceneId];
     }
     for (const [sceneId, snapshot] of Object.entries(_storedByWorld)) {
-        if ((canPersistWorld && !canPersistWorld(sceneId))
-            || !isWorldSnapshotCurrent(sceneId, snapshot)) delete _storedByWorld[sceneId];
+        if (!isWorldSnapshotCurrent(sceneId, snapshot)
+            || (canPersistWorld && !canPersistWorld(sceneId))) delete _storedByWorld[sceneId];
     }
-    return _clone(_storedByWorld);
+    return _clone(serializedWorldSnapshots());
 }
 
 /** 主存档恢复：写入驻留（进入 122 时才真正物化） */
@@ -1047,7 +1298,8 @@ export function hasBackgroundBuildingUpgrade(upgrade) {
     const keys = new Set(getBuildingUpgradeProgressKeys(upgrade));
     if (!keys.size) return false;
     for (const [sceneId, snapshot] of Object.entries(_storedByWorld)) {
-        if (isWorldLive(sceneId) || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
+        if (!isSerializableWorld(sceneId) || isWorldLive(sceneId)
+            || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
         if ((snapshot.structures || []).some((structure) => Number(structure?.hp ?? 1) > 0
             && getBuildingUpgradeProgressKeys(structure?.upgrade).some((key) => keys.has(key)))) return true;
     }
@@ -1059,16 +1311,27 @@ export function hasBackgroundBuildingUpgrade(upgrade) {
 export function hasBackgroundContinuousUpgrade(category, excludeSceneId = null) {
     if (!category) return false;
     for (const [sceneId, snapshot] of Object.entries(_storedByWorld)) {
-        if (sceneId === excludeSceneId || isWorldLive(sceneId) || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
-        if ((snapshot.structures || []).some((structure) => Number(structure?.hp ?? 1) > 0
-            && structure?.continuous && getBuildingContinuousCategory(structure) === category)) return true;
+        if (!isSerializableWorld(sceneId) || sceneId === excludeSceneId
+            || isWorldLive(sceneId) || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
+        if ((snapshot.structures || []).some((structure) => {
+            if (getBuildingContinuousCategory(structure) !== category) return false;
+            const targets = getSnapshotContinuousUpgradeTargets(structure);
+            return !!(targets.continuous || targets.economyContinuous);
+        })) return true;
     }
     return false;
+}
+
+export function getBuildingContinuousUpgradeLockReason(owner, excludeSceneId = null) {
+    return isBuildingContinuousUpgradeOccupied(owner, Game?.entities)
+        || hasBackgroundContinuousUpgrade(getBuildingContinuousCategory(owner), excludeSceneId)
+        ? '同类建筑已有持续升级项目（含后台位面）' : '';
 }
 
 /** 世界切换面板预览：不回写快照、无全局副作用（commit=false）；
  *  玩家在 122 内或无快照时返回 null。 */
 export function previewWorld122Report(worldId = 'scene8') {
+    if (!isSerializableWorld(worldId)) return null;
     const stored = _storedByWorld[worldId];
     if (!stored || !isWorldSnapshotCurrent(worldId, stored)) return null;
     if (isWorldLive(worldId)) return null;
@@ -1083,6 +1346,9 @@ export function previewWorld122Report(worldId = 'scene8') {
         skipWaves: true,
         sceneId: worldId,
         runtimeSceneId: WorldInstanceSystem.resolveRuntimeSceneId(worldId),
+        gameTimeMs: nowGame,
+        productionWeather: WorldProductionWeather.getMultipliers(worldId, nowGame),
+        isBuildingTierUnlocked: (id) => TechnologySystem?.isUnlocked?.('buildingTier', id) === true,
         isRecruitmentTierUnlocked: (id) =>
             TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
         isUnitUnlocked: (id) => TechnologySystem?.isUnlocked?.('unit', id) === true,
@@ -1139,6 +1405,7 @@ function _restoreWallBattlement(s) {
     let wall = null;
     for (const entity of Game.entities.values()) {
         if (!entity?.active || !entity._isBlockCover || entity._buildGroupRoot) continue;
+        if (!isWallBattlementSupportWall(entity)) continue;
         const [i, j] = blockCellOf(entity.x, entity.y);
         if (i === wallCell.i && j === wallCell.j) {
             wall = entity;
@@ -1148,10 +1415,40 @@ function _restoreWallBattlement(s) {
     if (!wall) return false;
     const attachment = createWallBattlementAttachment(wall, wallCell, s.edge, s.slot);
     if (!attachment) return false;
+    if (wallBattlementGateInteriorContainsCell(wall, attachment.occupiedCell)) return false;
+    // 快照恢复绕过交互式建造校验，必须在构造实体/注册碰撞段之前补齐拓扑守卫：
+    // 1) 同一墙沿半槽只能有一件；2) 外侧格若已成为实体墙，则该边不是外沿；
+    // 3) 不得与已恢复的等距结构重叠；4) 不同支撑墙的半槽也不能发生面积交叠。
+    if (wallBattlementsAtSlot(wallCell, s.edge, s.slot).length > 0) return false;
+    const probe = {
+        x: attachment.x,
+        y: attachment.y,
+        collisionShape: 'iso_rect',
+        collisionWidth: WALL_BATTLEMENT_GRID_FOOT.w,
+        collisionHeight: WALL_BATTLEMENT_GRID_FOOT.d,
+        collisionIsoHalfU: WALL_BATTLEMENT_GRID_FOOT.w / (2 * Math.SQRT2),
+        collisionIsoHalfV: WALL_BATTLEMENT_GRID_FOOT.w / (2 * Math.SQRT2),
+        colliderOffsetX: 0,
+        colliderOffsetY: 0,
+    };
+    for (const entity of Game.entities.values()) {
+        if (!entity?.active || entity._sinking) continue;
+        if (entity._isBlockCover) {
+            const [i, j] = blockCellOf(entity.x, entity.y);
+            if (i === attachment.occupiedCell.i && j === attachment.occupiedCell.j) return false;
+        }
+        if (entity !== wall && entity.collisionShape === 'iso_rect'
+            && isoFootprintsOverlap(probe, entity, -0.5)) return false;
+    }
+    if (wallBattlements().some((entity) => wallBattlementAttachmentsOverlap(
+        attachment,
+        entity._wallBattlementAttachment
+    ))) return false;
     const cover = new DefenseCover(attachment.x, attachment.y, {
         grade: 'C', orient: 'v', mirror: false,
         battlement: true,
-        battlementVariant: s.variant || attachment.variant,
+        // 高低段是 edge + slot 的派生几何；忽略旧快照中的局部槽位结果，按当前规则迁移。
+        battlementVariant: attachment.variant,
         attachment,
         walkable: false,
         id: s.id || `built_wall_battlement_r${++_seq}`,
@@ -1171,10 +1468,11 @@ function _restoreGate4(s) {
         cover._buildCost = 0; // 石柱成本计入门主体
         group.push(cover);
     }
+    const gateMirror = s.dir === 'e1' || (s.dir == null && !!s.mirror);
     const gate = new BuildableGate(s.x, s.y, {
         grade: 'D',                       // 视觉沿用已验收 D 级素材
         hp: DEFENSE_CONFIG.covers.hp.C ?? 1600,
-        isGate4: true, orient: 'v', mirror: !!s.mirror, barCells: 2, barsOnly: true,
+        isGate4: true, orient: 'v', mirror: gateMirror, barCells: 2, barsOnly: true,
         id: s.id || `built_gate4_r${++_seq}`,
     });
     gate.grade = 'C';                     // 详情/数值显示 C 级
@@ -1229,12 +1527,12 @@ function _restoreWallStaircase(s) {
     Game.entities.set(staircase.id, staircase);
     if (DefenseSystem.staircases) {
         DefenseSystem.staircases.push(staircase);
-        DefenseSystem.rebuildWallStairGroups?.();
         DefenseSystem.invalidateElevatedTopology?.();
+        DefenseSystem.rebuildWallStairGroups?.();
     }
 }
 
-function _restoreHut(s) {
+function _restoreHut(s, sceneId) {
     const assignedWorkers = s.assignedWorkers == null
         ? Math.max(0, Math.floor(Number(s.miners) || 0))
         : Math.max(0, Math.floor(Number(s.assignedWorkers) || 0));
@@ -1245,6 +1543,8 @@ function _restoreHut(s) {
         skipInitialSpawn: true,
         modules: s.modules,
         upgrade: s.upgrade,
+        economyContinuous: s.economyContinuous,
+        continuousRestoreSceneId: sceneId,
         storedEnergy: s.storedEnergy,
         pendingMinerEnergy: s.cfgKey === 'mining_guild' && Array.isArray(s.minerWorkers)
             ? 0 : s.carriedEnergy,
@@ -1255,12 +1555,12 @@ function _restoreHut(s) {
     if (s.rally) hut._rallyPoint = { x: s.rally.x, y: s.rally.y };
     Game.entities.set(hut.id, hut);
     HamsterHutSystem.huts.push(hut);
-    BuildingRoadSystem.attach(hut, { allowOverlap: true });
+    _attachRestoredBuildingRoads(hut, s, sceneId);
     const savedMinerCount = s.miners == null
         ? assignedWorkers
         : Math.max(0, Math.floor(Number(s.miners) || 0));
     const want = hut._isMiningGuild && Array.isArray(s.minerWorkers)
-        ? s.minerWorkers.length
+        ? s.minerWorkers.length // 撤岗中的专家仍需带着原矿返营，不能按岗位数截断。
         : Math.max(0, Math.min(savedMinerCount, hut.minerCount()));
     let spawned = 0;
     for (let i = 0; i < want; i++) if (hut.spawnMiner()) spawned++;
@@ -1289,7 +1589,11 @@ function _restoreProducer(s, sceneId) {
         id: s.id || `built_${s.cfgKey}_r${++_seq}`,
         cfgKey: s.cfgKey,
         mirror: s.mirror,
+        populationRestoring: true,
+        cityHallPolicyPlan: s.cityHallPolicyPlan,
         economyLevel: s.economyLevel,
+        economyContinuous: s.economyContinuous,
+        continuousRestoreSceneId: sceneId,
         economyTickMs: s.economyTickMs,
         economyUpgrade: s.economyUpgrade,
         researchModules: s.researchModules,
@@ -1348,6 +1652,14 @@ function _restoreProducer(s, sceneId) {
         cheeseFarmUpgrade: s.cheeseFarmUpgrade,
         cheeseFarmJob: s.cheeseFarmJob,
         cheeseFarmOutputRemainder: s.cheeseFarmOutputRemainder,
+        cornFarmModules: s.cornFarmModules,
+        cornFarmUpgrade: s.cornFarmUpgrade,
+        cornFarmJob: s.cornFarmJob,
+        cornFarmOutputRemainder: s.cornFarmOutputRemainder,
+        mushroomFarmModules: s.mushroomFarmModules,
+        mushroomFarmUpgrade: s.mushroomFarmUpgrade,
+        mushroomFarmJob: s.mushroomFarmJob,
+        mushroomFarmOutputRemainder: s.mushroomFarmOutputRemainder,
         steamModules: s.steamModules,
         steamUpgrade: s.steamUpgrade,
         steamJobs: s.steamJobs,
@@ -1427,9 +1739,8 @@ function _restoreProducer(s, sceneId) {
     }
     // 持续目标独立于当前读条恢复：后台完成一档后读条为空，回场仍需继续轮询资源。
     const continuous = normalizeBuildingContinuousTarget(s.continuous);
-    const categoryBusy = (ProducerBuildingSystem.buildings || []).some((other) =>
-        other?.cfgKey === producer.cfgKey && !!other._continuous)
-        || hasBackgroundContinuousUpgrade(getBuildingContinuousCategory(producer), sceneId);
+    const categoryBusy = !!producer._economyContinuous
+        || !!getBuildingContinuousUpgradeLockReason(producer, sceneId);
     if (!categoryBusy && continuous?.kind === 'ability' && cfg.abilities?.[continuous.abilityId]) {
         producer._continuous = continuous;
     } else if (!categoryBusy && continuous?.kind === 'module' && cfg.modules?.[continuous.moduleId]) {
@@ -1445,6 +1756,8 @@ function _restoreProducer(s, sceneId) {
     ProducerBuildingSystem.buildings.push(producer);
     if (producer._isWallTower) DefenseSystem?.invalidateElevatedTopology?.();
     BuildingRoadSystem.attach(producer, { allowOverlap: true });
+    // 市政厅在整张快照及矿点恢复后补路，避免旧档新增的环路先压住尚未恢复的邻居。
+    if (!producer._isPlayerBase) _attachRestoredBuildingRoads(producer, s, sceneId);
     // 构造注册会先消费主存档 pending 能源；随后按快照覆盖本仓精确分量，避免同一库存重复恢复。
     if (producer._isEnergyWarehouse && EnergyManager) {
         const capacity = Math.max(0, Number(producer.storageCapacity) || 0);
@@ -1547,19 +1860,25 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
     }
 
     // ---- M1 后台结算（离场 >1s 才结算，避免同场秒切空跑）----
+    const sessionOnly = !isSerializableWorld(sceneId);
     const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+    syncSnapshotBuildingTiers(snap, producerBuildingsConfig,
+        (id) => TechnologySystem?.isUnlocked?.('buildingTier', id) === true);
     const capturedGameTimeMs = Number(snap.capturedGameTimeMs);
     const elapsed = Math.max(0, nowGame - (
         Number.isFinite(capturedGameTimeMs) ? capturedGameTimeMs : nowGame
     ));
     let report = null;
-    if (elapsed > 1000) {
+    if (!sessionOnly && elapsed > 1000) {
+        WorldProductionWeather.update(nowGame, { notifyPlayer: false });
         report = settleWorld122(snap, elapsed, {
             commit: true,
             skipWaves: DefenseSystem._managedExternally === true,
             sceneId,
             runtimeSceneId: WorldInstanceSystem.resolveRuntimeSceneId(sceneId),
             gameTimeMs: nowGame,
+            productionWeather: WorldProductionWeather.getMultipliers(sceneId, nowGame),
+            isBuildingTierUnlocked: (id) => TechnologySystem?.isUnlocked?.('buildingTier', id) === true,
             isRecruitmentTierUnlocked: (id) =>
                 TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
             isUnitUnlocked: (id) => TechnologySystem?.isUnlocked?.('unit', id) === true,
@@ -1569,7 +1888,7 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             grant: (reward) => {
                 // 银行金币依次进入背包、主人空间仓库；溢出量由结算记在对应银行，回场后落地。
                 if (reward.gold && PopulationEconomySystem?.routeProducedGold) {
-                    return PopulationEconomySystem.routeProducedGold(reward.gold);
+                    return PopulationEconomySystem.routeProducedGold(reward.gold, { accounting: { ignore: true } });
                 }
                 return { remaining: Math.max(0, Number(reward.gold) || 0) };
             },
@@ -1614,7 +1933,7 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             else if (s.kind === 'gate4') _restoreGate4(s);
             // 旧射击台/旧单块楼梯不再迁移，防止在城墙上自动恢复出孤立贴图。
             else if (s.kind === 'wall_staircase' && (s.stairVersion || 0) >= 2) _restoreWallStaircase(s);
-            else if (s.kind === 'hut') _restoreHut(s);
+            else if (s.kind === 'hut') _restoreHut(s, sceneId);
             else if (s.kind === 'barracks') _restoreLegacyBarracks(s, sceneId);
             else if (s.kind === 'producer') _restoreProducer(s, sceneId);
             else continue;
@@ -1665,6 +1984,9 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
     if (ResearchSystem && typeof ResearchSystem.refreshWorld === 'function') {
         ResearchSystem.refreshWorld();
     }
+    // 墙、塔、门、楼梯和依附件已经全部物化；统一在返回前提交一次最终拓扑，
+    // 防止恢复过程中较早的局部 rebuild 把后续塔楼/墙体遗漏到下一帧。
+    DefenseSystem?.commitElevatedTopologyChange?.();
     return { restored: restored > 0, report };
 }
 

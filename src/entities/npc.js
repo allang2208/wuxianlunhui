@@ -55,6 +55,7 @@ class NPC extends Entity {
 
         // 随机游走配置（game-config.json npcs.<key>.wander；缺省不移动）
         this.wanderCfg = config.wander || null;
+        this.wanderGuard = typeof config.wanderGuard === 'function' ? config.wanderGuard : null;
         this.isMoving = false;
         this._facingLeft = false;
         this._wanderHome = { x, y };
@@ -83,6 +84,15 @@ class NPC extends Entity {
      */
     _updateWander(dt) {
         const W = this.wanderCfg;
+        if (this.wanderGuard?.(this) === true) {
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+            this._wanderPhase = 'idle';
+            this._wanderTarget = null;
+            this._wanderTimer = W.idleMs ?? 7000;
+            return;
+        }
         // 交互冻结期（对话/商店/仓库等面板打开中）：原地不动，计时器顺延
         if ((this._interactionHoldMs || 0) > 0) {
             this._interactionHoldMs -= dt;

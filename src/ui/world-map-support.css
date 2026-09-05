@@ -1,0 +1,10 @@
+.wm-support-card { margin-top: 10px; padding: 10px; border: 1px solid var(--bp-border-color, #53616d); border-radius: 6px; }
+.wm-support-card.is-controlled { border-color: var(--bp-ui-accent-bright, #d9e0e5); }
+.wm-settler-portrait { width: 56px; height: 56px; flex: 0 0 56px; object-fit: contain; }
+.wm-settler-card .wm-destination { justify-content: flex-start; gap: 8px; }
+.wm-settler-card .wm-destination small { display: block; margin-top: 4px; }
+.wm-settler-card .wm-actions .is-primary { flex: 1 1 100%; }
+.wm-support-card .wm-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.wm-supply-source { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; font-size: 12px; }
+.wm-supply-source select { min-width: 0; max-width: 100%; flex: 1; color: inherit; background: var(--bp-panel-bg, #17202a); border: 1px solid var(--bp-border-color, #53616d); padding: 5px; }
+.wm-support-card button:focus-visible, .wm-supply-source select:focus-visible { outline: 2px solid var(--bp-ui-accent-bright, #d9e0e5); outline-offset: 2px; }

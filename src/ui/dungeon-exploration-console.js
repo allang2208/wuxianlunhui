@@ -64,7 +64,9 @@ export class DungeonExplorationConsole {
                 <div class="dxc-enter-group"><button id="dungeonRouteEnter" type="button" class="bp-button dxc-enter" aria-describedby="dxcEnterHint" disabled><strong class="dxc-enter-label">选择一个房间</strong><span class="dxc-enter-hint" id="dxcEnterHint" aria-live="polite"></span></button></div>
             </footer>`;
         this.$ = selector => this.root.querySelector(selector);
-        this.$('.dxc-dungeon-name').textContent = `${system.dungeonName} · ${grade}级`;
+        const worldTargetLabel = system.getWorldExpeditionLabel();
+        this.$('.dxc-dungeon-name').textContent = `${system.dungeonName} · ${grade}级${worldTargetLabel ? ` · ${worldTargetLabel}` : ''}`;
+        this.$('.dxc-dungeon-name').title = this.$('.dxc-dungeon-name').textContent;
         this.map = this.$('.dxc-map');
         this.map.title = '拖动或滚轮平移 · Shift＋滚轮横移 · Ctrl＋滚轮缩放 · 方向键平移';
         this.canvas = this.map.querySelector('canvas');

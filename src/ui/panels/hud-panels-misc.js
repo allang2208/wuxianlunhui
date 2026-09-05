@@ -20,7 +20,7 @@ export function createHudPanelsMisc() {
         { tab: 'equip', title: '装备背包 (Tab)', icon: 'assets/ui/icons/inventory.png', alt: '背包', key: 'Tab', label: '背包' },
         { tab: 'codex', title: '图鉴 (U)', icon: 'assets/ui/icons/codex.png', alt: '图鉴', key: 'U', label: '图鉴栏' },
         { action: 'QuestSystem.toggle()', title: '任务档案 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务档案', key: 'L', label: '任务档案' },
-        { action: 'WorldSwitchPanel.toggle()', title: '世界传送 (O)', icon: 'assets/ui/icons/world_switch.png', alt: '世界传送', key: 'O', label: '世界传送', id: 'worldSwitchBtn' },
+        { action: 'WorldSwitchPanel.toggle()', title: '世界 (O)', icon: 'assets/ui/icons/world_switch.png', alt: '世界', key: 'O', label: '世界', id: 'worldSwitchBtn' },
         { action: 'CompanionPanel.toggleManage()', title: '管理队员 (P)', icon: 'assets/ui/icons/party.png', alt: '队员', key: 'P', label: '队员管理' },
         { action: 'TechnologyTreePanel.toggle()', title: '科技树 (Y)', icon: 'assets/ui/icons/technology_tree.png', alt: '科技树', key: 'Y', label: '科技树', id: 'technologyTreeBtn' },
         // 可用属性点是条件提示入口，固定放在常驻科技树下方的最末位。
@@ -183,14 +183,14 @@ export function createHudPanelsMisc() {
         { key: 'energy', label: '能源', iconSrc: 'assets/ui/resource-icons/energy.png', valueId: 'resourceEnergyTotal' },
         { key: 'food', label: '食物', iconSrc: 'assets/ui/resource-icons/food.png', valueId: 'resourceFoodTotal' },
         { key: 'military-population', label: '兵力', iconSrc: 'assets/ui/unit-icons/hamster-warrior.png', valueId: 'resourceMilitaryPopulation' },
-        { key: 'working-population', label: '工作', iconSrc: 'assets/ui/unit-icons/hamster-explorer.png', valueId: 'resourceWorkingPopulation' },
+        { key: 'working-population', label: '人口', iconSrc: 'assets/ui/unit-icons/hamster-explorer.png', valueId: 'resourceWorkingPopulation' },
     ].forEach((resource) => {
         const item = document.createElement('div');
         item.className = `basic-resource-item basic-resource-item--${resource.key}`;
         item.title = resource.key === 'military-population'
             ? '军事人口：已出兵数 / 房屋提供的人口上限（不占用经济岗位人口）'
             : resource.key === 'working-population'
-                ? '工作人口：已分配岗位数 / 房屋提供的可用人口上限（不含军事单位）'
+                ? '本位面实际居民人数；已用岗位、空闲人口和住房容量在展开详情中分别显示（不含军事单位）'
                 : `${resource.label}总量`;
 
         const icon = document.createElement('img');
@@ -207,7 +207,7 @@ export function createHudPanelsMisc() {
         const value = document.createElement('strong');
         value.id = resource.valueId;
         value.className = 'basic-resource-value';
-        value.textContent = resource.key.endsWith('population') ? '0/0' : '0';
+        value.textContent = resource.key === 'military-population' ? '0/0' : '0';
 
         item.append(icon, label, value);
         if (resource.key.endsWith('population')) populationRow.appendChild(item);
@@ -242,22 +242,27 @@ export function createHudPanelsMisc() {
                 <div id="economyFoodCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="食物可存容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyFoodCapacityFill" class="economy-capacity-fill economy-capacity-fill--food"></span></div>
             </div>
         </div>
-        <div class="economy-detail-heading"><span>人口容量</span><small>经济与军事独立占用</small></div>
+        <div class="economy-detail-heading"><span>人口与住房</span><small>居民与兵力独立</small></div>
         <div class="economy-capacity-list economy-capacity-list--population">
             <div class="economy-capacity-row">
                 <div class="economy-capacity-meta"><span>兵力</span><strong id="economyMilitaryCapacityText">0 / 0 · 余 0</strong></div>
                 <div id="economyMilitaryCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="军事人口容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyMilitaryCapacityFill" class="economy-capacity-fill economy-capacity-fill--military"></span></div>
             </div>
             <div class="economy-capacity-row">
-                <div class="economy-capacity-meta"><span>工作</span><strong id="economyWorkingCapacityText">0 / 0 · 余 0</strong></div>
-                <div id="economyWorkingCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="工作人口容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyWorkingCapacityFill" class="economy-capacity-fill economy-capacity-fill--working"></span></div>
+                <div class="economy-capacity-meta"><span>已用岗位 / 实际人口</span><strong id="economyWorkingCapacityText">0 / 0 · 空闲 0</strong></div>
+                <div id="economyWorkingCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="已用岗位占实际人口的比例" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyWorkingCapacityFill" class="economy-capacity-fill economy-capacity-fill--working"></span></div>
+            </div>
+            <div class="economy-capacity-row economy-capacity-row--housing" title="实际居民 / 住房容量；住房已满只减速，不停止增长">
+                <div class="economy-capacity-meta"><span>居民 / 住房</span><strong id="economyHousingCapacityText">0 / 0 · 余 0</strong></div>
+                <div id="economyHousingCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="实际居民与住房容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyHousingCapacityFill" class="economy-capacity-fill economy-capacity-fill--working"></span></div>
             </div>
         </div>
-        <div class="economy-detail-heading"><span>每秒产出</span><small>近5秒净值</small></div>
+        <div class="economy-detail-heading"><span>每秒净收支</span></div>
+        <p id="economyRateWindow" class="economy-rate-note">周期均摊 / 实收支统计</p>
         <div class="economy-rate-grid">
-            <div><span>金币</span><strong id="economyGoldRate">0.00/秒</strong></div>
-            <div><span>能源</span><strong id="economyEnergyRate">0.00/秒</strong></div>
-            <div><span>食物</span><strong id="economyFoodRate">0.00/秒</strong></div>
+            <div><span>金币</span><strong id="economyGoldRate">0.00/秒</strong><small id="economyGoldIncome">收入 +0.00/秒</small><small id="economyGoldExpense">消耗 −0.00/秒</small></div>
+            <div><span>能源</span><strong id="economyEnergyRate">0.00/秒</strong><small id="economyEnergyIncome">收入 +0.00/秒</small><small id="economyEnergyExpense">消耗 −0.00/秒</small></div>
+            <div><span>食物</span><strong id="economyFoodRate">0.00/秒</strong><small id="economyFoodIncome">收入 +0.00/秒</small><small id="economyFoodExpense">消耗 −0.00/秒</small></div>
         </div>
       </div>`;
 
@@ -340,7 +345,7 @@ export function createHudPanelsMisc() {
                 <span id="worldTimelineWindow" class="world-timeline-window">未来5日</span>
             </div>
             <div id="worldTimelineFilters" class="world-timeline-filters" role="group" aria-label="事件类型筛选"></div>
-            <div class="world-invasion-label"><span>⚔</span><span id="worldInvasionText">距离入侵 5.0 天</span></div>
+            <div class="world-invasion-label"><span>⚔</span><span id="worldInvasionText">暂无入侵情报</span></div>
             <div id="worldInvasionDetail" class="world-invasion-detail"></div>
             <button id="worldInvasionSupport" class="world-invasion-support" type="button">⚔ 前往支援</button>
         </div>

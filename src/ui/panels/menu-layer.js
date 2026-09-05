@@ -19,10 +19,13 @@ export function createMenuLayer() {
     // 子元素: menu-content
     const menuContent = document.createElement('div');
     menuContent.className = 'menu-content';
+    menuContent.setAttribute('role', 'region');
+    menuContent.setAttribute('aria-labelledby', 'startMenuTitle');
 
     // 子元素: h1.game-title
     const gameTitle = document.createElement('h1');
     gameTitle.className = 'game-title';
+    gameTitle.id = 'startMenuTitle';
     gameTitle.textContent = '无限轮回';
     menuContent.appendChild(gameTitle);
 
@@ -35,53 +38,97 @@ export function createMenuLayer() {
     // 版本号（仅进入游戏界面展示；全局右上角 badge 已删除——meta.version 长期未递增已过时）
     const versionText = document.createElement('p');
     versionText.className = 'game-version';
-    versionText.style.cssText = 'margin:4px 0 0;font-size:13px;color:#8a7f6d;letter-spacing:1px;';
     versionText.textContent = 'V' + (GAME_CONFIG.meta?.version || '');
     menuContent.appendChild(versionText);
 
     // 子元素: div.menu-buttons
     const menuButtons = document.createElement('div');
     menuButtons.className = 'menu-buttons';
+    menuButtons.setAttribute('role', 'group');
+    menuButtons.setAttribute('aria-label', '主菜单操作');
 
     // 子元素: button.menu-btn.start-btn (开始游戏)
     const startGameBtn = document.createElement('button');
+    startGameBtn.type = 'button';
     startGameBtn.className = 'menu-btn start-btn';
     startGameBtn.id = 'startGameBtn';
     startGameBtn.textContent = '开始游戏';
     menuButtons.appendChild(startGameBtn);
 
+    const settingsBtn = document.createElement('button');
+    settingsBtn.type = 'button';
+    settingsBtn.className = 'menu-btn settings-btn';
+    settingsBtn.id = 'startSettingsBtn';
+    settingsBtn.textContent = '设置';
+    settingsBtn.setAttribute('aria-haspopup', 'dialog');
+    settingsBtn.setAttribute('aria-controls', 'gameMenuOverlay');
+    menuButtons.appendChild(settingsBtn);
+
+    const secondaryActions = document.createElement('div');
+    secondaryActions.className = 'menu-secondary-actions';
+
     // 子元素: button.menu-btn (操作说明)
     const showHelpBtn = document.createElement('button');
+    showHelpBtn.type = 'button';
     showHelpBtn.className = 'menu-btn';
     showHelpBtn.id = 'showHelpBtn';
     showHelpBtn.textContent = '操作说明';
-    menuButtons.appendChild(showHelpBtn);
+    secondaryActions.appendChild(showHelpBtn);
+
+    const exitGameBtn = document.createElement('button');
+    exitGameBtn.type = 'button';
+    exitGameBtn.className = 'menu-btn exit-btn';
+    exitGameBtn.id = 'exitGameBtn';
+    exitGameBtn.textContent = '退出游戏';
+    secondaryActions.appendChild(exitGameBtn);
+    menuButtons.appendChild(secondaryActions);
 
     menuContent.appendChild(menuButtons);
+
+    const menuStatus = document.createElement('p');
+    menuStatus.id = 'startMenuStatus';
+    menuStatus.className = 'menu-status';
+    menuStatus.setAttribute('role', 'status');
+    menuStatus.setAttribute('aria-live', 'polite');
+    menuContent.appendChild(menuStatus);
+    exitGameBtn.addEventListener('click', () => {
+        if (exitGameBtn.disabled) return;
+        menuStatus.removeAttribute('data-tone');
+        try {
+            if (typeof window.electronAPI?.exitApp === 'function') {
+                exitGameBtn.disabled = true;
+                exitGameBtn.setAttribute('aria-busy', 'true');
+                exitGameBtn.textContent = '正在退出…';
+                menuStatus.textContent = '正在关闭游戏窗口…';
+                // 复用 preload 的 exit-app IPC，不改发布目录、存档或其他应用。
+                window.electronAPI.exitApp();
+            } else {
+                // 浏览器可能拒绝关闭手动打开的标签页，保留菜单并提供可执行提示。
+                menuStatus.textContent = '若页面未自动关闭，请手动关闭当前浏览器标签页。';
+                window.close();
+            }
+        } catch (error) {
+            exitGameBtn.disabled = false;
+            exitGameBtn.removeAttribute('aria-busy');
+            exitGameBtn.textContent = '退出游戏';
+            menuStatus.dataset.tone = 'danger';
+            menuStatus.textContent = '退出未完成，请重试或手动关闭游戏窗口。';
+            console.error('开始面板退出游戏失败:', error);
+        }
+    });
 
     // 子元素: div.menu-info
     const menuInfo = document.createElement('div');
     menuInfo.className = 'menu-info';
 
-    // 子元素: p (操作说明文本行1)
+    // 新手流程在真实场景中逐步教学；首页只保留入口说明，避免一次灌入整张键位表。
     const infoLine1 = document.createElement('p');
-    infoLine1.textContent = 'WASD移动 | 鼠标瞄准 | 左键攻击 | 右键特殊攻击';
+    infoLine1.textContent = '基础操作会在实际游玩中逐步提示。';
     menuInfo.appendChild(infoLine1);
 
-    // 子元素: p (操作说明文本行2)
     const infoLine2 = document.createElement('p');
-    infoLine2.textContent = 'F切换武器 | R换弹 | 空格闪避 | Shift冲刺';
+    infoLine2.textContent = '完整键位可随时从“操作说明”查看。';
     menuInfo.appendChild(infoLine2);
-
-    // 子元素: p (操作说明文本行3)
-    const infoLine3 = document.createElement('p');
-    infoLine3.textContent = '1~4快捷栏 | Q/E/X/C技能 | Z范围拾取 | Tab背包';
-    menuInfo.appendChild(infoLine3);
-
-    // 子元素: p (操作说明文本行4)
-    const infoLine4 = document.createElement('p');
-    infoLine4.textContent = 'CapsLock状态栏 | K技能栏 | L图鉴 | Esc菜单';
-    menuInfo.appendChild(infoLine4);
 
     menuContent.appendChild(menuInfo);
 

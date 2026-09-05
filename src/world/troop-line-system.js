@@ -10,11 +10,15 @@ import { WallSystem } from './wall-system.js';
 import { TechnologySystem } from './technology-system.js';
 import { MilitaryPopulationSystem } from './military-population-system.js';
 
-const VERSION = 4;
+const VERSION = 6;
 const MODES = new Set(['follow', 'hold', 'rally']);
 const MILITARY_KINDS = new Set([
     'hamster_catapult_crew', 'hamster_field_cannon_crew', 'industrial_artillery_crew', 'hamster_howitzer_crew',
     'militia', 'halberd', 'anti_tank_rifleman', 'anti_vehicle', 'warrior', 'champion', 'trench_assault', 'special_forces', 'shooter', 'guard', 'phalanx', 'steel_shield_assault', 'riot_special', 'scout', 'ranger', 'industrial_recon_rifleman', 'crossbow', 'longbow', 'service_rifleman', 'emplaced_machine_gun_crew', 'assault', 'heavy_machine_gunner', 'sniper', 'musketeer', 'priest', 'bishop', 'archbishop', 'knight', 'light_cavalry', 'cavalry', 'winged_hussar', 'industrial_carbine_cavalry', 'gunpowder_explosive_lancer', 'scout_rifle_skirmisher', 'powered_eod_explosive_lancer', 'ninja',
+    'hamster_howitzer_crew',
+    'industrial_artillery_crew',
+    'hamster_field_cannon_crew',
+    'militia', 'halberd', 'anti_vehicle', 'anti_tank_rifleman', 'warrior', 'champion', 'trench_assault', 'steel_shield_assault', 'special_forces', 'shooter', 'guard', 'phalanx', 'riot_special', 'scout', 'ranger', 'crossbow', 'industrial_recon_rifleman', 'longbow', 'service_rifleman', 'emplaced_machine_gun_crew', 'assault', 'heavy_machine_gunner', 'sniper', 'musketeer', 'priest', 'bishop', 'archbishop', 'knight', 'light_cavalry', 'cavalry', 'industrial_carbine_cavalry', 'gunpowder_explosive_lancer', 'winged_hussar', 'scout_rifle_skirmisher', 'powered_eod_explosive_lancer', 'ninja', 'hamster_catapult_crew',
     'camel_cavalry',
     'explorer',
     'bounty_hunter',
@@ -101,6 +105,9 @@ export const TroopLineSystem = {
     _pendingByWorld: {},
     _liveDetached: new Set(),
     _portalTravelRecords: new Set(),
+    _strategicTroops: [],
+    _armyTroops: {}, // Independent detachments; each soldier still has one authoritative record.
+    _strategicLive: new Set(),
     _companionResidency: {},
     _createMilitaryUnit: null,
     _getMilitaryUnitProfile: null,
@@ -123,6 +130,9 @@ export const TroopLineSystem = {
         this._pendingByWorld = {};
         this._liveDetached.clear();
         this._portalTravelRecords.clear();
+        this._strategicTroops = [];
+        this._armyTroops = {};
+        this._strategicLive.clear();
         this._companionResidency = {};
         this._nextMaterializeRetryAt = 0;
         this._seq = 0;
@@ -333,6 +343,9 @@ export const TroopLineSystem = {
         for (const record of this._portalTravelRecords) {
             if (matchesOrigin(record)) count += recordCount(record);
         }
+        for (const record of [...this._strategicTroops, ...Object.values(this._armyTroops).flat()]) {
+            if (matchesOrigin(record)) count += recordCount(record);
+        }
         for (const unit of this._liveDetached) {
             if (aliveMilitaryUnit(unit) && matchesOrigin({
                 originProducerId: unit._troopLineOriginProducerId,
@@ -447,9 +460,231 @@ export const TroopLineSystem = {
         this._pruneDeadDetached();
     },
 
+    getStrategicCandidates() {
+        const g = game();
+        const manager = sceneManager(), sceneId = manager?.currentScene;
+        if (!g || !sceneId || manager.isLoading) return [];
+        const party = new Set(g?.PartySystem?.members || []);
+        // These registries belong to the loaded plane. Do not read other worlds' snapshots
+        // or use originSceneId as residency: reinforcements retain their original producer.
+        const localUnits = new Set([
+            ...(g.entities?.values?.() || []),
+            ...(g.friendlyUnits || []),
+            ...this.getLiveProducers().flatMap((producer) => producer.units || []),
+        ]);
+        const seenIds = new Set();
+        return Array.from(localUnits).filter((unit) => {
+            // Military identity comes from the shared kind registry, not optional producer
+            // bookkeeping flags. Keep old/unattached living soldiers available for selection.
+            // Editor-spawned test soldiers are field units too; only frozen previews are excluded.
+            if (!unit?.id || unit.active === false || unit._dying || !(unit.data?.hp > 0)
+                || !MILITARY_KINDS.has(getUnitKind(unit)) || party.has(unit) || unit._strategicArmyId
+                || unit._collisionPreview) return false;
+            const residence = unit._troopLineWorldId || unit._troopLineTransit?.sourceSceneId;
+            if (residence && residence !== sceneId) return false;
+            if (seenIds.has(unit.id)) return false;
+            seenIds.add(unit.id);
+            return true;
+        });
+    },
+
+    /** Read-only map summary. Residency is separate from original producer population. */
+    getBaseMilitarySummary(sceneId, snapshot = null) {
+        const manager = sceneManager();
+        const live = manager?.currentScene === sceneId && !manager?.isLoading;
+        const validSnapshot = snapshot && Number(snapshot.worldEpoch) === currentEpoch(sceneId);
+        const summary = { live, known: !manager?.isLoading && (live || !!validSnapshot),
+            stationed: 0, wounded: 0, healthUnknown: 0, pending: 0, incoming: 0, selectable: null };
+        if (!summary.known) return summary;
+        if (live) {
+            const units = this.getStrategicCandidates();
+            summary.stationed = units.length;
+            summary.selectable = units.length;
+            for (const unit of units) {
+                const maxHp = Number(unit.data?.maxHp ?? unit.maxHp);
+                if (!(maxHp > 0)) summary.healthUnknown++;
+                else if (unit.data.hp < maxHp) summary.wounded++;
+            }
+        } else {
+            // Background producer snapshots retain counts, not individual wounds.
+            // Never include troopLineDeployed: those soldiers reside elsewhere.
+            for (const structure of snapshot.structures || []) {
+                if (!this._snapshotIsTroopProducer(structure)) continue;
+                const count = structure.unitRoster ? Object.entries(structure.unitRoster)
+                    .filter(([kind]) => MILITARY_KINDS.has(kind))
+                    .reduce((sum, [, value]) => sum + Math.max(0, Math.floor(Number(value) || 0)), 0)
+                    : Math.max(0, Math.floor(Number(structure.units) || 0));
+                summary.stationed += count;
+                summary.healthUnknown += count;
+            }
+        }
+        for (const record of this._pendingByWorld[sceneId] || []) {
+            if (!this._recordBelongsToWorld(record, sceneId, currentEpoch(sceneId))) continue;
+            const count = recordCount(record);
+            if (record.state === 'transit') { summary.incoming += count; continue; }
+            summary.stationed += count;
+            summary.pending += count;
+            if (record.hpRatio < 1) summary.wounded += count;
+        }
+        return summary;
+    },
+
+    packStrategicTroops(ids, armyId = null) {
+        if (armyId ? this._armyTroops[armyId] : this._strategicTroops.length || this._strategicLive.size) return false;
+        const units = new Map(this.getStrategicCandidates().map((unit) => [unit.id, unit]));
+        const selected = [...new Set(ids)].map((id) => units.get(id));
+        if (selected.some((unit) => !unit)) return false;
+        const records = selected.map((unit) => this._recordUnit(unit, null, 'travel'));
+        if (records.some((record) => !record)) return false;
+        // Reserve the original producer assignment before removing any local entity.
+        if (armyId) this._armyTroops[armyId] = records;
+        else this._strategicTroops = records;
+        selected.forEach((unit) => this._detachUnit(unit));
+        this._revision++;
+        return true;
+    },
+
+    serializeStrategicTroops(armyId = null) {
+        if (armyId) return clone(this._armyTroops[armyId] || []);
+        return clone([...this._strategicTroops, ...Array.from(this._strategicLive)
+            .filter(aliveMilitaryUnit).map((unit) => this._recordUnit(unit, null, 'travel'))]);
+    },
+
+    packStrategicSurvivors() {
+        const records = this.serializeStrategicTroops();
+        this.clearStrategicLive();
+        this._strategicTroops = records;
+        this._revision++;
+    },
+
+    clearStrategicLive() {
+        for (const unit of this._strategicLive) this._detachUnit(unit);
+        this._strategicLive.clear();
+    },
+
+    restoreStrategicTroops(records) {
+        this.clearStrategicLive();
+        this._strategicTroops = (records || []).map((raw) => this._normalizeRecord({ ...raw, target: null, state: 'travel' }, null))
+            .filter((record) => record && MILITARY_KINDS.has(record.kind));
+        this._revision++;
+    },
+
+    materializeStrategicTroops(sceneId, anchor, armyId) {
+        const before = new Set(this._liveDetached);
+        const result = this._materializeRecords(this._strategicTroops, sceneId, anchor, 'follow');
+        this._strategicTroops = result.retained;
+        for (const unit of this._liveDetached) {
+            if (before.has(unit)) continue;
+            unit._strategicArmyId = armyId;
+            this._strategicLive.add(unit);
+        }
+        this._revision++;
+        if (result.retained.length) throw new Error('部队落点或资源未就绪，已保留未入场的部队记录');
+    },
+
+    releaseStrategicTroops(sceneId, anchor, armyId = null) {
+        if (!armyId) this.packStrategicSurvivors();
+        const receipt = { expected: 0, accepted: 0, deployed: 0, pending: 0, wounded: 0, unaccounted: 0 };
+        const batches = new Map();
+        const target = { sceneId, worldEpoch: currentEpoch(sceneId), x: anchor.x, y: anchor.y, z: 0, surfaceKind: 'ground' };
+        for (const record of armyId ? this._armyTroops[armyId] || [] : this._strategicTroops) {
+            receipt.expected += recordCount(record);
+            this._enqueue(sceneId, { ...record, target, state: 'garrisoned', command: { mode: 'hold' } }, (queued, offset, count) => {
+                // Existing garrisons can merge with this batch. Track only the newly appended slots.
+                const start = queued.materializedOffset + offset;
+                const ranges = batches.get(queued.unitId) || [];
+                ranges.push({ start, end: start + count }); batches.set(queued.unitId, ranges);
+                receipt.accepted += count;
+                if (record.hpRatio < 1) receipt.wounded += count;
+            });
+        }
+        if (armyId) delete this._armyTroops[armyId];
+        else this._strategicTroops = [];
+        this._flushIfLive(sceneId, true, (record, slot) => {
+            if (batches.get(record.unitId)?.some((range) => slot >= range.start && slot < range.end)) receipt.deployed++;
+        });
+        for (const record of this._pendingByWorld[sceneId] || []) {
+            for (const range of batches.get(record.unitId) || []) {
+                receipt.pending += Math.max(0, Math.min(range.end, record.materializedOffset + recordCount(record))
+                    - Math.max(range.start, record.materializedOffset));
+            }
+        }
+        receipt.unaccounted = Math.max(0, receipt.expected - receipt.deployed - receipt.pending);
+        this._revision++;
+        return receipt;
+    },
+
+    getArmyPower(armyId) {
+        return (this._armyTroops[armyId] || []).reduce((sum, record) => {
+            const profile = this._getMilitaryUnitProfile?.(record.kind), count = recordCount(record);
+            sum.hp += Math.max(1, Number(profile?.maxHp) || 1) * record.hpRatio * count;
+            sum.dps += Math.max(0, Number(profile?.dps) || 0) * count;
+            sum.units += count;
+            return sum;
+        }, { hp: 0, dps: 0, units: 0 });
+    },
+
+    strategicArmyIds() { return Object.keys(this._armyTroops); },
+    discardEmptyArmy(id) { if (!this._armyTroops[id]?.length) delete this._armyTroops[id]; },
+    materializeArmyReinforcements(id, anchor, playerArmyId, findSpot) {
+        const before = new Set(this._liveDetached);
+        const result = this._materializeRecords(this._armyTroops[id] || [], 'strategy_battle', anchor, 'follow', null, findSpot, 8);
+        this._armyTroops[id] = result.retained;
+        for (const unit of this._liveDetached) if (!before.has(unit)) {
+            unit._strategicArmyId = playerArmyId; this._strategicLive.add(unit);
+        }
+        this.discardEmptyArmy(id); this._revision++;
+        return { count: result.created, remaining: result.retained.reduce((sum, record) => sum + recordCount(record), 0) };
+    },
+
+    damageArmy(armyId, damage) {
+        let left = Math.max(0, damage);
+        const survivors = [];
+        for (const record of this._armyTroops[armyId] || []) {
+            const profile = this._getMilitaryUnitProfile?.(record.kind);
+            const maxHp = Math.max(1, Number(profile?.maxHp) || 1), count = recordCount(record);
+            const hp = maxHp * record.hpRatio * count, dealt = Math.min(left, hp);
+            left -= dealt;
+            if (hp > dealt) {
+                const remaining = Math.min(count, Math.ceil((hp - dealt) / (maxHp * record.hpRatio)));
+                survivors.push({ ...record, count: remaining, hpRatio: (hp - dealt) / (maxHp * remaining) });
+            }
+        }
+        this._armyTroops[armyId] = survivors;
+        this._revision++;
+    },
+
+    setStrategicCompanions(ids, sceneId, anchor = null, armyId = null) {
+        const party = game()?.PartySystem;
+        for (const id of ids || []) {
+            const member = party?.getMember?.(id);
+            if (!member) continue;
+            member._strategicArmyId = armyId;
+            member.active = sceneId !== 'strategy_map' && member.data?.hp > 0;
+            this._clearCompanionMotion(member);
+            if (anchor) {
+                member.x = anchor.x - 60 - ids.indexOf(id) * 45;
+                member.y = anchor.y + 70;
+                member.z = 0;
+                member._surfaceKind = 'ground';
+                member._command = { mode: armyId ? 'follow' : 'hold', point: null, target: null };
+                member.collider?.syncPosition?.();
+            }
+            this._storeCompanionResidency(member, sceneId);
+            if (!member.active) member._destroyPhaserSprite?.();
+        }
+        party?._notify?.();
+    },
+
+    rememberCompanionResidencies(sceneId) {
+        for (const member of game()?.PartySystem?.members || []) {
+            if (member.active !== false) this._storeCompanionResidency(member, sceneId);
+        }
+    },
+
     preparePortalTravel(fromSceneId, toSceneId) {
         const g = game();
-        const travel = { fromSceneId, toSceneId, troops: [], companionIds: [] };
+        const travel = { fromSceneId, toSceneId, troops: [], companionIds: [], companionResidency: {} };
         if (!g?.entities) return travel;
         const partyMembers = new Set(g.PartySystem?.members || []);
         if (TechnologySystem.isUnlocked('mechanic', 'cross_world_reinforcement')) {
@@ -465,7 +700,11 @@ export const TroopLineSystem = {
         for (const member of g.PartySystem?.members || []) {
             if (member?.active === false) continue;
             this._storeCompanionResidency(member, fromSceneId);
-            if ((member?._command?.mode || 'follow') === 'follow') travel.companionIds.push(member.id);
+            if ((member?._command?.mode || 'follow') === 'follow') {
+                travel.companionIds.push(member.id);
+                const residence = this._companionResidency[member.id];
+                travel.companionResidency[member.id] = { ...residence, command: { ...residence.command } };
+            }
         }
         this._revision++;
         return travel;
@@ -515,9 +754,11 @@ export const TroopLineSystem = {
         }
         const party = game()?.PartySystem;
         for (const companionId of travel.companionIds || []) {
+            // completePortalTravel 会覆盖权威驻留记录；到达资源失败时必须恢复传送前副本。
+            const saved = travel.companionResidency?.[companionId];
+            if (saved) this._companionResidency[companionId] = { ...saved, command: { ...saved.command } };
             const member = party?.getMember?.(companionId);
             if (!member) continue;
-            const saved = this._companionResidency[companionId];
             member.active = true;
             if (saved) this._restoreCompanionResidency(member, saved);
         }
@@ -538,6 +779,7 @@ export const TroopLineSystem = {
             this._enqueue(target.sceneId, record);
         }
         for (const unit of Array.from(this._liveDetached)) {
+            if (unit._strategicArmyId) continue;
             if (unit._troopLineWorldId !== sceneId) continue;
             if (!aliveMilitaryUnit(unit)) {
                 this._detachUnit(unit);
@@ -745,7 +987,8 @@ export const TroopLineSystem = {
         return before - left;
     },
 
-    serialize() {
+    serialize({ excludeSceneIds = [] } = {}) {
+        const excluded = new Set(excludeSceneIds);
         this.validateRally();
         this.validateProducerRallies();
         this._pruneInvalidPending();
@@ -761,10 +1004,12 @@ export const TroopLineSystem = {
             }
         }
         const pending = clone(this._pendingByWorld);
+        for (const sceneId of excluded) delete pending[sceneId];
         for (const unit of this._liveDetached) {
+            if (unit._strategicArmyId) continue;
             if (!aliveMilitaryUnit(unit)) continue;
             const sceneId = unit._troopLineWorldId;
-            if (!sceneId) continue;
+            if (!sceneId || excluded.has(sceneId)) continue;
             if (!pending[sceneId]) pending[sceneId] = [];
             pending[sceneId].push(this._recordUnit(unit, {
                 sceneId,
@@ -778,16 +1023,29 @@ export const TroopLineSystem = {
         return {
             version: VERSION,
             mode: this.mode,
-            rally: this.rally ? { ...this.rally } : null,
-            producerRallies: Array.from(this._producerRallies.values()).map((record) => clone(record)),
+            rally: this.rally && !excluded.has(this.rally.sceneId) ? { ...this.rally } : null,
+            producerRallies: Array.from(this._producerRallies.values())
+                .filter((record) => !excluded.has(record.originSceneId)
+                    && !excluded.has(record.target?.sceneId))
+                .map((record) => clone(record)),
             pending,
-            companionResidency: clone(this._companionResidency),
+            companionResidency: Object.fromEntries(Object.entries(clone(this._companionResidency))
+                .filter(([, residence]) => !excluded.has(residence?.sceneId))),
+            strategicTroops: this.serializeStrategicTroops(),
+            armyTroops: clone(this._armyTroops),
         };
     },
 
-    restore(data) {
+    restore(data, { deferSceneEntry = false } = {}) {
         this.reset();
-        if (!data || ![1, 2, 3, VERSION].includes(data.version)) return;
+        if (!data || ![1, 2, 3, 4, 5, VERSION].includes(data.version)) return;
+        this.restoreStrategicTroops(data.strategicTroops);
+        const seen = new Set(this._strategicTroops.map((record) => record.unitId));
+        for (const [armyId, records] of Object.entries(data.armyTroops || {})) {
+            if (!armyId.startsWith('detachment_') || !Array.isArray(records)) continue;
+            this._armyTroops[armyId] = records.map((raw) => this._normalizeRecord({ ...raw, target: null, state: 'travel' }, null))
+                .filter((record) => { if (!record || !MILITARY_KINDS.has(record.kind) || seen.has(record.unitId)) return false; seen.add(record.unitId); return true; });
+        }
         this.mode = MODES.has(data.mode) ? data.mode : 'follow';
         this.rally = normalizeTarget(data.rally);
         if (this.mode === 'hold' && !TechnologySystem.isUnlocked('mechanic', 'troop_hold')) this.mode = 'follow';
@@ -821,7 +1079,7 @@ export const TroopLineSystem = {
         const manager = sceneManager();
         const currentScene = currentWorldId();
         // 瞬态任务实例不消费永久世界的待入场兵线；正式世界加载时再物化。
-        if (currentScene && !manager?.isQuestInstance?.(currentScene)) this.onSceneEntered(currentScene);
+        if (!deferSceneEntry && currentScene && !manager?.isQuestInstance?.(currentScene)) this.onSceneEntered(currentScene);
     },
 
     _snapshotIsTroopProducer(structure) {
@@ -872,6 +1130,7 @@ export const TroopLineSystem = {
             unitId: unit.id || this._nextUnitId('troop_line'),
             kind: getUnitKind(unit),
             hpRatio: Math.max(0.01, Math.min(1, Number(unit.data?.hp ?? unit.hp) / maxHp)),
+            mpRatio: unit.data?.maxMp > 0 ? Math.max(0, Math.min(1, unit.data.mp / unit.data.maxMp)) : null,
             statusEffects: (unit.statusEffects || [])
                 .filter((effect) => effect && Number(effect.remaining) > 0)
                 .map((effect) => ({ ...effect })),
@@ -908,6 +1167,7 @@ export const TroopLineSystem = {
             batch,
             materializedOffset: Math.max(0, Math.floor(Number(record.materializedOffset) || 0)),
             hpRatio: Math.max(0.01, Math.min(1, Number(record.hpRatio) || 1)),
+            mpRatio: typeof record.mpRatio === 'number' ? Math.max(0, Math.min(1, record.mpRatio)) : null,
             statusEffects,
             state: ['travel', 'transit', 'garrisoned'].includes(record.state) ? record.state : 'garrisoned',
             command: record.command && typeof record.command === 'object'
@@ -933,7 +1193,7 @@ export const TroopLineSystem = {
         unit._destroyPhaserSprite?.();
     },
 
-    _enqueue(sceneId, record) {
+    _enqueue(sceneId, record, onQueued = null) {
         const normalized = this._normalizeRecord(record, sceneId);
         if (!sceneId || !normalized) return false;
         if (!this._pendingByWorld[sceneId]) this._pendingByWorld[sceneId] = [];
@@ -948,15 +1208,18 @@ export const TroopLineSystem = {
                     && candidate.originSceneId === normalized.originSceneId
                     && Number(candidate.originWorldEpoch) === Number(normalized.originWorldEpoch)
                     && candidateTargetKey === targetKey
+                    && candidate.mpRatio === normalized.mpRatio
                     && Math.abs(Number(candidate.hpRatio) - Number(normalized.hpRatio)) < 0.0001;
             });
             if (existing) {
+                onQueued?.(existing, recordCount(existing), recordCount(normalized));
                 existing.count = recordCount(existing) + recordCount(normalized);
                 this._revision++;
                 return true;
             }
         }
         this._pendingByWorld[sceneId].push(normalized);
+        onQueued?.(normalized, 0, recordCount(normalized));
         this._revision++;
         return true;
     },
@@ -967,13 +1230,13 @@ export const TroopLineSystem = {
             || { x: 0, y: 0, z: 0, surfaceKind: 'ground' };
     },
 
-    _flushIfLive(sceneId, force = false) {
+    _flushIfLive(sceneId, force = false, onMaterialized = null) {
         const manager = sceneManager();
         if (!force && currentWorldId() !== sceneId) return 0;
         const records = this._pendingByWorld[sceneId];
         if (!records?.length) return 0;
         const valid = records.filter((record) => !record.target || this._isTargetCurrent(record.target));
-        const result = this._materializeRecords(valid, sceneId, this._defaultArrival(sceneId), 'hold');
+        const result = this._materializeRecords(valid, sceneId, this._defaultArrival(sceneId), 'hold', onMaterialized);
         if (result.retained.length) {
             this._pendingByWorld[sceneId] = result.retained;
             this._nextMaterializeRetryAt = Date.now() + MATERIALIZE_RETRY_MS;
@@ -985,7 +1248,7 @@ export const TroopLineSystem = {
         return result.created;
     },
 
-    _materializeRecords(records, sceneId, anchor, commandMode) {
+    _materializeRecords(records, sceneId, anchor, commandMode, onMaterialized = null, findSpot = null, budget = MATERIALIZE_BUDGET_PER_PASS) {
         const g = game();
         const result = { created: 0, retained: [] };
         if (!g?.entities || typeof this._createMilitaryUnit !== 'function') {
@@ -994,28 +1257,28 @@ export const TroopLineSystem = {
         }
         for (const record of records || []) {
             if (!record?.kind || (record.target && !this._isTargetCurrent(record.target))) continue;
-            if (result.created >= MATERIALIZE_BUDGET_PER_PASS) {
+            if (result.created >= budget) {
                 result.retained.push(record);
                 continue;
             }
             const total = recordCount(record);
             const baseOffset = Math.max(0, Math.floor(Number(record.materializedOffset) || 0));
             let consumed = 0;
-            for (; consumed < total && result.created < MATERIALIZE_BUDGET_PER_PASS; consumed++) {
+            for (; consumed < total && result.created < budget; consumed++) {
                 const destination = normalizeTarget(record.target);
                 const needsRoute = record.state === 'transit'
                     || (destination && destination.surfaceKind !== 'ground');
                 const center = needsRoute
                     ? (this._sourcePortalPoint(sceneId) || anchor || destination)
                     : (destination || anchor || this._defaultArrival(sceneId));
-                const spot = this._findSafeArrival(center, result.created);
+                const spot = findSpot ? findSpot(center, result.created) : this._findSafeArrival(center, result.created, sceneId);
                 if (!spot) break;
                 const unitId = total === 1 && !record.batch
                     ? (record.unitId || this._nextUnitId('troop_line'))
                     : `${record.unitId || this._nextUnitId('troop_line_batch')}_${baseOffset + consumed}`;
                 const existing = g.entities.get(unitId);
                 if (existing) {
-                    if (existing._troopLineDetached) result.created++;
+                    if (existing._troopLineDetached) { result.created++; onMaterialized?.(record, baseOffset + consumed); }
                     else break;
                     continue;
                 }
@@ -1030,6 +1293,7 @@ export const TroopLineSystem = {
                     break;
                 }
                 if (!unit) break;
+                if (record.mpRatio !== null && unit.data?.maxMp > 0) unit.data.mp = unit.data.maxMp * record.mpRatio;
                 unit._troopProducer = true;
                 unit._troopLineDetached = true;
                 unit._troopLineWorldId = sceneId;
@@ -1047,6 +1311,7 @@ export const TroopLineSystem = {
                 if (Array.isArray(g.friendlyUnits) && !g.friendlyUnits.includes(unit)) g.friendlyUnits.push(unit);
                 this._liveDetached.add(unit);
                 result.created++;
+                onMaterialized?.(record, baseOffset + consumed);
             }
             if (consumed < total) {
                 result.retained.push({
@@ -1079,10 +1344,10 @@ export const TroopLineSystem = {
         return true;
     },
 
-    _findSafeArrival(center, offset = 0) {
+    _findSafeArrival(center, offset = 0, sceneId = null) {
         if (!center || !Number.isFinite(Number(center.x)) || !Number.isFinite(Number(center.y))) return null;
         const g = game();
-        const scene = sceneManager()?.scenes?.[sceneManager()?.currentScene];
+        const scene = sceneManager()?.scenes?.[sceneId || sceneManager()?.currentScene];
         const width = Number(scene?.width) || Infinity;
         const height = Number(scene?.height) || Infinity;
         for (let ring = 1; ring <= 8; ring++) {
@@ -1154,6 +1419,10 @@ export const TroopLineSystem = {
         const inferredHome = g._observerMode ? (g._observerHomeScene || 'main') : sceneId;
         for (const member of party.members) {
             if (!member?.id) continue;
+            if (member._strategicArmyId) {
+                member.active = sceneId === 'strategy_battle' && member.data?.hp > 0;
+                continue;
+            }
             if (!this._companionResidency[member.id]) this._storeCompanionResidency(member, inferredHome);
             const residence = this._companionResidency[member.id];
             const epochValid = !isPersistentWorld(residence.sceneId)

@@ -1,0 +1,9 @@
+/* World-map presentation lives in panel-theme-backpack.css#world-map-panel. */
+.strategic-battle-hud :focus-visible { outline: 2px solid #82d5c1; outline-offset: 3px; }
+.strategic-battle-hud { position: fixed; z-index: 160; right: 20px; top: 110px; width: min(350px, calc(100vw - 40px)); box-sizing: border-box; display: grid; gap: 10px; padding: 18px; color: #d9e2e9; background: #121b25ed; border: 1px solid #82d5c1; font: 14px/1.6 'Microsoft YaHei', sans-serif; }
+.strategic-battle-hud small { color: #b6c1ca; }
+.strategic-battle-hud { max-height: calc(100vh - 140px); overflow-y: auto; }
+.strategic-battle-hud [hidden] { display: none; }
+@media (max-width: 600px) {
+    .strategic-battle-hud { top: 85px; right: 12px; max-width: 270px; padding: 12px; }
+}

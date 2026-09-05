@@ -22,14 +22,19 @@ import {
     restoreWorld122Scene,
     serializeWorldScenes,
     restoreWorldScenes,
+    reconcileWorldContinuousUpgrades,
 } from '../world/world122-snapshot.js';
 import { EnvironmentLightingSystem } from '../world/environment-lighting-system.js';
 import { TroopLineSystem } from '../world/troop-line-system.js';
+import { WorldStrategySystem } from '../world/world-strategy-system.js';
+import { applyWorldMap, prepareWorldMap, serializeWorldMap } from '../world/world-map-cells.js';
+import { PartySystem } from '../systems/party-system.js';
 import { TechnologySystem } from '../world/technology-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { QuestStore } from '../quest/quest-store.js';
 import { MilitaryPopulationSystem } from '../world/military-population-system.js';
 import { EconomyHudSystem } from '../world/economy-hud-system.js';
+import { EconomyFlowSystem, ECONOMY_RESOURCES } from '../world/economy-flow-system.js';
 import { isGunWeapon } from '../config/gun-ammo.js';
 
 function getDisplayAttackKey(item) {
@@ -263,6 +268,14 @@ function openTimelineCluster(cluster) {
     content.appendChild(list);
 }
 
+// 统计只跟随当前现场与游戏时钟；战略地图/切场期间不把后台入账算成本地产出。
+EconomyFlowSystem.setContextProvider(() => ({
+    key: `${globalThis.SceneManager?.currentScene || ''}:${EconomyHudSystem.getPopulationSnapshot().viewRevision}`,
+    timeMs: EnvironmentLightingSystem.serializeTime().elapsedMs,
+    enabled: Game.isRunning && !globalThis.SceneManager?.isLoading
+        && !WorldStrategySystem.inMap && !WorldStrategySystem._busy,
+}));
+
 export const GameUIManager = {
     player: null,
     showAttackRange: false,
@@ -484,17 +497,28 @@ export const GameUIManager = {
             alert('逆命劫债尚未结清，不能直接读档清除；请先完成偿还或通过换盾立即结算');
             return;
         }
+        if (window.SceneManager?.isLoading || WorldStrategySystem._busy || WorldStrategySystem.inBattle) {
+            alert('请在场景加载完成、遭遇战结束后读档');
+            return;
+        }
         this._loadBusy = true;
+        let strategyLoadLock = false;
+        const wasStrategic = WorldStrategySystem.active;
         try {
         let data;
         let restoredMail;
+        let restoredMap;
         try {
             data = await GameSaveStorage.read();
             if (!data) { alert('没有找到存档'); return; }
             restoredMail = MailStore.prepareRestore(data.mailbox);
+            restoredMap = prepareWorldMap(data.worlds?.map);
+            if (window.DungeonMapSystem?.active || window.SceneManager?.isLoading || WorldStrategySystem.inBattle) {
+                throw new Error('读取期间场景状态已变化，请在场景稳定后重试');
+            }
         } catch (error) {
             console.error('Load failed:', error);
-            alert(`读档失败，当前进度、背包与信箱未被替换：${error.message || '存档损坏'}`);
+            alert(`读档失败，当前地图、进度、背包与信箱未被替换：${error.message || '存档损坏'}`);
             return;
         }
         window.MailboxPanel?.reset();
@@ -511,6 +535,15 @@ export const GameUIManager = {
             }
         }
         const positionBeforeLoad = { x: this.player.x, y: this.player.y };
+        if (data.worlds?.strategy?.army && (SceneManager.isDungeonRunActive() || SceneManager.isQuestInstance())) {
+            alert('请先结束当前地牢或调查，再读取亲征军团存档');
+            return;
+        }
+        // 地图是位面、据点、路线和军团恢复的权威前置。
+        WorldStrategySystem._busy = true;
+        strategyLoadLock = true;
+        WorldStrategySystem._resetMarchScheduler();
+        applyWorldMap(restoredMap);
         const requestedWorldId = typeof data.worlds?.currentWorldId === 'string'
             ? data.worlds.currentWorldId : null;
         // 玩家落点要等位面注册表和目标场景恢复后再应用，避免把实例坐标写进主神空间。
@@ -518,17 +551,27 @@ export const GameUIManager = {
         EnvironmentLightingSystem.restoreTime(data.gameTime);
         // 位面注册表必须先于进度、天气和快照恢复；这些系统都需要用实例ID解析模板。
         window.WorldInstanceSystem?.restore?.(data.worlds?.instances);
-        window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
         window.World122SandstormSystem?.restore?.(data.worlds?.sandstorm ?? data.world122?.sandstorm);
         window.World122DroughtSystem?.restore?.(data.worlds?.drought);
         window.World125FogTideSystem?.restore?.(data.worlds?.fogTide);
+        window.World126WeatherSystem?.restore?.(data.worlds?.mineWeather);
         window.WorldWeatherSystem?.restore?.(data.worlds?.weather);
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
         restoreUnitUpgrades(data.world122?.unitUpgrades);
         restoreAbilityLevels(data.world122?.abilityLevels);
-        TechnologySystem.restore(data.technologyTree, { legacyUnlockAll: !data.technologyTree });
-        WarehouseSystem.restore(data.warehouseStorage);
+        const savedScenes = data.worlds?.scenes;
+        const expeditionSnapshots = [data.world122?.scene,
+            ...(Array.isArray(savedScenes?.structures) ? [savedScenes] : Object.values(savedScenes || {}))];
+        const legacyExpeditionEstablished = !!data.worlds?.strategy?.army
+            || expeditionSnapshots.some((snapshot) => Array.isArray(snapshot?.structures)
+                && snapshot.structures.some((structure) => structure?.kind === 'producer'
+                    && structure.cfgKey === 'expedition_camp'));
+        TechnologySystem.restore(data.technologyTree, {
+            legacyUnlockAll: !data.technologyTree,
+            legacyExpeditionEstablished,
+        });
+        WarehouseSystem.restore(data.warehouseStorage || { pageCount: 5, items: [] });
         MailStore.restorePrepared(restoredMail);
         QuestStore.restore(data.quests);
         ResearchSystem.refreshWorld();
@@ -536,9 +579,17 @@ export const GameUIManager = {
         World122TributeSystem.restore(data.world122?.tributeBuffs);
         if (data.worlds?.scenes) restoreWorldScenes(data.worlds.scenes);
         else restoreWorld122Scene(data.world122?.scene);
+        window.WorldProgressionSystem?.setStrategicSiteCells?.(data.worlds?.strategy?.sites || []);
+        window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
         window.WorldProgressionSystem?.ensureConstructedWorldSnapshots?.();
-        TroopLineSystem.restore(data.worlds?.troopLines);
-        window.WorldInvasionSystem?.restore?.(data.worlds?.invasion);
+        reconcileWorldContinuousUpgrades();
+        PartySystem.restoreState(data.party);
+        TroopLineSystem.restore(data.worlds?.troopLines, {
+            deferSceneEntry: !!data.worlds?.strategy?.army || wasStrategic,
+        });
+        window.WorldInvasionSystem?.restore?.(data.worlds?.invasion, {
+            deferLive: !!data.worlds?.strategy?.army || wasStrategic,
+        });
         window.WorldDestructionChallengeSystem?.restore?.(data.worlds?.destructionChallenges);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
@@ -625,13 +676,22 @@ export const GameUIManager = {
                 if (switched !== true) throw new Error('任务场景读档重建失败');
             }
         } catch (error) {
+            WorldStrategySystem._busy = false;
             console.error('[GameUIManager] quest load reconciliation failed:', error);
             alert('读档数据已恢复，但任务场景重建失败，请返回主神空间后重试');
             return;
         }
         if (this.updateUI) this.updateUI();
+        try {
+            await WorldStrategySystem.restore(data.worlds?.strategy);
+        } catch (error) {
+            console.error('[WorldStrategy] restore failed', error);
+            alert('军团存档已读取，但地图加载失败，请重试读档');
+            return;
+        }
         alert(`读档成功: ${this.player.data?.name || '未知'} Lv.${this.player.data?.level || 1}`);
         } finally {
+            if (strategyLoadLock) WorldStrategySystem._busy = false;
             this._loadBusy = false;
         }
     },
@@ -653,6 +713,17 @@ export const GameUIManager = {
             alert('测试位面不写入正式存档，请先返回主神空间');
             return;
         }
+        if (sceneManager?.isLoading || WorldStrategySystem._busy || WorldStrategySystem.inBattle) {
+            alert('请在遭遇战结算并返回大地图后保存；军团行军中可以保存');
+            return;
+        }
+        const testWorldIds = (window.WorldProgressionSystem?.getWorldIds?.() || [])
+            .filter((sceneId) => window.WorldProgressionSystem?.isDevWorldUnlocked?.(sceneId));
+        const testWorldIdSet = new Set(testWorldIds);
+        // 存档是后台账本的权威边界：先结算到当前时刻，再序列化。
+        window.WorldSimDriver?.flushAll?.({ notify: false, reason: 'save' });
+        window.WorldInvasionSystem?.settleBackgroundNow?.(null, { includeTest: false });
+        window.WorldInvasionSystem?.syncLivePortal?.(true);
         const serializableWorldPositions = {};
         for (const [worldId, position] of Object.entries(Game._worldPlayerPos || {})) {
             const mayPersist = worldId === 'main'
@@ -671,8 +742,10 @@ export const GameUIManager = {
         }
         // 存档是后台账本的权威读取边界：先一次性结算连续资源与到期队列，再序列化。
         window.WorldSimDriver?.flushAll?.({ notify: false, reason: 'save' });
-        window.WorldInvasionSystem?.settleBackgroundNow?.();
-        window.WorldInvasionSystem?.syncLivePortal?.();
+        window.WorldInvasionSystem?.settleBackgroundNow?.(null, { includeTest: false });
+        window.WorldInvasionSystem?.syncLivePortal?.(true);
+        // 劫债不能通过存档冻结或读档清除；序列化前按最终伤害直接结清。
+        this.player.shieldSystem?.settleCausalDebt?.('save');
         const saveData = {
             version: '1.0',
             timestamp: Date.now(),
@@ -682,6 +755,7 @@ export const GameUIManager = {
             technologyTree: TechnologySystem.serialize(),
             warehouseStorage: WarehouseSystem.serialize(),
             quests: QuestStore.serialize(),
+            party: PartySystem.serializeState(),
             // 装备与背包一并持久化（附魔/强化/改造数据在物品字段上）
             equipments: this.player.equipments,
             backpack: (typeof EquipManager !== 'undefined') ? EquipManager.backpackItems : [],
@@ -693,17 +767,20 @@ export const GameUIManager = {
                 scene: serializeWorld122Scene(),
             },
             worlds: {
+                map: serializeWorldMap(),
                 currentWorldId: persistentCurrentWorldId,
                 playerPositions: serializableWorldPositions,
                 instances: window.WorldInstanceSystem?.serialize?.() || null,
                 progression: window.WorldProgressionSystem?.serialize?.() || null,
-                troopLines: TroopLineSystem.serialize(),
+                troopLines: TroopLineSystem.serialize({ excludeSceneIds: testWorldIds }),
+                strategy: WorldStrategySystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,
-                sandstorm: window.World122SandstormSystem?.serialize?.() || null,
-                drought: window.World122DroughtSystem?.serialize?.() || null,
-                fogTide: window.World125FogTideSystem?.serialize?.() || null,
-                weather: window.WorldWeatherSystem?.serialize?.() || null,
-                destructionChallenges: window.WorldDestructionChallengeSystem?.serialize?.() || null,
+                sandstorm: testWorldIdSet.has('scene8') ? null : window.World122SandstormSystem?.serialize?.() || null,
+                drought: testWorldIdSet.has('scene8') ? null : window.World122DroughtSystem?.serialize?.() || null,
+                fogTide: testWorldIdSet.has('scene11') ? null : window.World125FogTideSystem?.serialize?.() || null,
+                mineWeather: testWorldIdSet.has('scene12') ? null : window.World126WeatherSystem?.serialize?.() || null,
+                weather: window.WorldWeatherSystem?.serialize?.({ excludeSceneIds: testWorldIds }) || null,
+                destructionChallenges: window.WorldDestructionChallengeSystem?.serialize?.({ excludeSceneIds: testWorldIds }) || null,
                 scenes: serializeWorldScenes(),
             },
         };
@@ -772,14 +849,29 @@ export const GameUIManager = {
         const fill = getElementIfExists(`economy${prefix}CapacityFill`);
         if (fill) fill.style.width = `${capacity > 0 ? Math.min(100, current / capacity * 100) : 0}%`;
     },
-    _updateEconomyRate(id, valueRaw) {
-        const numeric = Number(valueRaw) || 0;
+    _updateEconomyRate(resource, flow, accounting) {
+        const prefix = `economy${resource[0].toUpperCase()}${resource.slice(1)}`;
+        const numeric = Number(flow.net) || 0;
         const value = Math.abs(numeric) < 0.005 ? 0 : numeric;
-        const el = getElementIfExists(id);
+        const el = getElementIfExists(`${prefix}Rate`);
         if (!el) return;
         el.textContent = `${value > 0 ? '+' : ''}${value.toFixed(2)}/秒`;
         el.classList.toggle('is-positive', value > 0);
         el.classList.toggle('is-negative', value < 0);
+        const format = (amount) => (Number(amount) || 0).toFixed(2);
+        const income = getElementIfExists(`${prefix}Income`);
+        const expense = getElementIfExists(`${prefix}Expense`);
+        if (income) income.textContent = `收入 +${format(flow.income)}/秒`;
+        if (expense) expense.textContent = `消耗 −${format(flow.expense)}/秒`;
+        const sources = accounting.details.filter((entry) => entry.resource === resource)
+            .map((entry) => `${entry.label || entry.providerId}：收入 ${format(entry.income)}，消耗 ${format(entry.expense)}/秒`);
+        el.parentElement.title = [
+            `净收支 = 收入 ${format(flow.income)} − 消耗 ${format(flow.expense)}/秒`,
+            ...sources,
+            `物流与临时收支：收入 ${format(flow.observedIncome)}，消耗 ${format(flow.observedExpense)}/秒`,
+            `实收支窗口：近${accounting.windowMs / 1000}游戏秒；当前已统计${(accounting.observedMs / 1000).toFixed(1)}秒。`,
+            '周期经营按现有岗位与开工条件折算；居民口粮按足额需求计入，短缺仍显示供粮压力。',
+        ].join('\n');
     },
     refreshBasicResources() {
         const values = {
@@ -822,11 +914,6 @@ export const GameUIManager = {
         const storageCapacity = Math.max(0, Number(EnergyManager?.getCapacity?.()) || 0);
         const storageFree = Math.max(0, Number(EnergyManager?.getFreeCapacity?.()) || 0);
         const storageUsed = Math.max(0, storageCapacity - storageFree);
-        const storageSignature = warehouses
-            .map((warehouse) => `${warehouse?.id ?? ''}:${Number(warehouse?.storageCapacity) || 0}`)
-            .sort()
-            .join('|');
-        this._sampleEconomyRates(values, storageSignature);
 
         const energyFree = warehouses.reduce((sum, warehouse) => sum + Math.floor(
             EnergyManager.getWarehouseFreeCapacity(warehouse)
@@ -869,30 +956,50 @@ export const GameUIManager = {
         const working = EconomyHudSystem.getPopulationSnapshot();
         const workingEl = getElementIfExists('resourceWorkingPopulation');
         if (workingEl) {
-            const used = Math.max(0, Math.floor(Number(working.used) || 0));
-            const capacity = Math.max(0, Math.floor(Number(working.capacity) || 0));
-            const usedDisplay = this._formatEconomyCompactNumber(used);
-            const capacityDisplay = this._formatEconomyCompactNumber(capacity);
-            const value = `${used}/${capacity}`;
-            const valueDisplay = `${usedDisplay} / ${capacityDisplay}`;
-            if (workingEl.dataset.value !== value) {
-                const initialized = workingEl.dataset.value !== undefined;
-                workingEl.dataset.value = value;
-                workingEl.textContent = valueDisplay;
-                workingEl.title = `工作：${this._formatEconomyInteger(used)} / ${this._formatEconomyInteger(capacity)}`;
-                workingEl.setAttribute('aria-label', `工作：${this._formatEconomyInteger(used)} / ${this._formatEconomyInteger(capacity)}`);
-                if (initialized) {
-                    workingEl.classList.remove('is-resource-changing');
+            const total = Math.max(0, Math.floor(Number(working.total) || 0));
+            const revision = String(working.viewRevision);
+            const samePopulation = workingEl.dataset.populationRevision === revision
+                && workingEl.dataset.value !== undefined;
+            const previous = Number(workingEl.dataset.value);
+            // 概览只显示实际居民；岗位调配、扩容以及切场/读档不触发人口增减闪动。
+            if (!samePopulation || workingEl.dataset.value !== String(total)) {
+                workingEl.classList.remove('is-resource-changing', 'is-population-increasing', 'is-population-decreasing');
+                workingEl.dataset.populationRevision = revision;
+                workingEl.dataset.value = String(total);
+                workingEl.textContent = this._formatEconomyCompactNumber(total);
+                if (samePopulation && total !== previous) {
                     void workingEl.offsetWidth;
-                    workingEl.classList.add('is-resource-changing');
+                    workingEl.classList.add(total > previous ? 'is-population-increasing' : 'is-population-decreasing');
                 }
             }
+            const details = `本位面实际人口：${this._formatEconomyInteger(total)} 人；已用岗位：${this._formatEconomyInteger(working.used)}；空闲人口：${this._formatEconomyInteger(working.free)}；住房容量：${this._formatEconomyInteger(working.capacity)}`
+                + (working.overcrowded > 0 ? `；超额人口：${this._formatEconomyInteger(working.overcrowded)}` : '');
+            workingEl.title = details;
+            workingEl.setAttribute('aria-label', details);
+            workingEl.parentElement.title = details;
         }
         this._updateEconomyCapacityMeter('Military', military.used, military.capacity, military.free);
-        this._updateEconomyCapacityMeter('Working', working.used, working.capacity, working.free);
-        this._updateEconomyRate('economyGoldRate', this._economyRates.gold);
-        this._updateEconomyRate('economyEnergyRate', this._economyRates.energy);
-        this._updateEconomyRate('economyFoodRate', this._economyRates.food);
+        this._updateEconomyCapacityMeter('Working', working.used, working.total, working.free);
+        const workingCapacity = getElementIfExists('economyWorkingCapacityText');
+        if (workingCapacity) workingCapacity.textContent = `${this._formatEconomyInteger(working.used)} / ${this._formatEconomyInteger(working.total)} · 空闲 ${this._formatEconomyInteger(working.free)}`;
+        this._updateEconomyCapacityMeter('Housing', working.total, working.capacity, Math.max(0, working.capacity - working.total));
+        const housingText = getElementIfExists('economyHousingCapacityText');
+        const housingTrack = getElementIfExists('economyHousingCapacityTrack');
+        if (working.overcrowded > 0) {
+            const description = `${this._formatEconomyInteger(working.total)} / ${this._formatEconomyInteger(working.capacity)} · 超额 ${this._formatEconomyInteger(working.overcrowded)}`;
+            if (housingText) housingText.textContent = description;
+            housingTrack?.setAttribute('aria-valuetext', description);
+            const housingFill = getElementIfExists('economyHousingCapacityFill');
+            if (housingFill) housingFill.style.width = '100%';
+        }
+        const accounting = EconomyFlowSystem.getSnapshot();
+        for (const resource of ECONOMY_RESOURCES) {
+            this._updateEconomyRate(resource, accounting.resources[resource], accounting);
+        }
+        const rateWindow = getElementIfExists('economyRateWindow');
+        if (rateWindow) rateWindow.textContent = accounting.unavailable.length
+            ? '部分收支来源暂不可用'
+            : `周期均摊 / 近${accounting.windowMs / 1000}秒实收支`;
     },
     refreshGameTime() {
         this.refreshBasicResources();
@@ -1024,6 +1131,7 @@ export const GameUIManager = {
                 event.durationLabel,
                 event.warningLevel,
                 event.warningLabel,
+                event.detail,
                 lanes[index],
                 event.clusterEvents?.map((child) => [child.id, child.type, child.typeLabel, child.status, child.timeLabel]),
             ]));

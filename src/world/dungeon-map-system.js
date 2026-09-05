@@ -3,6 +3,7 @@ import { Game } from '../game.js';
 import { pathFinder } from '../ai/pathfinder.js';
 
 import { SceneManager } from '../world/scene-manager.js';
+import { WorldProgressionSystem } from './world-progression-system.js';
 import { Camera } from '../world/camera.js';
 import { Input } from '../ui/input.js';
 /**
@@ -25,6 +26,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZOMBIE_FACTORY_MAP, createTombstone } from './zombie-dungeon.js';
 import { expandDungeonEnemyDependencies } from './dungeon-enemy-preload.js';
+import { buildCombatRoomReachability, isCombatRoomPointSafe } from './combat-room-placement.js';
 import { AgentInvasionSystem } from './agent-invasion-system.js';
 import { TrapSystem } from './trap-system.js';
 import { WallGate } from './wall-gate.js';
@@ -51,6 +53,7 @@ import { BossRewardSystem } from './boss-reward-system.js';
 import { MailStore } from '../systems/mail-store.js';
 import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
 import { createGoldItem } from './economy-gold-routing.js';
+import { EquipManager } from '../ui/equip-manager.js';
 import { RARITY_ORDER, getRarityLabel } from '../config/rarity.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -278,11 +281,12 @@ export const DungeonMapSystem = {
     _zombieCombatNode: null,
     _pendingZombieWave: null,
     _enemyLoadToken: 0,
+    _deferredEnemyLoad: null,
 
     // 出口传送门（战斗结束后生成）
     _exitPortalSpawned: false,
 
-    init(sceneId, player, dungeonType = 'default') {
+    init(sceneId, player, dungeonType = 'default', { worldExpedition = null } = {}) {
         MailStore.beginRun(DungeonConfig.getDungeonList()[dungeonType]?.name || '地牢探险');
         this.active = true;
         this._observerSuspended = false;
@@ -292,6 +296,9 @@ export const DungeonMapSystem = {
         this.player = player;
         this.dungeonType = dungeonType;
         this._runResultRecorded = false;
+        // This run keeps its departure target even when the world panel selects another plane.
+        this.worldExpedition = worldExpedition?.dungeonType === dungeonType
+            ? Object.freeze({ ...worldExpedition }) : null;
         // 蟠桃使用次数由全局30分钟献祭状态持有，进入新地牢不再重置。
         if (this.player) {
             this.player._peachRevivePending = false;
@@ -322,8 +329,14 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._pendingZombieWave = null;
         this._enemyLoadToken++;
+        this._deferredEnemyLoad = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
+        this._tutorialRouteActive = false;
+        this._tutorialIntroShown = false;
+        this._tutorialBriefedNodeIds = new Set();
+        this._tutorialCombatControlStep = null;
+        this._tutorialBossAidUsed = false;
         // 宝箱离场确认框状态复位（与 shutdown 同口径，防上一局残留）
         this._chestLeaveConfirm = false;
         this._chestLeaveCd = 0;
@@ -336,8 +349,10 @@ export const DungeonMapSystem = {
         AgentInvasionSystem.init(this);
         // 单局统计（通关结算面板数据源）：击杀/经验/节点清理
         DungeonRunStats.reset();
-        // 连续地貌配置：僵尸/沼泽三档每次入场刷新视觉小件 seed；同一次入场重烘焙保持稳定。
+        // 连续地貌配置：僵尸/冰原/沼泽三档每次入场刷新视觉小件 seed；同一次入场重烘焙保持稳定。
         const dungeonCfg = DungeonConfig.getZombieDungeonConfig(dungeonType);
+        this._tutorialRouteActive = dungeonCfg.tutorialRoute?.enabled === true
+            && !WorldProgressionSystem.hasCompletedDungeon(dungeonType);
         const floorProfile = DungeonConfig.getDungeonFloorProfile(dungeonType);
         if (floorProfile?.deco) {
             floorProfile.deco = {
@@ -368,6 +383,9 @@ export const DungeonMapSystem = {
             this.visitedNodeIds.add(startNode.id);
             this.fogOfWar.visit(startNode.id, this.nodes, this.edges);
         }
+        if (dungeonCfg.tutorialRoute?.revealAll === true) {
+            for (const node of this.nodes) this.fogOfWar.revealedNodeIds.add(node.id);
+        }
 
         this._backupCameraFollow = Camera.follow.bind(Camera);
         Camera.follow = () => {};
@@ -385,21 +403,32 @@ export const DungeonMapSystem = {
         // 路线区段属于表现增强，不能阻断地牢进入主链。
         // 若聚焦计算或 DOM 控制栏初始化异常，保留完整基础路线图继续进入。
         this._initializeRoutePresentation();
+        this._showTutorialDungeonIntro();
 
-        
+
     },
 
-    shutdown() {
-        if (this.active && !this._runResultRecorded) this._recordRunResult('failed');
+    shutdown({ recordResult = true } = {}) {
+        // 尚未成功进入的出征不登记失败、通关或入侵进度。
+        if (recordResult && this.active && !this._runResultRecorded) this._recordRunResult('failed');
         this.active = false;
         this._enemyLoadToken++;
         this._pendingZombieWave = null;
+        this.worldExpedition = null;
+        this._enemyLoadToken++;
+        this._pendingZombieWave = null;
+        this._deferredEnemyLoad = null;
         getElementIfExists('dungeonEnemyLoadFailure')?.remove();
         RuntimeAssetManager.setDungeonEnemyTypes([]);
         this.setWorldObservationSuspended(false);
         this.state = "idle";
         this._routePointerRegion = null;
         this._pendingRouteClick = null;
+        this._tutorialRouteActive = false;
+        this._tutorialIntroShown = false;
+        this._tutorialBriefedNodeIds = new Set();
+        this._tutorialCombatControlStep = null;
+        this._tutorialBossAidUsed = false;
         // 经验系统：离开地牢，回退主神空间口径（F 档）
         setCurrentDungeonType(null);
         this.nodes = [];
@@ -418,11 +447,13 @@ export const DungeonMapSystem = {
         this._removeRouteControls();
         this._removeRouteTopHud();
         this._removeNodeTooltip();
+        this._removeArenaRouteHint();
         // 通关结算面板兜底移除（异常退出路径）
         const victoryOverlay = getElementIfExists('dungeonVictoryOverlay');
         if (victoryOverlay) victoryOverlay.remove();
         const exitConfirm = getElementIfExists('dungeonExitConfirm');
         if (exitConfirm) exitConfirm.remove();
+        getElementIfExists('dungeonTutorialBriefing')?.remove();
         this._unbindEvents();
         // 时空特工追击机制复位（含几率显示）
         AgentInvasionSystem.reset();
@@ -520,7 +551,15 @@ export const DungeonMapSystem = {
         PlayerRewardDelivery.finishRun(outcome);
         this._runResultRecorded = true;
         const grade = DungeonConfig.getDungeonGrade(this.dungeonType) || 'F';
-        return window.WorldInvasionSystem?.recordDungeonRun?.(this.dungeonType, grade, outcome) || null;
+        const result = window.WorldInvasionSystem?.recordDungeonRun?.(this.dungeonType, grade, outcome) || null;
+        WorldProgressionSystem.finishWorldExpedition(this.worldExpedition, outcome);
+        return result;
+    },
+
+    getWorldExpeditionLabel() {
+        const target = this.worldExpedition;
+        if (!target) return '';
+        return `目标：${WorldProgressionSystem.getWorldConfig(target.sceneId)?.name || target.sceneId} · ${target.cellId}`;
     },
 
     // ───────────────────────────────────────────────
@@ -2173,7 +2212,18 @@ export const DungeonMapSystem = {
     },
 
     updateCombat(dt) {
+        const routeHint = getElementIfExists('dungeonArenaRouteHint');
+        if (routeHint) {
+            const hidden = !this.active || this._observerSuspended || this.state !== 'combat'
+                || SceneManager.currentScene !== this.sceneId || SceneManager.isLoading;
+            if (routeHint.hidden !== hidden) routeHint.hidden = hidden;
+        }
         if (!this.active || this._observerSuspended || (this.state !== "combat" && this.state !== "boss")) return;
+        if (SceneManager.currentScene !== this.sceneId || SceneManager.isLoading) return;
+        this._updateTutorialCombatControls();
+        const deferredLoad = this._deferredEnemyLoad;
+        this._deferredEnemyLoad = null;
+        if (deferredLoad?.token === this._enemyLoadToken) deferredLoad.retry();
         // 战斗模式隐藏地图状态栏（战斗内使用游戏内 HUD 血条，避免双条重叠）
         this._setMapStatusBarVisible(false);
 
@@ -2226,10 +2276,10 @@ export const DungeonMapSystem = {
                 if ((isEliteNode || CombatRoomSystem._arena) && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
                     ChestRoomSystem.onCombatComplete();
                     if (SceneManager && SceneManager.showTopNotification) {
-                        SceneManager.showTopNotification(ChestRoomSystem.hasUnopenedLoot() ? '精英已消灭，宝箱房已开启！' : '已完成战斗，从大门离开');
+                        SceneManager.showTopNotification(ChestRoomSystem.hasUnopenedLoot() ? '精英已消灭，宝箱房已开启！' : '已完成战斗，从大门离开', { tone: 'success' });
                     }
                 } else if (SceneManager && SceneManager.showTopNotification) {
-                    SceneManager.showTopNotification('已完成战斗，从大门离开');
+                    SceneManager.showTopNotification('已完成战斗，从大门离开', { tone: 'success' });
                 }
             }
         }
@@ -2237,6 +2287,10 @@ export const DungeonMapSystem = {
         // 驱动门闸动画与悬停高亮
         if (typeof CombatRoomSystem.update === 'function') {
             CombatRoomSystem.update(dt);
+        }
+        const frozenAbyssNotice = CombatRoomSystem.consumeFrozenAbyssNotice?.();
+        if (frozenAbyssNotice && SceneManager?.showTopNotification) {
+            SceneManager.showTopNotification(frozenAbyssNotice, { tone: 'warning', duration: 2600 });
         }
 
         // 三房间竞技场：玩家进入等待中的下一房间 → 关门刷对应波次
@@ -2276,7 +2330,7 @@ export const DungeonMapSystem = {
             DungeonRunStats.recordBonusExp(total);
             player.gainExp(total, mul > 1 ? 'streak' : null);
             if (SceneManager && SceneManager.showTopNotification && streak >= 3) {
-                SceneManager.showTopNotification(`⚔ ${streak} 连战！经验 ×${mul.toFixed(2)}`);
+                SceneManager.showTopNotification(`⚔ ${streak} 连战！经验 ×${mul.toFixed(2)}`, { tone: 'success' });
             }
         }
     },
@@ -2319,9 +2373,11 @@ export const DungeonMapSystem = {
         overlay.setAttribute('aria-describedby', descriptionEl.id);
 
         let closed = false;
+        let onElectronEscape = null;
         const close = ({ restoreFocus = true } = {}) => {
             if (closed) return;
             closed = true;
+            if (onElectronEscape) window.removeEventListener('electron-esc', onElectronEscape, true);
             overlay.remove();
             if (restoreFocus && previousFocus?.isConnected && typeof previousFocus.focus === 'function') {
                 previousFocus.focus({ preventScroll: true });
@@ -2341,11 +2397,10 @@ export const DungeonMapSystem = {
         });
         overlay.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
                 const cancel = buttons.find(button => button.dataset.cancel === 'true');
-                if (cancel) {
-                    event.preventDefault();
-                    cancel.click();
-                }
+                if (cancel) cancel.click();
                 return;
             }
             if (event.key !== 'Tab' || buttons.length < 2) return;
@@ -2359,9 +2414,203 @@ export const DungeonMapSystem = {
                 first.focus();
             }
         });
+        onElectronEscape = (event) => {
+            if (closed || !overlay.isConnected) return;
+            event.stopImmediatePropagation();
+            const cancel = buttons.find(button => button.dataset.cancel === 'true');
+            if (cancel) cancel.click();
+            else (buttons.find(button => !button.disabled) || overlay).focus({ preventScroll: true });
+        };
+        window.addEventListener('electron-esc', onElectronEscape, true);
         const initialButton = buttons.find((button, index) => actions[index]?.autofocus) || buttons[0];
         requestAnimationFrame(() => initialButton?.focus({ preventScroll: true }));
         return { overlay, close, buttons };
+    },
+
+    /** 首次新手试炼入场先说明撤离边界，再允许玩家操作路线。 */
+    _startTutorialCombatControls(node) {
+        const type = node?.originalType || node?.type;
+        this._tutorialCombatControlStep = this._tutorialRouteActive
+            && node?.tutorialStep === 1 && type === 'combat'
+            ? 'attack'
+            : null;
+    },
+
+    /**
+     * 读取玩家已经被战斗系统接受的动作状态来推进教学，避免按键被攻击锁定、
+     * 体力或武器条件拒绝时仍被误判完成。
+     */
+    _updateTutorialCombatControls() {
+        if (!this._tutorialCombatControlStep || this._tutorialCombatControlStep === 'completed'
+            || !this._tutorialRouteActive || this.state !== 'combat') return;
+        const node = this.getCurrentNode();
+        if (!node || node.tutorialStep !== 1 || (node.originalType || node.type) !== 'combat') return;
+        const player = this.player || Game.player;
+        if (!player) return;
+
+        if (this._tutorialCombatControlStep === 'attack'
+            && player.weaponAnim?.isAttacking === true && player._isDashing !== true) {
+            this._tutorialCombatControlStep = 'dodge';
+            return;
+        }
+        if (this._tutorialCombatControlStep === 'dodge' && player.isDodging === true) {
+            this._tutorialCombatControlStep = 'sprint';
+            return;
+        }
+        if (this._tutorialCombatControlStep === 'sprint') {
+            // 玩家可能在金光出现的同一帧立刻点击左键；真实冲刺已经发动时直接认可，
+            // 不能因光环被 DashSystem 同帧清除而把教学卡在“持续奔跑”。
+            if (player._isDashing === true) {
+                this._tutorialCombatControlStep = 'completed';
+                SceneManager.showTopNotification?.('基础战斗操作已掌握：攻击、闪避、奔跑与冲刺攻击', {
+                    tone: 'success',
+                    duration: 3600,
+                });
+                return;
+            }
+            if (player._isSprinting === true && player._dashConvergeAuraActive === true) {
+                this._tutorialCombatControlStep = 'dash';
+                return;
+            }
+        }
+        if (this._tutorialCombatControlStep === 'dash' && player._isDashing === true) {
+            this._tutorialCombatControlStep = 'completed';
+            SceneManager.showTopNotification?.('基础战斗操作已掌握：攻击、闪避、奔跑与冲刺攻击', {
+                tone: 'success',
+                duration: 3600,
+            });
+        }
+    },
+
+    getTutorialCombatGuideState() {
+        if (!this._tutorialRouteActive || this.state !== 'combat'
+            || !this._tutorialCombatControlStep || this._tutorialCombatControlStep === 'completed') return null;
+        const node = this.getCurrentNode();
+        if (!node || node.tutorialStep !== 1 || (node.originalType || node.type) !== 'combat') return null;
+        const guides = {
+            attack: {
+                step: 1,
+                title: '完成普通攻击',
+                targetLabel: '鼠标左键',
+                detail: '先对准基础敌人，点击鼠标左键完成一次普通攻击。动作被战斗系统接受后会自动进入下一步。',
+            },
+            dodge: {
+                step: 2,
+                title: '使用闪避',
+                targetLabel: '空格键',
+                detail: '按下空格完成一次闪避。闪避会消耗体力，正在播放攻击动作时需要等动作结束。',
+            },
+            sprint: {
+                step: 3,
+                title: '持续奔跑并蓄势',
+                targetLabel: '左 Shift + A / D',
+                detail: '按住左 Shift，同时使用 A 或 D 持续横向奔跑；保持移动，直到角色周围出现金色冲刺就绪效果。',
+            },
+            dash: {
+                step: 4,
+                title: '释放冲刺攻击',
+                targetLabel: '鼠标左键',
+                detail: '保持近战武器与横向奔跑，看到金色冲刺就绪效果后点击鼠标左键，释放冲刺攻击。',
+            },
+        };
+        const guide = guides[this._tutorialCombatControlStep];
+        return guide ? {
+            stage: `tutorial_dungeon_combat_${this._tutorialCombatControlStep}`,
+            seriesLabel: '战斗操作教学',
+            total: 4,
+            footer: `当前按键：${guide.targetLabel} · 完成动作后自动进入下一步`,
+            ...guide,
+        } : null;
+    },
+
+    _showTutorialDungeonIntro() {
+        if (!this._tutorialRouteActive || this._tutorialIntroShown || this.state !== 'map') return;
+        const modal = this._createDecisionModal({
+            id: 'dungeonTutorialBriefing',
+            eyebrow: '新手试炼 // 撤离规则',
+            title: '先记住：只有入口能安全撤离',
+            description: '这是一条没有支线的教学路线：基础战斗 → 随机事件 → 首领战 → 奖励房。你现在位于入口；点击“安全撤离”时，背包中原有物品和本次已经取得的物品都会保留。离开入口后，也可以沿原路返回这里再安全撤离。',
+            dangerText: `在其他位置“强制放弃”，或在地牢中死亡，都会清空背包。${this._getBackpackRiskSummary()} 已装备物品不属于背包，不会丢失。`,
+            tone: 'danger',
+            actions: [{
+                id: 'dungeonTutorialBegin',
+                label: '明白，开始新手试炼',
+                autofocus: true,
+                onSelect: ({ close }) => close(),
+            }],
+        });
+        if (modal) this._tutorialIntroShown = true;
+    },
+
+    _getTutorialRoomBriefing(node) {
+        const type = node?.originalType || node?.type;
+        const briefings = {
+            combat: {
+                step: 1,
+                title: '基础战斗房',
+                description: '进入后先走进战斗区域，房门会关闭并刷新一小波基础敌人。屏幕任务栏会依次指导普通攻击、空格闪避、按住左 Shift 配合 A/D 横向奔跑，以及蓄势后的鼠标左键冲刺攻击；完成动作后提示会自动推进。消灭全部敌人后，出口会重新开启。',
+                dangerText: '清场后仍可沿原路返回入口安全撤离；在这里强制放弃会清空背包。',
+                enterLabel: '进入基础战斗',
+            },
+            event: {
+                step: 2,
+                title: '事件选择训练',
+                description: '本次教学会固定遇到一场安全事件。先读完描述和每个选项，再选择恢复、祝福或物资奖励；这一步只训练事件阅读与取舍，不会触发受伤或追加战斗。完成事件后才能继续。',
+                dangerText: '正式地牢的随机事件可能带来损失或战斗；本次教学事件不会惩罚你。',
+                enterLabel: '进入事件选择训练',
+            },
+            boss: {
+                step: 3,
+                title: '首领战斗房',
+                description: '这是路线中的最后一场战斗。首次进入时会自动补满生命、魔法与体力，让你专注学习首领机制；首领会在基础敌人之后出现。击败首领并从出口返回路线图，奖励房才会开放。',
+                dangerText: '补给每次新手试炼只触发一次；战斗开始后仍需注意走位和闪避。',
+                enterLabel: '准备好了，挑战首领',
+            },
+            reward: {
+                step: 4,
+                title: '奖励房间',
+                description: '这间房没有战斗。进入后领取并确认本次探索奖励，即视为成功通关；随后会解锁位面大地图，并引导你返回主神空间继续首城故事线。',
+                dangerText: '先完成奖励结算再离开；在这里强制放弃仍会按失败处理并清空背包。',
+                enterLabel: '进入奖励房并结算',
+            },
+        };
+        return briefings[type] || null;
+    },
+
+    /** 每个教学房只在首次进入前说明一次；取消不会消耗说明或推进节点。 */
+    _showTutorialRoomBriefing(node) {
+        if (!this._tutorialRouteActive || node?.completed || !(node?.tutorialStep > 0)
+            || this._tutorialBriefedNodeIds.has(node.id)) return false;
+        const briefing = this._getTutorialRoomBriefing(node);
+        if (!briefing) return false;
+        const modal = this._createDecisionModal({
+            id: 'dungeonTutorialBriefing',
+            eyebrow: `新手试炼 // ${String(briefing.step).padStart(2, '0')} / 04`,
+            title: briefing.title,
+            description: briefing.description,
+            dangerText: briefing.dangerText,
+            tone: briefing.step === 3 ? 'danger' : 'neutral',
+            actions: [
+                {
+                    id: 'dungeonTutorialBriefingCancel',
+                    label: '先查看路线',
+                    kind: 'muted',
+                    cancel: true,
+                    autofocus: true,
+                    onSelect: ({ close }) => close(),
+                },
+                {
+                    id: 'dungeonTutorialBriefingEnter',
+                    label: briefing.enterLabel,
+                    onSelect: ({ close }) => {
+                        this._tutorialBriefedNodeIds.add(node.id);
+                        close({ restoreFocus: false });
+                        this._enterNode(node);
+                    },
+                },
+            ],
+        });
+        return !!modal;
     },
 
     /** 未开宝箱离场确认框：离开=正常清场进路线图；返回=退回场内 */
@@ -2496,6 +2745,51 @@ export const DungeonMapSystem = {
         const type = revealed ? node.type : 'unknown';
         const elite = revealed && type === 'combat' && node.isElite;
         const iconKey = elite ? 'elite' : type === 'empty' ? 'start' : type;
+        if (!forceHidden && this._tutorialRouteActive && Number.isInteger(node.tutorialStep)) {
+            const tutorialType = node.originalType || node.type;
+            const briefing = this._getTutorialRoomBriefing(node);
+            const tutorialModels = {
+                start: {
+                    title: '新手试炼入口', risk: '安全区域', reward: '安全撤离会保留全部背包物品',
+                    clue: '只有这里能安全撤离；离开后可沿原路返回。',
+                    note: '请使用“安全撤离”。“强制放弃”始终会清空背包。',
+                },
+                combat: {
+                    title: '教学 1/4 · 基础战斗', risk: '一小波基础敌人', reward: node.completed ? '战斗教学已完成' : '清场经验与房间奖励',
+                    clue: '清敌后出口开启；生命与消耗品状态会延续。',
+                    note: '完成后可以继续，也可以原路返回入口安全撤离。',
+                },
+                event: {
+                    title: '教学 2/4 · 事件选择', risk: '教学事件无惩罚', reward: node.completed ? '事件教学已完成' : '恢复、祝福或物资三选一',
+                    clue: '先阅读选项，再根据当前状态选择收益。正式事件可能包含风险。',
+                    note: '本次不会受伤或追加战斗；完成选择后继续前进。',
+                },
+                boss: {
+                    title: '教学 3/4 · 首领战', risk: '两阶段首领战', reward: node.completed ? '首领教学已完成' : '首领奖励与奖励房通路',
+                    clue: '首次进入自动补满生命、魔法与体力，这是最后一场战斗。',
+                    note: '一次性补给后专注观察首领动作，使用刚学会的闪避与冲刺。',
+                },
+                reward: {
+                    title: '教学 4/4 · 奖励房', risk: '无战斗', reward: node.completed ? '本次探索已结算' : '通关奖励与位面大地图解锁',
+                    clue: '领取并确认奖励后，本次新手试炼才算成功通关。',
+                    note: '完成结算后按提示返回主神空间，继续首城故事线。',
+                },
+            };
+            const model = tutorialModels[tutorialType] || tutorialModels.start;
+            const tutorialIconKey = tutorialType === 'start' ? 'start' : tutorialType;
+            return {
+                number: String(node.tutorialStep).padStart(2, '0'),
+                title: model.title,
+                revealed: true,
+                state: current ? '当前位置' : available ? '可前往' : visited ? '已探索 · 非相邻' : '沿单线继续推进',
+                icon: this.ROUTE_NODE_ICON_PATHS[tutorialIconKey] || this.ROUTE_NODE_ICON_PATHS.unknown,
+                risk: model.risk,
+                reward: model.reward,
+                clue: model.clue,
+                danger: tutorialType === 'boss' && !node.completed,
+                note: briefing && available && !node.completed ? `进入前提示：${briefing.title}。${model.note}` : model.note,
+            };
+        }
         const titles = { start: '地牢入口', empty: '通行节点', combat: elite ? '精英遭遇' : '战斗房间',
             event: node.eventType === 'treasureChest' ? '宝箱事件' : '未知事件', boss: '首领据点', reward: '战利品房间', unknown: '未侦察房间' };
         let risk = '未确认', reward = '进入后揭示', clue = '情报尚未揭示，沿相邻房间继续探索。';
@@ -2621,7 +2915,9 @@ export const DungeonMapSystem = {
         // 最终入口也检查当前真实邻接，不能通过过期选中项或外部调用跨房间进入。
         if (!this.active || this.state !== 'map' || this._observerSuspended || SceneManager.isLoading
             || SceneManager.currentScene !== this.sceneId || !node || !this.isNodeClickable(node)
-            || getElementIfExists('dungeonVictoryOverlay') || getElementIfExists('dungeonExitConfirm')) return;
+            || getElementIfExists('dungeonVictoryOverlay') || getElementIfExists('dungeonExitConfirm')
+            || getElementIfExists('dungeonTutorialBriefing')) return;
+        if (this._showTutorialRoomBriefing(node)) return;
         // 进入节点前隐藏地图按钮
         this._removeAbandonButton();
         this._removeRouteControls();
@@ -2782,8 +3078,7 @@ export const DungeonMapSystem = {
             : CombatRoomSystem.getGoldReward(isBoss, this.dungeonType);
         if (gold > 0) {
             PlayerRewardDelivery.deliver([createGoldItem(gold)], {
-                sourceId: `${MailStore.run?.id}:node:${this.currentNodeId}:clear`,
-                title: '战斗清剿奖励',
+                sourceId: `${MailStore.run?.id}:node:${this.currentNodeId}:clear`, title: '战斗清剿奖励',
             });
             EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `获得 ${gold} 金币`, '#ffd700'));
         }
@@ -2854,6 +3149,16 @@ export const DungeonMapSystem = {
         this._clearNodeToEmpty(currentNode, true, true);
     },
 
+    _setupCombatChest(bounds, options = {}) {
+        const worldBlock = CombatRoomSystem._roomConstruction === 'worldBlock1x1';
+        const worldBlockRoom = worldBlock ? CombatRoomSystem.appendWorldBlockTreasureRoom(bounds) : null;
+        return ChestRoomSystem.setup(this.dungeonType, bounds, {
+            ...options,
+            worldBlockRoom,
+            openArena: worldBlock && !worldBlockRoom,
+        });
+    },
+
     _enterCombat(node) {
         this.state = "combat";
         // 左侧地牢信息仅路线选择画面显示（_enterNode 已隐藏；此处兜底直调路径）
@@ -2864,6 +3169,7 @@ export const DungeonMapSystem = {
         // 进入新战斗前，先清理上一场战斗可能残留的传送门/掉落物
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
+        this._startTutorialCombatControls(node);
 
         // 场地固定档位（配置驱动，支持地牢级覆盖）：普通 1024 / 精英 1792
         const _crCfg = DungeonConfig.getCombatRoomConfig(this.dungeonType);
@@ -2878,7 +3184,7 @@ export const DungeonMapSystem = {
         CombatRoomSystem.enterCombatRoom(this.player, false, combatOptions);
         // 精英战斗：场地中央生成宝箱房（与僵尸路径同规则）
         if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
+            this._setupCombatChest(CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
         }
         // 生成普通怪物
         CombatRoomSystem.spawnMonsters(3, false);
@@ -2907,24 +3213,16 @@ export const DungeonMapSystem = {
         }
         // 精英战斗：场地中央生成宝箱房（门墙常闭 + 等级宝箱 + 60s 倒计时，房内不刷怪）
         if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
+            this._setupCombatChest(CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
         }
         this._spawnZombieWave();
     },
 
     /**
-     * 墓碑事件（僵尸地牢初级/中级/高级 · 普通战斗每次房间刷怪 25% 概率）：
-     * 在距玩家最远的角落生成墓碑（站桩召唤器，enemy-config noPool 不进任何刷怪池）。
-     * 由 _spawnZombieWave 在刷怪后调用（_combatMonsterKeys 重置之后才能登记 key）；
-     * F/E 单房间跨波次不删除墓碑及其召唤物（cleanupMonstersOnly 保留 tombstone_ 前缀），
-     * D+ 竞技场换房间时随房间清理删除。
-     * 生成点判定流程：
-     *   1. 候选角落：矩形房取外接矩形四角（内收），菱形房取对角线方向与菱形边界的交点（内收）；
-     *      按距玩家从远到近排序，保证"最远角落"优先；
-     *   2. 可达性：WallSystem.canMoveTo 可行走（不嵌墙/障碍物）
-     *      + pathFinder.findPath 能寻路到玩家当前位置（保证生成的僵尸能走出寻敌）；
-     *   3. 角落本身不合格则在其周围按半径 40/80/120/160 做 8 向螺旋搜索；
-     *   4. 该角落全失败换次远角落；全部失败放弃本次生成（打印警告）。
+     * 恐怖C/B/A普通战每波25%概率生成墓碑；竞技场换房随房间清理。
+     * 在旧右上墙锚点附近优先找位，失败后仅搜索当前真实房型内已证实连通的安全点。
+     * 墓碑本体避开墙、宝箱、门与已生成的角色；无合格点则跳过，不改变主波次完成条件。
+     * 由 _spawnZombieWave 在刷怪后调用（_combatMonsterKeys 重置之后才能登记 key）。
      * 墓碑只登记 key 进 _combatMonsterKeys（随波次/房间清理），不进 _combatMonsters——
      * 生成器不计入战斗完成判定（与矿洞同口径）。
      */
@@ -2955,21 +3253,22 @@ export const DungeonMapSystem = {
             anchor = { x: bounds.maxX - INSET, y: bounds.minY + INSET };
         }
 
-        // 房内判定（菱形房按菱形内缩判定）
-        const inRoom = (x, y) => bounds.diamond
-            ? Math.abs(x - bounds.cx) / Math.max(1, bounds.rx - INSET) + Math.abs(y - bounds.cy) / Math.max(1, bounds.ry - INSET) <= 1
-            : (x >= bounds.minX + INSET && x <= bounds.maxX - INSET && y >= bounds.minY + INSET && y <= bounds.maxY - INSET);
-        // 可行走 + 路线可达（生成前路线判定：僵尸能走出并寻找到玩家）
-        const reachable = (x, y) => {
-            if (!inRoom(x, y)) return false;
-            if (WallSystem && typeof WallSystem.canMoveTo === 'function'
-                && !WallSystem.canMoveTo(x, y, TOMB_RADIUS)) return false;
-            if (pathFinder && typeof pathFinder.findPath === 'function') {
-                const path = pathFinder.findPath(x, y, player.x, player.y, PROBE_RADIUS);
-                if (!path || path.length === 0) return false;
-            }
-            return true;
-        };
+        // 随机凹凸房不能用外接菱形代替真实地板；复用普通刷怪的同房/碰撞/连通合同。
+        const exclusion = ChestRoomSystem._exclusion;
+        const inExclusion = (x, y, radius) => !!exclusion
+            && Math.abs(x - exclusion.cx) / Math.max(1, exclusion.rx + radius)
+                + Math.abs(y - exclusion.cy) / Math.max(1, exclusion.ry + radius) <= 1;
+        const avoidPoints = this._trapExtras().avoidPoints;
+        const enemies = Array.from(Game.entities?.values?.() || [])
+            .filter((entity) => entity?._faction === 'enemy' && entity.active && entity.hp > 0);
+        const clearOfActors = (x, y) => Math.hypot(x - player.x, y - player.y) >= 240
+            && !avoidPoints.some((point) => Math.hypot(x - point.x, y - point.y) < point.r + TOMB_RADIUS)
+            && !enemies.some((entity) => Math.hypot(x - entity.x, y - entity.y)
+                < TOMB_RADIUS + (entity.groundRadius || 15) + 24);
+        const routes = buildCombatRoomReachability(bounds, player, PROBE_RADIUS);
+        const safe = (x, y) => isCombatRoomPointSafe(bounds, x, y, TOMB_RADIUS, inExclusion)
+            && clearOfActors(x, y);
+        const reachable = (x, y) => safe(x, y) && !!routes?.contains(x, y);
 
         // 先试锚点本身，再按递近半径做 8 向螺旋搜索
         const candidates = [{ x: anchor.x, y: anchor.y }];
@@ -2978,6 +3277,11 @@ export const DungeonMapSystem = {
                 const a = (i / 8) * Math.PI * 2;
                 candidates.push({ x: anchor.x + Math.cos(a) * r, y: anchor.y + Math.sin(a) * r });
             }
+        }
+        // 切角或支路改变旧右上墙位置时，在已证实连通的本房内寻找最近安全点。
+        if (!candidates.some((point) => reachable(point.x, point.y))) {
+            const fallback = routes?.nearest(anchor.x, anchor.y, safe);
+            if (fallback) candidates.push(fallback);
         }
         for (const c of candidates) {
             if (!reachable(c.x, c.y)) continue;
@@ -2993,7 +3297,7 @@ export const DungeonMapSystem = {
             }
             return;
         }
-        console.warn('[DungeonMapSystem] 墓碑生成失败：右上墙中点区域均不可行走/不可达玩家，本次放弃生成');
+        console.warn('[DungeonMapSystem] 墓碑生成失败：当前房型没有安全且可达玩家的落点，本次放弃生成');
     },
 
     /** 月影庇护：进战斗给无敌，精英/Boss 战额外给增伤标记 */
@@ -3025,7 +3329,8 @@ export const DungeonMapSystem = {
             }
         }
         // 目标房间：竞技场创建时逐房预生成（roomIdx 指定），否则当前房间 _roomBounds
-        const stage = arena ? (roomIdx || arena.stage) : 0;
+        const targetRoom = arena && roomIdx ? arena.rooms?.[roomIdx - 1] : null;
+        const stage = targetRoom?.stage || (arena ? arena.stage : 0);
         const bounds = (arena && roomIdx)
             ? CombatRoomSystem.getArenaRoomBounds(roomIdx)
             : CombatRoomSystem._roomBounds;
@@ -3039,9 +3344,9 @@ export const DungeonMapSystem = {
         let reachFrom = null;
         if (arena && roomIdx && bounds) {
             reachFrom = { x: bounds.cx, y: bounds.cy };
-            const lastIdx = arena.rooms ? arena.rooms.length : 3;
-            if (stage === lastIdx) {
-                const inPass = arena.passages[lastIdx - 2];
+            const lastStage = arena.stageCount || arena.rooms?.length || 3;
+            if (stage === lastStage) {
+                const inPass = CombatRoomSystem.getArenaIncomingPassages(roomIdx)[0];
                 const g = inPass && inPass.gates[0];
                 if (g && g.center) reachFrom = { x: g.center.x, y: g.center.y };
             }
@@ -3083,6 +3388,7 @@ export const DungeonMapSystem = {
             eliteSize: crCfg.eliteSize,
             roomCount,
             dungeonType: this.dungeonType, // 障碍物生成按地牢大类判定（僵尸/沼泽不同口径）
+            isElite: !!node.isElite,
         });
         if (!arenaInfo) {
             // 预制缺失等异常：回退旧单房间流程（状态字段已初始化，与正常路径一致）
@@ -3090,36 +3396,31 @@ export const DungeonMapSystem = {
             console.error('[DungeonMapSystem] 竞技场构建失败（预制库已就绪：通道预制缺失/轴向不符），回退单房间战斗');
             CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: node.isElite ? crCfg.eliteSize : crCfg.normalSize, dungeonType: this.dungeonType });
             if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
-                ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
+                this._setupCombatChest(CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
             }
             this._spawnZombieWave();
             return;
         }
-        // ⚠ 2026-08-08 十修：竞技场强制 N 波编排（一房一波，N = 房间数）必须放在
-        // enterCombatArena **之后**——此前在进场前调用 getArenaRoomCount() 时 _arena
+        // 竞技场按逻辑阶段强制 N 波；房图分叉会让物理房数多1，不能再拿 rooms.length 当波次数。
+        // 此调用仍必须放在 enterCombatArena **之后**——此前在进场前读取竞技场时 _arena
         // 尚未建立返回 0 → forceArenaWaves(0) 无效 → _totalWaves 保持遭遇默认（沼泽 3 波）
         // → 迷宫房3 清完 isComplete 提前 true → 走"战斗完成"只开末房出口门，房3 去路门
-        // 永不开启（"第三个房间清完不开门"根因）。进场后再按真实房间数补足波次。
-        const arenaRoomCount = CombatRoomSystem.getArenaRoomCount ? CombatRoomSystem.getArenaRoomCount() : 3;
-        this._zombieCombat.forceArenaWaves(arenaRoomCount);
+        // 永不开启（"第三个房间清完不开门"根因）。进场后再按真实 stageCount 补足波次。
+        const arenaStageCount = CombatRoomSystem.getArenaStageCount
+            ? CombatRoomSystem.getArenaStageCount()
+            : CombatRoomSystem.getArenaRoomCount();
+        this._zombieCombat.forceArenaWaves(arenaStageCount);
 
         // 宝箱房：最后一房间中央（普通/精英都生成；倒计时等玩家进入末房才启动）。
-        // 僵尸系世界单格竞技场使用同标准黑砖实体宝箱房；冰封系仍保持开放式宝箱点，
-        // 避免在已封闭末房中央重复套入另一层冰墙。
+        // 所有单格墙主题共用安全准入：沿用本地墙材，完整墙环放不下时回退开放宝箱点。
         if (typeof ChestRoomSystem !== 'undefined') {
-            const lastRoomIdx = CombatRoomSystem.getArenaRoomCount();
+            const lastRoomIdx = CombatRoomSystem.getArenaFinalRoomIndex
+                ? CombatRoomSystem.getArenaFinalRoomIndex()
+                : CombatRoomSystem.getArenaRoomCount();
             const lastRoomBounds = CombatRoomSystem.getArenaRoomBounds(lastRoomIdx);
-            const dungeonCfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
-            const usePhysicalTreasureRoom = crCfg.wallConstruction === 'worldBlock1x1'
-                && (dungeonCfg.wallStyle === 'zombie' || dungeonCfg.wallStyle === 'swampStone');
-            const worldBlockRoom = usePhysicalTreasureRoom
-                ? CombatRoomSystem.appendWorldBlockTreasureRoom(lastRoomBounds)
-                : null;
-            ChestRoomSystem.setup(this.dungeonType, lastRoomBounds, {
+            this._setupCombatChest(lastRoomBounds, {
                 deferCountdown: true,
                 isElite: !!node.isElite,
-                worldBlockRoom,
-                openArena: crCfg.wallConstruction === 'worldBlock1x1' && !worldBlockRoom,
             });
         }
 
@@ -3144,7 +3445,84 @@ export const DungeonMapSystem = {
         // 玩家在入场地块（房间 1 左上墙入场门外）——走进房间 1 才触发关门+刷第 1 波
         // （进场不刷怪/不关门，等待 _checkArenaRoomEntry 的进房判定）
         this._arenaRoomCleared = false;
-        if (CombatRoomSystem._arena) CombatRoomSystem._arena.awaiting = 1;
+        CombatRoomSystem.setArenaAwaitingRooms([1]);
+        this._refreshArenaRouteHint();
+    },
+
+    /** 只读实际通道门位，方向以屏幕上下左右为准，不按房号猜轴向。 */
+    _arenaRouteDoorLabel(fromIndex, toIndex) {
+        const arena = CombatRoomSystem._arena;
+        const from = arena?.rooms?.[fromIndex - 1];
+        const passage = arena?.passages?.find(rec => rec.fromRoomIndex === fromIndex
+            && rec.toRoomIndex === toIndex && !arena.disabledPassageIndexes?.includes(rec.index));
+        if (!from || !passage) return '前方通道';
+        const gate = (passage.gates || []).reduce((nearest, candidate) => {
+            if (!candidate?.center) return nearest;
+            return !nearest || Math.hypot(candidate.center.x - from.cx, candidate.center.y - from.cy)
+                < Math.hypot(nearest.center.x - from.cx, nearest.center.y - from.cy) ? candidate : nearest;
+        }, null);
+        if (!gate) return '前方通道';
+        const dx = gate.center.x - from.cx;
+        const dy = gate.center.y - from.cy;
+        const horizontal = Math.abs(dx) > 8 ? (dx < 0 ? '左' : '右') : '';
+        const vertical = Math.abs(dy) > 8 ? (dy < 0 ? '上' : '下') : '';
+        return horizontal || vertical ? `${horizontal}${vertical}门` : '前方通道';
+    },
+
+    _removeArenaRouteHint() {
+        getElementIfExists('dungeonArenaRouteHint')?.remove();
+    },
+
+    /** 分岔提示随进房/清场刷新，无按钮、计时器或独立路线状态。 */
+    _refreshArenaRouteHint() {
+        const arena = CombatRoomSystem._arena;
+        const mine = ['abandonedMineBeginner', 'abandonedMineMid', 'abandonedMine'].includes(this.dungeonType);
+        if (!mine || !arena || !this.active || this.state !== 'combat') {
+            this._removeArenaRouteHint();
+            return;
+        }
+        const current = arena.rooms[arena.activeRoomIndex - 1];
+        const awaiting = arena.awaitingRoomIndexes || [];
+        const choices = awaiting.map(index => arena.rooms[index - 1]).filter(Boolean);
+        const isFork = choices.length > 1 && choices[0].choiceGroup
+            && choices.every(room => room.choiceGroup === choices[0].choiceGroup);
+        let title;
+        let detail;
+        let routes = '';
+        if (isFork) {
+            title = `分岔待选 · 第${choices[0].stage}/${arena.stageCount}阶段`;
+            detail = '踏入任一房间即锁定，另一条路线封闭；只消耗一波，无额外分支奖励。';
+            routes = choices.map((room, index) => {
+                const next = CombatRoomSystem.getArenaNextRoomIndexes(room.index);
+                const merge = next.length === 1
+                    ? `；清场后走${this._arenaRouteDoorLabel(room.index, next[0])}汇合` : '';
+                return `路线${index + 1}：${this._arenaRouteDoorLabel(current.index, room.index)}${merge}`;
+            }).join('\n');
+        } else if (current?.choiceGroup && arena.chosenRoomByGroup[current.choiceGroup] === current.index) {
+            title = `路线已锁定 · 第${current.stage}/${arena.stageCount}阶段`;
+            const next = CombatRoomSystem.getArenaNextRoomIndexes(current.index);
+            const mergeRoom = next.length === 1 ? arena.rooms[next[0] - 1] : null;
+            detail = '未选路线已封闭，不需要清理另一间房。';
+            if (mergeRoom) routes = `${awaiting.length ? '清场完成，走' : '清场后走'}${this._arenaRouteDoorLabel(current.index, mergeRoom.index)}，前往第${mergeRoom.stage}阶段汇合。`;
+        } else {
+            this._removeArenaRouteHint();
+            return;
+        }
+        let el = getElementIfExists('dungeonArenaRouteHint');
+        if (!el) {
+            el = document.createElement('aside');
+            el.id = 'dungeonArenaRouteHint';
+            el.className = 'dungeon-arena-route-hint';
+            el.setAttribute('role', 'status');
+            el.setAttribute('aria-live', 'polite');
+            el.setAttribute('aria-atomic', 'true');
+            el.innerHTML = '<strong class="dungeon-arena-route-title"></strong><div class="dungeon-arena-route-paths"></div><div class="dungeon-arena-route-detail"></div>';
+            (getElementIfExists('uiLayer') || document.body).appendChild(el);
+        }
+        el.querySelector('.dungeon-arena-route-title').textContent = title;
+        el.querySelector('.dungeon-arena-route-paths').textContent = routes;
+        el.querySelector('.dungeon-arena-route-detail').textContent = detail;
+        el.hidden = this._observerSuspended || SceneManager.currentScene !== this.sceneId || SceneManager.isLoading;
     },
 
     /**
@@ -3159,8 +3537,8 @@ export const DungeonMapSystem = {
         if (roomIdx === 1 && arena.entryGate) {
             gates = [arena.entryGate];
         } else {
-            const rec = roomIdx > 1 ? arena.passages[roomIdx - 2] : arena.passages[0];
-            gates = rec ? rec.gates : [];
+            gates = CombatRoomSystem.getArenaIncomingPassages(roomIdx)
+                .flatMap((rec) => rec.gates || []);
         }
         this._arenaDoorPending = { roomIdx, elapsed: 0, gates };
     },
@@ -3186,29 +3564,37 @@ export const DungeonMapSystem = {
     /** 竞技场：玩家进入等待中的下一房间 → 只判定进房并布防关门；刷怪在关门后（_updateArenaDoorClose） */
     _checkArenaRoomEntry() {
         const arena = CombatRoomSystem._arena;
-        if (!arena || !arena.awaiting || !this.player) return;
+        if (!arena || !arena.awaitingRoomIndexes?.length || !this.player) return;
         const roomIdx = CombatRoomSystem.arenaRoomContaining(this.player.x, this.player.y);
-        if (roomIdx !== arena.awaiting) return;
-        arena.awaiting = 0;
+        if (!arena.awaitingRoomIndexes.includes(roomIdx)) return;
+        const previousRoom = arena.rooms?.[arena.activeRoomIndex - 1];
+        if (!CombatRoomSystem.selectArenaChoice(roomIdx)) return;
+        CombatRoomSystem.setArenaAwaitingRooms([]);
         this._arenaRoomCleared = false;
         // 重置刷怪标记：否则关门前的 1s 窗口里，清场判定会拿上一房间的死怪（allDead 成立）
         // 误触发"已清场"并把 _arenaRoomCleared 置真——真正杀完本房怪物时因标记已真而不再开门
         // （"第二间房清完门不开"的根因）
         arena.waveSpawned = false;
         CombatRoomSystem.setArenaStageRoom(roomIdx);
+        const room = arena.rooms?.[roomIdx - 1];
+        const merged = ['abandonedMineBeginner', 'abandonedMineMid', 'abandonedMine'].includes(this.dungeonType)
+            && previousRoom?.choiceGroup && !room?.choiceGroup
+            && (room?.stage || 0) > (previousRoom.stage || 0);
+        if (merged && SceneManager?.showTopNotification) {
+            SceneManager.showTopNotification('路线已汇合，继续当前阶段战斗', { tone: 'info', duration: 4200 });
+        }
+        this._refreshArenaRouteHint();
         this._armArenaDoorClose(roomIdx);
         // 注意：此处不再直接刷怪/启动宝箱倒计时——统一等关门后执行，
         // 堵"门没关就刷怪"的漏洞（关门条件见 _updateArenaDoorClose；陷阱创建时已摆好）
     },
 
-    /** 关门后执行：刷对应波次 + （末房）启动宝箱倒计时（陷阱已在竞技场创建时逐房预生成） */
+    /** 关门后准备对应波次；末房计时统一等完整刷怪成功，加载/重试不消耗挑战时间。 */
     _onArenaRoomSealed(roomIdx) {
         const arena = CombatRoomSystem._arena;
         if (!arena) return;
-        const lastIdx = arena.rooms ? arena.rooms.length : 3;
-        if (roomIdx === lastIdx && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
-            ChestRoomSystem.startCountdown();
-        }
+        const room = arena.rooms?.[roomIdx - 1];
+        this._zombieCombat?.setNextWaveTemplate?.(room?.combatTemplate || null);
         // waveSpawned 由异步资源准备成功并实际刷怪后置位；准备期间由
         // _waveTransitioning 守卫清场判定，不能把空数组误判为已清房。
         this._spawnZombieWave();
@@ -3261,15 +3647,31 @@ export const DungeonMapSystem = {
         return expanded;
     },
 
+
+
+
+
+    _deferEnemyLoadUntilSceneReady(token, retry) {
+        if (!this._observerSuspended && SceneManager.currentScene === this.sceneId && !SceneManager.isLoading) {
+            return false;
+        }
+        // 返回地牢并完成切场后重走资源就绪检查；保留本波选型，不再推进逻辑波次。
+        this._deferredEnemyLoad = { token, retry };
+        this._waveTransitioning = true;
+        return true;
+    },
+
     _showEnemyLoadFailure(error, retry) {
         const detail = error?.message || '未知资源错误';
-        console.error('[DungeonMapSystem] 地牢怪物资源准备失败:', error);
-        SceneManager?.showTopNotification?.(`敌人资源准备失败：${detail}`);
+        const spawnFailed = error?.code === 'DUNGEON_SPAWN_FAILED';
+        const title = spawnFailed ? '敌人生成失败' : '敌人资源加载失败';
+        console.error(`[DungeonMapSystem] ${title}:`, error);
+        SceneManager?.showTopNotification?.(`${title}：${detail}`, { tone: 'danger' });
         getElementIfExists('dungeonEnemyLoadFailure')?.remove();
         this._createDecisionModal({
             id: 'dungeonEnemyLoadFailure',
-            eyebrow: 'ENEMY ASSET STREAM // INTERRUPTED',
-            title: '敌人资源加载失败',
+            eyebrow: spawnFailed ? 'ENEMY SPAWN // INTERRUPTED' : 'ENEMY ASSET STREAM // INTERRUPTED',
+            title,
             description: detail,
             dangerText: '本波不会生成占位怪，也不会被判定为已清场。',
             tone: 'danger',
@@ -3298,28 +3700,14 @@ export const DungeonMapSystem = {
         });
     },
 
-    async _exitDungeonAfterLoadFailure() {
-        const player = Game.player || this.player;
-        // 资源故障不属于玩家失败：先释放本局暂存，再沿用旧统计的 failed 口径退出。
-        PlayerRewardDelivery.finishRun('load_failure');
-        this.shutdown();
-        // 资源加载失败可能发生在 SceneManager 的 loading 生命周期内；先清掉旧锁，
-        // 再强制重建主场景，不能让 switchScene 因 isLoading/currentScene 短路后假退出。
-        SceneManager?.hideLoadingScreen?.();
-        if (!player) {
-            console.error('[DungeonMapSystem] 资源故障退出失败: 玩家实体不存在');
-            alert('返回主神空间失败: 玩家实体不存在');
-            return;
-        }
-        try {
-            const switched = await SceneManager.switchScene('main', player, undefined, { forceReload: true });
-            if (!switched || SceneManager.currentScene !== 'main') {
-                throw new Error('主场景未完成切换');
-            }
-        } catch (error) {
-            console.error('[DungeonMapSystem] 资源故障退出失败:', error);
-            alert(`返回主神空间失败: ${error?.message || '未知错误'}`);
-        }
+    _exitDungeonAfterLoadFailure() {
+        if (!this.active) return;
+        SceneManager.hideLoadingScreen();
+        return this._returnToMainWithRetry('load_failure');
+    },
+
+    returnAfterDeath(player, respawnPos) {
+        return this._returnToMainWithRetry('failed', { player, respawnPos });
     },
 
     _spawnZombieWave() {
@@ -3358,7 +3746,10 @@ export const DungeonMapSystem = {
     async _loadAndSpawnZombieWave(pending) {
         if (!pending || this._pendingZombieWave !== pending || !this.active) return;
         this._waveTransitioning = true;
+        ChestRoomSystem.pauseCountdown();
         const token = ++this._enemyLoadToken;
+        const retry = () => this._loadAndSpawnZombieWave(pending);
+        if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
         try {
             const enemyTypes = this._enemyTypesForWave(
                 pending.classes,
@@ -3368,14 +3759,26 @@ export const DungeonMapSystem = {
             await this._prepareDungeonEnemyTypes(enemyTypes);
             if (!this.active || token !== this._enemyLoadToken || this._pendingZombieWave !== pending) return;
 
+            if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
+
             const { classes, invasionFactories, wave, total } = pending;
-            CombatRoomSystem.spawnMonsters(classes.length, false, classes.map(entry => entry.MonsterClass));
+            // 混入特工也属于本波：保留自由边出生意图，同一批次验证/清理，不留半波。
+            pending.invasionRecords ||= this._planInvasionAgentsOnFreeEdge(invasionFactories);
+            const allClasses = [...classes, ...pending.invasionRecords];
+            CombatRoomSystem.spawnMonsters(allClasses.length, false, allClasses, { requireComplete: true });
+            for (const monster of CombatRoomSystem._combatMonsters.slice(classes.length)) {
+                AgentInvasionSystem.markAsInvasion(monster);
+            }
 
             // 同步到地图系统的追踪数组，方便统一检测战斗完成
             this._combatMonsters = CombatRoomSystem._combatMonsters;
             this._combatMonsterKeys = CombatRoomSystem._combatMonsterKeys;
 
-            EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
+            try {
+                EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
+            } catch (error) {
+                console.warn('[DungeonMapSystem] 波次提示失败，不重复已生成波次:', error);
+            }
 
             // 墓碑：普通战斗每次房间刷怪 25% 概率额外刷新（必须在 spawnMonsters 重置 keys 之后调用；
             // 内部有地牢类型/精英/Boss 守卫；F/E 跨波保留，D+ 换房间随清理删除）
@@ -3384,21 +3787,37 @@ export const DungeonMapSystem = {
             } catch (e) {
                 console.error('[DungeonMapSystem] 墓碑生成异常（已兜底）:', e);
             }
-            if (invasionFactories.length) {
-                this._spawnInvasionAgentsOnFreeEdge(invasionFactories);
-            }
             const arena = CombatRoomSystem._arena;
             if (arena) arena.waveSpawned = true;
+            if (!arena || arena.stage === arena.stageCount) ChestRoomSystem.startCountdown();
             this._pendingZombieWave = null;
             this._waveTransitioning = false;
         } catch (error) {
             if (!this.active || token !== this._enemyLoadToken || this._pendingZombieWave !== pending) return;
+            if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
             this._waveTransitioning = false;
-            this._showEnemyLoadFailure(error, () => this._loadAndSpawnZombieWave(pending));
+            this._showEnemyLoadFailure(error, retry);
         }
     },
 
+    _restoreTutorialBossSupplies(node) {
+        if (!this._tutorialRouteActive || node?.tutorialStep !== 3 || this._tutorialBossAidUsed) return;
+        const player = this.player || Game.player;
+        const data = player?.data;
+        if (!data) return;
+        for (const [currentKey, maxKey] of [['hp', 'maxHp'], ['mp', 'maxMp'], ['stamina', 'maxStamina']]) {
+            const maximum = Number(data[maxKey]);
+            if (Number.isFinite(maximum) && maximum >= 0) data[currentKey] = maximum;
+        }
+        this._tutorialBossAidUsed = true;
+        SceneManager.showTopNotification?.('新手首领补给已启用：生命、魔法与体力已恢复', {
+            tone: 'success',
+            duration: 3600,
+        });
+    },
+
     _enterBoss(node) {
+        this._restoreTutorialBossSupplies(node);
         // Boss 战为独立遭遇配置（bossEncounter）的地牢：走普通战斗流程（初级精英副本、中级领主池等）
         if (DungeonConfig.getBossEncounterConfig(this.dungeonType)) {
             this._enterBossCombat(node);
@@ -3417,9 +3836,12 @@ export const DungeonMapSystem = {
     async _loadAndEnterAmalgamBoss(node) {
         this._waveTransitioning = true;
         const token = ++this._enemyLoadToken;
+        const retry = () => this._loadAndEnterAmalgamBoss(node);
+        if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
         try {
             await this._prepareDungeonEnemyTypes(['amalgamZombie']);
             if (!this.active || this.state !== 'boss' || token !== this._enemyLoadToken) return;
+            if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
             this._waveTransitioning = false;
             // 所有 Boss 战统一使用 BossRewardSystem 的集合体 Boss（dungeonType 用于地牢级 bossSize 覆盖）
             BossRewardSystem.enterBossBattle(this.player, () => {
@@ -3431,8 +3853,9 @@ export const DungeonMapSystem = {
             EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
         } catch (error) {
             if (!this.active || token !== this._enemyLoadToken) return;
+            if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
             this._waveTransitioning = false;
-            this._showEnemyLoadFailure(error, () => this._loadAndEnterAmalgamBoss(node));
+            this._showEnemyLoadFailure(error, retry);
         }
     },
 
@@ -3492,34 +3915,41 @@ export const DungeonMapSystem = {
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, '⚠ 时空特工入侵！', '#ff4444'));
     },
 
+
+
     async _loadAndSpawnStandaloneInvasion(factories) {
         this._waveTransitioning = true;
         const token = ++this._enemyLoadToken;
+        const retry = () => this._loadAndSpawnStandaloneInvasion(factories);
+        if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
         try {
             await this._prepareDungeonEnemyTypes(this._enemyTypesForFactories(factories));
             if (!this.active || this.state !== 'combat' || token !== this._enemyLoadToken) return;
-            CombatRoomSystem.spawnMonsters(factories.length, false, factories);
+            if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
+            CombatRoomSystem.spawnMonsters(factories.length, false, factories, { requireComplete: true });
             for (const monster of CombatRoomSystem._combatMonsters) AgentInvasionSystem.markAsInvasion(monster);
             this._combatMonsters = CombatRoomSystem._combatMonsters;
             this._waveTransitioning = false;
         } catch (error) {
             if (!this.active || token !== this._enemyLoadToken) return;
+            if (this._deferEnemyLoadUntilSceneReady(token, retry)) return;
             // 保持过渡守卫，防止空怪数组在错误弹窗期间被判作独立入侵已清场。
             this._waveTransitioning = true;
-            this._showEnemyLoadFailure(error, () => this._loadAndSpawnStandaloneInvasion(factories));
+            this._showEnemyLoadFailure(error, retry);
         }
     },
 
-    /** 情况2：在玩家/怪物都不刷新的随机自由边上生成入侵特工 */
-    _spawnInvasionAgentsOnFreeEdge(factories) {
+    /** 情况2：计划自由边出生点；交给完整刷波入口校正到同房可达区并统一提交。 */
+    _planInvasionAgentsOnFreeEdge(factories) {
         const bounds = CombatRoomSystem._roomBounds;
-        if (!bounds || !Array.isArray(factories) || factories.length === 0) return;
+        if (!bounds || !Array.isArray(factories) || factories.length === 0) return [];
         const used = [CombatRoomSystem._entranceEdge, CombatRoomSystem._oppositeEdge];
         const free = [0, 1, 2, 3].filter(e => !used.includes(e));
-        if (free.length === 0) return;
+        if (free.length === 0) return [];
         const edge = free[Math.floor(Math.random() * free.length)];
         const margin = AgentInvasionSystem.getEdgeSpawnMargin();
         const count = factories.length;
+        const records = [];
         for (let i = 0; i < count; i++) {
             const t = (i + 1) / (count + 1);
             let x, y;
@@ -3528,24 +3958,9 @@ export const DungeonMapSystem = {
             else if (edge === 2) { x = bounds.minX + (bounds.maxX - bounds.minX) * t; y = bounds.maxY - margin; }
             else if (edge === 1) { x = bounds.maxX - margin; y = bounds.minY + (bounds.maxY - bounds.minY) * t; }
             else { x = bounds.minX + margin; y = bounds.minY + (bounds.maxY - bounds.minY) * t; }
-            const agent = AgentInvasionSystem.spawnAgent(x, y, factories[i]);
-            // [SAFE-SPAWN] 防穿墙兜底：菱形房间角落附近的直角边布点可能落到墙外，
-            // 沿用 CombatRoomSystem.spawnMonsters 同款处理——落在不可走位置时螺旋外推重取
-            const r = agent.groundRadius || 20;
-            if (WallSystem && WallSystem.findSafeSpawn && !WallSystem.canMoveTo(agent.x, agent.y, r)) {
-                const safe = WallSystem.findSafeSpawn(agent.x, agent.y, r);
-                agent.x = safe.x;
-                agent.y = safe.y;
-            }
-            const key = `invasion_agent_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
-            Game.entities.set(key, agent);
-            // 加入战斗追踪（与首波怪物同数组，完成判定含特工）；
-            // key 必须登记进 _combatMonsterKeys——cleanupRoom/cleanupMonstersOnly 只按 keys 删除，
-            // 否则换波/清场删不掉入侵特工，实体与贴图泄漏
-            CombatRoomSystem._combatMonsters.push(agent);
-            CombatRoomSystem._combatMonsterKeys.push(key);
+            records.push({ MonsterClass: factories[i], spawnPoint: { x, y } });
         }
-        this._combatMonsters = CombatRoomSystem._combatMonsters;
+        return records;
     },
 
     /** 情况1/3：特工战胜利后继续原节点事件（事件/BOSS/奖励） */
@@ -3570,19 +3985,25 @@ export const DungeonMapSystem = {
         // 僵尸地牢：检查是否还有下一波
         if (this._isZombieFamily() && this.state === "combat" && this._zombieWaveActive) {
             if (this._zombieCombat && !this._zombieCombat.isComplete) {
-                // 三房间竞技场：波次只能由 _onArenaRoomSealed 驱动，此处永不自动续波
+                // 多房竞技场：波次只能由 _onArenaRoomSealed 驱动，此处永不自动续波
                 const arena = CombatRoomSystem._arena;
                 if (arena) {
                     // 尚未刷过波（关门刷波窗口期，数组里还是上一房间的死怪）：一律不判定清场
                     if (!arena.waveSpawned) return false;
-                    if (arena.stage < arena.rooms.length) {
+                    const stageCount = arena.stageCount || arena.rooms.length;
+                    if (arena.stage < stageCount) {
                         // 当前房间 < 末房 → 开门等玩家进下一房间
                         if (!this._arenaRoomCleared) {
                             this._arenaRoomCleared = true;
-                            CombatRoomSystem.setArenaRoomGates(arena.stage, true);
-                            arena.awaiting = arena.stage + 1;
+                            const activeRoomIndex = arena.activeRoomIndex || arena.stage;
+                            CombatRoomSystem.setArenaRoomGates(activeRoomIndex, true);
+                            const nextRoomIndexes = CombatRoomSystem.getArenaNextRoomIndexes(activeRoomIndex);
+                            CombatRoomSystem.setArenaAwaitingRooms(nextRoomIndexes);
+                            this._refreshArenaRouteHint();
                             if (SceneManager && SceneManager.showTopNotification) {
-                                SceneManager.showTopNotification('通道已开启，前往下一房间');
+                                SceneManager.showTopNotification(nextRoomIndexes.length > 1
+                                    ? '两条通道已开启，选择一条路线'
+                                    : '通道已开启，前往下一房间', { tone: 'success' });
                             }
                         }
                         return false;
@@ -3606,11 +4027,14 @@ export const DungeonMapSystem = {
      */
     _scheduleNextWave() {
         this._waveTransitioning = true;
-        TimerManager.setTimeout(() => {
+        const token = this._enemyLoadToken;
+        const spawnNextWave = () => {
+            if (token !== this._enemyLoadToken) return;
             if (!this.active || this.state !== "combat") {
                 this._waveTransitioning = false;
                 return;
             }
+            if (this._deferEnemyLoadUntilSceneReady(token, spawnNextWave)) return;
             // 防御：竞技场模式的波次只能由 _onArenaRoomSealed 驱动，此处直接放弃
             if (CombatRoomSystem._arena) {
                 this._waveTransitioning = false;
@@ -3624,7 +4048,8 @@ export const DungeonMapSystem = {
             this._waveTransitioning = false;
             CombatRoomSystem.cleanupMonstersOnly();
             this._spawnZombieWave();
-        }, 1500);
+        };
+        TimerManager.setTimeout(spawnNextWave, 1500);
     },
 
     /**
@@ -3660,6 +4085,7 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._pendingZombieWave = null;
         this._enemyLoadToken++;
+        this._deferredEnemyLoad = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
         this._arenaRoomCleared = false;
@@ -3689,6 +4115,7 @@ export const DungeonMapSystem = {
      * 统一清理战斗场景残留：传送门、掉落物、浮动文字、Phaser 视觉对象、重置标记
      */
     _cleanupCombatScene() {
+        this._removeArenaRouteHint();
         if (CombatRoomSystem.active) {
             CombatRoomSystem.cleanupRoom();
         } else {
@@ -3711,13 +4138,15 @@ export const DungeonMapSystem = {
         this._setMapInfoVisibility(false);
         // 使用 BossRewardSystem 的奖励节点管理器
         const opened = BossRewardSystem.enterRewardNode(this.player, () => {
+            if (!this.active || this.state !== 'reward') return;
             // 奖励领取完毕后标记节点完成并触发胜利
             if (node) {
                 node.completed = true;
                 node.type = 'empty';
             }
-            this._showVictory();
-            this._returnToMap();
+            // 路线表现恢复失败也必须保留已领完奖励后的返回入口。
+            try { this._returnToMap(); }
+            finally { this._showVictory(); }
         }, this.dungeonType);
         if (opened === false) {
             console.error('[DungeonMapSystem] Reward panel failed to open; returning to route map for retry');
@@ -3733,6 +4162,9 @@ export const DungeonMapSystem = {
         // 使用 DungeonEventSystem 提供完整的随机事件
         import('./dungeon-event-system.js').then(mod => {
             // node.eventType 已记录时沿用（如陷阱解除失败保留节点后重进，仍为陷阱事件，不再重新随机）
+            const tutorialEventType = this._tutorialRouteActive && node?.tutorialStep === 2
+                ? 'goddessStatue'
+                : null;
             mod.DungeonEventSystem.trigger(this.player, (result) => {
                 if (result && result.eventType) node.eventType = result.eventType;
                 if (result && result.combat) {
@@ -3762,11 +4194,11 @@ export const DungeonMapSystem = {
                     // 节点清空规则：非陷阱事件正常清空；陷阱仅成功解除后清空；强行跨越保留节点
                     const shouldEmpty = !isTrap || (isDisarm && result.success === true);
                     if (shouldEmpty) {
-                        this._clearNodeToEmpty(node);
+                        this._clearNodeToEmpty(node, true);
                     }
                     this._returnToMap();
                 }
-            }, node.eventType || null, this); // 传入 dungeonMapSystem = this
+            }, node.eventType || tutorialEventType, this); // 传入 dungeonMapSystem = this
         }).catch(err => {
             console.error('[DungeonMapSystem] Failed to load dungeon-event-system:', err);
             this._returnToMap();
@@ -4620,6 +5052,11 @@ export const DungeonMapSystem = {
         document.body.classList.toggle('dungeon-route-split-mode', split);
         const headingTitle = getElementIfExists('dungeonRouteHeadingTitle');
         if (headingTitle) headingTitle.textContent = `${this.dungeonName || '恐怖地牢'} · ${split ? '远征探索' : '地标路线'}`;
+        if (headingTitle) {
+            const targetLabel = this.getWorldExpeditionLabel();
+            headingTitle.textContent = `${this.dungeonName || '恐怖地牢'} · ${split ? '远征探索' : '地标路线'}${targetLabel ? ` · ${targetLabel}` : ''}`;
+            headingTitle.title = headingTitle.textContent;
+        }
         return root;
     },
 
@@ -4776,7 +5213,8 @@ export const DungeonMapSystem = {
         const el = document.createElement('div');
         el.id = 'dungeonMapNameLabel';
         el.className = 'dungeon-route-title';
-        el.textContent = `当前地牢：${this.dungeonName || '未知地牢'}`;
+        const targetLabel = this.getWorldExpeditionLabel();
+        el.textContent = `当前地牢：${this.dungeonName || '未知地牢'}${targetLabel ? ` · ${targetLabel}` : ''}`;
         stack.appendChild(el);
     },
 
@@ -4840,6 +5278,9 @@ export const DungeonMapSystem = {
             return;
         }
         const player = Game.player || this.player;
+        const worldTarget = this.worldExpedition;
+        const firstFoundingUnlock = this.dungeonType === 'abandonedMineBeginner'
+            && !WorldProgressionSystem.hasCompletedDungeon('abandonedMineBeginner');
 
         // ===== 通关结算数据（单局统计 + 探索完成度 + 全清奖励） =====
         const stats = DungeonRunStats;
@@ -4873,16 +5314,28 @@ export const DungeonMapSystem = {
                     <div class="dungeon-victory-row"><span>经验合计</span><strong class="dungeon-victory-value">${stats.exp} EXP</strong></div>
                     ${clearBonus > 0 ? `<div class="dungeon-victory-row dungeon-victory-row--success"><span>全清奖励</span><strong>+${clearBonus} EXP</strong></div>` : ''}
                     <div class="dungeon-victory-row"><span>探索完成度</span><strong>${clearPct}%（${clearedNodes}/${totalNodes} 节点）</strong></div>
+                    ${firstFoundingUnlock ? '<div class="dungeon-victory-row dungeon-victory-row--success"><span>首次通关解锁</span><strong>大地图 · 首城选址</strong></div>' : ''}
+                    ${firstFoundingUnlock ? '<div class="dungeon-victory-row"><span>下一步</span><strong>返回主神空间 → 小鼠大王 → 位面航图</strong></div>' : ''}
                     ${d ? `<div class="dungeon-victory-row"><span>当前进度</span><strong>Lv.${d.level} · 距下一级 ${expRemain} EXP</strong></div>` : ''}
                 </div>
+                ${worldTarget ? '<p class="dungeon-world-result" id="dungeonWorldResult"></p>' : ''}
                 <p class="dungeon-decision-warning" id="dungeonVictoryError" role="status" hidden></p>
-                <button id="dungeonVictoryBtn" type="button" class="bp-button dungeon-victory-button">返回主神空间</button>
+                <div class="dungeon-world-result-actions">
+                    ${worldTarget ? '<button id="dungeonVictoryWorldBtn" type="button" class="bp-button dungeon-victory-button">结算并查看目标位面</button>' : ''}
+                    <button id="dungeonVictoryBtn" type="button" class="bp-button dungeon-victory-button">返回主神空间</button>
+                </div>
             </section>
         `;
         document.body.appendChild(overlay);
 
         const btn = getElement("dungeonVictoryBtn");
-        requestAnimationFrame(() => btn?.focus({ preventScroll: true }));
+        const worldBtn = getElementIfExists('dungeonVictoryWorldBtn');
+        if (worldTarget) {
+            getElement('dungeonWorldResult').textContent = `${this.getWorldExpeditionLabel()}。${worldTarget.purpose === 'connect'
+                ? '结算后更新此处接通资格，可返回世界地图在原格接通。'
+                : '本次为重复探索；战利品沿用原规则，不重复生成位面。'}`;
+        }
+        requestAnimationFrame(() => (worldBtn || btn)?.focus({ preventScroll: true }));
         for (const type of ['pointerdown', 'mousedown', 'click']) {
             overlay.addEventListener(type, event => event.stopPropagation());
         }
@@ -4897,7 +5350,7 @@ export const DungeonMapSystem = {
         });
         // 离场清理沿用原入口；切场失败保留本面板供重试，不重复发奖/登记成功。
         let settled = false;
-        btn.onclick = async () => {
+        const finish = async (showWorld) => {
             if (SceneManager.isLoading || Game._observerMode || this._observerSuspended
                 || SceneManager.currentScene !== this.sceneId || (!this.active && !settled) || btn.disabled) return;
             const returnPlayer = Game.player || this.player;
@@ -4914,12 +5367,25 @@ export const DungeonMapSystem = {
                     this._recordRunResult('success');
                     this.shutdown();
                     settled = true;
+                    document.body.appendChild(overlay);
                 }
+                btn.textContent = '正在返回主神空间…';
                 const switched = await SceneManager.switchScene("main", returnPlayer);
                 if (!switched || SceneManager.currentScene !== 'main') {
                     throw new Error('主神空间尚未完成加载');
                 }
                 overlay.remove();
+                if (firstFoundingUnlock && WorldProgressionSystem.getFoundingState().status === 'awaiting_king') {
+                    SceneManager.showTopNotification('首次探索完成｜大地图已解锁｜返回小鼠大王选择首城（市政厅与首座传送门免费）', {
+                        tone: 'success', emphasis: 'headline', duration: 6500,
+                    });
+                }
+                if (showWorld && worldTarget) {
+                    const { WorldSwitchPanel } = await import('../ui/world-switch-panel.js');
+                    if (SceneManager.currentScene === 'main' && !SceneManager.isLoading && !SceneManager.isDungeonRunActive() && !Game._observerMode) {
+                        WorldSwitchPanel.open(worldTarget.sceneId);
+                    }
+                }
             } catch (err) {
                 console.error('[DungeonMapSystem] Failed to return to main:', err);
                 if (SceneManager.currentScene === this.sceneId) {
@@ -4927,21 +5393,44 @@ export const DungeonMapSystem = {
                     overlay.querySelectorAll('button').forEach((button) => { button.disabled = false; });
                     errorLabel.hidden = false;
                     errorLabel.textContent = `通关奖励已保留，返回失败：${err.message || '未知错误'}。请点击返回重试。`;
+                    btn.textContent = '重试返回主神空间';
                     btn.focus({ preventScroll: true });
+                } else {
+                    SceneManager.showTopNotification('通关已结算，目标位面面板未能打开', { color: '#ff7766' });
                 }
             }
         };
+        btn.onclick = () => finish(false);
+        if (worldBtn) worldBtn.onclick = () => finish(true);
     },
 
-    /** 清空玩家背包（地牢死亡/放弃退出的惩罚；装备与金币不受影响） */
+    _getBackpackRiskSummary() {
+        const items = Array.isArray(EquipManager.backpackItems)
+            ? EquipManager.backpackItems.filter(Boolean)
+            : [];
+        if (!items.length) return '当前背包为空，本次没有背包物品可损失。';
+        const grouped = new Map();
+        let totalCount = 0;
+        for (const item of items) {
+            const count = Math.max(1, Math.floor(Number(item.stack) || 1));
+            const name = String(item.name || '未知道具');
+            grouped.set(name, (grouped.get(name) || 0) + count);
+            totalCount += count;
+        }
+        const entries = [...grouped.entries()];
+        const preview = entries.slice(0, 4)
+            .map(([name, count]) => `${name} ×${count}`)
+            .join('、');
+        const remaining = entries.length - 4;
+        return `当前将损失 ${items.length} 个背包格、共 ${totalCount} 件物品：${preview}${remaining > 0 ? `，另有 ${remaining} 种` : ''}。`;
+    },
+
+    /** 清空玩家背包（地牢死亡/放弃退出的既有惩罚；已装备物品不受影响） */
     _clearPlayerBackpack() {
-        import('../ui/equip-manager.js').then(mod => {
-            const mgr = mod.EquipManager || mod.default;
-            if (mgr && Array.isArray(mgr.backpackItems)) {
-                mgr.backpackItems = [];
-                if (typeof mgr.updateInventorySlots === 'function') mgr.updateInventorySlots();
-            }
-        }).catch(() => {});
+        // Finish the penalty before switching scenes; a late import must not clear
+        // items just claimed from the main-hub mailbox after the return.
+        if (Array.isArray(EquipManager.backpackItems)) EquipManager.backpackItems.splice(0);
+        try { EquipManager.updateInventorySlots?.(); } catch (error) { console.warn('[Dungeon] 背包显示刷新失败', error); }
     },
 
     /** 安全撤离：返回主神空间，不丢失背包物品（仅起始点可用，见 _updateSafeEvacButton） */
@@ -4951,19 +5440,39 @@ export const DungeonMapSystem = {
     },
 
     /** 与通关离场同样保留返回面板；重试只切场，不重复登记或施加放弃惩罚。 */
-    _returnToMainWithRetry(outcome) {
-        if (!this.active || this.state !== 'map' || SceneManager.isLoading || Game._observerMode
-            || this._observerSuspended || SceneManager.currentScene !== this.sceneId
-            || getElementIfExists('dungeonExitConfirm') || getElementIfExists('dungeonVictoryOverlay')) return;
+
+
+
+
+    /** 与通关离场同样保留返回面板；重试只切场，不重复登记或施加放弃惩罚。 */
+    _returnToMainWithRetry(outcome, options = {}) {
+        const entryFailure = outcome === 'entry_failure';
+        const exceptional = entryFailure || outcome === 'failed' || outcome === 'load_failure';
+        if (!entryFailure && !this.active) return;
+        if (!exceptional && (this.state !== 'map' || SceneManager.isLoading || Game._observerMode
+            || this._observerSuspended || SceneManager.currentScene !== this.sceneId)) return;
+        if (getElementIfExists('dungeonExitRetryBtn')) return;
+        if (exceptional) {
+            getElementIfExists('dungeonExitConfirm')?.remove();
+            getElementIfExists('dungeonVictoryOverlay')?.remove();
+        } else if (getElementIfExists('dungeonExitConfirm') || getElementIfExists('dungeonVictoryOverlay')) return;
+        const sourceScene = SceneManager.currentScene;
         const abandoned = outcome === 'abandoned';
+        const penalty = abandoned || outcome === 'failed';
+        const titles = { abandoned: '放弃地牢', safe_evac: '安全撤离', failed: '地牢死亡',
+            load_failure: '资源故障退出', entry_failure: '出征未完成' };
+        const settledText = entryFailure ? '本次出征已取消，未扣除钥匙，也不计入探险结果。'
+            : penalty ? '本次退出已结算，背包惩罚不会重复执行。'
+            : '本次退出已结算，已获得的物品保留。';
         let settled = false;
+        let penaltyApplied = false;
         let busy = false;
         let modal;
         const attempt = async () => {
-            if (busy || !modal.overlay.isConnected || SceneManager.isLoading || Game._observerMode
-                || this._observerSuspended || SceneManager.currentScene !== this.sceneId
-                || (!this.active && !settled)) return;
-            const player = Game.player || this.player;
+            if (busy || !modal.overlay.isConnected || SceneManager.isLoading
+                || SceneManager.currentScene !== sourceScene
+                || (!exceptional && (Game._observerMode || this._observerSuspended))) return;
+            const player = options.player || Game.player || this.player;
             const button = modal.buttons[0];
             const status = modal.overlay.querySelector('.dungeon-decision-description');
             if (!player) {
@@ -4976,29 +5485,38 @@ export const DungeonMapSystem = {
             status.textContent = '正在返回主神空间，请稍候……';
             try {
                 if (!settled) {
-                    if (abandoned) this._clearPlayerBackpack();
-                    this._recordRunResult(outcome);
-                    this.shutdown();
+                    if (penalty && !penaltyApplied) {
+                        this._clearPlayerBackpack();
+                        penaltyApplied = true;
+                    }
+                    if (entryFailure) options.beforeSettle?.();
+                    else {
+                        // 资源故障保留战利品，世界统计仍沿用原有 failed 口径。
+                        if (outcome === 'load_failure') PlayerRewardDelivery.finishRun('load_failure');
+                        this._recordRunResult(outcome === 'load_failure' ? 'failed' : outcome);
+                    }
+                    this.shutdown({ recordResult: !entryFailure });
                     settled = true;
                     // shutdown会移除同名模态；保留本次返回动作的闭包和重试按钮。
                     document.body.appendChild(modal.overlay);
                     modal.overlay.focus({ preventScroll: true });
                 }
-                const switched = await SceneManager.switchScene('main', player);
+                if (options.respawnPos) SceneManager._respawnPos = { ...options.respawnPos };
+                const switched = await SceneManager.switchScene('main', player, undefined, { forceReload: exceptional });
                 if (!switched || SceneManager.currentScene !== 'main') {
                     throw new Error('主神空间尚未完成加载');
                 }
                 modal.close({ restoreFocus: false });
+                try { options.onReturned?.(player); }
+                catch (error) { console.warn('[Dungeon] 回城后界面恢复失败', error); }
             } catch (err) {
                 console.error('[DungeonMapSystem] Return to main failed:', err);
-                if (SceneManager.currentScene === this.sceneId) {
+                if (SceneManager.currentScene === sourceScene) {
                     document.body.appendChild(modal.overlay);
                     button.disabled = false;
                     button.textContent = '重试返回主神空间';
                     button.setAttribute('aria-label', button.textContent);
-                    const result = settled
-                        ? abandoned ? '本次放弃已结算，背包惩罚不会重复执行。' : '本次安全撤离已结算，背包物品保留。'
-                        : '本次退出尚未完成。';
+                    const result = settled ? settledText : '本次退出尚未完成。';
                     status.textContent = `${result}返回失败：${err.message || '未知错误'}。请点击重试。`;
                     button.focus({ preventScroll: true });
                 } else {
@@ -5012,8 +5530,8 @@ export const DungeonMapSystem = {
         modal = this._createDecisionModal({
             id: 'dungeonExitConfirm',
             eyebrow: 'EXPEDITION ARCHIVE // RETURN',
-            title: abandoned ? '放弃地牢 · 返回主神空间' : '安全撤离 · 返回主神空间',
-            description: '正在准备返回主神空间……',
+            title: `${titles[outcome]} · 返回主神空间`,
+            description: options.detail || '正在准备返回主神空间……',
             actions: [{ id: 'dungeonExitRetryBtn', label: '返回主神空间', autofocus: true, onSelect: attempt }],
         });
         if (!modal) return;
@@ -5035,17 +5553,24 @@ export const DungeonMapSystem = {
 
     _showExitConfirm() {
         if (getElementIfExists("dungeonExitConfirm")) return;
+        const tutorialAtEntrance = this._tutorialRouteActive && this.getCurrentNode()?.type === 'start';
         this._createDecisionModal({
             id: 'dungeonExitConfirm',
             eyebrow: 'EXPEDITION ARCHIVE // ABANDON RUN',
             title: '确认放弃地牢',
-            description: '放弃将立即结束本次探险并返回主神空间。',
-            dangerText: '背包中的所有物品都会丢失，且无法恢复。',
+            description: tutorialAtEntrance
+                ? '你当前就在安全入口。取消本次放弃，然后使用“安全撤离”，即可保留背包中的全部物品。'
+                : (this._tutorialRouteActive
+                    ? '你当前不在安全入口。强制放弃会立即结束新手试炼；若想保留背包，请取消并沿原路返回入口。'
+                    : '放弃将立即结束本次探险并返回主神空间。'),
+            dangerText: `${this._getBackpackRiskSummary()} 已装备物品不受影响；确认后无法恢复。`,
             tone: 'danger',
             actions: [
                 {
                     id: 'dungeonExitCancelBtn',
-                    label: '继续探索',
+                    label: tutorialAtEntrance
+                        ? '取消，改用安全撤离'
+                        : (this._tutorialRouteActive ? '取消，沿原路返回入口' : '继续探索'),
                     kind: 'muted',
                     cancel: true,
                     autofocus: true,

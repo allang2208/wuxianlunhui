@@ -29,6 +29,8 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { GunFeel } from '../../effects/gunfeel.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 import { applyOutgoingDamageModifiers } from '../../combat/outgoing-damage-modifiers.js';
+import { applyDefenseToDamage } from '../../combat/defense-formula.js';
+import { applyWallBattlementDamageReduction } from '../../world/wall-battlement.js';
 import { applyLegendaryShieldWard } from '../../combat/legendary-shield-ward.js';
 import { getElement } from '../../utils/dom-utils.js';
 import { TimerManager } from '../../utils/timer-manager.js';
@@ -105,6 +107,7 @@ onLevelUp(level) {
 
             _isIncomingHitBlocked(source = null, isMelee = false) {
                 return this._isDead || this.dodgeInvincible || this._moonshadowTimer > 0
+                    || (this._frozenAbyssFalling && source?._faction === 'enemy')
                     || (isMelee && source && !canMeleeShareSurface(source, this));
             },
 
@@ -120,6 +123,8 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false, hitContext 
                     finalDamage = 0;
                 }
                 if (finalDamage <= 0) return 0;
+                // 与其他可受击实体共用既有防御公式，之后才进入盾牌独立减伤。
+                finalDamage = applyDefenseToDamage(finalDamage, source, this, damageType, hitContext);
                 const d = this.data;
                 const critRate = (source && source.data && source.data.crit) || 0;
                 const critRes = (d && d.critRes) || 0;
@@ -279,6 +284,8 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false, hitContext 
                     const cap = Math.max(1, Math.floor(this.data.maxHp * surviveCap));
                     if (finalDamage > cap) finalDamage = cap;
                 }
+                finalDamage = applyWallBattlementDamageReduction(
+                    this, finalDamage, source, isMelee, hitContext);
                 const oathWardResult = applyLegendaryShieldWard(
                     this,
                     finalDamage,
@@ -294,6 +301,11 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false, hitContext 
                         `终誓庇护 -${oathWardResult.prevented}`,
                         '#ffe3a0'
                     ));
+                }
+                // 显式非致死环境伤害在全部易伤/减伤结算后钳制，确保“救援”不会因
+                // 无人机易伤、圣佑或其它全局修正把预定保留的最后1点生命再次改写。
+                if (source?._nonLethalDamage === true && d) {
+                    finalDamage = Math.min(finalDamage, Math.max(0, d.hp - 1));
                 }
                 const debtResult = this.shieldSystem?.convertFinalDamageToCausalDebt?.(
                     finalDamage,
@@ -534,14 +546,16 @@ respawn() {
                 ['weapon', 'offhand', 'weapon2', 'ring2'].forEach(slot => this._initAmmoForSlot(slot));
                 // 重生位置：主神空间 origin 点（固定坐标）
                 const respawnPos = { x: SceneManager.scenes.main.origin.x, y: SceneManager.scenes.main.origin.y };
+                if (window.WorldStrategySystem?.inBattle) {
+                    window.WorldStrategySystem.finishBattle('defeat');
+                    return;
+                }
                 if (SceneManager.currentScene !== 'main') {
                     // 从其他场景死亡回主神空间：统一关闭地牢系统（如有），使用 origin 点重生
                     if (DungeonMapSystem && DungeonMapSystem.active) {
-                        // 地牢死亡惩罚：丢失背包中所有物品（装备与金币不受影响）
-                        if (typeof DungeonMapSystem._clearPlayerBackpack === 'function') {
-                            DungeonMapSystem._clearPlayerBackpack();
-                        }
-                        DungeonMapSystem.shutdown();
+                        // 由地牢退出流程一次结算惩罚；加载失败保留回城重试入口。
+                        DungeonMapSystem.returnAfterDeath(this, respawnPos);
+                        return;
                     }
                     SceneManager._respawnPos = respawnPos;
                     SceneManager.switchScene('main', this);
@@ -554,6 +568,7 @@ respawn() {
             },
 
 applyPoison(stacks) {
+                if (this._isIncomingHitBlocked() || this.hasStatusEffect('statusImmune')) return;
                 const wasPoisoned = this._poisonTimer > 0;
                 this._poisonStacks += stacks;
                 this._poisonTimer = 5000;
@@ -1071,11 +1086,8 @@ _isFacingMouse() {
             },
 
 _isSprintDirectionAllowed() {
-                const moveDir = Input.getMovement();
-                if (!moveDir || (moveDir.x === 0 && moveDir.y === 0)) return false;
-                const item = this.equipments?.[this.weaponMode];
-                const isMelee = item && (item.category === 'weapon_melee' || item.weaponType === 'sword');
-                return isMelee ? true : this._isFacingMouse();
+                // 所有武器统一沿用前向判定；近战也不能在背对移动方向时奔跑。
+                return this._isFacingMouse();
             },
 
 _hasHorizontalDashInput() {
@@ -1546,6 +1558,8 @@ _startReload(slot) {
                 const reloadSound = ammoConfig && ammoConfig.reloadSound;
                 state.reloading = true;
                 // 只记录本次换弹开始时是否已经空仓；主动中途换弹必须保持 false。
+                // 只记录本次换弹开始时是否已经空仓；用于换弹完成后的枪机闭锁声。
+                // 主动中途换弹从非零弹量开始，必须保持 false。
                 state.reloadStartedEmpty = state.current <= 0;
                 // 双持模式下换弹时间 +50%（副手为手枪或盾）
                 let actualReloadTime = state.reloadTime;
@@ -1639,6 +1653,8 @@ _updateReload(dt) {
                             this._gunSpreadShotsOff = 0; // 同时重置副手散布
                             // 自动步枪只有打空后的换弹完成时才追加一次统一枪机闭锁声；
                             // 中途主动换弹不会播放这条收尾音。
+                            // 自动步枪只有“打空后自动换弹”完成时才播放一次统一枪机闭锁声；
+                            // 中途主动换弹也会完成装填，但 completedEmptyReload 为 false，不播放闭锁声。
                             if (completedEmptyReload && item && isRifle(item.weaponType)
                                 && SoundManager && SoundManager.playFile) {
                                 const finishSnd = getEquipSound(item);
@@ -2879,6 +2895,7 @@ applyStun(duration) {
 // 眩晕时终止所有动作：攻击动画/闪避/技能/特殊攻击/蓄力/换弹/无人机操控全部中断
 _cancelAllActionsForStun() {
                 this.shieldSystem?.exitDefense();
+                this._interruptPendingCombatActionForControl();
                 // 攻击动画回待机（主手+副手）：强制停止所有攻击 Tween，即使伤害判定尚未发生也中断
                 if (this.weaponAnim && this.weaponAnim.isAttacking) {
                     this.clearAttackTweens();

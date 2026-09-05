@@ -1,10 +1,12 @@
 import { Game } from '../game.js';
+import { EventBus } from '../core/event-bus.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
+import strategyConfig from '../../data/world-strategy.json';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { GoldManager } from '../systems/gold-manager.js';
@@ -12,7 +14,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { TopNotificationQueue } from '../ui/top-notification-queue.js';
-import { setDungeonFloorProfile, applyDungeonFloorChunked, clearDecoClearZones } from './dungeon-floor-texture.js';
+import { getDungeonFloorProfile, setDungeonFloorProfile, applyDungeonFloorChunked, clearDecoClearZones } from './dungeon-floor-texture.js';
 import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, loadObstacleDefaults, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
@@ -30,10 +32,12 @@ import {
 } from './producer-building-system.js';
 import { BuildingSystem } from './building-system.js';
 import { BuildingRoadSystem } from './building-road-system.js';
-import { applyBuildingFootprint } from './building-footprint.js';
+import { applyBuildingFootprint, getBuildingFootprint } from './building-footprint.js';
+import { resolveConfiguredVisualFootprint } from './structure-visual-anchor.js';
 import {
     captureAndStoreWorld, applyWorldSnapshot, getWorldSnapshot,
     configureWorld122SnapshotRuntime, resetWorldSnapshot,
+    markWorldPlayerBaseEstablished,
 } from './world122-snapshot.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { ResearchSystem } from './research-system.js';
@@ -52,6 +56,7 @@ import { PopulationEconomySystem } from './population-economy-system.js';
 import { QuestRegistry } from '../quest/quest-registry.js';
 import { QuestStore } from '../quest/quest-store.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
+import { rebuildWallBattlementRegistry } from './wall-battlement.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -111,7 +116,9 @@ export const SceneManager = {
             GoldManager,
             PopulationEconomySystem,
             getWorldEpoch: (sceneId) => WorldProgressionSystem.getWorldEpoch(sceneId),
-            canPersistWorld: (sceneId) => WorldProgressionSystem.canPersistWorld(sceneId),
+            canPersistWorld: (sceneId) => WorldProgressionSystem.isWorldAnchored(sceneId)
+                || WorldProgressionSystem.isDevWorldUnlocked(sceneId),
+            canSerializeWorld: (sceneId) => WorldProgressionSystem.isWorldAnchored(sceneId),
             getWorldGenerationContext: (sceneId) => WorldProgressionSystem.getWorldGenerationContext(sceneId),
         });
         // 新游戏初始传送门也必须在五日入侵开始前拥有基础位面快照。
@@ -124,8 +131,13 @@ export const SceneManager = {
             scene9: cfg.scene9 || { name: '世界-123·雪原', type: 'instance', label: '场景九', width: 12288, height: 8192, background: '#101a2b', origin: { x: 6144, y: 4096 } },
             scene10: cfg.scene10 || { name: '世界-124·林地', type: 'instance', label: '场景十', width: 12288, height: 8192, background: '#102015', origin: { x: 6144, y: 4096 } },
             scene11: cfg.scene11 || { name: '世界-125·地牢遗迹', type: 'instance', label: '场景十一', width: 12288, height: 8192, background: '#050505', origin: { x: 6144, y: 4096 } },
-            scene12: cfg.scene12 || { name: '世界-126·废弃矿洞', type: 'instance', label: '场景十二', width: 12288, height: 8192, background: '#0b0a09', origin: { x: 6144, y: 4096 } }
+            scene12: cfg.scene12 || { name: '世界-126·矿洞', type: 'instance', label: '场景十二', width: 12288, height: 8192, background: '#0b0a09', diamondFloor: { enabled: true }, origin: { x: 6144, y: 4096 } }
         };
+        this.scenes.strategy_map = { name: '世界战略地图', type: 'strategy', width: 1024, height: 1024, origin: { x: 512, y: 512 } };
+        this.scenes.strategy_battle = { name: '位面遭遇战', type: 'strategy', width: strategyConfig.battle.width,
+            height: strategyConfig.battle.height, diamondFloor: { enabled: true },
+            origin: { x: strategyConfig.battle.width * (1 + strategyConfig.battle.playerSpawn.u) / 2,
+                y: strategyConfig.battle.height / 2 + strategyConfig.battle.width / 4 * strategyConfig.battle.playerSpawn.v } };
         // loading 背景走浏览器图片缓存，不进入 Phaser 世界纹理生命周期。
         if (typeof Image !== 'undefined') {
             const paths = Object.values(loadingScreenConfig || {})
@@ -139,32 +151,7 @@ export const SceneManager = {
         }
     },
 
-    async prepareRuntimeVisualAssets({ startProgress = 70, endProgress = 98 } = {}) {
-        const generationBefore = RuntimeAssetManager.getLoadGeneration();
-        const span = Math.max(0, endProgress - startProgress);
-        const enemyEnd = startProgress + span * 0.55;
-        const friendlyEnd = startProgress + span * 0.82;
-        await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
-            onProgress: (ratio) => this.setProgress(startProgress + ratio * (enemyEnd - startProgress)),
-        });
-        const productionIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
-        await RuntimeAssetManager.ensureFriendlyUnitIds([
-            ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits),
-            ...productionIds,
-        ], {
-            onProgress: (ratio) => this.setProgress(enemyEnd + ratio * (friendlyEnd - enemyEnd)),
-        });
-        await RuntimeAssetManager.ensureBuildingEntities(Game.entities?.values?.() || [], {
-            onProgress: (ratio) => this.setProgress(friendlyEnd + ratio * (endProgress - friendlyEnd)),
-        });
-        await RuntimeAssetManager.waitForIdle();
-        RuntimeAssetManager.commitFriendlyEntities(Game.friendlyUnits, productionIds);
-        RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
-        RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
-        const cacheHit = RuntimeAssetManager.getLoadGeneration() === generationBefore;
-        if (cacheHit) this._loadingMinimumDurationMs = Math.min(this._loadingMinimumDurationMs, 350);
-        return { cacheHit };
-    },
+
 
     /** 当前画面是否正处于 scene7；仅用于地牢渲染分支，不再代表全局时间冻结。 */
     isDungeonIsolationActive() {
@@ -342,14 +329,17 @@ export const SceneManager = {
     },
 
     hideLoadingScreen() {
-        const overlay = getElementIfExists('loadingOverlay');
-        if (overlay) {
-            overlay.style.opacity = '0';
-            TimerManager.setTimeout(() => { overlay.style.display = 'none'; }, 300);
-        }
+        // 先释放逻辑锁；淡出回调不能隐藏下一次重试刚打开的 loading。
         this.isLoading = false;
         this._loadingStartedAt = 0;
         this._loadingMinimumDurationMs = 0;
+        const overlay = getElementIfExists('loadingOverlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            TimerManager.setTimeout(() => {
+                if (!this.isLoading) overlay.style.display = 'none';
+            }, 300);
+        }
     },
 
     setProgress(pct) {
@@ -415,6 +405,41 @@ export const SceneManager = {
         return this.switchWorld(instanceId, player, 'explore', opts);
     },
 
+    async prepareRuntimeVisualAssets({ startProgress = 70, endProgress = 98 } = {}) {
+        const generationBefore = RuntimeAssetManager.getLoadGeneration();
+        const span = Math.max(0, endProgress - startProgress);
+        const enemyEnd = startProgress + span * 0.55;
+        const friendlyEnd = startProgress + span * 0.82;
+        const productionIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
+        const releaseContent = RuntimeAssetManager.retainSceneContent('scene-prepare',
+            Game.entities?.values?.() || [], [
+                ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits), ...productionIds,
+            ]);
+        try {
+            await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
+                onProgress: (ratio) => this.setProgress(startProgress + ratio * (enemyEnd - startProgress)),
+            });
+            await RuntimeAssetManager.ensureFriendlyUnitIds([
+                ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits),
+                ...productionIds,
+            ], {
+                onProgress: (ratio) => this.setProgress(enemyEnd + ratio * (friendlyEnd - enemyEnd)),
+            });
+            await RuntimeAssetManager.ensureBuildingEntities(Game.entities?.values?.() || [], {
+                onProgress: (ratio) => this.setProgress(friendlyEnd + ratio * (endProgress - friendlyEnd)),
+            });
+            await RuntimeAssetManager.waitForIdle();
+            RuntimeAssetManager.commitFriendlyEntities(Game.friendlyUnits, productionIds);
+            RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
+            RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
+            const cacheHit = RuntimeAssetManager.getLoadGeneration() === generationBefore;
+            if (cacheHit) this._loadingMinimumDurationMs = Math.min(this._loadingMinimumDurationMs, 350);
+            return { cacheHit };
+        } finally {
+            releaseContent();
+        }
+    },
+
     async switchScene(sceneId, player, mode, opts = {}) {
         if (this.isLoading) return false;
         const targetInstance = opts.worldInstanceId
@@ -426,6 +451,10 @@ export const SceneManager = {
             return false;
         }
         const targetWorldId = targetInstance?.instanceId || sceneId;
+        if (window.WorldStrategySystem && !window.WorldStrategySystem.canSwitchScene(sceneId, opts)) {
+            this.showTopNotification('亲征军团尚在外，请通过世界地图行军、战斗或撤军入营');
+            return false;
+        }
         const questDefinition = opts.questTravel ? QuestRegistry.get(opts.questId) : null;
         const questInstanceEntry = !!questDefinition
             && mode === 'quest'
@@ -456,6 +485,8 @@ export const SceneManager = {
         }
         const departingSceneId = this.currentScene;
         const departingWorldId = this.getCurrentWorldId();
+        const departingDevWorld = WorldProgressionSystem.isDevWorldUnlocked?.(departingSceneId) === true;
+        const targetDevWorld = WorldProgressionSystem.isDevWorldUnlocked?.(sceneId) === true;
         const departingQuestInstance = this._activeQuestInstance?.sceneId === departingSceneId;
         const suspendingDungeonView = departingSceneId === 'scene7' && !!opts.observer
             && this._captureDungeonObservationState();
@@ -466,6 +497,7 @@ export const SceneManager = {
             && this.isDungeonRunActive();
         const physicalPortalTravel = opts.portalTravel && !departingQuestInstance && !Game._observerMode
             && !WorldInstanceSystem.isDevPreview(departingWorldId)
+            && !departingDevWorld && !targetDevWorld
             && !!player && Game.entities?.get?.('player') === player;
         const portalTravel = physicalPortalTravel
             ? TroopLineSystem.preparePortalTravel(departingWorldId, targetWorldId)
@@ -481,7 +513,7 @@ export const SceneManager = {
             if (!g._worldPlayerPos) g._worldPlayerPos = {};
             const departingWorldDestroyed = this._isPersistentWorld(this.currentScene)
                 && WorldProgressionSystem.getPortalState(departingWorldId).destroyed;
-            if (departingWorldDestroyed) {
+            if (departingWorldDestroyed && !departingDevWorld) {
                 delete g._worldPlayerPos[departingWorldId];
             } else if (!departingQuestInstance
                 && player && g.entities && g.entities.get('player') === player && this.currentScene) {
@@ -496,6 +528,8 @@ export const SceneManager = {
             }
         }
         let teardownStarted = false;
+        let switchPhase = 'prepare';
+        let releaseVisualContent = null;
         let visualLoadGenerationBefore = RuntimeAssetManager.getLoadGeneration();
         try {
             this._loadingWorldId = targetWorldId;
@@ -521,11 +555,12 @@ export const SceneManager = {
             this.setProgress(50);
 
             // 不隶属当地建筑的跨位面增援由兵线系统独立收纳，避免被场景 teardown 丢失。
-            if (!departingQuestInstance && !questInstanceEntry) {
+            if (!departingQuestInstance && !questInstanceEntry && !opts.strategyRestore) {
                 TroopLineSystem.onSceneLeaving(departingWorldId);
             }
 
             // 清理当前场景
+            switchPhase = 'teardown';
             teardownStarted = true;
             // 先清理 Phaser 视觉对象，再清空实体数组，避免残留 Sprite/文字
             const phaserScene = window.__phaserScene;
@@ -536,15 +571,17 @@ export const SceneManager = {
             // 世界-122 防守地图：离场统一拆除（关面板/停波次；实体由下方 clear 统一清理）
             // 世界-122 快照：离场先捕获再拆除（M0：重进恢复建筑/波次/矿点，不归零）
             if (this._isPersistentWorld(this.currentScene) && DefenseSystem && DefenseSystem.active) {
-                if (!WorldInstanceSystem.isDevPreview(departingWorldId)) {
+                if (!opts.strategyRestore && !WorldInstanceSystem.isDevPreview(departingWorldId)) {
                     window.WorldInvasionSystem?.onWorldLeaving?.(departingWorldId);
                 }
-                if (WorldProgressionSystem.getPortalState(departingWorldId).destroyed) {
-                    if (WorldProgressionSystem.shouldClearWorldScope(departingWorldId, 'snapshot')) {
-                        resetWorldSnapshot(departingWorldId);
+                if (!opts.strategyRestore) {
+                    if (WorldProgressionSystem.getPortalState(departingWorldId).destroyed) {
+                        if (WorldProgressionSystem.shouldClearWorldScope(departingWorldId, 'snapshot')) {
+                            resetWorldSnapshot(departingWorldId);
+                        }
+                    } else {
+                        captureAndStoreWorld(departingWorldId);
                     }
-                } else {
-                    captureAndStoreWorld(departingWorldId);
                 }
                 DefenseSystem.teardown();
             }
@@ -554,6 +591,7 @@ export const SceneManager = {
             if (this.currentScene === 'scene8' || this.currentScene === 'scene9'
                 || this.currentScene === 'scene10' || this.currentScene === 'scene11'
                 || this.currentScene === 'scene12') clearDecoClearZones();
+            if (this._isPersistentWorld(this.currentScene)) clearDecoClearZones();
             // 世界-122 建筑面板随场景离场关闭
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
@@ -606,6 +644,7 @@ export const SceneManager = {
 
             // 分块惰性地板只属于世界-122：离场统一清空，避免残留块覆盖其他场景
             Renderer.terrainChunks = null;
+            Renderer.terrainRebuild = null;
 
             // 场景切换立即清理无人机视野与标记；冷却只由成功部署写入，切场景不重复刷新。
             if (player && player.droneSystem && player.droneSystem.active) {
@@ -619,7 +658,10 @@ export const SceneManager = {
 
             // 加载新场景
             this._materializingWorldId = targetWorldId;
-            if (sceneId === 'scene7') {
+            switchPhase = 'load-target';
+            if (sceneId === 'strategy_map' || sceneId === 'strategy_battle') {
+                await window.WorldStrategySystem.loadScene(sceneId, player);
+            } else if (sceneId === 'scene7') {
                 if (!resumingDungeonView || !this._restoreDungeonObservationState()) {
                     this._loadScene7(player, 'zombie');
                 }
@@ -637,11 +679,17 @@ export const SceneManager = {
                 this._loadMainScene(player);
             }
 
-            // 场景逻辑先物化实体，再按真实兵种集合加载精灵表。
+            // 场景逻辑先物化实体，再按真实兵种集合加载精灵表。未研发、未选中且当前没有
+            // 存活实体的兵种不会被预载；下载/解码过程直接驱动现有加载条。
+            switchPhase = 'load-target-assets';
+            const activeProductionAssetIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
+            releaseVisualContent = RuntimeAssetManager.retainSceneContent('scene-transition',
+                Game.entities?.values?.() || [], [
+                    ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits), ...activeProductionAssetIds,
+                ]);
             await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
                 onProgress: (ratio) => this.setProgress(70 + ratio * 10),
             });
-            const activeProductionAssetIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
             await RuntimeAssetManager.ensureFriendlyUnitIds([
                 ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits),
                 ...activeProductionAssetIds,
@@ -652,6 +700,10 @@ export const SceneManager = {
                 onProgress: (ratio) => this.setProgress(88 + ratio * 2),
             });
 
+            if (opts.strategyBaseEntry && !window.WorldStrategySystem?.canSwitchScene(sceneId, opts)) {
+                throw new Error('目标基地已失效或开始交战，入营取消');
+            }
+            switchPhase = 'commit-target';
             this.currentScene = sceneId;
             this.currentWorldInstanceId = targetInstance?.instanceId || null;
             this._materializingWorldId = null;
@@ -665,6 +717,14 @@ export const SceneManager = {
             }
             if (!questInstanceEntry) TroopLineSystem.onSceneEntered(targetWorldId);
             if (portalTravel) TroopLineSystem.completePortalTravel(portalTravel, targetWorldId, player);
+            // 兵线/实体传送可能在 onSceneEntered 后补入单位，因此揭开加载层前再补齐一次；
+            // 第二次通常是纯缓存命中，不会增加切换等待。
+            switchPhase = 'load-arrival-assets';
+            releaseVisualContent?.();
+            releaseVisualContent = RuntimeAssetManager.retainSceneContent('scene-transition',
+                Game.entities?.values?.() || [], [
+                    ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits), ...activeProductionAssetIds,
+                ]);
             await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
                 onProgress: (ratio) => this.setProgress(90 + ratio * 3),
             });
@@ -674,6 +734,7 @@ export const SceneManager = {
             await RuntimeAssetManager.ensureBuildingEntities(Game.entities?.values?.() || [], {
                 onProgress: (ratio) => this.setProgress(96 + ratio * 2),
             });
+            switchPhase = 'finalize-target';
             const committedProductionAssetIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
             RuntimeAssetManager.commitFriendlyEntities(Game.friendlyUnits, committedProductionAssetIds);
             RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
@@ -685,6 +746,9 @@ export const SceneManager = {
             await this.waitForMinimumLoadingDuration();
             this.setProgress(100);
             await this.delay(visualCacheHit ? 60 : 160);
+            if (opts.strategyBaseEntry && !window.WorldStrategySystem?.canSwitchScene(sceneId, opts)) {
+                throw new Error('目标基地状态在加载期间发生变化，入营取消');
+            }
             // 实体传送门落地后，必须先走出目标场景的门区才能再次触发传送。
             // 主神空间会恢复离城坐标，该坐标常与原入口重合，单靠秒数冷却会自动弹回原世界。
             if (physicalPortalTravel) Game._portalArrivalLock = true;
@@ -713,12 +777,24 @@ export const SceneManager = {
                 if (Game?._worldPlayerPos) delete Game._worldPlayerPos[departingWorldId];
                 WorldProgressionSystem.disposeWorldInstance(departingWorldId);
             }
+            try {
+                EventBus.emit('world:scene-entered', {
+                    sceneId,
+                    previousSceneId: departingSceneId,
+                    mode: this._enterMode,
+                    observer: !!opts.observer,
+                });
+            } catch (error) {
+                console.error('[SceneManager] 场景进入事件分发失败:', error);
+            }
             if (!opts.worldDestructionTx) this._clearRollbackState();
             this._loadingWorldId = null;
             return true;
         } catch (err) {
-            console.error('[switchScene] ERROR:', err);
             this._materializingWorldId = null;
+            console.error('[switchScene] ERROR:', err, {
+                fromScene: departingSceneId, targetScene: sceneId, phase: switchPhase,
+            });
             if (opts.worldDestructionTx) this._handleWorldDestructionSwitchFailure(opts.worldDestructionTx);
             else {
                 await this._rollback(player, targetWorldId, teardownStarted);
@@ -733,12 +809,15 @@ export const SceneManager = {
             }
             this._loadingWorldId = null;
             throw err;
+        } finally {
+            releaseVisualContent?.();
         }
     },
 
     _clearRollbackState() {
         this._rollbackEntities = null;
         this._rollbackFriendlyUnits = null;
+        this._rollbackDungeonParkedFriendlyUnits = null;
         this._rollbackRiftState = null;
         this._rollbackWorldState = null;
         this._rollbackCamera = null;
@@ -791,6 +870,7 @@ export const SceneManager = {
     },
 
     _saveRollbackState(player) {
+        this._rollbackDungeonParkedFriendlyUnits = this._dungeonParkedFriendlyUnits?.slice() || null;
         this._rollbackEntities = Game.entities ? new Map(Game.entities) : null;
         this._rollbackFriendlyUnits = Array.isArray(Game.friendlyUnits)
             ? Game.friendlyUnits.slice()
@@ -802,6 +882,8 @@ export const SceneManager = {
             terrainTexture: Renderer.terrainTexture,
             terrainChunks: Renderer.terrainChunks,
             walls: [...(WallSystem.walls || [])],
+            // 分块只保存尺寸/范围；后续烘焙仍读取全局 profile，回滚必须一并恢复。
+            floorProfile: getDungeonFloorProfile(),
             isoSegments: [...(WallSystem.isoSegments || [])],
             isoVisuals: [...(WallSystem.isoVisuals || [])],
             trees: [...(WallSystem.trees || [])],
@@ -857,6 +939,7 @@ export const SceneManager = {
             EffectManager.clearPools?.();
         }
         Renderer.terrainChunks = null;
+        Renderer.terrainRebuild = null;
     },
 
     _restoreRollbackReferences(player) {
@@ -865,12 +948,18 @@ export const SceneManager = {
             if (!this._rollbackObserverMode && player && !Game.entities.has('player')) {
                 Game.entities.set('player', player);
             }
+            // teardown 已清空女墙注册表；失败回滚恢复对象 Map 后必须同步恢复索引。
+            rebuildWallBattlementRegistry(Game.entities.values());
         }
         if (this._rollbackFriendlyUnits) Game.friendlyUnits = this._rollbackFriendlyUnits.slice();
+        // 回城可能已恢复友军但在后续资源准备失败；保留暂存，下一次回城仍可恢复。
+        this._dungeonParkedFriendlyUnits = this._rollbackDungeonParkedFriendlyUnits?.slice() || null;
         const world = this._rollbackWorldState;
         if (world) {
             CONFIG.WORLD_WIDTH = world.width;
             CONFIG.WORLD_HEIGHT = world.height;
+            // 必须先恢复地板配置，再同步旧分块，避免主城实体回来了、地面仍烘焙沙漠。
+            setDungeonFloorProfile(world.floorProfile);
             Renderer.terrainTexture = world.terrainTexture;
             Renderer.terrainChunks = world.terrainChunks;
             WallSystem.init(world.width, world.height);
@@ -929,6 +1018,9 @@ export const SceneManager = {
                 console.error('[switchScene] rollback recovery failed:', recoveryError);
                 this._restoreRollbackReferences(player);
             }
+            // teardown 会将主城门对象置 inactive 并清空产兵系统注册表，恢复 Map
+            // 不会恢复其生命周期；用正常回城入口重建，失败后仍能再次点击传送。
+            if (rollbackSceneId === 'main') Game.syncMainHubWorldPortals?.();
         }
 
         if (this._rollbackCamera) {
@@ -968,6 +1060,7 @@ export const SceneManager = {
      * @param {string} [options.color] - 旧调用颜色，已知色归入语义档
      * @param {string} [options.fontSize] - 旧调用字号，>=24归入重要档
      * @param {number} [options.duration=3000] - 显示时长（ms）
+     * @param {Function} [options.onComplete] - 本条自然播放结束后的表现回调；清理/退出不触发
      */
     showTopNotification(text, options = {}) {
         TopNotificationQueue.show(text, options);
@@ -1300,9 +1393,6 @@ export const SceneManager = {
             if (r.titheEnergy > 0) lines.push([`牧师什一税 +${r.titheEnergy} 能源`, '#c9a0ff']);
             if (r.goldProduced > 0) lines.push([`经济建筑金币结算 +${r.goldProduced} 金币`, '#ffd700']);
             if (r.foodProduced > 0) lines.push([`风车农夫收获 +${r.foodProduced} 粮食`, '#d9b84f']);
-            if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
-            if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);
-            if (r.modulesCompleted?.length > 0) lines.push([`兵种升级完成 ${r.modulesCompleted.length} 项`, '#8ad0ff']);
             if (r.structuresLost > 0) lines.push([`离线战斗损失建筑 ${r.structuresLost} 座`, '#ff8855']);
             if (r.baseDamage > 0) lines.push([`基地离线受损 -${Math.round(r.baseDamage)} 耐久`, '#ff8855']);
         }
@@ -1800,8 +1890,41 @@ export const SceneManager = {
         this._setupPersistentWorld(worldId, player, diamond);
     },
 
+    /** 世界-126：废弃矿洞连续地板与18种贴地小物，接入通用建设位面生命周期。 */
+
+
     _isPersistentWorld(sceneId) {
         return ['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(sceneId);
+    },
+
+    /** 显式重置测试位面；先安全离场，再清掉仅属于本次运行的现场状态。 */
+    async resetDevWorld(sceneId) {
+        if (!this._isPersistentWorld(sceneId)
+            || !WorldProgressionSystem.isDevWorldUnlocked?.(sceneId)) {
+            return { ok: false, reason: '该位面尚未开启测试直连' };
+        }
+        if (this.isLoading) return { ok: false, reason: '场景正在切换，请稍后再试' };
+        if (this.currentScene === sceneId) {
+            const returned = await this.switchScene('main', Game.player);
+            if (!returned) return { ok: false, reason: '未能安全返回主神空间，测试位面没有重置' };
+        }
+        const oldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
+        window.WorldInvasionSystem?.resetDebugWorld?.(sceneId);
+        window.WorldDestructionChallengeSystem?.onWorldDestroyed?.(sceneId, oldEpoch);
+        TroopLineSystem.invalidateWorld(sceneId);
+        window.WorldWeatherSystem?.resetScene?.(sceneId);
+        if (sceneId === 'scene8') {
+            window.World122SandstormSystem?.reset?.();
+            window.World122DroughtSystem?.reset?.();
+        } else if (sceneId === 'scene11') {
+            window.World125FogTideSystem?.reset?.();
+        } else if (sceneId === 'scene12') {
+            window.World126WeatherSystem?.onWorldDestroyed?.(sceneId);
+        }
+        if (Game?._worldPlayerPos) delete Game._worldPlayerPos[sceneId];
+        const result = WorldProgressionSystem.debugResetWorld(sceneId);
+        if (result.ok && this.currentScene === 'main') Game.syncMainHubWorldPortals?.();
+        return result;
     },
 
     isQuestInstance(sceneId = this.currentScene) {
@@ -1812,9 +1935,10 @@ export const SceneManager = {
     _setupPersistentWorld(sceneId, player, diamond) {
         const runtimeSceneId = WorldProgressionSystem.getRuntimeSceneId(sceneId);
         const isDevPreview = WorldInstanceSystem.isDevPreview(sceneId);
+        const isDevWorld = WorldProgressionSystem.isDevWorldUnlocked?.(sceneId) === true;
         // 目标仍是后台账本时，先结算经济/出兵，再补齐不足一个入侵阶段窗；
         // 随后才 setup 运行时，保证入侵读取的是最新军力摘要且不会在物化后改旧快照。
-        if (!isDevPreview) {
+        if (!isDevPreview && !isDevWorld) {
             window.WorldSimDriver?.flushWorld?.(sceneId, {
                 notify: false,
                 reason: 'materialize',
@@ -1844,6 +1968,7 @@ export const SceneManager = {
         const portal = this._ensureWorldPortalEntity(sceneId, diamond);
         DefenseSystem.base = portal;
         const scene = this.scenes[runtimeSceneId] || {};
+        this._ensureWorldPlayerBase(sceneId, portal);
         FogOfWarSystem.enterScene(sceneId, {
             templateSceneId: runtimeSceneId,
             worldEpoch: WorldProgressionSystem.getWorldEpoch(sceneId),
@@ -1856,6 +1981,92 @@ export const SceneManager = {
         FogOfWarSystem.update(sceneId, Game, Date.now(), { force: true });
         if (!isDevPreview) window.WorldInvasionSystem?.onWorldLoaded?.(sceneId, portal, diamond);
         this._announceWorld122Report(player, result);
+    },
+
+    _ensureWorldPlayerBase(sceneId, portal) {
+        const baseCfg = WorldProgressionSystem.config.playerBase;
+        const cfg = getProducerConfig(baseCfg?.cfgKey);
+        if (!cfg?.playerBase) return null;
+        const existing = ProducerBuildingSystem.buildings.find((building) => building.cfgKey === cfg.id);
+        if (existing) {
+            this._wireWorldPlayerBaseAnchor(existing, sceneId);
+            BuildingSystem.attachPlayerBaseRoads(existing);
+            markWorldPlayerBaseEstablished(sceneId);
+            return existing;
+        }
+        if (!portal?.active || portal.hp <= 0 || portal._portalDestroyed) return null;
+        const snapshot = getWorldSnapshot(sceneId);
+        // 包括已毁记录和暂未成功恢复的旧记录；都不能另赠一座。
+        if (snapshot?.playerBaseEstablished) return null;
+        if (snapshot?.structures?.some((structure) => structure.cfgKey === cfg.id)) {
+            markWorldPlayerBaseEstablished(sceneId);
+            return null;
+        }
+        const portalFoot = getBuildingFootprint(portal._buildingFootprintCells || 4);
+        const clearance = Math.max(64, Number(baseCfg.portalClearance) || 96);
+        const protectedPortal = {
+            x: portal.x, y: portal.y,
+            collisionShape: 'iso_rect',
+            collisionIsoHalfU: portalFoot.halfU + clearance / Math.SQRT2,
+            collisionIsoHalfV: portalFoot.halfV + clearance / Math.SQRT2,
+            colliderOffsetY: portalFoot.offY,
+        };
+        // 同时保留常规传送落脚点，观察模式下没有玩家实体也不能占住入口。
+        const entryClearance = {
+            x: portal.x + 228, y: portal.y,
+            collisionShape: 'iso_rect', collisionIsoHalfU: 96, collisionIsoHalfV: 96,
+        };
+        const candidates = [{
+            x: portal.x + (Number(baseCfg.preferredOffsetX) || 640),
+            y: portal.y + (Number(baseCfg.preferredOffsetY) || 0),
+        }];
+        const step = Math.max(64, Number(baseCfg.searchStep) || 128);
+        const maxRadius = Math.max(512, Number(baseCfg.searchRadius) || 1536);
+        for (let radius = 512; radius <= maxRadius; radius += step) {
+            for (let side = 0; side < 16; side++) {
+                const angle = side * Math.PI / 8;
+                candidates.push({ x: portal.x + Math.cos(angle) * radius,
+                    y: portal.y + Math.sin(angle) * radius * 0.5 });
+            }
+        }
+        const point = BuildingSystem.findAutomaticProducerPlacement(cfg.id, candidates, {
+            avoid: [protectedPortal, entryClearance],
+        });
+        if (!point) {
+            TopNotificationQueue.show('传送门附近没有可放置4×4基地的空地；请留出空间，下次进入位面时自动补建。', {
+                tone: 'warning', duration: 6000,
+            });
+            return null; // 不消耗赠送资格；不强行拆除旧档中的建筑、道路或矿点。
+        }
+        const building = new ProducerBuilding(point.x, point.y, {
+            id: `world_player_base_${sceneId}`, cfgKey: cfg.id,
+        });
+        building._builtByPlayer = true;
+        building._buildCost = 0;
+        building._buildCurrency = 'energy';
+        building._worldId = sceneId;
+        building._worldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
+        this._wireWorldPlayerBaseAnchor(building, sceneId);
+        Game.entities.set(building.id, building);
+        ProducerBuildingSystem.buildings.push(building);
+        BuildingSystem.attachPlayerBaseRoads(building);
+        markWorldPlayerBaseEstablished(sceneId);
+        return building;
+    },
+
+    _wireWorldPlayerBaseAnchor(building, sceneId) {
+        if (!building || building._worldAnchorDeathWired) return building;
+        const inheritedDeath = building.onDeath?.bind(building);
+        building._worldAnchorDeathWired = true;
+        building._worldId = sceneId;
+        building._worldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
+        building.onDeath = function onWorldPlayerBaseDeath(source) {
+            if (this._worldAnchorDeathHandled) return;
+            this._worldAnchorDeathHandled = true;
+            inheritedDeath?.(source);
+            SceneManager.handleWorldAnchorDestroyed(sceneId, this._worldEpoch, 'city_hall');
+        };
+        return building;
     },
 
     _ensureWorldPortalEntity(sceneId, diamond) {
@@ -1906,7 +2117,7 @@ export const SceneManager = {
             if (window.WorldInvasionSystem?.onPortalDestroyed) {
                 window.WorldInvasionSystem.onPortalDestroyed(sceneId, this._worldEpoch);
             } else {
-                SceneManager.destroyWorld(sceneId, this._worldEpoch);
+                SceneManager.handleWorldAnchorDestroyed(sceneId, this._worldEpoch, 'portal');
             }
         };
         if (portalState.constructed && !portalState.destroyed) {
@@ -1923,6 +2134,36 @@ export const SceneManager = {
         return portal;
     },
 
+    _hasLiveWorldAnchor(sceneId, kind) {
+        const cfgKey = kind === 'portal'
+            ? 'portal' : WorldProgressionSystem.config.playerBase?.cfgKey || 'city_hall';
+        if (kind === 'portal') return WorldProgressionSystem.isPortalConstructed(sceneId);
+        if (this.currentScene === sceneId) {
+            return (ProducerBuildingSystem.buildings || []).some((building) =>
+                building?.cfgKey === cfgKey && building.active !== false && !building._sinking && building.hp > 0);
+        }
+        return !!getWorldSnapshot(sceneId)?.structures?.some((structure) =>
+            structure?.cfgKey === cfgKey && Number(structure.hp) > 0);
+    },
+
+    /** 市政厅与传送门是两枚独立锚点；只在二者都失效时清空位面。 */
+    handleWorldAnchorDestroyed(sceneId, expectedEpoch, kind) {
+        if (!WorldProgressionSystem.isWorldEpochCurrent(sceneId, expectedEpoch)) return false;
+        if (kind === 'portal') {
+            WorldProgressionSystem.markPortalDestroyed(sceneId, { expectedEpoch });
+            if (this.currentScene === 'main') Game.syncMainHubWorldPortals?.();
+        }
+        const otherKind = kind === 'portal' ? 'city_hall' : 'portal';
+        if (this._hasLiveWorldAnchor(sceneId, otherKind)) {
+            const message = kind === 'portal'
+                ? '传送门已毁，但市政厅仍在：位面保留，传送网络中断，可在原门址修复。'
+                : '市政厅已毁，但传送门仍在：位面保留，治理停摆，可返回重建市政厅。';
+            this.showTopNotification(message, { color: '#ffb35c', duration: 6000 });
+            return true;
+        }
+        return this.destroyWorld(sceneId, expectedEpoch);
+    },
+
     /**
      * 位面核心继续使用传送门生命周期，只按世界配置覆盖场景视觉与占地。
      * 太阳阴影：普通建筑由主体 Sprite 当前 alpha 接地拟合生成独立 shadow caster，
@@ -1932,17 +2173,25 @@ export const SceneManager = {
         const visual = WorldProgressionSystem.getWorldConfig(sceneId)?.coreVisual;
         if (!portal || !visual?.texture) return portal;
 
+        const footprintCells = Number(visual.footprintCells) === 4 ? 4 : 2;
         const displayW = Math.max(1, Number(visual.displayW) || portal.spriteCfg?.size || 1);
         const displayH = Math.max(1, Number(visual.displayH) || portal.spriteCfg?.sizeH || displayW);
         const footOffsetY = Number.isFinite(Number(visual.footOffsetY))
             ? Number(visual.footOffsetY)
             : displayH / 2;
+        const visualFootprint = resolveConfiguredVisualFootprint({
+            ...visual,
+            displayW,
+            displayH,
+            footOffsetY,
+        }, footprintCells * 128, footprintCells * 64);
         portal.spriteCfg = {
             ...(portal.spriteCfg || {}),
             idleKey: visual.texture,
             size: displayW,
             sizeH: displayH,
             footOffsetY,
+            visualFootprint: visualFootprint ? { ...visualFootprint } : null,
             autoFootprint: false,
         };
         portal.footOffsetY = footOffsetY;
@@ -1951,9 +2200,12 @@ export const SceneManager = {
             portal._cfg.displayW = displayW;
             portal._cfg.displayH = displayH;
             portal._cfg.footOffsetY = footOffsetY;
+            portal._cfg.visualFootprint = visualFootprint ? { ...visualFootprint } : null;
             portal._cfg.autoFootprint = false;
         }
-        applyBuildingFootprint(portal, Number(visual.footprintCells) || 2);
+        delete portal._structureVisualFitKey;
+        delete portal._structureVisualFit;
+        applyBuildingFootprint(portal, footprintCells);
         if (typeof portal.rebuildCollider === 'function') portal.rebuildCollider();
         return portal;
     },
@@ -2003,17 +2255,19 @@ export const SceneManager = {
         });
     },
 
-    /** 传送门被毁即判定位面毁灭：作废快照、旧坐标，并把仍在该位面的玩家/观察者送回主城。 */
+    /** 双锚点均毁后判定位面毁灭：作废快照、旧坐标，并把仍在该位面的玩家/观察者送回主城。 */
     destroyWorld(sceneId, expectedEpoch = null) {
         if (!WorldProgressionSystem.markPortalDestroyed(sceneId, { expectedEpoch })) return false;
         FogOfWarSystem.resetScene(sceneId);
         TroopLineSystem.invalidateWorld(sceneId);
         const worldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
         window.WorldDestructionChallengeSystem?.onWorldDestroyed?.(sceneId, worldEpoch);
+        window.World126WeatherSystem?.onWorldDestroyed?.(sceneId, worldEpoch);
         const tx = this._beginWorldDestructionTransaction(sceneId, worldEpoch);
         if (WorldProgressionSystem.shouldClearWorldScope(sceneId, 'snapshot')) {
             resetWorldSnapshot(sceneId);
         }
+        WorldProgressionSystem.markWorldCollapsed(sceneId, { expectedEpoch: worldEpoch });
         if (WorldProgressionSystem.shouldClearWorldScope(sceneId, 'playerPosition')
             && Game?._worldPlayerPos) delete Game._worldPlayerPos[sceneId];
         // 后台位面失守时玩家可能正在主城：立即撤掉已断线的主城入口，
@@ -2116,4 +2370,3 @@ export const SceneManager = {
 };
 
 // 传送门实体
-

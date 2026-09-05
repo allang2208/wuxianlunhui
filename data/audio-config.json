@@ -10,7 +10,28 @@
     "comment": "全局系统提示音；使用 playFile + ui 声道，不做世界坐标衰减",
     "playerUpgrade": "assets/sounds/ui/player_upgrade.mp3",
     "rightSidebarPanel": "assets/sounds/ui/right_sidebar_panel.mp3",
-    "buttonClick": "assets/sounds/ui/button_click.mp3"
+    "buttonClick": "assets/sounds/ui/button_click.mp3",
+    "worldMap": {
+      "comment": "战略实时反馈，复用既有UI素材；独立开关/音量仍乘主音量与ui声道，不补播历史事件",
+      "defaultVolume": 0.6,
+      "accepted": { "cue": "buttonClick", "volume": 0.8, "guardMs": 180 },
+      "rejected": { "cue": "rightSidebarPanel", "volume": 0.55, "guardMs": 700 },
+      "arrival": { "path": "assets/sounds/ui/house_upgrade_complete.mp3", "volume": 0.65, "guardMs": 1500 },
+      "threat": { "path": "assets/sounds/ui/knockdown_1.mp3", "volume": 0.65, "guardMs": 2200 }
+    }
+  },
+  "combatCues": {
+    "comment": "跨实体共用战斗命中音；由最终命中结算点触发，世界坐标衰减",
+    "gunHitZombieAnimal": "assets/sounds/weapons/gun_hit.mp3"
+  },
+  "openingCinematic": {
+    "comment": "新游戏序章逐幕音效；统一走 SoundManager 的 sfx 声道，控制器只引用配置键并持有可停止句柄",
+    "graveStorm": { "path": "assets/sounds/opening/grave_rain_thunder.mp3", "volume": 0.42 },
+    "mountainWind": { "path": "assets/sounds/opening/mountain_wind.mp3", "volume": 0.34 },
+    "stoneAvalanche": { "path": "assets/sounds/opening/stone_avalanche.mp3", "volume": 0.52 },
+    "teleport": { "path": "assets/sounds/opening/fairy_teleport.mp3", "volume": 0.52 },
+    "energyFlow": { "path": "assets/sounds/opening/energy_flow.mp3", "volume": 0.46 },
+    "choirShine": { "path": "assets/sounds/opening/choir_magic_shine.mp3", "volume": 0.42 }
   },
   "openingCinematic": {
     "comment": "新游戏序章逐幕音效；统一走 SoundManager 的 sfx 声道，控制器只引用配置键并持有可停止句柄",
@@ -32,6 +53,8 @@
     "rapidFirePerPathVoiceLimit": 24,
     "rapidFireRepeatGuardMs": 0,
     "gunshotPreloadPaths": [
+      "assets/sounds/friendly/hamster_field_cannon_crew_attack_video.mp3",
+      "assets/sounds/friendly/hamster_howitzer_crew_attack_video.mp3",
       "assets/sounds/weapons/akm_burst.mp3",
       "assets/sounds/weapons/apex_shot_600ms.wav",
       "assets/sounds/weapons/apex2_shot_1s.wav",

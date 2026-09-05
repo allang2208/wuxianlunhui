@@ -6,10 +6,12 @@
 
 import { PartySystem } from '../systems/party-system.js';
 import { Renderer } from '../world/renderer.js';
+import { pickStructureAtScreen } from '../world/structure-picking.js';
 import { Camera } from '../world/camera.js';
 import { CONFIG } from '../config/config.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { UIState } from './ui-state.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getUnitKind } from '../world/unit-upgrade-store.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -673,6 +675,23 @@ export const RTSCommand = {
         this._syncCommandBarVisibility();
     },
 
+
+
+
+
+    /** 友军选中同步至组队栏高亮与场景选中光圈。 */
+
+
+
+
+
+
+    // ==================== 命中 / 框选 ====================
+
+    /** 全部可指挥友军：本体世界玩家 + PartySystem 侍从 + 仓鼠等场上友军；
+     * 观察世界不注入异世界玩家本体。 */
+
+
     _clearSelection() {
         if (!this._selection.length) return;
         this._selection = [];
@@ -820,75 +839,18 @@ export const RTSCommand = {
     },
 
     /** 指挥模式只允许单选一个军事产兵建筑；命中范围与既有建筑详情面板一致。 */
-    _hitTroopProducerAt(sx, sy) {
-        const point = Renderer.screenToWorld(sx, sy);
-        if (!point) return null;
-        let picked = null;
-        let pickedScore = Infinity;
-        for (const producer of TroopLineSystem.getLiveProducers()) {
-            const visualX = producer.x + (producer._visualFootOffsetX || 0);
-            const cfg = producer._cfg || producer.spriteCfg || {};
-            const displayW = Number(cfg.displayW ?? cfg.size) || 170;
-            const displayH = Number(cfg.displayH ?? cfg.sizeH) || 147;
-            const hit = {
-                cx: 0,
-                cy: -Math.round(displayH * 0.4),
-                hw: Math.round(displayW / 2),
-                hh: Math.round(displayH * 0.44),
-            };
-            if (point.x < visualX + hit.cx - hit.hw || point.x > visualX + hit.cx + hit.hw
-                || point.y < producer.y + hit.cy - hit.hh || point.y > producer.y + hit.cy + hit.hh) continue;
-            const dx = (point.x - (visualX + hit.cx)) / Math.max(1, hit.hw);
-            const dy = (point.y - (producer.y + hit.cy)) / Math.max(1, hit.hh);
-            const score = dx * dx + dy * dy;
-            if (score < pickedScore) {
-                picked = producer;
-                pickedScore = score;
-            }
-        }
+    _hitTroopProducerAt(sx, sy, picked = this._hitBuildingAt(sx, sy)) {
+        if (!TroopLineSystem.getLiveProducers().includes(picked)) return null;
         return picked ? { kind: 'producer', ref: picked } : null;
     },
 
     _buildingVisuals(entity) {
-        const scene = _scene();
-        if (!scene || !entity) return [];
-        const neutral = scene._neutralSprites?.get?.(entity);
-        const tower = scene._defenseSprites?.get?.(entity);
-        return [...new Set([
-            ...(Array.isArray(neutral?.segmentSprites) ? neutral.segmentSprites : []),
-            neutral?.sprite,
-            neutral?.overlaySprite,
-            tower?.base,
-            tower?.arm,
-            tower?.weapon,
-            entity._phaserSprite,
-        ].filter((visual) => visual?.active && visual.visible !== false && Number(visual.alpha ?? 1) > 0))];
+        return _scene()?.getStructurePickVisuals?.(entity) || [];
     },
 
     /** 按实际 Phaser 建筑贴图命中，轮廓与玩家看到的主体保持一致。 */
     _hitBuildingAt(sx, sy) {
-        const g = _game();
-        const point = Renderer.screenToWorld(sx, sy);
-        if (!g?.entities || !point) return null;
-        const hits = [];
-        for (const entity of g.entities.values()) {
-            if (!entity?.active || !entity._isDefenseStructure || Number(entity.hp) <= 0) continue;
-            if (FogOfWarSystem.shouldHideEntity(this._scene, entity)) continue;
-            for (const visual of this._buildingVisuals(entity)) {
-                if (typeof visual.getBounds !== 'function') continue;
-                const bounds = visual.getBounds();
-                if (!bounds?.contains?.(point.x, point.y)) continue;
-                const cx = Number(bounds.centerX) || (bounds.x + bounds.width * 0.5);
-                const cy = Number(bounds.centerY) || (bounds.y + bounds.height * 0.5);
-                hits.push({
-                    entity,
-                    depth: Number(visual.depth) || 0,
-                    distance: Math.hypot(point.x - cx, point.y - cy),
-                });
-            }
-        }
-        hits.sort((left, right) => right.depth - left.depth || left.distance - right.distance);
-        return hits[0]?.entity || null;
+        return pickStructureAtScreen(_game(), sx, sy);
     },
 
     _syncBuildingHover(sx, sy) {
@@ -903,6 +865,32 @@ export const RTSCommand = {
         this._hoverBuilding = next;
         this._applyCanvasCursor();
     },
+
+    /** 只在普通移动语义下提示“可登高”；攻击移动、巡逻、集结和拖框各自保留原指令状态。 */
+
+
+
+
+    /** GameScene 是唯一鼠标图形绘制方；这里仅公开已完成的 RTS 语义判定。 */
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * GameScene 的唯一游标仲裁输入。这里只返回指令语义，不直接写 canvas/body cursor。
+     * 返回值与正式提交共用同一套目标解析和门禁，避免显示、点击两套判断漂移。
+     */
+
+
+
 
     /** 只在普通移动语义下提示“可登高”；攻击移动、巡逻、集结和拖框各自保留原指令状态。 */
     _syncElevatedHover(sx, sy) {
@@ -956,8 +944,8 @@ export const RTSCommand = {
             && !this._isExplorationLocked(unit));
         if (!candidates.length) return false;
         return candidates.some((unit) => {
-            const routed = this._movePointForUnit(unit, point);
-            return !!routed && !routed.unreachable;
+            // 游标只判断承载面/能力；不得创建或推进单位正在执行的分帧路线。
+            return _game()?.DefenseSystem?.canRouteSurfaceTarget?.(unit, point) !== false;
         });
     },
 
@@ -1132,45 +1120,37 @@ export const RTSCommand = {
     },
 
     /** 建筑点击在指挥模式下忽略交互距离，并复用既有详情面板；保持指挥态与当前选择。 */
-    _tryBuildingClick(sx, sy) {
+    _tryBuildingClick(sx, sy, hit = this._hitBuildingAt(sx, sy)) {
         const g = _game();
         const p = g ? g.player : null;
-        if (!g) return false;
+        if (!g || !hit || hit._strategicFortification) return false;
         const openBefore = new Set(this._buildingDetailPanels().filter((panel) => panel.isOpen));
         const finishPanelSwitch = (preferredPanel = null) => {
             const newlyOpened = this._buildingDetailPanels().find((panel) => panel.isOpen && !openBefore.has(panel));
             const keepPanel = newlyOpened || (preferredPanel?.isOpen ? preferredPanel : null);
             this._closeBuildingUIExcept(keepPanel);
         };
-        const prevBuild = g._buildMode;
-        g._buildMode = true;
-        try {
-            if (g.DefenseSystem?.active && g.DefenseSystem.tryInteract?.(sx, sy, p)) {
-                finishPanelSwitch(g.DefenseSystem._panel);
-                return true;
-            }
-            if (g.HamsterHutSystem?.active && g.HamsterHutSystem.tryInteract?.(sx, sy, p)) {
-                finishPanelSwitch(g.HamsterHutSystem._panel);
-                return true;
-            }
-            if (g.ProducerBuildingSystem?.active && g.ProducerBuildingSystem.tryInteract?.(sx, sy, p)) {
-                finishPanelSwitch(g.ProducerBuildingSystem._panel);
-                return true;
-            }
-        } finally {
-            g._buildMode = prevBuild;
+        const interaction = { entity: hit, remote: true };
+        if (g.DefenseSystem?.active && g.DefenseSystem.tryInteract?.(sx, sy, p, interaction)) {
+            finishPanelSwitch(g.DefenseSystem._panel);
+            return true;
+        }
+        if (g.HamsterHutSystem?.active && g.HamsterHutSystem.tryInteract?.(sx, sy, p, interaction)) {
+            finishPanelSwitch(g.HamsterHutSystem._panel);
+            return true;
+        }
+        if (g.ProducerBuildingSystem?.active && g.ProducerBuildingSystem.tryInteract?.(sx, sy, p, interaction)) {
+            finishPanelSwitch(g.ProducerBuildingSystem._panel);
+            return true;
         }
         // 掩体与铁栅栏门复用 BuildingSystem 详情。
         const bs = g.BuildingSystem;
-        const mw = Renderer.screenToWorld(sx, sy);
-        if (bs && mw && typeof bs._hitTestCover === 'function' && typeof bs._showDetail === 'function') {
-            const hit = bs._hitTestCover(mw.x, mw.y);
-            if (hit) {
-                if (typeof bs.showRemoteDetail === 'function') bs.showRemoteDetail(hit);
-                else bs._showDetail(hit);
-                this._closeBuildingUIExcept(null, { keepStructureDetail: true });
-                return true;
-            }
+        if (bs && (hit._isDefenseCover || hit._isCoverGate || hit._isWallStaircase)
+            && typeof bs._showDetail === 'function') {
+            if (typeof bs.showRemoteDetail === 'function') bs.showRemoteDetail(hit);
+            else bs._showDetail(hit);
+            this._closeBuildingUIExcept(null, { keepStructureDetail: true });
+            return true;
         }
         return false;
     },
@@ -1179,7 +1159,7 @@ export const RTSCommand = {
 
     _isCommandable() {
         const g = _game();
-        return (PERSISTENT_WORLDS.has(this._scene) || !!g?._observerMode)
+        return (PERSISTENT_WORLDS.has(this._scene) || this._scene === 'strategy_battle' || !!g?._observerMode)
             && TechnologySystem.isUnlocked('mechanic', 'rts_command');
     },
 
@@ -1414,6 +1394,7 @@ export const RTSCommand = {
 
     /** 边缘平移：鼠标贴近屏幕四缘时平移相机。 */
     _edgePan(dt, Input) {
+        if (UIState.isOpen('worldSwitch') || UIState.isOpen('strategicExpedition') || UIState.isOpen('cityHallPolicies')) return;
         if (this._minimapDragging) return;
         const input = Input || this._input();
         const m = input && input.mouse;
@@ -1441,7 +1422,7 @@ export const RTSCommand = {
 
     /** 编队键：Ctrl+数字编队，Shift+数字追加，数字选中。 */
     _onKeyDown(e) {
-        if (UIState.isOpen('worldSwitch') || UIState.isOpen('strategicExpedition')) return;
+        if (UIState.isOpen('worldSwitch') || UIState.isOpen('strategicExpedition') || UIState.isOpen('cityHallPolicies')) return;
         if (TechnologyTreePanel.isOpen || _game()?._paused) return;
         if (e.target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
         if (e.code === CONFIG.KEYS.RTS_COMMAND) {
@@ -1462,7 +1443,7 @@ export const RTSCommand = {
             return;
         }
         const g = _game();
-        if (!g || !(g._observerMode || PERSISTENT_WORLDS.has(this._scene))) return;
+        if (!g || !(g._observerMode || PERSISTENT_WORLDS.has(this._scene) || this._scene === 'strategy_battle')) return;
         if ((this._rallyPicking || this._commandPicking) && e.code === 'Escape') {
             this.cancelPendingCommand();
             e.preventDefault();
@@ -1523,35 +1504,6 @@ export const RTSCommand = {
             this._groupNotify(d, grp.length, '选中');
             e.preventDefault(); e.stopImmediatePropagation();
         }
-    },
-
-    _groupNotify(digit, n, verb) {
-        EffectManager.add(new FloatingTextEffect(Camera.x, Camera.y - 120, `${verb}编队 ${digit}（${n} 单位）`, '#8ad0ff'));
-    },
-
-    _resolveGroupUnits(entries) {
-        const allies = new Map(this._collectAllies()
-            .filter((unit) => unit?.active && this._commandUnitId(unit))
-            .map((unit) => [this._commandUnitId(unit), unit]));
-        return entries.map((entry) => allies.get(typeof entry === 'string' ? entry : entry?.id))
-            .filter(Boolean);
-    },
-
-    /** 双击同类复选：选中屏幕上所有同类型友军。 */
-    _selectSameTypeOnScreen(ref) {
-        const key = this._unitTypeKey(ref);
-        if (!key) { this._setSelection([{ kind: 'ally', ref }]); return; }
-        const vw = window.innerWidth, vh = window.innerHeight;
-        const list = [];
-        for (const u of this._collectAllies()) {
-            if (this._unitTypeKey(u) !== key) continue;
-            const r = this._unitScreenRect(u);
-            if (!r) continue;
-            if (r.x1 < 0 || r.y1 < 0 || r.x0 > vw || r.y0 > vh) continue;
-            list.push({ kind: 'ally', ref: u });
-        }
-        if (!list.some((s) => s.ref === ref)) list.push({ kind: 'ally', ref });
-        this._setSelection(list);
     },
 
     /** 单位类型键：仓鼠兵种用全局登记表，队员回退档案 id */
@@ -2105,6 +2057,18 @@ export const RTSCommand = {
         return result;
     },
 
+
+
+    /** 同时校验高架路线和建筑出口到路线入口的地面连通性。 */
+
+
+    /** 右键攻击指令反馈：目标贴图短暂红白交替闪现。 */
+
+
+    // ==================== 渲染（拖框 + 选中光圈） ====================
+
+
+
     _selectedTroopProducer() {
         if (this._selection.length !== 1 || this._selection[0].kind !== 'producer') return null;
         const producer = this._selection[0].ref;
@@ -2496,9 +2460,15 @@ export const RTSCommand = {
     },
 
     _surfaceLabel(entity) {
-        if (entity?._surfaceKind === 'wall_walk') return `墙顶 +${Math.round(Number(entity.z) || 0)}`;
-        if (entity?._surfaceKind === 'stairs') return `楼梯 +${Math.round(Number(entity.z) || 0)}`;
-        return '';
+        const navigation = { pending: '规划中', search_limited: '路线搜索受限，请重新下令',
+            unreachable: '目标不可达' }[entity?._navigationStatus];
+        const garrison = {
+            allocating: '分配驻守位', positioning: '前往驻守位', stationed: '驻守',
+            full: '附近驻守位已满，等待空位', leaving: '驻守位已满，正在离墙', unreachable: '驻守位置不可达，等待重试',
+        }[entity?._garrisonStatus];
+        const surface = entity?._surfaceKind === 'wall_walk' ? `墙顶 +${Math.round(Number(entity.z) || 0)}`
+            : entity?._surfaceKind === 'stairs' ? `楼梯 +${Math.round(Number(entity.z) || 0)}` : '';
+        return [surface, navigation, garrison].filter(Boolean).join(' · ');
     },
 
     _updatePanelValues() {
@@ -2510,10 +2480,13 @@ export const RTSCommand = {
             for (const s of this._selection) {
                 const e = s.ref;
                 const unitKind = s.kind === 'ally' ? getUnitKind(e) : '';
-                const label = s.kind === 'ally'
+                const baseLabel = s.kind === 'ally'
                     ? (e.name || e.title || '友军')
                     : (e.name || e.type || '敌人');
-                const groupKey = `${s.kind}:${unitKind || label}`;
+                const navigation = s.kind === 'ally' ? { pending: '规划中', search_limited: '搜索受限',
+                    unreachable: '不可达' }[e._navigationStatus] : '';
+                const label = `${baseLabel}${navigation ? ` · ${navigation}` : ''}`;
+                const groupKey = `${s.kind}:${unitKind || label}:${navigation || ''}`;
                 const group = groups.get(groupKey) || {
                     label,
                     count: 0,

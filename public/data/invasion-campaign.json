@@ -1,0 +1,55 @@
+{
+  "version": 3,
+  "march": { "leadDays": 1, "minSpawnDistance": 2, "maxSpawnDistance": 3 },
+  "recon": {
+    "armyRadius": 1,
+    "scoutRadius": 2,
+    "scoutUnitKeys": ["scout", "ranger", "sniper", "scout_rifle_skirmisher"],
+    "borderPolicyId": "border_recon_policy",
+    "warningPolicyId": "planar_early_warning_policy",
+    "borderBaseRadius": 1,
+    "policyWarningDays": 0.5,
+    "buildingSources": {
+      "weather_forecast_tower": { "radius": 2, "minWorkers": 1 },
+      "planar_observation_array": { "radius": 3, "minWorkers": 1 }
+    }
+  },
+  "formation": {
+    "baseNormals": 18, "normalsPerCycle": 3, "maxNormals": 48,
+    "baseElites": 3, "extraEliteEveryCycles": 3, "maxElites": 6,
+    "maxTotal": 55, "batchSize": 12, "summonReserve": 4,
+    "minNormals": 8, "minElites": 2, "maxTypesWithSummons": 4,
+    "baseThreat": 140, "threatPerCycle": 18, "maxThreat": 500,
+    "enemyTextureBudgetMiB": 256,
+    "maxHpMultiplier": 3, "maxAtkMultiplier": 2,
+    "promotedEliteHpMultiplier": 1.8, "promotedEliteAtkMultiplier": 1.3
+  },
+  "families": [
+    {"id":"wolf_pack","name":"狼族猎群","habitat":"沼泽荒野","unlockDay":1,"weight":3,"worlds":["scene8","scene9","scene10"],"allowPromotedElite":false,"tags":["wolf","狼族"],"keywords":["狼"]},
+    {"id":"serpent_brood","name":"蛇族毒群","habitat":"腐朽沼泽","unlockDay":10,"weight":2,"worlds":["scene8","scene10"],"allowPromotedElite":false,"tags":["serpent","蛇族"],"keywords":["蛇","美杜莎"]},
+    {"id":"bear_clan","name":"熊族兽群","habitat":"雪原林地","unlockDay":10,"weight":1,"worlds":["scene8","scene9","scene10"],"allowPromotedElite":true,"tags":["bear","熊族"],"keywords":["熊"]},
+    {"id":"frozen_lynx_pride","name":"冰冠猞猁群","habitat":"雪原冻林","unlockDay":10,"weight":1,"worlds":["scene9"],"allowPromotedElite":true,"tags":["frozen_lynx","雪原猞猁"],"keywords":["猞猁","冰冠"]},
+    {"id":"glacier_ox_herd","name":"冰脊战牛群","habitat":"雪原冰谷","unlockDay":15,"weight":1,"worlds":["scene9"],"allowPromotedElite":true,"tags":["glacier_ox","雪原麝牛"],"keywords":["麝牛","战牛"]},
+    {"id":"abyss_crystal_pack","name":"寒渊裂晶兽群","habitat":"雪原裂渊","unlockDay":20,"weight":1,"worlds":["scene9"],"allowPromotedElite":true,"tags":["abyss_crystal_beast","寒渊异兽"],"keywords":["寒渊","裂晶"]},
+    {"id":"frostbound_cohort","name":"霜缚军阵","habitat":"雪原古战场","unlockDay":20,"weight":1,"worlds":["scene9"],"allowPromotedElite":true,"tags":["frostbound_host","霜缚军团"],"keywords":["霜缚","百夫长"]},
+    {"id":"polar_night_coven","name":"极夜祭团","habitat":"雪原极夜祭场","unlockDay":25,"weight":1,"worlds":["scene9"],"allowPromotedElite":true,"tags":["polar_night_cult","极夜教团"],"keywords":["极夜","大司祭"]},
+    {"id":"mosquito_swarm","name":"沼泽蚊群","habitat":"腐朽沼泽","unlockDay":10,"weight":1,"worlds":["scene10"],"allowPromotedElite":false,"tags":["mosquito","蚊族"],"keywords":["蚊"]},
+    {"id":"rotbog_beetles","name":"腐沼甲虫群","habitat":"腐朽沼泽","unlockDay":15,"weight":2,"worlds":["scene10"],"allowPromotedElite":true,"tags":["rotbog_beetle","腐沼甲虫"],"keywords":["独角仙"]},
+    {"id":"reed_mantis","name":"芦影螳螂","habitat":"腐朽沼泽","unlockDay":15,"weight":1,"worlds":["scene10"],"allowPromotedElite":false,"tags":["mantis","螳螂"],"keywords":["螳螂","镰螳"]},
+    {"id":"rot_toad","name":"腐潮蟾族","habitat":"腐朽沼泽","unlockDay":25,"weight":1,"worlds":["scene10"],"allowPromotedElite":false,"tags":["rot_toad","蟾族"],"keywords":["蟾"]},
+    {"id":"blighted_grove","name":"蚀林植群","habitat":"腐朽沼泽","unlockDay":20,"weight":1,"worlds":["scene10"],"allowPromotedElite":false,"tags":["blighted_plant","蚀林植物"],"keywords":["树精","古树","食人花"]},
+    {"id":"mine_dead","name":"矿工尸群","habitat":"废弃矿洞","unlockDay":1,"weight":2,"worlds":["scene12"],"allowPromotedElite":false,"tags":["mine_undead","矿工亡灵"],"keywords":["矿工","提灯","狱监","支护梁","炸弹僵尸","工头"]},
+    {"id":"core_burrow","name":"岩芯钻虫","habitat":"矿洞深脉","unlockDay":20,"weight":1,"worlds":["scene12"],"allowPromotedElite":false,"tags":["core_worm","岩芯钻虫"],"keywords":["钻虫"]},
+    {"id":"mineral_fusion","name":"矿晶融合体","habitat":"矿洞深脉","unlockDay":25,"weight":1,"worlds":["scene12"],"allowPromotedElite":true,"tags":["mineral_fusion","矿晶融合体"],"keywords":["碎矿石","岩魇","矿压融合体"]},
+    {"id":"ore_spiders","name":"矿石蛛群","habitat":"废弃矿洞","unlockDay":15,"weight":1,"worlds":["scene12"],"allowPromotedElite":false,"tags":["ore_spider","矿石蜘蛛"],"keywords":["矿石蜘蛛"]},
+    {"id":"horror_dead","name":"尸变亡灵","habitat":"死寂遗迹","unlockDay":1,"weight":2,"worlds":["scene11"],"allowPromotedElite":false,"tags":["plague_undead","尸变亡灵"],"keywords":["僵尸","突变体","手脑"]},
+    {"id":"funerary_dead","name":"墓葬仪从","habitat":"死寂遗迹","unlockDay":15,"weight":1,"worlds":["scene11"],"allowPromotedElite":false,"tags":["funerary_undead","墓葬仪从"],"keywords":["裹尸","殓徒","缚钟","棺板","刽子手","哀祷者"]},
+    {"id":"armored_dead","name":"重甲亡灵","habitat":"死寂遗迹","unlockDay":15,"weight":1,"worlds":["scene11"],"allowPromotedElite":false,"tags":["armored_undead","重甲亡灵"],"keywords":["铠甲骑士"]},
+    {"id":"undead_hounds","name":"亡灵犬群","habitat":"死寂遗迹","unlockDay":1,"weight":1,"worlds":["scene11"],"allowPromotedElite":false,"tags":["undead_hound","亡灵犬"],"keywords":["僵尸犬","亡灵犬","Zombie Dog"]},
+    {"id":"carrion_brood","name":"腐蝇蛆群","habitat":"死寂遗迹","unlockDay":15,"weight":1,"worlds":["scene11"],"allowPromotedElite":false,"tags":["carrion_brood","腐蝇蛆群"],"keywords":["蝇群","腐蝇","蝇手","毒蛆"]},
+    {"id":"witch_coven","name":"巫毒施法者","habitat":"死寂遗迹","unlockDay":20,"weight":1,"worlds":["scene11"],"allowPromotedElite":false,"tags":["witch_coven","巫毒施法者"],"keywords":["巫婆"]},
+    {"id":"fixed_flesh","name":"固定尸骸融合体","habitat":"死寂遗迹","unlockDay":25,"weight":1,"worlds":["scene11"],"allowPromotedElite":false,"tags":["fixed_flesh","固定尸骸"],"keywords":["集合体"]},
+    {"id":"time_agents","name":"时空特工","habitat":"专属事件","unlockDay":1,"weight":1,"worlds":[],"allowPromotedElite":false,"tags":["time_agent","时空特工"],"keywords":["时空特工"]},
+    {"id":"fixtures","name":"设施与伴生对象","habitat":"专属依赖","unlockDay":1,"weight":1,"worlds":[],"allowPromotedElite":false,"tags":["fixture","召唤设施"],"keywords":["矿洞","墓碑","煮锅"]}
+  ]
+}

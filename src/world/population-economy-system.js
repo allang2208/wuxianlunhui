@@ -2,6 +2,7 @@ import populationEconomyConfig from '../../data/population-economy.json';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { Game } from '../game.js';
+import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { BuildingFootprintDustEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
@@ -22,6 +23,7 @@ import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import { TechnologySystem } from './technology-system.js';
 import { MilitaryPopulationSystem } from './military-population-system.js';
 import { EconomyHudSystem } from './economy-hud-system.js';
+import { EconomyFlowSystem } from './economy-flow-system.js';
 import { getAbilityLevel, getAbilityValue } from './ability-store.js';
 import {
     getBuildingModuleUpgradeCost,
@@ -30,8 +32,24 @@ import {
 import { getFoodProductionWeatherEffect } from './food-production-weather.js';
 import { getGeothermalPowerProfile } from './geothermal-power-profile.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
+import {
+    getSolarPowerWeatherEffect,
+    getWindPowerWeatherEffect,
+} from './power-plant-weather.js';
+import { getFarmPlaneEffect } from './farm-production-profile.js';
+import { getConfiguredWorkerOutputFactor } from './workforce-output-factor.js';
+import {
+    POPULATION_GROWTH, restorePopulationGrowth, getPopulationGrowthModel,
+    getPopulationNextEventMs, advancePopulationGrowth, settlePopulationEvents, distributeResidents,
+} from './population-growth.js';
+import {
+    POPULATION_HAPPINESS, restorePopulationHappiness, advancePopulationHappiness,
+    getPopulationSafety, recordEntertainmentService, recordCommerceService,
+} from './population-happiness.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const OPERATING_ACCOUNTING = { accounting: { providerId: 'population-economy' } };
+const RATION_ACCOUNTING = { accounting: { providerId: 'population-rations' } };
 
 function houseLevel(level) {
     const levels = populationEconomyConfig.house?.levels || [];
@@ -160,15 +178,23 @@ function researchFacilityType(building) {
 export const PopulationEconomySystem = {
     _buildings: new Set(),
     _populationReservations: new Map(),
+    _populationState: null,
+    _populationViewRevision: 0,
+    _residentAllocation: null,
 
     reset() {
         this._buildings.clear();
         this._populationReservations.clear();
+        this._populationState = restorePopulationGrowth();
+        this._populationViewRevision++;
+        this._residentAllocation = null;
         MilitaryPopulationSystem.reset();
     },
 
     serializeState() {
-        return { storageVersion: 2, foodStored: this.getFoodStored() };
+        const state = this._getPopulationState();
+        return { storageVersion: 2, foodStored: this.getFoodStored(), ...state,
+            happiness: restorePopulationHappiness(state.happiness) };
     },
 
     restoreState(saved = {}) {
@@ -179,6 +205,12 @@ export const PopulationEconomySystem = {
         if ((Number(saved.legacyFoodPending) || 0) > 0) {
             EnergyManager?.importLegacyFood?.(saved.legacyFoodPending);
         }
+        // 旧档保留原先可用总人口及已上岗人数；迁移不重复发新房赠送人口。
+        this._populationState = restorePopulationGrowth(saved,
+            Math.max(this.getPopulationCapacity(), this.getPopulationUsed()));
+        this._populationViewRevision++;
+        this._initializeFoodStatus();
+        this._reconcileWorkers();
     },
 
     initializeBuilding(building, saved = {}) {
@@ -384,10 +416,13 @@ export const PopulationEconomySystem = {
             )
             : 0;
         this._buildings.add(building);
+        if (building._economyType === 'housing') this._residentAllocation = null;
+        building._initialResidentGranted = !!saved.populationRestoring;
     },
 
     unregisterBuilding(building) {
         this._buildings.delete(building);
+        if (building?._economyType === 'housing') this._residentAllocation = null;
         if (building) building._economyWorking = false;
         this.releasePopulation(building);
         MilitaryPopulationSystem.unregisterProducer(building);
@@ -427,12 +462,139 @@ export const PopulationEconomySystem = {
     getPopulationSnapshot() {
         const capacity = this.getPopulationCapacity();
         const used = this.getPopulationUsed();
+        const total = this._getPopulationState().total;
         return {
+            // 仅用于界面比较基线；切场、读档不算居民增减，不进入存档。
+            viewRevision: this._populationViewRevision,
+            total,
             used,
             capacity,
-            free: Math.max(0, capacity - used),
-            overcrowded: Math.max(0, used - capacity),
+            free: Math.max(0, total - used),
+            overcrowded: Math.max(0, total - capacity),
         };
+    },
+
+    /** 实际空闲居民转入战略移民账本；不抽离岗位，也不改变住房或军事人口。 */
+    reserveMigrationResidents(amount) {
+        amount = Math.max(0, Math.floor(Number(amount) || 0));
+        if (!amount || this.getPopulationSnapshot().free < amount)
+            return { ok: false, reason: `需要 ${amount} 名空闲居民；可先在岗位面板撤回工作人员。` };
+        const state = this._getPopulationState();
+        state.total -= amount;
+        this._residentAllocation = null;
+        let returned = false;
+        return { ok: true, population: amount, rollback: () => {
+            // 仅用于同一同步编组事务中支付失败，不能跨切场保存此闭包。
+            if (returned) return;
+            returned = true; state.total += amount; this._residentAllocation = null;
+        } };
+    },
+
+    _getPopulationState() {
+        return this._populationState ||= restorePopulationGrowth();
+    },
+
+    completeHouseConstruction(building) {
+        if (!building?.active || building._economyType !== 'housing' || building._initialResidentGranted) return;
+        building._initialResidentGranted = true;
+        const state = this._getPopulationState();
+        if (state.total <= 0) state.foodElapsedMs = 0;
+        state.total += POPULATION_GROWTH.initialResidentsPerHouse;
+        this._initializeFoodStatus();
+    },
+
+    _initializeFoodStatus() {
+        const state = this._getPopulationState();
+        if (state.foodSatisfied == null && state.total > 0) {
+            state.foodSatisfied = this.getFoodStored() >= state.total * POPULATION_GROWTH.foodPerPopulation;
+        }
+    },
+
+    getPopulationGrowthSnapshot() {
+        const population = this.getPopulationSnapshot();
+        return { ...population, growth: getPopulationGrowthModel(
+            this._getPopulationState(), population.capacity, this.getFoodStored()) };
+    },
+
+    getHouseResidents(building) {
+        const total = this._getPopulationState().total;
+        if (!this._residentAllocation || this._residentAllocationTotal !== total) {
+            const houses = [...this._buildings].filter((entry) => entry?.active && entry._economyType === 'housing');
+            this._residentAllocation = distributeResidents(houses.map((house) => ({
+                key: house, id: house.id,
+                capacity: houseLevel(house._economyLevel)?.populationCapacity || 0,
+            })), total);
+            this._residentAllocationTotal = total;
+        }
+        return this._residentAllocation.get(building) || 0;
+    },
+
+    _getHappinessHouses() {
+        return [...this._buildings].filter((building) => building?.active && building._economyType === 'housing')
+            .map((house) => ({ key: house.id, id: house.id, level: house._economyLevel,
+                capacity: houseLevel(house._economyLevel)?.populationCapacity || 0 }));
+    },
+
+    _recordHappinessInterval(step) {
+        const state = this._getPopulationState();
+        advancePopulationHappiness(state, step, getPopulationSafety());
+        const windows = [];
+        const labor = this.getLaborEfficiency();
+        for (const building of this._buildings) {
+            if (building?._economyType !== 'tavern' || !TavernEconomySystem.isServing(building)) continue;
+            windows.push({ startMs: 0, endMs: Math.min(step, building._tavernJob.serviceRemainMs),
+                seats: POPULATION_HAPPINESS.tavernSeats * TavernEconomySystem.getWorkerOutputFactor(building) * labor });
+        }
+        recordEntertainmentService(state, step, windows);
+    },
+
+    _reconcileWorkers() {
+        let excess = Math.max(0, this.getPopulationUsed() - this._getPopulationState().total);
+        if (!excess) return;
+        const foodTypes = new Set(['windmill', 'cheese_farm', 'corn_farm', 'mushroom_farm', 'bakery', 'desert_cookhouse', 'frost_smokehouse', 'cannery', 'chain_restaurant']);
+        const buildings = [...this._buildings].filter((building) => building?.active && workforceConfig(building));
+        // 先耗尽空闲人口，再撤非粮食岗位，尽量保留恢复供粮的生产能力。
+        buildings.sort((a, b) => Number(foodTypes.has(a._economyType)) - Number(foodTypes.has(b._economyType))
+            || String(b.id).localeCompare(String(a.id)));
+        for (const building of buildings) {
+            const assigned = Math.max(0, Math.floor(Number(building._assignedWorkers) || 0));
+            const removed = Math.min(assigned, excess);
+            if (removed) this.setAssignedWorkers(building, assigned - removed);
+            excess -= removed;
+            if (!excess) break;
+        }
+    },
+
+    /** 每个位面只有一次调用；在出生、流失、口粮和住房升级完成点切段。 */
+    updatePopulation(dt, updateBuildings) {
+        let remaining = Math.max(0, Number(dt) || 0);
+        const state = this._getPopulationState();
+        this._initializeFoodStatus();
+        while (remaining > 1e-8) {
+            const capacity = this.getPopulationCapacity();
+            let step = Math.min(remaining, getPopulationNextEventMs(state, capacity, this.getFoodStored()));
+            for (const building of this._buildings) {
+                if (building?.active && building._economyType === 'housing' && building._economyUpgrade?.remainMs > 0) {
+                    step = Math.min(step, building._economyUpgrade.remainMs);
+                }
+            }
+            // 与后台一致：本次20秒结算使用本段住房等级，新升级影响下一段。
+            const happinessHouses = state.foodElapsedMs + step >= POPULATION_GROWTH.foodIntervalMs - 1e-8
+                ? this._getHappinessHouses() : [];
+            if (step > 0) {
+                this._recordHappinessInterval(step);
+                advancePopulationGrowth(state, step, capacity, this.getFoodStored());
+                updateBuildings(step);
+                remaining = Math.max(0, remaining - step);
+            }
+            const changes = settlePopulationEvents(state, capacity,
+                () => this.getFoodStored(), (amount) => EnergyManager.deductFood(amount, RATION_ACCOUNTING),
+                () => {
+                    const residents = distributeResidents(happinessHouses, state.total);
+                    return happinessHouses.map((house) => ({ ...house, residents: residents.get(house.key) || 0 }));
+                });
+            if (changes.lost) this._reconcileWorkers();
+        }
     },
 
     reservePopulation(owner, amount = 1) {
@@ -471,6 +633,16 @@ export const PopulationEconomySystem = {
         };
     },
 
+    /**
+     * 单业务角色建筑的岗位只放大最终产出，不增加物流任务、移动速度或可见 Sprite。
+     * 未声明 workerOutputEfficiencyShare 的既有数量型/实体型岗位保持原有口径。
+     */
+    getWorkerOutputFactor(building) {
+        const cfg = this.getWorkerConfig(building);
+        const assigned = Math.max(0, Math.floor(Number(building?._assignedWorkers) || 0));
+        return cfg ? getConfiguredWorkerOutputFactor(assigned, cfg) : 0;
+    },
+
     /** 当前建筑存在可用人口岗位，但尚未安排任何人员。 */
     isWorkforceUnstaffed(building) {
         const cfg = this.getWorkerConfig(building);
@@ -492,6 +664,21 @@ export const PopulationEconomySystem = {
         if (target !== current && typeof building.onAssignedWorkersChanged === 'function') {
             building.onAssignedWorkersChanged(current, target);
         }
+        if (target !== current) {
+            try {
+                EventBus.emit('world:building-workers-changed', {
+                    sceneId: globalThis.SceneManager?.currentScene || null,
+                    buildingId: building.cfgKey || building.id,
+                    entityId: building.id,
+                    previous: current,
+                    assigned: target,
+                    slots,
+                    building,
+                });
+            } catch (error) {
+                console.error('[PopulationEconomySystem] 岗位变更事件分发失败:', error);
+            }
+        }
         return { ok: true, assigned: target, slots, delta };
     },
 
@@ -511,7 +698,7 @@ export const PopulationEconomySystem = {
     getLaborEfficiency() {
         const population = this.getPopulationSnapshot();
         if (population.used <= 0) return 1;
-        return clamp(population.capacity / population.used, 0, 1);
+        return clamp(population.total / population.used, 0, 1);
     },
 
     applyHouseLevel(building, requestedLevel) {
@@ -519,6 +706,7 @@ export const PopulationEconomySystem = {
         if (!building || levels.length === 0) return null;
         const level = clamp(Math.floor(Number(requestedLevel) || 1), 1, levels.length);
         const cfg = houseLevel(level);
+        this._residentAllocation = null;
         const previousTexture = building.spriteCfg?.idleKey;
         building._economyLevel = level;
         building.spriteCfg.idleKey = cfg.tex;
@@ -823,6 +1011,9 @@ export const PopulationEconomySystem = {
             tavernMultiplier,
             clusterMultiplier: cluster.multiplier,
             clusterBonus: cluster.bonus,
+            clusterRadius: cluster.radius,
+            clusterBonusPerType: cluster.bonusPerType,
+            clusterMaxBonus: cluster.maxBonus,
             clusterFacilityTypes: cluster.facilityTypes,
             actualResearchPointsPerSecond: configuredResearchPointsPerSecond
                 * staffFactor * laborEfficiency * workshopMultiplier * tavernMultiplier
@@ -884,6 +1075,8 @@ export const PopulationEconomySystem = {
         const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('advanced_research');
         const cluster = this.getResearchClusterSnapshot(building);
+        const strategicReconRadius = Math.max(0, economyEffectValue(building,
+            'advancedResearchStrategicReconRadius', 0));
         return {
             configuredResearchPointsPerSecond,
             staffCapacity,
@@ -899,6 +1092,7 @@ export const PopulationEconomySystem = {
             clusterBonusPerType: cluster.bonusPerType,
             clusterMaxBonus: cluster.maxBonus,
             clusterFacilityTypes: cluster.facilityTypes,
+            strategicReconRadius,
             actualResearchPointsPerSecond: configuredResearchPointsPerSecond
                 * staffFactor * laborEfficiency * workshopMultiplier * tavernMultiplier
                 * cluster.multiplier * getProductionResourceMul(),
@@ -979,10 +1173,10 @@ export const PopulationEconomySystem = {
         return Math.max(0, Number(EnergyManager?.getFood?.()) || 0);
     },
 
-    addFood(amount) {
+    addFood(amount, options) {
         const value = Math.max(0, Number(amount) || 0);
         if (value <= 0) return 0;
-        return EnergyManager?.depositFood?.(value) || 0;
+        return EnergyManager?.depositFood?.(value, options) || 0;
     },
 
     consumeFood(amount) {
@@ -994,8 +1188,8 @@ export const PopulationEconomySystem = {
         ).ok;
     },
 
-    routeProducedGold(amount) {
-        return routeBankGold(amount);
+    routeProducedGold(amount, options) {
+        return routeBankGold(amount, options);
     },
 
     getPlayerTotalGold() {
@@ -1098,15 +1292,12 @@ export const PopulationEconomySystem = {
         const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('windmill');
         const weatherEffect = getFoodProductionWeatherEffect();
-        const sceneId = globalThis.SceneManager?.currentScene;
-        const configuredPlaneMultiplier = Number(cfg.planeOutputMultipliers?.[sceneId]);
-        const planeMultiplier = Number.isFinite(configuredPlaneMultiplier)
-            ? Math.max(0, configuredPlaneMultiplier) : 1;
+        const planeEffect = getFarmPlaneEffect('windmill');
         const configuredFoodPerSecond = staffCapacity * foodPerWorker
             * driveMultiplier * fieldMultiplier;
         const actualFoodPerSecond = staffedCount * foodPerWorker
             * driveMultiplier * fieldMultiplier * laborEfficiency * workshopMultiplier
-            * tavernMultiplier * weatherEffect.multiplier * planeMultiplier;
+            * tavernMultiplier * weatherEffect.multiplier * planeEffect.multiplier;
         return {
             foodPerWorker,
             driveMultiplier,
@@ -1120,9 +1311,8 @@ export const PopulationEconomySystem = {
             tavernMultiplier,
             weatherMultiplier: weatherEffect.multiplier,
             weatherLabel: weatherEffect.label,
-            planeMultiplier,
-            planeLabel: sceneId === 'scene9' && planeMultiplier < 1
-                ? '世界-123·雪原初级农业' : '无位面修正',
+            planeMultiplier: planeEffect.multiplier,
+            planeLabel: planeEffect.label,
         };
     },
 
@@ -1165,8 +1355,7 @@ export const PopulationEconomySystem = {
         let overlappedHouseCount = 0;
         let maxBankOverlapCount = 0;
         for (const house of houses) {
-            const population = Math.max(0,
-                Number(houseLevel(house._economyLevel)?.populationCapacity) || 0);
+            const population = this.getHouseResidents(house);
             const bankCount = this.getBankCoverageCountAt(house);
             const overlapMultiplier = this.getBankOverlapMultiplier(bankCount);
             servicePopulation += population;
@@ -1226,8 +1415,7 @@ export const PopulationEconomySystem = {
 
     getGrandMallSnapshot(building) {
         const houses = this.getGrandMallCoveredHouses(building);
-        const servicePopulation = houses.reduce((sum, house) => sum + Math.max(0,
-            Number(houseLevel(house._economyLevel)?.populationCapacity) || 0), 0);
+        const servicePopulation = houses.reduce((sum, house) => sum + this.getHouseResidents(house), 0);
         const cfg = populationEconomyConfig.grand_mall || {};
         const staffCapacity = GrandMallEconomySystem.getStaffCapacity(building);
         const staffedCount = Math.min(
@@ -1278,7 +1466,7 @@ export const PopulationEconomySystem = {
         const cfg = populationEconomyConfig[economyType] || {};
         const settlementIntervalMs = Math.max(100,
             Number(cfg.settlementIntervalMs) || 1000);
-        const population = this.getPopulationCapacity();
+        const population = this._getPopulationState().total;
         const playerTotalGold = Math.max(0, getPlayerTotalGold());
         const configuredBaseContribution = Math.max(0, economyEffectValue(
             building,
@@ -1732,6 +1920,18 @@ export const PopulationEconomySystem = {
         return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
     },
 
+
+
+
+
+
+
+
+
+
+
+
+
     getWindPowerModuleLevel(building, moduleId) {
         return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
     },
@@ -1784,7 +1984,7 @@ export const PopulationEconomySystem = {
         building._windPowerUpgrade = null;
     },
 
-    getWindPowerSnapshot(building) {
+    getWindPowerSnapshot(building, { sceneId = null, gameTimeMs = null } = {}) {
         const cfg = populationEconomyConfig.wind_power_plant || {};
         const cycleMs = Math.max(100, economyModuleValue(building, 'wind_blade_pitch') || 5000);
         const energyPerCycle = Math.max(0,
@@ -1803,11 +2003,13 @@ export const PopulationEconomySystem = {
         const laborEfficiency = this.getLaborEfficiency();
         const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('wind_power_plant');
+        const weatherEffect = getWindPowerWeatherEffect(sceneId, gameTimeMs);
         const configuredEnergyPerSecond = cycleMs > 0
             ? energyPerCycle * conversionRate * 1000 / cycleMs
             : 0;
         const actualEnergyPerSecond = configuredEnergyPerSecond * staffFactor
-            * laborEfficiency * workshopMultiplier * tavernMultiplier;
+            * laborEfficiency * workshopMultiplier * tavernMultiplier
+            * weatherEffect.multiplier;
         return {
             cycleMs,
             energyPerCycle,
@@ -1819,6 +2021,9 @@ export const PopulationEconomySystem = {
             laborEfficiency,
             workshopMultiplier,
             tavernMultiplier,
+            weatherMultiplier: weatherEffect.multiplier,
+            weatherLabel: weatherEffect.label,
+            weatherEffect,
             configuredEnergyPerSecond,
             actualEnergyPerSecond,
             pendingEnergy: Math.max(0,
@@ -1878,7 +2083,7 @@ export const PopulationEconomySystem = {
         building._solarPowerUpgrade = null;
     },
 
-    getSolarPowerSnapshot(building) {
+    getSolarPowerSnapshot(building, { sceneId = null, gameTimeMs = null } = {}) {
         const cfg = populationEconomyConfig.solar_power_plant || {};
         const cycleMs = Math.max(100,
             economyModuleValue(building, 'solar_tracking_cycle') || 4000);
@@ -1896,10 +2101,12 @@ export const PopulationEconomySystem = {
         const laborEfficiency = this.getLaborEfficiency();
         const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('solar_power_plant');
+        const weatherEffect = getSolarPowerWeatherEffect(sceneId, gameTimeMs);
         const configuredEnergyPerSecond = cycleMs > 0
             ? energyPerCycle * conversionRate * 1000 / cycleMs : 0;
         const actualEnergyPerSecond = configuredEnergyPerSecond * staffFactor
-            * laborEfficiency * workshopMultiplier * tavernMultiplier;
+            * laborEfficiency * workshopMultiplier * tavernMultiplier
+            * weatherEffect.multiplier;
         return {
             cycleMs,
             energyPerCycle,
@@ -1911,6 +2118,9 @@ export const PopulationEconomySystem = {
             laborEfficiency,
             workshopMultiplier,
             tavernMultiplier,
+            weatherMultiplier: weatherEffect.multiplier,
+            weatherLabel: weatherEffect.label,
+            weatherEffect,
             configuredEnergyPerSecond,
             actualEnergyPerSecond,
             pendingEnergy: Math.max(0,
@@ -1918,9 +2128,29 @@ export const PopulationEconomySystem = {
         };
     },
 
+
+
+
+
+
+
+
+
+
+
     getComputingCenterModuleLevel(building, moduleId) {
         return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
     },
+
+
+
+
+
+
+
+
+
+
 
     getComputingCenterUpgradeCost(building, moduleId) {
         return getBuildingModuleUpgradeCost(
@@ -2137,6 +2367,58 @@ export const PopulationEconomySystem = {
         };
     },
 
+    /** 周期经营的收支读取同一份运行时快照；物流建筑继续由真实入库/扣费入口统计。 */
+    getOperatingResourceFlows() {
+        const flows = [];
+        const productionMultiplier = getProductionResourceMul();
+        const canStore = EnergyManager.hasWarehouse() && !EnergyManager.isFull();
+        const add = (building, resource, income = 0, expense = 0) => flows.push({
+            resource, income, expense, label: building._cfg?.name || building._economyType,
+        });
+        for (const building of this._buildings) {
+            if (!building?.active || building._sinking || Number(building.hp ?? 1) <= 0) continue;
+            const type = building._economyType;
+            if (type === 'windmill') {
+                if (canStore) add(building, 'food', this.getWindmillSnapshot(building).actualFoodPerSecond * productionMultiplier);
+            } else if (type === 'wind_power_plant' || type === 'solar_power_plant'
+                || type === 'geothermal_power_plant' || type === 'planar_resonator') {
+                if (!canStore) continue;
+                const snapshot = type === 'wind_power_plant' ? this.getWindPowerSnapshot(building)
+                    : type === 'solar_power_plant' ? this.getSolarPowerSnapshot(building)
+                        : type === 'geothermal_power_plant' ? this.getGeothermalPowerSnapshot(building)
+                            : this.getPlanarResonatorSnapshot(building);
+                add(building, 'energy', snapshot.actualEnergyPerSecond * productionMultiplier);
+            } else if (industrialDefinition(type)) {
+                const snapshot = this.getIndustrialEconomySnapshot(building);
+                if (!snapshot?.canOperate) continue;
+                add(building, snapshot.outputResource,
+                    snapshot.actualOutputPerSecond);
+                add(building, snapshot.inputResource, 0,
+                    snapshot.inputPerCycle * 1000 / snapshot.cycleMs);
+            } else if (type === 'bank') {
+                add(building, 'gold', this.getBankSnapshot(building).goldPerSecond * productionMultiplier);
+            } else if (type === 'royal_mint') {
+                const snapshot = this.getMintSnapshot(building);
+                if (!snapshot.canAffordSettlement) continue;
+                add(building, 'gold', snapshot.goldPerSecond * productionMultiplier);
+                add(building, 'energy', 0, snapshot.energyPerSecond);
+                add(building, 'food', 0, snapshot.foodPerSecond);
+            } else if (type === 'grand_mall') {
+                const snapshot = this.getGrandMallSnapshot(building);
+                if (!snapshot.canOperate) continue;
+                add(building, 'gold', snapshot.goldPerSecond * productionMultiplier);
+                add(building, 'energy', 0, snapshot.energyPerSecond);
+            } else if (type === 'stock_exchange' || type === 'computing_center') {
+                const snapshot = type === 'stock_exchange' ? this.getStockExchangeSnapshot(building)
+                    : this.getComputingCenterSnapshot(building);
+                if (!snapshot.canOperate) continue;
+                add(building, 'gold', snapshot.goldPerSecond);
+                add(building, 'energy', 0, snapshot.energyPerSecond);
+            }
+        }
+        return flows;
+    },
+
     updateBuilding(building, dt) {
         if (!building?._economyType || !building.active) return;
         this._updateEconomyLevelUpgrade(building, dt);
@@ -2159,9 +2441,7 @@ export const PopulationEconomySystem = {
             if (isGeothermal) this._updateGeothermalPowerUpgrade(building, elapsedDt);
             else if (isSolar) this._updateSolarPowerUpgrade(building, elapsedDt);
             else this._updateWindPowerUpgrade(building, elapsedDt);
-            const snapshot = isGeothermal
-                ? this.getGeothermalPowerSnapshot(building)
-                : isSolar
+            const snapshot = isGeothermal ? this.getGeothermalPowerSnapshot(building) : isSolar
                 ? this.getSolarPowerSnapshot(building)
                 : this.getWindPowerSnapshot(building);
             building._economyWorking = snapshot.actualEnergyPerSecond > 0;
@@ -2177,11 +2457,12 @@ export const PopulationEconomySystem = {
                 + snapshot.energyPerCycle * snapshot.conversionRate
                     * snapshot.staffFactor * snapshot.laborEfficiency
                     * snapshot.workshopMultiplier * snapshot.tavernMultiplier
+                    * snapshot.weatherMultiplier
                     * cycles * getProductionResourceMul();
             const energy = Math.floor(total);
             building._workProductionRemainder = total - energy;
             if (energy > 0) {
-                const stored = EnergyManager?.depositEnergy?.(energy) || 0;
+                const stored = EnergyManager?.depositEnergy?.(energy, OPERATING_ACCOUNTING) || 0;
                 building._workProductionRemainder += Math.max(0, energy - stored);
             }
             return;
@@ -2193,8 +2474,8 @@ export const PopulationEconomySystem = {
                 Number(building._workProductionRemainder) || 0));
             if (pendingWhole > 0 && industrial.outputResource !== 'gold') {
                 const stored = industrial.outputResource === 'energy'
-                    ? (EnergyManager?.depositEnergy?.(pendingWhole) || 0)
-                    : (EnergyManager?.depositFood?.(pendingWhole) || 0);
+                    ? (EnergyManager?.depositEnergy?.(pendingWhole, OPERATING_ACCOUNTING) || 0)
+                    : (EnergyManager?.depositFood?.(pendingWhole, OPERATING_ACCOUNTING) || 0);
                 building._workProductionRemainder = Math.max(0,
                     Number(building._workProductionRemainder) || 0) - stored;
             }
@@ -2229,10 +2510,10 @@ export const PopulationEconomySystem = {
             }
             const inputCost = cycles * snapshot.inputPerCycle;
             const paid = snapshot.inputResource === 'gold'
-                ? deductPlayerGold(inputCost)
+                ? deductPlayerGold(inputCost, OPERATING_ACCOUNTING)
                 : snapshot.inputResource === 'energy'
-                    ? !!EnergyManager?.deductEnergy?.(inputCost)
-                    : !!EnergyManager?.deductFood?.(inputCost);
+                    ? !!EnergyManager?.deductEnergy?.(inputCost, OPERATING_ACCOUNTING)
+                    : !!EnergyManager?.deductFood?.(inputCost, OPERATING_ACCOUNTING);
             if (!paid) {
                 building._economyTickMs = Math.min(building._economyTickMs, snapshot.cycleMs);
                 building._economyWorking = false;
@@ -2248,13 +2529,13 @@ export const PopulationEconomySystem = {
             building._workProductionRemainder = total - produced;
             if (produced <= 0) return;
             if (snapshot.outputResource === 'energy') {
-                const stored = EnergyManager?.depositEnergy?.(produced) || 0;
+                const stored = EnergyManager?.depositEnergy?.(produced, OPERATING_ACCOUNTING) || 0;
                 building._workProductionRemainder += Math.max(0, produced - stored);
             } else if (snapshot.outputResource === 'food') {
-                const stored = EnergyManager?.depositFood?.(produced) || 0;
+                const stored = EnergyManager?.depositFood?.(produced, OPERATING_ACCOUNTING) || 0;
                 building._workProductionRemainder += Math.max(0, produced - stored);
             } else {
-                const routed = routeBankGold(produced);
+                const routed = routeBankGold(produced, OPERATING_ACCOUNTING);
                 if (routed.remaining > 0 && Game?.dropItem) {
                     Game.dropItem(building.x, building.y, createGoldItem(routed.remaining));
                 }
@@ -2281,7 +2562,7 @@ export const PopulationEconomySystem = {
             const energy = Math.floor(total);
             building._workProductionRemainder = total - energy;
             if (energy > 0) {
-                const stored = EnergyManager?.depositEnergy?.(energy) || 0;
+                const stored = EnergyManager?.depositEnergy?.(energy, OPERATING_ACCOUNTING) || 0;
                 building._workProductionRemainder += Math.max(0, energy - stored);
             }
             return;
@@ -2290,6 +2571,8 @@ export const PopulationEconomySystem = {
             || building._economyType === 'frost_smokehouse'
             || building._economyType === 'chain_restaurant'
             || building._economyType === 'cheese_farm'
+            || building._economyType === 'corn_farm'
+            || building._economyType === 'mushroom_farm'
             || building._economyType === 'steam_power_plant'
             || building._economyType === 'deep_drill' || building._economyType === 'tavern') return;
         if (building._economyType === 'windmill') {
@@ -2335,13 +2618,13 @@ export const PopulationEconomySystem = {
             }
             const energyCost = settlements * snapshot.energyPerSettlement;
             const foodCost = settlements * snapshot.foodPerSettlement;
-            if (!EnergyManager?.deductEnergy?.(energyCost)) {
+            if (!EnergyManager?.deductEnergy?.(energyCost, OPERATING_ACCOUNTING)) {
                 building._economyWorking = false;
                 building._economyTickMs = snapshot.settlementIntervalMs;
                 return;
             }
-            if (!EnergyManager?.deductFood?.(foodCost)) {
-                EnergyManager?.depositEnergy?.(energyCost);
+            if (!EnergyManager?.deductFood?.(foodCost, OPERATING_ACCOUNTING)) {
+                EnergyManager?.depositEnergy?.(energyCost, OPERATING_ACCOUNTING);
                 building._economyWorking = false;
                 building._economyTickMs = snapshot.settlementIntervalMs;
                 return;
@@ -2353,7 +2636,7 @@ export const PopulationEconomySystem = {
             building._mintGoldRemainder = total - gold;
             building._economyWorking = true;
             if (gold > 0) {
-                const routed = routeBankGold(gold);
+                const routed = routeBankGold(gold, OPERATING_ACCOUNTING);
                 if (routed.remaining > 0 && Game?.dropItem) {
                     Game.dropItem(building.x, building.y, createGoldItem(routed.remaining));
                 }
@@ -2375,7 +2658,7 @@ export const PopulationEconomySystem = {
             const gold = Math.floor(total);
             building._bankGoldRemainder = total - gold;
             if (gold > 0) {
-                const routed = routeBankGold(gold);
+                const routed = routeBankGold(gold, OPERATING_ACCOUNTING);
                 if (routed.remaining > 0 && Game?.dropItem) {
                     Game.dropItem(building.x, building.y, createGoldItem(routed.remaining));
                 }
@@ -2409,7 +2692,7 @@ export const PopulationEconomySystem = {
                 nextEnergyRemainder = energyTotal - batchCost;
                 settlements += 1;
             }
-            if (settlements <= 0 || (energyCost > 0 && !EnergyManager?.deductEnergy?.(energyCost))) {
+            if (settlements <= 0 || (energyCost > 0 && !EnergyManager?.deductEnergy?.(energyCost, OPERATING_ACCOUNTING))) {
                 building._economyWorking = false;
                 building._economyTickMs = Math.min(
                     building._economyTickMs,
@@ -2417,6 +2700,11 @@ export const PopulationEconomySystem = {
                 );
                 return;
             }
+            recordCommerceService(this._getPopulationState(), building.id,
+                this.getGrandMallCoveredHouses(building).map((house) => ({
+                    id: house.id, residents: this.getHouseResidents(house),
+                })), snapshot.staffEfficiency * snapshot.laborEfficiency,
+                settlements * snapshot.settlementIntervalMs);
             building._grandMallEnergyRemainder = nextEnergyRemainder;
             building._economyTickMs -= settlements * snapshot.settlementIntervalMs;
             if (settlements < readySettlements) {
@@ -2428,7 +2716,7 @@ export const PopulationEconomySystem = {
             building._grandMallGoldRemainder = total - gold;
             building._economyWorking = true;
             if (gold > 0) {
-                const routed = routeBankGold(gold);
+                const routed = routeBankGold(gold, OPERATING_ACCOUNTING);
                 if (routed.remaining > 0 && Game?.dropItem) {
                     Game.dropItem(building.x, building.y, createGoldItem(routed.remaining));
                 }
@@ -2475,7 +2763,7 @@ export const PopulationEconomySystem = {
                 settlements += 1;
             }
             if (settlements <= 0 || (energyCost > 0
-                && !EnergyManager?.deductEnergy?.(energyCost))) {
+                && !EnergyManager?.deductEnergy?.(energyCost, OPERATING_ACCOUNTING))) {
                 building._economyWorking = false;
                 building._economyTickMs = Math.min(
                     building._economyTickMs,
@@ -2510,11 +2798,16 @@ export const PopulationEconomySystem = {
             building[goldRemainderField] = goldRemainder;
             building._economyWorking = true;
             if (gold > 0) {
-                const routed = routeBankGold(gold);
+                const routed = routeBankGold(gold, OPERATING_ACCOUNTING);
                 if (routed.remaining > 0 && Game?.dropItem) {
                     Game.dropItem(building.x, building.y, createGoldItem(routed.remaining));
                 }
             }
+            return;
+        }
+        if (building._economyType === 'workshop') {
+            building._economyWorking = WorkshopEconomySystem.getActualEfficiency(building) > 0
+                && this.getLaborEfficiency() > 0;
             return;
         }
         building._economyTickMs += elapsedDt;
@@ -2529,7 +2822,7 @@ export const PopulationEconomySystem = {
             const food = Math.floor(total);
             building._workProductionRemainder = total - food;
             if (food > 0) {
-                const stored = this.addFood(food);
+                const stored = this.addFood(food, OPERATING_ACCOUNTING);
                 building._workProductionRemainder += Math.max(0, food - stored);
             }
         } else if (building._economyType === 'market') {
@@ -2550,5 +2843,11 @@ export const PopulationEconomySystem = {
 // 军事人口与经济人口只共享房屋容量；岗位占用和军事单位占用彼此独立。
 MilitaryPopulationSystem.setCapacityProvider(() => PopulationEconomySystem.getPopulationCapacity());
 EconomyHudSystem.setPopulationProvider(() => PopulationEconomySystem.getPopulationSnapshot());
+EconomyFlowSystem.registerRateProvider('population-rations', () => [{
+    resource: 'food', label: '居民口粮',
+    expense: PopulationEconomySystem.getPopulationSnapshot().total * POPULATION_GROWTH.foodPerPopulation,
+    intervalMs: POPULATION_GROWTH.foodIntervalMs,
+}]);
+EconomyFlowSystem.registerRateProvider('population-economy', () => PopulationEconomySystem.getOperatingResourceFlows());
 
 export { populationEconomyConfig };
