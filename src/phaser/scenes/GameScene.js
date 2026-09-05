@@ -1789,6 +1789,7 @@ export class GameScene extends Scene {
     _reconcileNeutralVisualLayer(data, property, cfg, entity, body) {
         let sprite = data[property];
         const key = cfg?.textureKey;
+        const staticFrame = Number.isInteger(cfg?.frame) ? cfg.frame : null;
         if (!key) {
             if (sprite?.active) sprite.destroy();
             data[property] = null;
@@ -1800,9 +1801,13 @@ export class GameScene extends Scene {
             sprite = null;
         }
         if (!sprite?.active) {
-            sprite = this.add.sprite(entity.x, entity.y, key);
+            sprite = this.add.sprite(
+                entity.x, entity.y, key, staticFrame === null ? undefined : staticFrame);
             sprite.setOrigin(0.5, 0.5);
             data[property] = sprite;
+        }
+        if (staticFrame !== null && Number(sprite.frame?.name) !== staticFrame) {
+            sprite.setFrame(staticFrame);
         }
         sprite.setDisplaySize(
             Number(cfg.displayW) || body.displayWidth,
@@ -3366,6 +3371,12 @@ export class GameScene extends Scene {
     _capWallTowerForegroundDepth(entity, depth) {
         const band = this._wallTowerForegroundBand(entity);
         return band ? Math.min(depth, band.maxUnitDepth) : depth;
+    }
+
+    _groundContactDepth(baseDepth, groundContactCfg = null) {
+        return groundContactCfg?.depthMode === 'ground'
+            ? WORLD_RENDER_LAYERS.STRUCTURE_GROUND_CONTACT
+            : baseDepth - 0.04;
     }
 
     _foregroundOverlayDepth(entity, baseDepth, foregroundCfg = null) {
@@ -12734,11 +12745,14 @@ export class GameScene extends Scene {
                 const visualScaleY = Math.max(0.01,
                     Number(e._structureVisualScaleY ?? e._structureVisualScale) || 1);
                 const contactFootOffsetY = Number(groundContactCfg.footOffsetY);
+                const contactY = groundContactCfg.alignToBody === true
+                    ? sprite.y
+                    : e.y - (Number.isFinite(contactFootOffsetY)
+                        ? contactFootOffsetY * visualScaleY
+                        : shift);
                 groundContactSprite.setPosition(
                     sprite.x + (Number(groundContactCfg.offsetX) || 0) * visualScaleX,
-                    e.y - (Number.isFinite(contactFootOffsetY)
-                        ? contactFootOffsetY * visualScaleY
-                        : shift) + (Number(groundContactCfg.offsetY) || 0) * visualScaleY
+                    contactY + (Number(groundContactCfg.offsetY) || 0) * visualScaleY
                 );
                 groundContactSprite.setDisplaySize(
                     (Number(groundContactCfg.displayW) || sprite.displayWidth) * visualScaleX,
@@ -12821,14 +12835,16 @@ export class GameScene extends Scene {
             // 掩体带 _faceDepth（=墙段底边线 max 端点 y + 12，见 DefenseCover），
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
             // 实体错误排到墙后被盖（2026-08-05 实机复现）
-            if (e._isDefenseStructure || (usesBuildingFootprintVolume(e) && e._structureDepthMode)) {
+            if (e._isEnergyNode
+                || e._isDefenseStructure
+                || (usesBuildingFootprintVolume(e) && e._structureDepthMode)) {
                 const dd = Number.isFinite(e._structureRenderDepth)
                     ? e._structureRenderDepth
                     : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
                 sprite.setDepth(dd);
                 if (groundContactSprite?.active) {
                     groundContactSprite.setDepth(
-                        e._structureRenderChannels?.rearFx ?? (dd - 0.04));
+                        this._groundContactDepth(dd, sprCfg?.groundContact));
                 }
                 if (overlaySprite?.active) overlaySprite.setDepth(dd + 0.01);
                 if (foregroundSprite?.active) {

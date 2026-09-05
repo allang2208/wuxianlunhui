@@ -1,0 +1,63 @@
+{
+  "status": "runtime_installed",
+  "date": "2026-09-01",
+  "generator": "OpenAI built-in ImageGen with accepted energy rubble V03 style reference",
+  "composeFrameSize": [
+    384,
+    216
+  ],
+  "frameSize": [
+    192,
+    108
+  ],
+  "displaySize": [
+    192,
+    108
+  ],
+  "frameCount": 64,
+  "frameMapping": "frame = visualVariant * 16 + fourNeighborMask",
+  "visualVariants": 4,
+  "atlas": {
+    "blue": "assets/terrain/energy_node_ground_surround_blue_tiles.png",
+    "purple": "assets/terrain/energy_node_ground_surround_purple_tiles.png"
+  },
+  "props": [
+    {
+      "variant": 1,
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/raw/surround_prop_1_raw.png",
+      "blue": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/runtime/surround_prop_1_blue.png",
+      "purple": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/runtime/surround_prop_1_purple.png",
+      "runtimeSourceSize": [
+        40,
+        34
+      ]
+    },
+    {
+      "variant": 2,
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/raw/surround_prop_2_raw.png",
+      "blue": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/runtime/surround_prop_2_blue.png",
+      "purple": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/runtime/surround_prop_2_purple.png",
+      "runtimeSourceSize": [
+        65,
+        26
+      ]
+    },
+    {
+      "variant": 3,
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/raw/surround_prop_3_raw.png",
+      "blue": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/runtime/surround_prop_3_blue.png",
+      "purple": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/runtime/surround_prop_3_purple.png",
+      "runtimeSourceSize": [
+        72,
+        27
+      ]
+    }
+  ],
+  "contracts": {
+    "visualOnly": true,
+    "noEntity": true,
+    "noCollisionOrPathfinding": true,
+    "onlyMissingNeighborDirections": true,
+    "fixedLightNoMirror": true
+  }
+}

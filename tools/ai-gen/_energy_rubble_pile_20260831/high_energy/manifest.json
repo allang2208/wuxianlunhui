@@ -1,0 +1,68 @@
+{
+  "sceneId": "scene12",
+  "name": "高能矿脉",
+  "storageMultiplier": 2,
+  "storageConfig": "src/config/energy-config.js#highEnergy",
+  "sourcePipeline": "Approved Dev rubble variants, deterministic local mineral palette derivative",
+  "script": "export-high-energy.py",
+  "alphaPreserved": true,
+  "sharedDepletedState": true,
+  "runtimeInstalled": true,
+  "variants": [
+    {
+      "variant": 1,
+      "source": "assets/terrain/energy_node_rubble_1.png",
+      "output": "assets/terrain/energy_node_high_energy_1.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_1.png",
+      "size": [
+        256,
+        143
+      ],
+      "operation": "mineral-blue-to-purple-v1; RGB-only, no recrop, rescale, alpha edit or whole-rock tint"
+    },
+    {
+      "variant": 2,
+      "source": "assets/terrain/energy_node_rubble_2.png",
+      "output": "assets/terrain/energy_node_high_energy_2.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_2.png",
+      "size": [
+        256,
+        143
+      ],
+      "operation": "mineral-blue-to-purple-v1; RGB-only, no recrop, rescale, alpha edit or whole-rock tint"
+    },
+    {
+      "variant": 3,
+      "source": "assets/terrain/energy_node_rubble_3.png",
+      "output": "assets/terrain/energy_node_high_energy_3.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_3.png",
+      "size": [
+        256,
+        143
+      ],
+      "operation": "mineral-blue-to-purple-v1; RGB-only, no recrop, rescale, alpha edit or whole-rock tint"
+    },
+    {
+      "variant": 4,
+      "source": "assets/terrain/energy_node_rubble_4.png",
+      "output": "assets/terrain/energy_node_high_energy_4.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_4.png",
+      "size": [
+        256,
+        143
+      ],
+      "operation": "mineral-blue-to-purple-v1; RGB-only, no recrop, rescale, alpha edit or whole-rock tint"
+    },
+    {
+      "variant": 5,
+      "source": "assets/terrain/energy_node_rubble_5.png",
+      "output": "assets/terrain/energy_node_high_energy_5.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_5.png",
+      "size": [
+        256,
+        143
+      ],
+      "operation": "mineral-blue-to-purple-v1; RGB-only, no recrop, rescale, alpha edit or whole-rock tint"
+    }
+  ]
+}

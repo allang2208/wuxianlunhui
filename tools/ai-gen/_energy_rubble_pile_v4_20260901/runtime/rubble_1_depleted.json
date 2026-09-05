@@ -1,0 +1,11 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\terrain\\energy_node_rubble_1.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\terrain\\energy_node_rubble_depleted_1.png",
+  "operation": "depleted-cool-gray-no-glow-v1",
+  "size": [
+    256,
+    144
+  ],
+  "alphaPreserved": true,
+  "cyanPixelsMuted": 1263
+}

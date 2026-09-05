@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-01",
+  "authorization": "User requested cleanup of task-produced rejected files before Git update",
+  "removed": [
+    { "path": "candidates_dev_s12/", "reason": "Initial pile batch was rejected as too tall" },
+    { "path": "vein_variations_v1/", "reason": "Did not create a readable mineral-distribution difference" },
+    { "path": "vein_variations_v2/", "reason": "Still failed the five-distribution requirement" },
+    { "path": "candidate-manifest.json", "reason": "Only drove the rejected initial pile batch" },
+    { "path": "energy_rubble_pile_dev_s12_candidates.png", "reason": "Comparison board for rejected initial batch" },
+    { "path": "energy_rubble_pile_height_comparison.png", "reason": "Obsolete preselection comparison" },
+    { "path": "energy_rubble_pile_model.blend1", "reason": "Blender backup cache" },
+    { "path": "__pycache__/", "reason": "Rebuildable Python bytecode" }
+  ],
+  "retained": [
+    "energy_rubble_pile_model.blend",
+    "energy_rubble_pile_body_depth.png",
+    "candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+    "vein_variations_v3/",
+    "runtime/",
+    "high_energy/"
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "id": "energy_rubble_pile",
+  "status": "five_variants_installed_with_compact_generation",
+  "modelApproval": {
+    "date": "2026-08-31",
+    "userRequest": "可以，继续出图渲染吧",
+    "approvedVersion": 2
+  },
+  "version": 2,
+  "request": "One 1x1 stack of individual rocks, including the entire bottom layer; no ground plane, foundation, slab or platform. Keep the approximate isometric footprint and sparse embedded energy veins.",
+  "assetClass": "surface_deposit",
+  "foundationStyle": "none",
+  "footprintCells": 1,
+  "footprintModelSize": [
+    200,
+    200
+  ],
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 848,
+    "topMargin": 80,
+    "widthMargin": 0.86
+  },
+  "footprintProjectionPixels": [
+    [
+      510.5,
+      848.0
+    ],
+    [
+      941.581,
+      633.96
+    ],
+    [
+      513.5,
+      418.419
+    ],
+    [
+      82.419,
+      632.46
+    ]
+  ],
+  "geometry": {
+    "rubbleChunkCount": 24,
+    "groundingRockCount": 49,
+    "oreBearingChunkCount": 4,
+    "looseRockXYLimit": 99,
+    "structure": "Individual overlapping bottom rocks support the larger rubble above; four exposed flat mineral seams remain embedded in upper stones. The outer edge is formed only by rock volumes.",
+    "noGroundPlane": true,
+    "noFoundationSlab": true,
+    "noPipes": true,
+    "noSeamCaps": true,
+    "noUprightCrystals": true
+  },
+  "sources": {
+    "script": "build-model.py",
+    "sharedKit": "tools/ai-gen/building-component-kit.py"
+  },
+  "files": {
+    "model": "energy_rubble_pile_model.blend",
+    "preview": "energy_rubble_pile_model_preview.png",
+    "approvalPreview": "energy_rubble_pile_model_approval_preview.png",
+    "depth": "energy_rubble_pile_body_depth.png",
+    "reviewBoard": "energy_rubble_pile_review_board.png",
+    "candidateManifest": "candidate-manifest.json",
+    "preparedPrompt": "candidates_dev_s12/energy_rubble_pile/energy_rubble_pile_structure_prompt.txt",
+    "candidateBoard": "energy_rubble_pile_dev_s12_candidates.png",
+    "candidatePresentationScript": "present-candidates.py"
+  },
+  "seed": 122831,
+  "aiGeneration": true,
+  "generationAuthorization": {
+    "status": "explicitly_approved",
+    "date": "2026-08-31",
+    "userReply": "同意",
+    "scope": "Explicit approval to upload this model's Depth image, prompt and workflow parameters to the stated ComfyUI destination and download three Dev 12-step candidates.",
+    "destination": "http://192.168.3.142:8188",
+    "payload": [
+      "approved v2 Depth image",
+      "generation prompt and workflow parameters"
+    ],
+    "plannedCandidates": 3,
+    "plannedModel": "flux2-dev-depth",
+    "plannedSteps": 12
+  },
+  "runtimeInstalled": true,
+  "generationResult": {
+    "completedVariants": 3,
+    "seeds": [
+      131831,
+      131832,
+      131833
+    ],
+    "rawDirectory": "candidates_dev_s12/energy_rubble_pile",
+    "selectedStructureCandidate": null,
+    "structureAccepted": false,
+    "refinementStarted": false,
+    "review": "All three raw candidates retain a rock-only base and broad readable stone fields. However, each replaces the approved low multi-rock pile with fewer much taller central boulders, and the mineral seams become brighter, more saturated and more continuous. Do not promote directly to 48-step refinement. The raw outputs are preserved without masking away these changes."
+  },
+  "lowerStructureCorrection": {
+    "userRequest": "同意，可以稍微矮一些，这个堆砌太高了",
+    "status": "low_v03_selected_by_user",
+    "candidateManifest": "candidate-manifest-low.json",
+    "rawDirectory": "candidates_dev_s12_low/energy_rubble_pile",
+    "seeds": [
+      131841,
+      131842,
+      131843
+    ],
+    "completedVariants": 3,
+    "candidateBoard": "energy_rubble_pile_dev_s12_low_candidates.png",
+    "firstCandidateHeightComparison": "energy_rubble_pile_height_comparison.png",
+    "recommendedCandidate": "candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+    "selectedStructureCandidate": "candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+    "userSelection": "同意，以3号为基准，生成5个不同蓝色矿脉分布的图片",
+    "refinementStarted": true,
+    "modelChanged": false,
+    "intent": "Remove generation-induced central height and excessive vein brightness using the same approved low v2 Depth; no image squashing, hard silhouette cropping or runtime changes.",
+    "review": "Candidates 1 and 3 restore a much lower, broader profile with rock-only bottoms. Candidate 3 is preferred for its natural layered rubble and irregular exposed mineral patches; candidate 1 has more gem-like inset pockets. Candidate 2 remains taller and has an unwanted paving-like lower layer. Mineral blue remains brighter than requested and the exact four modeled seams are not preserved, so no candidate is silently accepted or promoted to 48-step refinement.",
+    "structureAccepted": true
+  },
+  "mineralVariations": {
+    "requestedCount": 5,
+    "source": "candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+    "directory": "vein_variations_v3",
+    "strongerAttempt": "vein_variations_v2",
+    "strongerAttemptOutcome": "Only layouts 1 and 3 were generated; old mineral locations remained dominant. Neither is counted among the five delivered layouts.",
+    "standardAttempt": "vein_variations_v1/01_left/mineral_distribution_local_raw.png",
+    "standardAttemptOutcome": "Denoise 0.30 changed texture but did not redistribute the blue mineral patches; excluded from the requested five layouts.",
+    "script": "vein-variations.py",
+    "status": "all_five_installed",
+    "runtimeInstalled": true,
+    "completedCandidates": 5,
+    "selectedCandidate": null,
+    "contactSheet": "vein_variations_v3/mineral-distribution-candidates.png",
+    "model": "flux2-dev-depth",
+    "steps": 48,
+    "denoise": 0.55,
+    "depthStrength": 0.75,
+    "nonstandardLocalDenoise": true,
+    "spatialConditioningGuides": true,
+    "readme": "vein_variations_v3/README.md",
+    "acceptedVariants": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "scope": "Five approved mineral distributions installed with compact cluster growth. Existing grid snapshots retain locations and remaining reserves; one-cell occupancy, zero collision and harvesting lifecycle remain unchanged.",
+  "runtimeExport": "runtime/manifest.json",
+  "runtimeScript": "export-runtime.py",
+  "runtimeAuthorization": "接入游戏，优化生成算法，每次生成尽量扎堆，不要线性排列"
+}

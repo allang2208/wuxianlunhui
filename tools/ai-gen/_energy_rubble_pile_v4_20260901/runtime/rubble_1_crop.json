@@ -1,0 +1,53 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_energy_rubble_pile_v4_20260901\\runtime\\rubble_1_keyed.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_energy_rubble_pile_v4_20260901\\runtime\\rubble_1_body.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 2,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    137,
+    479,
+    1119,
+    966
+  ],
+  "fileSize": [
+    982,
+    487
+  ],
+  "alphaBBox": [
+    0,
+    0,
+    982,
+    487
+  ],
+  "displayW": 128,
+  "displayH": 63,
+  "footOffsetY": 32,
+  "scaleX": 0.13034623217922606,
+  "scaleY": 0.1293634496919918
+}

@@ -1,0 +1,11 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\terrain\\energy_node_high_energy_5.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\terrain\\energy_node_high_energy_depleted_5.png",
+  "operation": "depleted-cool-gray-no-glow-v1",
+  "size": [
+    256,
+    144
+  ],
+  "alphaPreserved": true,
+  "cyanPixelsMuted": 0
+}

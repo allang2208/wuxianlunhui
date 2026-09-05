@@ -5,9 +5,9 @@
  * - 每次攻击按「实际造成伤害 × 50%」产出能源（地面掉落物，装入背包后可用于修建/修理）；
  * - 资源点储量 = hp；耗尽先切暗灰裂纹态，再复用建筑沉陷特效并永久清除；
  * - 资源点只对玩家/队员开放（怪物攻击无效），不做墙体碰撞（避免挡自家塔弹道）；
- * - 贴图 v4：按四邻格生成 16 帧道路式拼接矿脉；旧 3 形态 AI/程序化贴图保留兜底；
+ * - 贴图 v6：五款真实不同轮廓的矮矿堆，附四邻接地层与确定性微变化；旧图集保留兜底；
  * - 每点固定占一个 128×64 等距格，矿簇按四邻格连续密集生成，但仍允许单位穿行；
- * - 视觉宽度完整覆盖单格，并允许边缘少量跨格侵入，使相邻碎石/矿块自然拼接。
+ * - 新矿堆固定光向、不镜像；显示宽度仅按格坐标做96%～104%稳定微缩放。
  */
 import { Game } from '../game.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
@@ -24,9 +24,11 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { BuildingSinkEffect } from '../effects/building-sink.js';
 import {
-    ENERGY_NODE_V3_COUNT,
+    ENERGY_NODE_RUBBLE_COUNT,
     ENERGY_NODE_CONNECTION_BITS,
     energyNodeDirectionalPair,
+    energyNodeGroundContact,
+    energyNodeRubblePair,
     energyNodeVariantPair,
     energyNodeFormMeta,
     ensureEnergyNodeTextures,
@@ -65,6 +67,22 @@ function allowsEnergyNodeOverlapAt(x, y) {
     return false;
 }
 
+/** 只由存档已有的格坐标与变体派生，重进位面不会重新抖动。 */
+function energyNodeVisualVariation(cellI, cellJ, variant) {
+    let hash = Math.imul(cellI | 0, 0x45d9f3b) ^ Math.imul(cellJ | 0, 0x27d4eb2d);
+    hash = Math.imul(hash ^ (variant | 0), 0x85ebca6b);
+    hash ^= hash >>> 16;
+    const scaleSteps = [0.96, 0.98, 1, 1.02, 1.04];
+    const offsetSteps = [-3, -1.5, 0, 1.5, 3];
+    const ySteps = [-1, 0, 1];
+    return {
+        scale: scaleSteps[(hash >>> 0) % scaleSteps.length],
+        offsetX: offsetSteps[((hash >>> 5) >>> 0) % offsetSteps.length],
+        offsetY: ySteps[((hash >>> 11) >>> 0) % ySteps.length],
+        surroundVariant: ((hash >>> 17) >>> 0) % 4,
+    };
+}
+
 // ==================== 资源点实体 ====================
 
 class EnergyNode extends DamageableEntity {
@@ -77,9 +95,10 @@ class EnergyNode extends DamageableEntity {
             maxHp,
             size: cfg.size ?? ENERGY_CONFIG.nodeSize,
             collisionRadius: cfg.collisionRadius ?? ENERGY_CONFIG.nodeRadius,
-            name: cfg.name ?? '能源矿',
+            name: cfg.name ?? (cfg.highEnergy === true ? ENERGY_CONFIG.highEnergy.name : '能源矿'),
         });
         this._isEnergyNode = true;
+        this._isHighEnergyNode = cfg.highEnergy === true;
         // 能源矿是采集资源点，不是战斗训练目标：命中/暴击/击杀均不提供技能修炼经验。
         this._grantsSkillTrainingExp = false;
         const cell = Array.isArray(cfg.cell) ? cfg.cell : blockCellOf(x, y);
@@ -99,28 +118,40 @@ class EnergyNode extends DamageableEntity {
             this.collider.height = 0;
         }
         this.gatherRadius = cfg.gatherRadius ?? ENERGY_CONFIG.gatherRadius ?? 45;
-        this._noShadow = true;      // 岩基矿石透明贴图不额外叠加脚底阴影
+        this._noShadow = true;      // 接地AO由四邻透明层提供，不再叠通用椭圆阴影
         this._dormantBand = true;   // 静态资源点进休眠带；枯竭转场计时可消费聚合 dt
         this.noNameLabel = true;    // 名字/HP 走 _syncNeutralEntities 统一标签
-        // 贴图：优先使用道路式四邻拼接图集，缺失时回退旧 3 形态矿脉。
-        this._variant = Math.max(1, Math.min(ENERGY_NODE_V3_COUNT, cfg.variant || 1));
+        // 五款矿堆优先；缺图时才回退道路式/旧三形态，正常与枯竭使用同一变体。
+        this._variant = Math.max(1, Math.min(ENERGY_NODE_RUBBLE_COUNT, Math.floor(Number(cfg.variant) || 1)));
         const scene = window.__phaserScene;
         ensureEnergyNodeTextures(scene);
-        const directionalPair = energyNodeDirectionalPair(scene);
-        const pair = directionalPair || energyNodeVariantPair(scene, this._variant);
+        const rubblePair = energyNodeRubblePair(scene, this._variant, this._isHighEnergyNode);
+        const directionalPair = rubblePair ? null : energyNodeDirectionalPair(scene);
+        const pair = rubblePair || directionalPair || energyNodeVariantPair(scene, this._variant);
         const texKey = pair.key;
         this._depletedKey = pair.depletedKey;
         this._texSource = pair.source;
+        this._usesRubblePile = !!rubblePair;
+        this._formMeta = rubblePair
+            ? { key: `rubble_${this._variant}`, label: rubblePair.label }
+            : energyNodeFormMeta(this._variant);
         this._usesDirectionalVein = !!directionalPair;
         this._connectionMask = 0;
-        this._facingLeft = directionalPair ? false : Math.random() < 0.5;
-        // 只放大 Sprite 做侵入式拼接；逻辑格、碰撞、采集与生成坐标仍严格保持 1×1。
+        this._facingLeft = (rubblePair || directionalPair) ? false : Math.random() < 0.5;
+        const visualVariation = energyNodeVisualVariation(
+            this._gridCellI, this._gridCellJ, this._variant);
+        this._visualOffsetX = rubblePair ? visualVariation.offsetX : 0;
+        this._visualOffsetY = rubblePair ? visualVariation.offsetY : 0;
+        this._groundSurroundVariant = rubblePair ? visualVariation.surroundVariant : 0;
+        // 正式矿堆只做小幅确定性缩放；旧单体兜底保留历史侵入式随机拼接。
         const stitchScale = ENERGY_CONFIG.visualStitchScale || {};
         const stitchMin = Math.max(1, Number(stitchScale.min) || 1);
         const stitchMax = Math.max(stitchMin, Number(stitchScale.max) || stitchMin);
-        this._displayScale = directionalPair
-            ? 1
-            : stitchMin + Math.random() * (stitchMax - stitchMin);
+        this._displayScale = rubblePair
+            ? visualVariation.scale
+            : (directionalPair
+                ? 1
+                : stitchMin + Math.random() * (stitchMax - stitchMin));
         let aspect = 1.05;
         if (scene && scene.textures && scene.textures.exists(texKey)) {
             const frame = scene.textures.getFrame(texKey, directionalPair ? 0 : undefined);
@@ -130,22 +161,50 @@ class EnergyNode extends DamageableEntity {
         }
         // 方向图集必须保持原生 128×64；若沿用旧单体矿的 130px 侵入式放大，
         // 相邻端点会随中心缩放产生约 1px 漂移。旧兜底贴图仍消费配置宽度。
-        const displayBaseWidth = directionalPair
+        const displayBaseWidth = (rubblePair || directionalPair)
             ? 128
             : (ENERGY_CONFIG.visualDisplayWidth ?? ENERGY_CONFIG.nodeSize);
+        this._displayBaseWidth = displayBaseWidth;
         const displayW = Math.round(displayBaseWidth * this._displayScale);
-        const displayH = Math.round(displayW / aspect);
+        const displayH = rubblePair ? displayW / aspect : Math.round(displayW / aspect);
+        const footOffsetY = displayH / 2
+            - (rubblePair ? ONE_CELL_BUILDING_FOOT.d / 2 : 0)
+            - this._visualOffsetY;
         this._texKey = texKey;
         this.spriteCfg = {
             idleKey: texKey,
             size: displayW,
             sizeH: displayH,
-            footOffsetY: displayH / 2,
+            footOffsetY,
+            offsetX: this._visualOffsetX,
             frame: directionalPair ? 0 : undefined,
         };
-        this.footOffsetY = displayH / 2;
+        const groundContact = rubblePair
+            ? energyNodeGroundContact(
+                scene, 0, this._groundSurroundVariant, this._isHighEnergyNode)
+            : (scene?.textures?.exists('entity_shadow') ? {
+                key: 'entity_shadow',
+                frame: null,
+                displayW: displayBaseWidth * 1.2,
+                displayH: Math.max(12, displayBaseWidth * 0.3),
+                source: 'shared-contact-shadow',
+            } : null);
+        if (groundContact) {
+            this._groundContactBaseWidth = groundContact.displayW;
+            this._groundContactBaseHeight = groundContact.displayH;
+            this.spriteCfg.groundContact = {
+                textureKey: groundContact.key,
+                frame: groundContact.frame,
+                displayW: groundContact.displayW * this._displayScale,
+                displayH: groundContact.displayH * this._displayScale,
+                alignToBody: !!rubblePair,
+                ...(!rubblePair ? { footOffsetY: 0 } : {}),
+                depthMode: 'ground',
+            };
+        }
+        this.footOffsetY = footOffsetY;
         // 统一遮挡锚线（能源矿也参与遮挡仲裁：单位在其后被盖、在前/同线盖过矿点）
-        setupStructureDepth(this, displayW / 2);
+        setupStructureDepth(this, displayW / 2, y + (rubblePair ? ONE_CELL_BUILDING_FOOT.d / 2 : 0));
         this._depleted = false;
         this._collapseTimer = 0;
     }
@@ -224,17 +283,23 @@ class EnergyNode extends DamageableEntity {
         if (frame && frame.realWidth > 0 && frame.realHeight > 0) {
             aspect = frame.realWidth / frame.realHeight;
         }
-        const displayBaseWidth = this._usesDirectionalVein
-            ? 128
-            : (ENERGY_CONFIG.visualDisplayWidth ?? ENERGY_CONFIG.nodeSize);
+        const displayBaseWidth = this._displayBaseWidth;
         const displayW = Math.round(displayBaseWidth * (this._displayScale || 1));
-        const displayH = Math.round(displayW / aspect);
+        const displayH = this._usesRubblePile ? displayW / aspect : Math.round(displayW / aspect);
         this.spriteCfg.idleKey = key;
         if (hasFrame) this.spriteCfg.frame = frameIndex;
         else delete this.spriteCfg.frame;
         this.spriteCfg.size = displayW;
         this.spriteCfg.sizeH = displayH;
-        this.spriteCfg.footOffsetY = displayH / 2;
+        this.spriteCfg.footOffsetY = displayH / 2
+            - (this._usesRubblePile ? ONE_CELL_BUILDING_FOOT.d / 2 : 0)
+            - (Number(this._visualOffsetY) || 0);
+        if (this.spriteCfg.groundContact) {
+            this.spriteCfg.groundContact.displayW = (this._groundContactBaseWidth || 128)
+                * (this._displayScale || 1);
+            this.spriteCfg.groundContact.displayH = (this._groundContactBaseHeight || 72)
+                * (this._displayScale || 1);
+        }
         this.footOffsetY = this.spriteCfg.footOffsetY;
         const data = scene._neutralSprites && scene._neutralSprites.get(this);
         if (data && data.sprite && data.sprite.active) {
@@ -247,6 +312,29 @@ class EnergyNode extends DamageableEntity {
     /** 应用四邻掩码；贴图缺失时保留构造阶段选中的旧版兜底。 */
     _applyConnectionMask(mask) {
         const normalizedMask = Number(mask) & 0x0f;
+        if (this._usesRubblePile) {
+            this._connectionMask = normalizedMask;
+            const contact = energyNodeGroundContact(
+                window.__phaserScene,
+                normalizedMask,
+                this._groundSurroundVariant,
+                this._isHighEnergyNode
+            );
+            if (contact && this.spriteCfg.groundContact) {
+                this._groundContactBaseWidth = contact.displayW;
+                this._groundContactBaseHeight = contact.displayH;
+                this.spriteCfg.groundContact.textureKey = contact.key;
+                this.spriteCfg.groundContact.frame = contact.frame;
+                this.spriteCfg.groundContact.displayW = contact.displayW * this._displayScale;
+                this.spriteCfg.groundContact.displayH = contact.displayH * this._displayScale;
+            }
+            this._formMeta = {
+                key: `rubble_${this._variant}`,
+                label: this._formMeta?.label || `矿堆 ${this._variant}`,
+                mask: normalizedMask,
+            };
+            return false;
+        }
         const pair = energyNodeDirectionalPair(window.__phaserScene);
         if (!pair) return false;
         if (this._usesDirectionalVein
@@ -262,6 +350,7 @@ class EnergyNode extends DamageableEntity {
         this._texSource = pair.source;
         this._facingLeft = false;
         this._displayScale = 1;
+        this._displayBaseWidth = 128;
         this._swapTexture(this._depleted ? pair.depletedKey : pair.key, normalizedMask);
         return true;
     }
@@ -289,7 +378,7 @@ class EnergyNode extends DamageableEntity {
         this.colliderOffsetY = 0;
         EnergyNodeSystem._removeNodeReference(this);
         if (EffectManager) {
-            EffectManager.add(new FloatingTextEffect(this.x, this.y - 36, '能源矿已枯竭', '#8f9999'));
+            EffectManager.add(new FloatingTextEffect(this.x, this.y - 36, `${this.name || '能源矿'}已枯竭`, '#8f9999'));
             EffectManager.add(new BuildingSinkEffect(this).start());
         } else {
             this.active = false;
@@ -305,7 +394,7 @@ export const EnergyNodeSystem = {
     layoutVersion: ENERGY_CONFIG.generation?.layoutVersion ?? 2,
 
     /** 位面首次物化时按世代随机流生成资源布局；完整快照随后会覆盖为既有状态。 */
-    setup({ random = Math.random, portal = null, diamond = null } = {}) {
+    setup({ sceneId = null, random = Math.random, portal = null, diamond = null } = {}) {
         this.teardown();
         this._generationRandom = typeof random === 'function' ? random : Math.random;
         this._portal = portal && Number.isFinite(portal.x) && Number.isFinite(portal.y)
@@ -325,20 +414,31 @@ export const EnergyNodeSystem = {
         }
         // 每世代随机生成 5 个远距密集主簇，并额外生成传送门 1200px 环上的三矿保底簇。
         const layout = this._generateClusterLayout(this._portal, this._diamond);
+        const highEnergy = sceneId === ENERGY_CONFIG.highEnergy.sceneId;
+        const storageMultiplier = highEnergy ? ENERGY_CONFIG.highEnergy.storageMultiplier : 1;
         this._generatedClusters = layout.map(({ cells: _cells, ...cluster }) => cluster);
+        const variantByCell = new Map();
         for (const cl of layout) {
             for (const [ci, cj] of cl.cells) {
                 const [px, py] = blockCellCenter(ci, cj);
-                const storage = ENERGY_CONFIG.storage.min
-                    + Math.floor(this._generationRandom() * (ENERGY_CONFIG.storage.max - ENERGY_CONFIG.storage.min + 1));
-                const variant = this._takeVariant();
+                const storage = (ENERGY_CONFIG.storage.min
+                    + Math.floor(this._generationRandom() * (ENERGY_CONFIG.storage.max - ENERGY_CONFIG.storage.min + 1)))
+                    * storageMultiplier;
+                const adjacentVariants = new Set([
+                    variantByCell.get(this._cellKey(ci + 1, cj)),
+                    variantByCell.get(this._cellKey(ci - 1, cj)),
+                    variantByCell.get(this._cellKey(ci, cj + 1)),
+                    variantByCell.get(this._cellKey(ci, cj - 1)),
+                ].filter(Number.isInteger));
+                const variant = this._takeVariant(adjacentVariants);
+                variantByCell.set(this._cellKey(ci, cj), variant);
                 const node = new EnergyNode(px, py, {
                     hp: storage,
                     maxHp: storage,
+                    highEnergy,
                     variant,
                     cell: [ci, cj],
                 });
-                node._formMeta = energyNodeFormMeta(variant);
                 const id = `energy_node_${this._generationRandom().toString(36).slice(2, 8)}`;
                 node.id = id;
                 Game.entities.set(id, node);
@@ -391,7 +491,6 @@ export const EnergyNodeSystem = {
             }
         }
         this.nodes = [];
-        const clusters = this._generatedClusters || [];
         const occupiedCells = new Set();
         for (const s of list) {
             if (!s || !Number.isInteger(s.cellI) || !Number.isInteger(s.cellJ)) continue;
@@ -400,12 +499,8 @@ export const EnergyNodeSystem = {
             const key = this._cellKey(ci, cj);
             if (occupiedCells.has(key)) continue;
             const [px, py] = blockCellCenter(ci, cj);
-            // 旧存档/HMR 可能保存过基地门口或旧矿簇坐标。快照恢复必须沿用
-            // 当前版本的生成约束，不能把 setup() 已排除的非法矿点重新放回来。
-            const nearCluster = clusters.some((c) =>
-                Math.hypot(px - c.x, py - c.y) <= (c.spread || 320) + 50
-            );
-            if (!nearCluster) continue;
+            // 有格坐标的快照是位置真源。新算法/变体池会改变随机流，不能拿新生成
+            // 的簇心淘汰旧坐标；仍执行地图、门、建筑与同格去重约束。
             if (!this._insideGenerationDiamond(px, py)) continue;
             if (overlapsActiveGateAt(px, py)) continue;
             if (WallSystem && typeof WallSystem.canMoveTo === 'function'
@@ -418,9 +513,10 @@ export const EnergyNodeSystem = {
                 hp: Math.max(0, Math.min(maxHp, Math.floor(s.hp ?? maxHp))),
                 maxHp,
                 variant: s.variant || 1,
+                highEnergy: s.highEnergy === true,
                 cell: [ci, cj],
             });
-            node._formMeta = energyNodeFormMeta(node._variant);
+            node._restoredCellKey = key;
             this._applySnapshotState(node, s);
             const id = `energy_node_${Math.random().toString(36).slice(2, 8)}`;
             node.id = id;
@@ -434,8 +530,8 @@ export const EnergyNodeSystem = {
         }
     },
 
-    /** 运行时矿点强制审计：场上只允许存在当前世代 5+1 簇范围内的矿点——
-     *  ① 不在任何簇（spread+50 内）→ 残留节点，删除；
+    /** 运行时防叠清理：新生矿点限制在当前世代簇内，快照矿点保留原格——
+     *  ① 既不在当前簇内，也不在自己的快照格 → 残留节点，删除；
      *  ② 同一 1×1 格多节点只保留第一个 → 防“贴图叠在一起”。
      *  实机：基地门右柱叠 3 个矿点 + 北边/门边散点均来自旧配置/HMR 残留，一律清除。 */
     sweepStacked() {
@@ -448,8 +544,10 @@ export const EnergyNodeSystem = {
             if (!e || !e._isEnergyNode || !e.active) continue;
             const [ci, cj] = blockCellOf(e.x, e.y);
             const [px, py] = blockCellCenter(ci, cj);
-            // ① 残留节点：不在任何当前簇半径内（spread + 50 余量）
-            const nearCluster = clusters.some((c) => Math.hypot(px - c.x, py - c.y) <= (c.spread || 320) + 50);
+            // 已恢复矿点只认其原快照格；新生成节点仍必须位于当前簇半径内。
+            const key = this._cellKey(ci, cj);
+            const nearCluster = e._restoredCellKey === key || clusters.some((c) =>
+                Math.hypot(px - c.x, py - c.y) <= (c.spread || 320) + 50);
             const blockedByGate = overlapsActiveGateAt(px, py);
             const blockedByStructure = WallSystem && typeof WallSystem.canMoveTo === 'function'
                 && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius)
@@ -462,7 +560,6 @@ export const EnergyNodeSystem = {
                 continue;
             }
             // ② 同格堆叠：只保留第一个；保留项强制回到精确格心。
-            const key = this._cellKey(ci, cj);
             if (seen.has(key)) {
                 e.active = false;
                 Game.entities.delete(k);
@@ -628,7 +725,7 @@ export const EnergyNodeSystem = {
             && !allowsEnergyNodeOverlapAt(x, y));
     },
 
-    /** 从最近合法种子格向四邻格生长，只有成功放置的格才继续产生前沿。 */
+    /** 四邻连续、优先补内侧空隙；约束两轴跨度和密度，避免随机前沿长成直线/长蛇。 */
     _growAdjacentClusterCells(cluster, count, occupiedCells) {
         const neighbors = [[1, 0], [-1, 0], [0, 1], [0, -1]];
         const [seedI, seedJ] = blockCellOf(cluster.x, cluster.y);
@@ -651,35 +748,88 @@ export const EnergyNodeSystem = {
         if (!seed) return [];
 
         const cells = [];
-        const frontier = [];
-        const queued = new Set();
+        const localCells = new Set();
+        const frontier = new Map();
+        const random = this._generationRandom || Math.random;
+        const maxSpan = Math.ceil(Math.sqrt(count)) + 1;
+        let minI = seed[0], maxI = seed[0], minJ = seed[1], maxJ = seed[1];
         const addCell = (cell) => {
             const key = this._cellKey(cell[0], cell[1]);
             occupiedCells.add(key);
+            localCells.add(key);
+            frontier.delete(key);
             cells.push(cell);
+            minI = Math.min(minI, cell[0]);
+            maxI = Math.max(maxI, cell[0]);
+            minJ = Math.min(minJ, cell[1]);
+            maxJ = Math.max(maxJ, cell[1]);
             for (const [di, dj] of neighbors) {
                 const next = [cell[0] + di, cell[1] + dj];
                 const nextKey = this._cellKey(next[0], next[1]);
-                if (!occupiedCells.has(nextKey) && !queued.has(nextKey)) {
-                    queued.add(nextKey);
-                    frontier.push(next);
+                if (!occupiedCells.has(nextKey) && !frontier.has(nextKey)) {
+                    frontier.set(nextKey, next);
                 }
             }
         };
         addCell(seed);
-        let guard = 0;
-        while (cells.length < count && frontier.length > 0 && guard++ < count * 40) {
-            const index = Math.floor(this._generationRandom() * frontier.length);
-            const candidate = frontier.splice(index, 1)[0];
-            queued.delete(this._cellKey(candidate[0], candidate[1]));
-            if (!this._cellAllowed(candidate[0], candidate[1], cluster, occupiedCells)) continue;
-            addCell(candidate);
+        while (cells.length < count && frontier.size > 0) {
+            let best = null;
+            let bestScore = -Infinity;
+            for (const [key, candidate] of frontier) {
+                const [i, j] = candidate;
+                const spanI = Math.max(maxI, i) - Math.min(minI, i) + 1;
+                const spanJ = Math.max(maxJ, j) - Math.min(minJ, j) + 1;
+                if (spanI > maxSpan || spanJ > maxSpan
+                    || !this._cellAllowed(i, j, cluster, occupiedCells)) {
+                    frontier.delete(key);
+                    continue;
+                }
+                const contacts = neighbors.reduce((sum, [di, dj]) =>
+                    sum + (localCells.has(this._cellKey(i + di, j + dj)) ? 1 : 0), 0);
+                const distanceSq = (i - seed[0]) ** 2 + (j - seed[1]) ** 2;
+                const emptyCells = spanI * spanJ - (cells.length + 1);
+                // 相邻边越多越优先；向两轴均衡扩张，小幅随机只打散等价选择。
+                const score = contacts * 5 - distanceSq * 0.7
+                    - Math.abs(spanI - spanJ) * 2 - emptyCells * 0.35 + random() * 1.8;
+                if (score > bestScore) {
+                    best = candidate;
+                    bestScore = score;
+                }
+            }
+            if (!best) break;
+            addCell(best);
+        }
+        if (cells.length === count && count >= 3) {
+            const spanI = maxI - minI + 1;
+            const spanJ = maxJ - minJ + 1;
+            const compact = ENERGY_CONFIG.generation?.compactGrowth || {};
+            const axisRatio = Math.max(spanI, spanJ) / Math.min(spanI, spanJ);
+            if (spanI < 2 || spanJ < 2
+                || axisRatio > (compact.maxAxisRatio ?? 1.75)
+                || count / (spanI * spanJ) < (compact.minFillRatio ?? 0.60)) {
+                // 窄通道等处宁可换簇心重试，也不接纳线性排列；调用方尚未提交这些格。
+                return [];
+            }
         }
         return cells;
     },
 
     _applySnapshotState(node, state) {
         if (!node || !state) return;
+        // 类型只取快照；无字段旧矿仍是普通矿，不因当前位面而补储量或伪装成高能矿。
+        const highEnergy = state.highEnergy === true;
+        if (node._isHighEnergyNode !== highEnergy) {
+            node._isHighEnergyNode = highEnergy;
+            node.name = highEnergy ? ENERGY_CONFIG.highEnergy.name : '能源矿';
+            const pair = node._usesRubblePile
+                ? energyNodeRubblePair(window.__phaserScene, node._variant, highEnergy) : null;
+            if (pair) {
+                node._texKey = pair.key;
+                node._depletedKey = pair.depletedKey;
+                node._texSource = pair.source;
+                node._swapTexture(pair.key);
+            }
+        }
         const maxHp = Math.max(1, Math.floor(state.maxHp || state.hp || node.maxHp || 1));
         node.maxHp = maxHp;
         node.hp = Math.max(0, Math.min(maxHp, Math.floor(state.hp ?? maxHp)));
@@ -712,8 +862,9 @@ export const EnergyNodeSystem = {
             if (byCell.has(this._cellKey(i - 1, j))) mask |= ENERGY_NODE_CONNECTION_BITS.I_NEGATIVE;
             if (byCell.has(this._cellKey(i, j + 1))) mask |= ENERGY_NODE_CONNECTION_BITS.J_POSITIVE;
             if (byCell.has(this._cellKey(i, j - 1))) mask |= ENERGY_NODE_CONNECTION_BITS.J_NEGATIVE;
-            node._applyConnectionMask(mask);
-            node._formMeta = { key: 'directional_mask', label: `方向拼接 ${mask}`, mask };
+            if (node._applyConnectionMask(mask)) {
+                node._formMeta = { key: 'directional_mask', label: `方向拼接 ${mask}`, mask };
+            }
         }
     },
 
@@ -729,9 +880,9 @@ export const EnergyNodeSystem = {
         if (refreshConnections) this._refreshConnections();
     },
 
-    /** 3 形态洗牌袋：一袋内尽量不重复，抽空再洗 */
+    /** 五矿脉分布洗牌袋：一袋内不重复，抽空再洗；编号继续写入既有快照字段。 */
     _refillVariantBag() {
-        this._variantBag = Array.from({ length: ENERGY_NODE_V3_COUNT }, (_, i) => i + 1);
+        this._variantBag = Array.from({ length: ENERGY_NODE_RUBBLE_COUNT }, (_, i) => i + 1);
         for (let i = this._variantBag.length - 1; i > 0; i--) {
             const random = this._generationRandom || Math.random;
             const j = Math.floor(random() * (i + 1));
@@ -739,11 +890,20 @@ export const EnergyNodeSystem = {
         }
     },
 
-    _takeVariant() {
+    _takeVariant(avoidVariants = null) {
         if (!Array.isArray(this._variantBag) || this._variantBag.length === 0) {
             this._refillVariantBag();
         }
-        return this._variantBag.pop();
+        const avoid = avoidVariants instanceof Set ? avoidVariants : new Set(avoidVariants || []);
+        for (let i = this._variantBag.length - 1; i >= 0; i--) {
+            if (avoid.has(this._variantBag[i])) continue;
+            return this._variantBag.splice(i, 1)[0];
+        }
+        // 当前袋中若只剩邻格已用形态，从完整池补一个合法形态；最多四邻，必有候选。
+        const candidates = Array.from({ length: ENERGY_NODE_RUBBLE_COUNT }, (_, i) => i + 1)
+            .filter((variant) => !avoid.has(variant));
+        const random = this._generationRandom || Math.random;
+        return candidates[Math.floor(random() * candidates.length)] || this._variantBag.pop() || 1;
     },
 
     /** 场景离场拆除（实体由 switchScene 统一 Game.entities.clear） */
@@ -762,8 +922,8 @@ export const EnergyNodeSystem = {
     /** 资源点实体自带 update（主循环调用），系统层无需逐帧推进 */
 
     /** 资源点贴图：
-     *  1) 优先 BootScene 已加载的 16 帧道路式四邻拼接图集；
-     *  2) 图集缺失时，回退 3 种 AI 裸露矿脉或程序化同语义兜底；
+     *  1) 优先 BootScene 已加载的五款正常/枯竭矿堆配对；
+     *  2) 缺失时回退16帧道路式图集，再回退三种旧AI/程序化矿脉；
      *  3) energy_node / energy_node_depleted 仍保留 64×64 占位，仅用于极端加载失败路径。 */
     _ensureTextures() {
         const scene = window.__phaserScene;

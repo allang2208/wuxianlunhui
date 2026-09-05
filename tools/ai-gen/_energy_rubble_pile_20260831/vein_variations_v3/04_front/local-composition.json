@@ -1,0 +1,11 @@
+{
+  "source": "tools/ai-gen/_energy_rubble_pile_20260831/candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+  "generationRaw": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/04_front/energy_rubble_pile/energy_rubble_pile_refine_v01_raw.png",
+  "mask": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/04_front/mineral-mask.png",
+  "generationMetadata": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/04_front/energy_rubble_pile/energy_rubble_pile_refine_v01_generation.json",
+  "output": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/04_front/mineral_distribution_local_raw.png",
+  "maskFeatherPixels": 2,
+  "operation": "Generated pixels within the authored local mask; exact selected v03 pixels everywhere else.",
+  "runtimeInstalled": false,
+  "conditioningImage": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/04_front/mineral-layout-conditioning.png"
+}

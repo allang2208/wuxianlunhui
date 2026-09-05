@@ -12,6 +12,8 @@ export const WORLD_RENDER_LAYERS = Object.freeze({
     // 农田菱形会与相邻道路产生像素重叠，必须盖过完整道路层族。
     FIELD: -994.85,
     GROUND_RANGE: -994.8,
+    // 独立接地层位于共享太阳阴影下，避免跟随建筑立面参与前后遮挡。
+    STRUCTURE_GROUND_CONTACT: -994.5,
     STRUCTURE_SHADOW: -994.4,
     GROUND_WEATHER: -994.3,
     FLAT_STRUCTURE: -994.2,

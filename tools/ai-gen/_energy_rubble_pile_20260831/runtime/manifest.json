@@ -1,0 +1,97 @@
+{
+  "status": "exported_for_runtime",
+  "runtimeInstalled": true,
+  "userAuthorization": "接入游戏，优化生成算法，每次生成尽量扎堆，不要线性排列",
+  "keyThreshold": 100,
+  "removeAllGreen": true,
+  "depthUsedForAlpha": false,
+  "runtimeWidthPixels": 256,
+  "pipeline": [
+    "key-world122-building-body.py",
+    "finalize-building-runtime.py",
+    "aspect-preserving runtime downsample",
+    "make-energy-vein-depleted.py"
+  ],
+  "variants": [
+    {
+      "variant": 1,
+      "label": "左侧集中",
+      "source": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/01_left/mineral_distribution_local_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_1.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_1.png",
+      "fileSize": [
+        256,
+        143
+      ],
+      "displayWidth": 128,
+      "footOffsetY": 3.75,
+      "anchor": "cell center; bottom of sprite at cell center + 32px",
+      "mirrored": false,
+      "randomScale": false
+    },
+    {
+      "variant": 2,
+      "label": "右侧集中",
+      "source": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/02_right/mineral_distribution_local_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_2.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_2.png",
+      "fileSize": [
+        256,
+        143
+      ],
+      "displayWidth": 128,
+      "footOffsetY": 3.75,
+      "anchor": "cell center; bottom of sprite at cell center + 32px",
+      "mirrored": false,
+      "randomScale": false
+    },
+    {
+      "variant": 3,
+      "label": "中部串联",
+      "source": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/03_center/mineral_distribution_local_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_3.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_3.png",
+      "fileSize": [
+        256,
+        143
+      ],
+      "displayWidth": 128,
+      "footOffsetY": 3.75,
+      "anchor": "cell center; bottom of sprite at cell center + 32px",
+      "mirrored": false,
+      "randomScale": false
+    },
+    {
+      "variant": 4,
+      "label": "前沿散点",
+      "source": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/04_front/mineral_distribution_local_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_4.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_4.png",
+      "fileSize": [
+        256,
+        143
+      ],
+      "displayWidth": 128,
+      "footOffsetY": 3.75,
+      "anchor": "cell center; bottom of sprite at cell center + 32px",
+      "mirrored": false,
+      "randomScale": false
+    },
+    {
+      "variant": 5,
+      "label": "对角分布",
+      "source": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/05_diagonal/mineral_distribution_local_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_5.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_5.png",
+      "fileSize": [
+        256,
+        143
+      ],
+      "displayWidth": 128,
+      "footOffsetY": 3.75,
+      "anchor": "cell center; bottom of sprite at cell center + 32px",
+      "mirrored": false,
+      "randomScale": false
+    }
+  ]
+}

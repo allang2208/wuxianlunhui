@@ -1,7 +1,8 @@
 /**
- * 世界-122 裸露能量矿脉 v3 纹理生成器（运行时程序化兜底）。
+ * 世界-122 能量矿脉正式纹理选择器与 v3 程序化兜底。
  *
- * 设计目标：
+ * 正式资源：五种真实碎石轮廓、蓝/紫及各自枯竭态、蓝/紫各64帧外围环境图集。
+ * 旧兜底目标：
  * - 使用三种贴地形态（横向裂隙/中心矿窝/Y形分叉）；
  * - 每颗节点从三形态池随机抽选，并随机水平镜像；
  * - 逻辑占格仍为1格，视觉只显示26.565°碎石 footprint 与宽扁能量块；
@@ -10,6 +11,61 @@
  */
 
 export const ENERGY_NODE_V3_COUNT = 3;
+export const ENERGY_NODE_RUBBLE_COUNT = 5;
+export const ENERGY_NODE_GROUND_CONTACT_COUNT = 16;
+
+const RUBBLE_LABELS = ['紧凑台地', '双峰鞍部', '低矮斜脊', '前沿散石', '弧形缺口'];
+
+/** 已确认的五款独立矿堆；正常/枯竭必须成对可用，缺失才回退旧素材。 */
+export function energyNodeRubblePair(scene, idx, highEnergy = false) {
+    const n = Math.max(1, Math.min(ENERGY_NODE_RUBBLE_COUNT, Math.floor(Number(idx) || 1)));
+    const key = `energy_node_rubble_${n}`;
+    const depletedKey = `energy_node_rubble_depleted_${n}`;
+    const highEnergyKey = `energy_node_high_energy_${n}`;
+    const highEnergyDepletedKey = `energy_node_high_energy_depleted_${n}`;
+    if (highEnergy && scene?.textures?.exists(highEnergyKey)) {
+        const pairedDepleted = scene.textures.exists(highEnergyDepletedKey)
+            ? highEnergyDepletedKey
+            : depletedKey;
+        if (scene.textures.exists(pairedDepleted)) {
+            return {
+                key: highEnergyKey,
+                depletedKey: pairedDepleted,
+                source: 'imagegen-rubble-purple-v4',
+                label: RUBBLE_LABELS[n - 1],
+            };
+        }
+    }
+    if (!scene?.textures?.exists(key) || !scene.textures.exists(depletedKey)) return null;
+    return { key, depletedKey, source: 'imagegen-rubble-v4', label: RUBBLE_LABELS[n - 1] };
+}
+
+/** 四邻接地层图集；frame = 稳定外圈形态 * 16 + 邻接mask。 */
+export function energyNodeGroundContact(scene, mask, visualVariant = 0, highEnergy = false) {
+    const normalized = Number(mask) & 0x0f;
+    const variant = Math.max(0, Math.min(3, Math.floor(Number(visualVariant) || 0)));
+    const atlasKey = highEnergy
+        ? 'energy_node_ground_surround_purple_tiles'
+        : 'energy_node_ground_surround_blue_tiles';
+    if (scene?.textures?.exists(atlasKey)) {
+        return {
+            key: atlasKey,
+            frame: variant * 16 + normalized,
+            displayW: 192,
+            displayH: 108,
+            source: 'energy-surround-atlas-v1',
+        };
+    }
+    const fallbackKey = `energy_node_ground_contact_${normalized}`;
+    if (!scene?.textures?.exists(fallbackKey)) return null;
+    return {
+        key: fallbackKey,
+        frame: null,
+        displayW: 128,
+        displayH: 72,
+        source: 'energy-contact-v1-fallback',
+    };
+}
 
 const FLOOR_SLOPE = 0.5;    // 2:1 等距地面轴，屏幕角 atan(0.5)=26.565°
 const BASE_INSET = 2;       // 土堆前顶点离画布底边的像素（贴图底部即实体脚底）
@@ -212,21 +268,6 @@ function drawGroundMound(ctx, form, pal, rand, depleted) {
     const right = [cx + halfW, baseY - halfD];
     const back = [cx, baseY - halfD * 2];
     const rock = pal.ground;
-
-    // 接触阴影（烘焙进贴图，实体本身 _noShadow）
-    const shadowR = halfW * 1.55;
-    ctx.save();
-    ctx.translate(cx, baseY + 4);
-    ctx.scale(1, 0.3);
-    const sh = ctx.createRadialGradient(0, 0, 2, 0, 0, shadowR);
-    sh.addColorStop(0, 'rgba(0,0,0,0.42)');
-    sh.addColorStop(0.55, 'rgba(0,0,0,0.2)');
-    sh.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = sh;
-    ctx.beginPath();
-    ctx.arc(0, 0, shadowR, 0, TAU);
-    ctx.fill();
-    ctx.restore();
 
     // 顶面（背光面）：left-back-right
     const topGrad = ctx.createLinearGradient(0, back[1], 0, baseY);

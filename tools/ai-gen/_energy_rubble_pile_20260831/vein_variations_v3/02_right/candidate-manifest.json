@@ -1,0 +1,134 @@
+{
+  "outputRoot": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/02_right",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureSeedBase": 131840,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 1,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "assets": [
+    {
+      "id": "energy_rubble_pile",
+      "label": "矿脉分布2：右侧集中",
+      "assetClass": "surface_deposit",
+      "surfaceDepositForm": "stacked_rubble",
+      "assetType": "World-122 low broad 1x1 energy-bearing rubble resource",
+      "foundationStyle": "none",
+      "footprintCells": 1,
+      "controlImage": "tools/ai-gen/_energy_rubble_pile_20260831/energy_rubble_pile_body_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_energy_rubble_pile_20260831/energy_rubble_pile_body_depth.png",
+      "primaryRequest": "low squat heap of angular gray rubble spreading horizontally, with several modest rock crowns across a gently domed top and smaller overlapping stones around the bottom; four short muted blue mineral inlays sit flush inside rock fractures",
+      "structureRequest": "low squat heap of angular gray rubble, spreading horizontally with a shallow gently domed top. Several similarly sized low rock crowns form the crest, distributed across the width. The complete screen silhouette is about twice as wide as high, matching the supplied Depth; its jagged bottom consists of individual overlapping stones. Four short muted blue mineral inlays lie flush in the fractures of separate rocks",
+      "detailRequest": "preserve the selected broad low rock arrangement and restrained inlays; refine only the existing calm stone planes without adding height or finer gravel",
+      "paletteConstraint": "match the selected v03 gray stone and blue mineral family; use restrained medium-blue exposures, no white-hot cyan cores, halo, colored light or dense crystal glitter",
+      "negativeRequest": "no dominant central peak, upright boulder, stacked cairn, standing monolith, continuous bright blue outline or neon vein network",
+      "userCorrection": "同意，可以稍微矮一些，这个堆砌太高了",
+      "modelApproval": "Approved low model v2 remains unchanged; this batch corrects generation height drift and excessive mineral brightness",
+      "selectedStructureCandidate": "tools/ai-gen/_energy_rubble_pile_20260831/candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+      "selection": "User selected low v03 and requested five different blue mineral distributions; no runtime installation requested",
+      "runtimeInstalled": false,
+      "variationScope": "mineral_distribution",
+      "maskedRefineRequest": "low gray rock pile with four separate small irregular BLUE mineral exposures already positioned in the input image. Preserve their current positions and sizes: four small irregular blue mineral exposures concentrated on the SCREEN-RIGHT shoulder and right-front rocks; all screen-left rocks and the central crown remain plain gray. Refine only the mineral texture and its natural flush contact with stone. Keep all other stone surfaces gray.",
+      "userRequest": "同意，以3号为基准，生成5个不同蓝色矿脉分布的图片",
+      "mineralLayout": {
+        "id": "right",
+        "label": "右侧集中",
+        "layout": "four small irregular blue mineral exposures concentrated on the SCREEN-RIGHT shoulder and right-front rocks; all screen-left rocks and the central crown remain plain gray",
+        "regions": [
+          [
+            [
+              632,
+              489
+            ],
+            [
+              657,
+              498
+            ],
+            [
+              675,
+              528
+            ],
+            [
+              647,
+              541
+            ]
+          ],
+          [
+            [
+              696,
+              536
+            ],
+            [
+              717,
+              540
+            ],
+            [
+              737,
+              573
+            ],
+            [
+              713,
+              580
+            ]
+          ],
+          [
+            [
+              747,
+              604
+            ],
+            [
+              780,
+              601
+            ],
+            [
+              800,
+              624
+            ],
+            [
+              770,
+              644
+            ]
+          ],
+          [
+            [
+              591,
+              675
+            ],
+            [
+              621,
+              665
+            ],
+            [
+              635,
+              691
+            ],
+            [
+              608,
+              709
+            ]
+          ]
+        ]
+      },
+      "localMask": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/02_right/mineral-mask.png",
+      "sourceImage": "tools/ai-gen/_energy_rubble_pile_20260831/candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+      "localDenoise": 0.55,
+      "conditioningImage": "tools/ai-gen/_energy_rubble_pile_20260831/vein_variations_v3/02_right/mineral-layout-conditioning.png",
+      "conditioningMethod": "Selected v03: gray restoration of old mineral regions and placement of its existing mineral samples as spatial guides; these guide pixels are subsequently rendered by Dev.",
+      "localDenoiseReason": "The standard 48-step denoise 0.30 first attempt preserved the old blue locations. This stronger repaint is confined to small mineral masks, with original pixels composited everywhere else."
+    }
+  ],
+  "refineSeedBase": 131852
+}

@@ -1,0 +1,177 @@
+{
+  "date": "2026-09-01",
+  "status": "five_distinct_low_rubble_models",
+  "sourceAuthority": "tools/ai-gen/_energy_rubble_pile_20260831 selected low v03",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 848,
+    "topMargin": 80,
+    "widthMargin": 0.86
+  },
+  "footprintCells": 1,
+  "contracts": {
+    "noGroundPlane": true,
+    "noFoundation": true,
+    "sameCameraAndFootline": true,
+    "lowProfile": true,
+    "fixedLightDirection": true
+  },
+  "variants": [
+    {
+      "variant": 1,
+      "id": "compact_plateau",
+      "label": "紧凑平台",
+      "seed": 122901,
+      "upperRockCount": 8,
+      "groundingRockCount": 30,
+      "oreBearingRockCount": 3,
+      "preview": "variant_1_compact_plateau/model_preview.png",
+      "depth": "variant_1_compact_plateau/body_depth.png",
+      "model": "variant_1_compact_plateau/model.blend",
+      "footprintProjectionPixels": [
+        [
+          510.5,
+          848.0
+        ],
+        [
+          941.581,
+          633.96
+        ],
+        [
+          513.5,
+          418.419
+        ],
+        [
+          82.419,
+          632.46
+        ]
+      ]
+    },
+    {
+      "variant": 2,
+      "id": "twin_saddle",
+      "label": "双丘鞍部",
+      "seed": 122902,
+      "upperRockCount": 9,
+      "groundingRockCount": 33,
+      "oreBearingRockCount": 3,
+      "preview": "variant_2_twin_saddle/model_preview.png",
+      "depth": "variant_2_twin_saddle/body_depth.png",
+      "model": "variant_2_twin_saddle/model.blend",
+      "footprintProjectionPixels": [
+        [
+          510.5,
+          848.0
+        ],
+        [
+          941.581,
+          633.96
+        ],
+        [
+          513.5,
+          418.419
+        ],
+        [
+          82.419,
+          632.46
+        ]
+      ]
+    },
+    {
+      "variant": 3,
+      "id": "diagonal_ridge",
+      "label": "斜向低脊",
+      "seed": 122903,
+      "upperRockCount": 10,
+      "groundingRockCount": 18,
+      "oreBearingRockCount": 3,
+      "preview": "variant_3_diagonal_ridge/model_preview.png",
+      "depth": "variant_3_diagonal_ridge/body_depth.png",
+      "model": "variant_3_diagonal_ridge/model.blend",
+      "footprintProjectionPixels": [
+        [
+          510.5,
+          848.0
+        ],
+        [
+          941.581,
+          633.96
+        ],
+        [
+          513.5,
+          418.419
+        ],
+        [
+          82.419,
+          632.46
+        ]
+      ]
+    },
+    {
+      "variant": 4,
+      "id": "front_scatter",
+      "label": "前沿散堆",
+      "seed": 122904,
+      "upperRockCount": 11,
+      "groundingRockCount": 33,
+      "oreBearingRockCount": 3,
+      "preview": "variant_4_front_scatter/model_preview.png",
+      "depth": "variant_4_front_scatter/body_depth.png",
+      "model": "variant_4_front_scatter/model.blend",
+      "footprintProjectionPixels": [
+        [
+          510.5,
+          848.0
+        ],
+        [
+          941.581,
+          633.96
+        ],
+        [
+          513.5,
+          418.419
+        ],
+        [
+          82.419,
+          632.46
+        ]
+      ]
+    },
+    {
+      "variant": 5,
+      "id": "crescent_notch",
+      "label": "月牙缺口",
+      "seed": 122905,
+      "upperRockCount": 10,
+      "groundingRockCount": 28,
+      "oreBearingRockCount": 3,
+      "preview": "variant_5_crescent_notch/model_preview.png",
+      "depth": "variant_5_crescent_notch/body_depth.png",
+      "model": "variant_5_crescent_notch/model.blend",
+      "footprintProjectionPixels": [
+        [
+          510.5,
+          848.0
+        ],
+        [
+          941.581,
+          633.96
+        ],
+        [
+          513.5,
+          418.419
+        ],
+        [
+          82.419,
+          632.46
+        ]
+      ]
+    }
+  ],
+  "runtimeInstalled": true,
+  "runtimeManifest": "runtime/manifest.json",
+  "runtimePreview": "runtime/runtime-art-preview.png"
+}

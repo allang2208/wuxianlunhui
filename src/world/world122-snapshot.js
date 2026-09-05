@@ -877,6 +877,7 @@ export function captureWorld(sceneId = 'scene8') {
         x: n.x, y: n.y, hp: Math.ceil(n.hp), maxHp: n.maxHp,
         depleted: !!n._depleted, collapseTimer: n._collapseTimer || 0,
         variant: n._variant || 1,
+        highEnergy: !!n._isHighEnergyNode,
         cellI: Number.isInteger(n._gridCellI) ? n._gridCellI : undefined,
         cellJ: Number.isInteger(n._gridCellJ) ? n._gridCellJ : undefined,
     }));

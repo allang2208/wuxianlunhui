@@ -1828,6 +1828,7 @@ export const SceneManager = {
             const portalSpawn = WorldProgressionSystem.getWorldConfig(sceneId)?.portalSpawn
                 || { x: diamond?.cx || CONFIG.WORLD_WIDTH / 2, y: diamond?.cy || CONFIG.WORLD_HEIGHT / 2 };
             EnergyNodeSystem.setup({
+                sceneId,
                 random: WorldProgressionSystem.createWorldRandom(sceneId, `resources:${generation.resourceRule}`),
                 portal: portalSpawn,
                 diamond,

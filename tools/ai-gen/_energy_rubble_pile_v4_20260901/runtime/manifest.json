@@ -1,0 +1,217 @@
+{
+  "status": "runtime_installed",
+  "date": "2026-09-01",
+  "sourceGenerator": "OpenAI built-in ImageGen with accepted v03 style authority and five Blender structure references",
+  "lanComfyUi": "not used; upload request was rejected because the prior standing LAN authorization was scoped to mining-guild building assets",
+  "runtimeCanvas": [
+    256,
+    144
+  ],
+  "runtimeDisplay": [
+    128,
+    72
+  ],
+  "sharedBottomLine": 141,
+  "randomMirrorOrRotation": false,
+  "integrationPreview": "tools/ai-gen/_energy_rubble_pile_v4_20260901/runtime/ground-integration-preview.png",
+  "surroundingPropsManifest": "tools/ai-gen/_energy_rubble_pile_v4_20260901/surroundings/manifest.json",
+  "variants": [
+    {
+      "variant": 1,
+      "label": "紧凑台地",
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/raw/energy_rubble_v4_1_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_1.png",
+      "highEnergy": "assets/terrain/energy_node_high_energy_1.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_1.png",
+      "highEnergyDepleted": "assets/terrain/energy_node_high_energy_depleted_1.png",
+      "placement": {
+        "sourceCrop": [
+          0,
+          0,
+          982,
+          487
+        ],
+        "contentSize": [
+          234,
+          116
+        ],
+        "contentPaste": [
+          11,
+          25
+        ],
+        "canvasSize": [
+          256,
+          144
+        ]
+      },
+      "purple": {
+        "mineralPixels": 405,
+        "operation": "blue-to-pure-violet plus cavern-charcoal-shell-v2",
+        "alphaPreserved": true
+      }
+    },
+    {
+      "variant": 2,
+      "label": "双峰鞍部",
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/raw/energy_rubble_v4_2_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_2.png",
+      "highEnergy": "assets/terrain/energy_node_high_energy_2.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_2.png",
+      "highEnergyDepleted": "assets/terrain/energy_node_high_energy_depleted_2.png",
+      "placement": {
+        "sourceCrop": [
+          0,
+          0,
+          1071,
+          419
+        ],
+        "contentSize": [
+          248,
+          97
+        ],
+        "contentPaste": [
+          4,
+          44
+        ],
+        "canvasSize": [
+          256,
+          144
+        ]
+      },
+      "purple": {
+        "mineralPixels": 386,
+        "operation": "blue-to-pure-violet plus cavern-charcoal-shell-v2",
+        "alphaPreserved": true
+      }
+    },
+    {
+      "variant": 3,
+      "label": "低矮斜脊",
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/raw/energy_rubble_v4_3_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_3.png",
+      "highEnergy": "assets/terrain/energy_node_high_energy_3.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_3.png",
+      "highEnergyDepleted": "assets/terrain/energy_node_high_energy_depleted_3.png",
+      "placement": {
+        "sourceCrop": [
+          0,
+          0,
+          913,
+          467
+        ],
+        "contentSize": [
+          227,
+          116
+        ],
+        "contentPaste": [
+          14,
+          25
+        ],
+        "canvasSize": [
+          256,
+          144
+        ]
+      },
+      "purple": {
+        "mineralPixels": 773,
+        "operation": "blue-to-pure-violet plus cavern-charcoal-shell-v2",
+        "alphaPreserved": true
+      }
+    },
+    {
+      "variant": 4,
+      "label": "前沿散石",
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/raw/energy_rubble_v4_4_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_4.png",
+      "highEnergy": "assets/terrain/energy_node_high_energy_4.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_4.png",
+      "highEnergyDepleted": "assets/terrain/energy_node_high_energy_depleted_4.png",
+      "placement": {
+        "sourceCrop": [
+          0,
+          0,
+          943,
+          524
+        ],
+        "contentSize": [
+          209,
+          116
+        ],
+        "contentPaste": [
+          23,
+          25
+        ],
+        "canvasSize": [
+          256,
+          144
+        ]
+      },
+      "purple": {
+        "mineralPixels": 740,
+        "operation": "blue-to-pure-violet plus cavern-charcoal-shell-v2",
+        "alphaPreserved": true
+      }
+    },
+    {
+      "variant": 5,
+      "label": "弧形缺口",
+      "raw": "tools/ai-gen/_energy_rubble_pile_v4_20260901/raw/energy_rubble_v4_5_raw.png",
+      "normal": "assets/terrain/energy_node_rubble_5.png",
+      "highEnergy": "assets/terrain/energy_node_high_energy_5.png",
+      "depleted": "assets/terrain/energy_node_rubble_depleted_5.png",
+      "highEnergyDepleted": "assets/terrain/energy_node_high_energy_depleted_5.png",
+      "placement": {
+        "sourceCrop": [
+          0,
+          0,
+          873,
+          507
+        ],
+        "contentSize": [
+          200,
+          116
+        ],
+        "contentPaste": [
+          28,
+          25
+        ],
+        "canvasSize": [
+          256,
+          144
+        ]
+      },
+      "purple": {
+        "mineralPixels": 646,
+        "operation": "blue-to-pure-violet plus cavern-charcoal-shell-v2",
+        "alphaPreserved": true
+      }
+    }
+  ],
+  "groundContacts": {
+    "count": 16,
+    "maskBits": {
+      "1": "+i",
+      "2": "-i",
+      "4": "+j",
+      "8": "-j"
+    },
+    "files": [
+      "assets/terrain/energy_node_ground_contact_0.png",
+      "assets/terrain/energy_node_ground_contact_1.png",
+      "assets/terrain/energy_node_ground_contact_2.png",
+      "assets/terrain/energy_node_ground_contact_3.png",
+      "assets/terrain/energy_node_ground_contact_4.png",
+      "assets/terrain/energy_node_ground_contact_5.png",
+      "assets/terrain/energy_node_ground_contact_6.png",
+      "assets/terrain/energy_node_ground_contact_7.png",
+      "assets/terrain/energy_node_ground_contact_8.png",
+      "assets/terrain/energy_node_ground_contact_9.png",
+      "assets/terrain/energy_node_ground_contact_10.png",
+      "assets/terrain/energy_node_ground_contact_11.png",
+      "assets/terrain/energy_node_ground_contact_12.png",
+      "assets/terrain/energy_node_ground_contact_13.png",
+      "assets/terrain/energy_node_ground_contact_14.png",
+      "assets/terrain/energy_node_ground_contact_15.png"
+    ]
+  }
+}

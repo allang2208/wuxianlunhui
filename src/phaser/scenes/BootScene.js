@@ -9,6 +9,10 @@ import { GAME_CONFIG } from '../../config/game-config.js';
 import swampStoneWallKit from '../../../data/swamp-stone-wall-kit.json';
 import { loadWallPrefabs, loadObstacleLayout, loadObstacleDefaults } from '../../world/wall-prefabs.js';
 import { WallSystem } from '../../world/wall-system.js';
+import {
+    ENERGY_NODE_GROUND_CONTACT_COUNT,
+    ENERGY_NODE_RUBBLE_COUNT,
+} from '../../world/energy-node-textures.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 import companionConfigData from '../../../data/companion-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
@@ -299,7 +303,27 @@ export class BootScene extends Scene {
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
-        // 世界-122 能源资源点：道路式四邻拼接为主（frame=4-bit 邻接掩码）。
+        // 世界-122 能源资源点：五款矮矿堆为主，固定同一光向与单格底边。
+        for (let i = 1; i <= ENERGY_NODE_RUBBLE_COUNT; i++) {
+            this.load.image(`energy_node_rubble_${i}`, `assets/terrain/energy_node_rubble_${i}.png`);
+            this.load.image(`energy_node_rubble_depleted_${i}`, `assets/terrain/energy_node_rubble_depleted_${i}.png`);
+            this.load.image(`energy_node_high_energy_${i}`, `assets/terrain/energy_node_high_energy_${i}.png`);
+            this.load.image(`energy_node_high_energy_depleted_${i}`, `assets/terrain/energy_node_high_energy_depleted_${i}.png`);
+        }
+        this.load.spritesheet(
+            'energy_node_ground_surround_blue_tiles',
+            'assets/terrain/energy_node_ground_surround_blue_tiles.png',
+            { frameWidth: 192, frameHeight: 108, endFrame: 63 }
+        );
+        this.load.spritesheet(
+            'energy_node_ground_surround_purple_tiles',
+            'assets/terrain/energy_node_ground_surround_purple_tiles.png',
+            { frameWidth: 192, frameHeight: 108, endFrame: 63 }
+        );
+        for (let mask = 0; mask < ENERGY_NODE_GROUND_CONTACT_COUNT; mask++) {
+            this.load.image(`energy_node_ground_contact_${mask}`, `assets/terrain/energy_node_ground_contact_${mask}.png`);
+        }
+        // 旧道路式四邻图集保留缺图兜底，不覆盖已加载的独立矿堆。
         this.load.spritesheet(
             'energy_node_directional_tiles',
             'assets/terrain/energy_node_directional_tiles.png',

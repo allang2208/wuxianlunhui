@@ -1,0 +1,78 @@
+{
+  "status": "all_five_installed",
+  "source": "tools/ai-gen/_energy_rubble_pile_20260831/candidates_dev_s12_low/energy_rubble_pile/energy_rubble_pile_structure_v03_raw.png",
+  "requestedCount": 5,
+  "model": "flux2-dev-depth",
+  "steps": 48,
+  "denoise": 0.55,
+  "depthStrength": 0.75,
+  "nonstandardLocalDenoise": true,
+  "spatialConditioningGuides": true,
+  "operation": "Selected v03 plus distinct local masks and prompts; restore original pixels outside each mask after generation.",
+  "runtimeInstalled": true,
+  "patterns": [
+    {
+      "index": 1,
+      "id": "left",
+      "label": "左侧集中",
+      "seed": 131851,
+      "image": "01_left/mineral_distribution_local_raw.png",
+      "generationRaw": "01_left/energy_rubble_pile/energy_rubble_pile_refine_v01_raw.png",
+      "compositionRecord": "01_left/local-composition.json",
+      "userAccepted": true
+    },
+    {
+      "index": 2,
+      "id": "right",
+      "label": "右侧集中",
+      "seed": 131852,
+      "image": "02_right/mineral_distribution_local_raw.png",
+      "generationRaw": "02_right/energy_rubble_pile/energy_rubble_pile_refine_v01_raw.png",
+      "compositionRecord": "02_right/local-composition.json",
+      "userAccepted": true
+    },
+    {
+      "index": 3,
+      "id": "center",
+      "label": "中部串联",
+      "seed": 131853,
+      "image": "03_center/mineral_distribution_local_raw.png",
+      "generationRaw": "03_center/energy_rubble_pile/energy_rubble_pile_refine_v01_raw.png",
+      "compositionRecord": "03_center/local-composition.json",
+      "userAccepted": true
+    },
+    {
+      "index": 4,
+      "id": "front",
+      "label": "前沿散点",
+      "seed": 131854,
+      "image": "04_front/mineral_distribution_local_raw.png",
+      "generationRaw": "04_front/energy_rubble_pile/energy_rubble_pile_refine_v01_raw.png",
+      "compositionRecord": "04_front/local-composition.json",
+      "userAccepted": true
+    },
+    {
+      "index": 5,
+      "id": "diagonal",
+      "label": "对角分布",
+      "seed": 131855,
+      "image": "05_diagonal/mineral_distribution_local_raw.png",
+      "generationRaw": "05_diagonal/energy_rubble_pile/energy_rubble_pile_refine_v01_raw.png",
+      "compositionRecord": "05_diagonal/local-composition.json",
+      "userAccepted": true
+    }
+  ],
+  "completedCandidates": 5,
+  "localDenoiseReason": "Explicit spatial guides plus moderate local repainting to restore gray stone texture and mineral contact; every unmasked pixel comes from the selected v03.",
+  "selectedCandidate": null,
+  "contactSheet": "mineral-distribution-candidates.png",
+  "review": "All five full generated raws and local composites were viewed. Dominant blue distributions differ; small secondary flecks remain in some variants. The selected v03 silhouette, height, rock arrangement and unmasked pixels are preserved. Green-background candidates only; no runtime installation or runtime testing.",
+  "acceptedVariants": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "runtimeExport": "../runtime/manifest.json"
+}

@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-01",
+  "authorization": "User requested cleanup of task-produced rejected files before Git update",
+  "removed": [
+    {
+      "path": "candidate-manifest.json",
+      "reason": "Unexecuted FLUX plan; installed V4 sources came from built-in ImageGen and are recorded in runtime/manifest.json"
+    }
+  ],
+  "retained": [
+    "raw/",
+    "variant_1_compact_plateau/",
+    "variant_2_twin_saddle/",
+    "variant_3_diagonal_ridge/",
+    "variant_4_front_scatter/",
+    "variant_5_crescent_notch/",
+    "runtime/",
+    "surroundings/"
+  ]
+}
