@@ -48,6 +48,7 @@ export class BlackLungLampKeeper extends Enemy {
         this._corpseTimer = 0;
         this._fadeTimer = 0;
         this._syncApproachProfile();
+        this._syncVisualMetrics();
     }
 
     _skill(key) {
@@ -145,8 +146,7 @@ export class BlackLungLampKeeper extends Enemy {
         const next = speed > (this.maxSpeed || this.speed || 120) * 0.05 ? 'walking' : 'idle';
         this._animStateTimer += delta;
         if (next !== this._animState && this._animStateTimer >= 80) {
-            this._animState = next;
-            this._animStateTimer = 0;
+            this._setVisualState(next);
         }
         if (speed > 0.1) this.rotation = Math.atan2(this.vy, this.vx);
     }
@@ -199,8 +199,7 @@ export class BlackLungLampKeeper extends Enemy {
         this._actionTarget = target;
         this._actionSnapshot = { sourceX, sourceY, worldAngle, groundAngle };
         this._actionHitDone = false;
-        this._animState = action;
-        this._animStateTimer = 0;
+        this._setVisualState(action);
         this._frozenForCast = true;
         this._attackAnimTimer = duration;
         this.rotation = worldAngle;
@@ -389,8 +388,7 @@ export class BlackLungLampKeeper extends Enemy {
         this._actionSnapshot = null;
         this._attackAnimTimer = 0;
         this._frozenForCast = false;
-        this._animState = 'idle';
-        this._animStateTimer = 0;
+        this._setVisualState('idle');
         this.aiTimer = 0;
         this._syncApproachProfile();
     }
@@ -399,7 +397,7 @@ export class BlackLungLampKeeper extends Enemy {
         if (!this.active) return;
         this._finishAction();
         this.active = false;
-        this._animState = 'dying';
+        this._setVisualState('dying');
         const death = this.config?.death || {};
         startCorpseTimeline(this, { animMs: 3417, holdMs: 1600, fadeMs: 300, ...death });
         if (typeof super.onDeath === 'function') super.onDeath(source);
@@ -413,7 +411,14 @@ export class BlackLungLampKeeper extends Enemy {
         return `enemy_black_lung_lamp_keeper_${this._animState}`;
     }
 
-    _getPhaserOptions() {
+    _setVisualState(state) {
+        this._animState = state;
+        this._animStateTimer = 0;
+        // GameScene 先定位再选帧，切换动作时立即更新脚点。
+        this._syncVisualMetrics();
+    }
+
+    _syncVisualMetrics() {
         const render = this.config?.render || {};
         const layout = this._layout();
         const targetBodyHeight = Math.max(1, Number(render.bodyDisplayHeight) || 260);
@@ -421,9 +426,15 @@ export class BlackLungLampKeeper extends Enemy {
         const pixelScale = targetBodyHeight / authoredBodyHeight;
         const frameWidth = Math.max(1, Number(layout.frameWidth) || 320);
         const frameHeight = Math.max(1, Number(layout.frameHeight) || 544);
-        const spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
+        this._visualSpriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
         const footY = Number.isFinite(Number(layout.footY)) ? Number(layout.footY) : frameHeight;
         this.footOffsetY = (footY - frameHeight / 2) * pixelScale;
+    }
+
+    _getPhaserOptions() {
+        const render = this.config?.render || {};
+        const layout = this._layout();
+        this._syncVisualMetrics();
 
         let flipX = false;
         if (this._actionSnapshot) flipX = Math.cos(this._actionSnapshot.worldAngle) < 0;
@@ -437,7 +448,7 @@ export class BlackLungLampKeeper extends Enemy {
             ? 'death'
             : (oneShot ? 'attack' : (this._animState === 'walking' ? 'walk' : 'idle'));
         return {
-            spriteSize,
+            spriteSize: this._visualSpriteSize,
             collisionWidth: Number(render.collisionWidth) || 112,
             collisionHeight: Number(render.collisionHeight) || 225,
             textOffsetY: -(Number(render.collisionHeight) || 225) - 18,
