@@ -11,6 +11,10 @@ const OPENING_DIALOGUE_LINES = [
     },
     {
         speaker: '小鼠大王',
+        text: '别被这个称号吓到，我原本也只是一只普通仓鼠。经历许多次轮回与修炼，才终于化形，成为如今的小鼠大王。',
+    },
+    {
+        speaker: '小鼠大王',
         text: '你的旧世界已经把你判作死者，但轮回印记选择了你。换句话说，你就是被召来的天选之子。',
     },
     {
@@ -19,15 +23,7 @@ const OPENING_DIALOGUE_LINES = [
     },
     {
         speaker: '小鼠大王',
-        text: '先记住最基础的行动：WASD 移动，鼠标瞄准，左键攻击，右键发动武器特殊攻击；空格闪避，Shift 冲刺。',
-    },
-    {
-        speaker: '小鼠大王',
-        text: '主神空间是你的安全落脚点。靠近我或其他人物后，用鼠标左键点击我们，就能交谈、接取任务或处理物资。',
-    },
-    {
-        speaker: '小鼠大王',
-        text: '先去熟悉这具身体和你的装备。准备好后再来找我——你的第一次轮回，会从这里真正开始。',
+        text: '进入主神空间后先来找我。我会给你一枚 F 级时空锚点，再教你怎样从祭坛开启第一次探索。',
     },
 ];
 
@@ -49,6 +45,8 @@ export const OpeningDialogue = {
     _lineIndex: 0,
     _finished: false,
     _onComplete: null,
+    _skipChoice: null,
+    _skipPreviousFocus: null,
 
     play({ onComplete = null } = {}) {
         if (this._overlay) return false;
@@ -85,12 +83,23 @@ export const OpeningDialogue = {
         portrait.draggable = false;
         portrait.addEventListener('error', () => overlay.classList.add('has-missing-portrait'), { once: true });
 
-        const skipButton = document.createElement('button');
-        skipButton.type = 'button';
-        skipButton.className = 'opening-dialogue-skip';
-        skipButton.dataset.openingDialogueAction = 'skip';
-        skipButton.textContent = '跳过引导';
-        skipButton.setAttribute('aria-label', '跳过小鼠大王的新手引导');
+        const skipActions = document.createElement('div');
+        skipActions.className = 'opening-dialogue-skip-actions';
+
+        const skipStoryButton = document.createElement('button');
+        skipStoryButton.type = 'button';
+        skipStoryButton.className = 'opening-dialogue-skip';
+        skipStoryButton.dataset.openingDialogueAction = 'skip-story';
+        skipStoryButton.textContent = '跳过剧情';
+        skipStoryButton.setAttribute('aria-label', '跳过当前剧情对话，保留新手教程');
+
+        const skipTutorialsButton = document.createElement('button');
+        skipTutorialsButton.type = 'button';
+        skipTutorialsButton.className = 'opening-dialogue-skip opening-dialogue-skip--tutorials';
+        skipTutorialsButton.dataset.openingDialogueAction = 'skip-tutorials';
+        skipTutorialsButton.textContent = '跳过所有教程';
+        skipTutorialsButton.setAttribute('aria-label', '跳过全部新手教程并选择自由开局方式');
+        skipActions.append(skipStoryButton, skipTutorialsButton);
 
         const panel = document.createElement('div');
         panel.className = 'opening-dialogue-panel';
@@ -134,7 +143,7 @@ export const OpeningDialogue = {
         footer.append(hint, advanceButton);
 
         panel.append(header, text, footer);
-        overlay.append(backdrop, portrait, skipButton, panel);
+        overlay.append(backdrop, portrait, skipActions, panel);
         overlay.addEventListener('click', (event) => this._onClick(event));
         overlay.addEventListener('keydown', (event) => this._onKeyDown(event));
         document.body.appendChild(overlay);
@@ -192,17 +201,100 @@ export const OpeningDialogue = {
 
     _onClick(event) {
         const action = event.target.closest('[data-opening-dialogue-action]')?.dataset.openingDialogueAction;
-        if (action === 'skip') {
+        if (action === 'skip-story') {
             event.preventDefault();
             event.stopPropagation();
             this.finish({ skipped: true });
             return;
         }
+        if (action === 'skip-tutorials') {
+            event.preventDefault();
+            event.stopPropagation();
+            this._openSkipChoice();
+            return;
+        }
+        if (action === 'skip-free-play' || action === 'skip-direct-founding') {
+            event.preventDefault();
+            event.stopPropagation();
+            this.finish({
+                skipped: true,
+                tutorialSkipMode: action === 'skip-direct-founding' ? 'direct_founding' : 'starter_funds',
+            });
+            return;
+        }
+        if (action === 'skip-cancel') {
+            event.preventDefault();
+            event.stopPropagation();
+            this._closeSkipChoice();
+            return;
+        }
+        if (this._skipChoice) return;
         this._advance();
+    },
+
+    _openSkipChoice() {
+        if (!this._overlay || this._skipChoice || this._finished) return;
+        const choice = document.createElement('section');
+        choice.className = 'opening-dialogue-skip-choice';
+        choice.setAttribute('role', 'alertdialog');
+        choice.setAttribute('aria-modal', 'true');
+        choice.setAttribute('aria-labelledby', 'openingDialogueSkipTitle');
+        choice.setAttribute('aria-describedby', 'openingDialogueSkipDescription');
+        choice.innerHTML = `
+            <span class="opening-dialogue-skip-choice__eyebrow">TUTORIAL OVERRIDE // 新局分流</span>
+            <h2 id="openingDialogueSkipTitle">跳过所有教程后，选择你的开局</h2>
+            <p id="openingDialogueSkipDescription">两种路线都会发放 200 金币并关闭后续新手任务提示，也不会伪造地牢通关、经验或战利品。</p>
+            <div class="opening-dialogue-skip-choice__options">
+                <button type="button" data-opening-dialogue-action="skip-free-play">
+                    <strong>领取 200 金币，自由探索</strong>
+                    <span>足够购买 1 枚 F 级钥匙；大地图仍按正常探索进度解锁。</span>
+                </button>
+                <button type="button" data-opening-dialogue-action="skip-direct-founding">
+                    <strong>领取 200 金币，直接开启首城选址</strong>
+                    <span>进入主神空间后与小鼠大王交谈，直接打开位面航图；不发地牢经验与战利品。</span>
+                </button>
+            </div>
+            <button type="button" class="opening-dialogue-skip-choice__cancel" data-opening-dialogue-action="skip-cancel">返回剧情</button>`;
+        this._skipPreviousFocus = document.activeElement;
+        this._skipChoice = choice;
+        this._overlay.classList.add('is-skip-choice-open');
+        this._overlay.appendChild(choice);
+        choice.querySelector('button')?.focus({ preventScroll: true });
+    },
+
+    _closeSkipChoice() {
+        if (!this._skipChoice) return;
+        const previousFocus = this._skipPreviousFocus;
+        this._skipChoice.remove();
+        this._skipChoice = null;
+        this._skipPreviousFocus = null;
+        this._overlay?.classList.remove('is-skip-choice-open');
+        previousFocus?.focus?.({ preventScroll: true });
     },
 
     _onKeyDown(event) {
         if (!this._overlay || this._finished) return;
+        if (this._skipChoice) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                this._closeSkipChoice();
+                return;
+            }
+            if (event.key === 'Tab') {
+                const focusable = [...this._skipChoice.querySelectorAll('button:not(:disabled)')];
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last?.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first?.focus();
+                }
+            }
+            return;
+        }
         if (event.key === 'Escape') {
             event.preventDefault();
             event.stopPropagation();
@@ -229,7 +321,7 @@ export const OpeningDialogue = {
         }
     },
 
-    finish({ skipped = false } = {}) {
+    finish({ skipped = false, tutorialSkipMode = null } = {}) {
         if (this._finished) return;
         this._finished = true;
         this._typewriter?.destroy();
@@ -239,7 +331,7 @@ export const OpeningDialogue = {
 
         const onComplete = this._onComplete;
         this._onComplete = null;
-        Promise.resolve(onComplete?.({ skipped })).catch((error) => {
+        Promise.resolve(onComplete?.({ skipped, tutorialSkipMode })).catch((error) => {
             console.error('[OpeningDialogue] 新手序章对话结束后的游戏启动失败:', error);
         });
 
@@ -257,6 +349,8 @@ export const OpeningDialogue = {
             this._advanceButton = null;
             this._typewriterInputSink = null;
             this._gameContainer = null;
+            this._skipChoice = null;
+            this._skipPreviousFocus = null;
         }, 360);
     },
 };
