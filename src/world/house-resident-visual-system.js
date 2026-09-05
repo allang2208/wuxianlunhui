@@ -10,6 +10,7 @@ import {
     sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
 import { CivilianVisualSettings } from './civilian-visual-runtime.js';
+import { PopulationEconomySystem } from './population-economy-system.js';
 
 function residentConfig() {
     return populationEconomyConfig.house?.residentVisual || {};
@@ -64,7 +65,8 @@ export const HouseResidentVisualSystem = {
 
     _residentCount(building) {
         const counts = residentConfig().countsByLevel || {};
-        return Math.max(0, Math.floor(Number(counts[building?._economyLevel || 1]) || 0));
+        return Math.min(PopulationEconomySystem.getHouseResidents(building),
+            Math.max(0, Math.floor(Number(counts[building?._economyLevel || 1]) || 0)));
     },
 
     _roadContext(building, record) {

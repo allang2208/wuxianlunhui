@@ -5,6 +5,8 @@
  * 创建投射物时才调用，避免空仓或取消射击污染机制进度。
  */
 
+import { combatNowMs } from './combat-clock.js';
+
 const HAND_CANNON_STATE = new WeakMap();
 
 function getState(weapon) {
@@ -78,7 +80,7 @@ function prepareFalconEdictShot(weapon, now) {
     };
 }
 
-export function prepareMythicHandCannonShot(weapon, now = Date.now()) {
+export function prepareMythicHandCannonShot(weapon, now = combatNowMs()) {
     if (!weapon || typeof weapon !== 'object') return null;
     if (weapon.weaponId === 'weapon52') return prepareEternalEdictShot(weapon, now);
     if (weapon.weaponId === 'weapon53') return prepareFalconEdictShot(weapon, now);

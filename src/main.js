@@ -312,6 +312,7 @@ async function initModules() {
     });
     // 世界切换面板（多世界并行 M1）：侧边菜单按钮由 hud-panels-misc 静态构建，这里仅挂全局
     window.WorldSwitchPanel = WorldSwitchPanel;
+    WorldSwitchPanel.refreshAccessState();
     // 后台世界模拟驱动（M3）：1Hz 只推进全局科研，位面按事件/读取/保存/入场结算。
     WorldSimDriver.init();
     window.WorldSimDriver = WorldSimDriver;
@@ -324,6 +325,7 @@ async function initModules() {
     window.World122SandstormSystem = World122SandstormSystem;
     window.World122DroughtSystem = World122DroughtSystem;
     window.World125FogTideSystem = World125FogTideSystem;
+    window.World126WeatherSystem = World126WeatherSystem;
     window.WorldWeatherSystem = WorldWeatherSystem;
     window.WorldEventTimelineSystem = WorldEventTimelineSystem;
     window.WorldDestructionChallengeSystem = WorldDestructionChallengeSystem;
