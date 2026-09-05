@@ -29,7 +29,7 @@ export const WORLD_LIFECYCLE_STATUS = Object.freeze({
 });
 
 const VALID_STATUS = new Set(Object.values(WORLD_LIFECYCLE_STATUS));
-const VERSION = 11;
+const VERSION = 12;
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const RUN_OUTCOMES = new Set(['success', 'failed', 'abandoned', 'safe_evac']);
 const FOUNDING_STATUSES = new Set(['locked', 'awaiting_king', 'selecting', 'founded']);
@@ -233,6 +233,7 @@ function initialState() {
             status: 'locked',
             sceneId: null,
             cellId: null,
+            recommendedCellId: null,
             giftConsumed: false,
             skipAuthorized: false,
         },
@@ -538,6 +539,7 @@ export const WorldProgressionSystem = {
                         : ((next.completedDungeons[FIRST_DUNGEON_ID] || 0) > 0 ? 'awaiting_king' : 'locked')),
                 sceneId: firstLegacyWorldId,
                 cellId: data.founding?.cellId || null,
+                recommendedCellId: data.founding?.recommendedCellId || null,
                 giftConsumed: data.founding?.giftConsumed === true || legacyFounded,
                 skipAuthorized: data.founding?.skipAuthorized === true,
             };
@@ -790,6 +792,10 @@ export const WorldProgressionSystem = {
                 || (state.specialBuildingEvents[worldId] = normalizeSpecialBuildingEvent(worldId));
         }
         if (!progress) return null;
+        const suppressedByFirstCapital = !testOnly
+            && state.founding.status === 'founded'
+            && state.founding.giftConsumed
+            && state.founding.sceneId === worldId;
         return {
             sceneId: worldId,
             runtimeSceneId: this.getRuntimeSceneId(worldId),
@@ -804,6 +810,7 @@ export const WorldProgressionSystem = {
             worldEpoch: progress.worldEpoch,
             completedAt: progress.completedAt,
             testOnly,
+            suppressedByFirstCapital,
         };
     },
 
@@ -1165,6 +1172,38 @@ export const WorldProgressionSystem = {
     },
 
     /**
+     * 首城只自动建议，不代替玩家确认。推荐点按本局地图种子稳定选择，
+     * 并优先落在周边连续合法地格较多的开阔区域。
+     */
+    ensureFirstFoundingRecommendation() {
+        if (state.founding.status !== 'selecting' || state.founding.giftConsumed) return null;
+        const existing = inspectFirstFoundingCell(state.founding.recommendedCellId);
+        if (existing.ok) return { ...existing, recommended: true };
+
+        const eligibleSceneIds = new Set(this.getFirstFoundingCandidates().map((entry) => entry.sceneId));
+        const sites = WORLD_MAP_PLANES
+            .filter((plane) => eligibleSceneIds.has(plane.sceneId))
+            .flatMap((plane) => worldMapPlaneCells(plane.sceneId))
+            .map((cell) => inspectFirstFoundingCell(cell.id))
+            .filter((site) => site.ok);
+        if (!sites.length) {
+            state.founding.recommendedCellId = null;
+            return null;
+        }
+        const scored = sites.map((site) => ({
+            site,
+            openNeighbors: sites.filter((other) => other.sceneId === site.sceneId
+                && strategicDistance(site.cell, other.cell) <= 2).length,
+        }));
+        const bestScore = Math.max(...scored.map((entry) => entry.openNeighbors));
+        const pool = scored.filter((entry) => entry.openNeighbors >= Math.max(1, bestScore - 2));
+        const random = createSeededRandom(worldMapInfo().seed, 'first-founding-recommendation:v1');
+        const chosen = pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))]?.site || sites[0];
+        state.founding.recommendedCellId = chosen.cellId;
+        return { ...chosen, recommended: true };
+    },
+
+    /**
      * 序章“直接建立基地”只把首次教学地牢视作首城资格，不连带放开其他地牢门槛，
      * 也不伪造地牢成功记录、等级、掉落或奖励。后续仍须与小鼠大王交谈并确认正式候选。
      */
@@ -1175,6 +1214,7 @@ export const WorldProgressionSystem = {
         state.founding.skipAuthorized = true;
         state.founding.sceneId = null;
         state.founding.cellId = null;
+        state.founding.recommendedCellId = null;
         state.founding.status = 'awaiting_king';
         const founding = this.getFoundingState();
         try { EventBus.emit('world:first-founding-ready', { source: 'tutorial_skip', founding }); }

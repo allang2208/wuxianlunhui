@@ -187,6 +187,9 @@
       "resetPolicy": { "baseSeed": 126012 }
     }
   },
+  "firstFounding": {
+    "initialVisionRadius": 3
+  },
   "playerBase": {
     "cfgKey": "city_hall",
     "preferredOffsetX": 640,

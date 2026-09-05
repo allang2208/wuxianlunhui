@@ -286,7 +286,9 @@ export const PlaneSpecialBuildingEventSystem = {
         const runtimeSceneId = WorldProgressionSystem.getRuntimeSceneId(sceneId);
         if (!RUNTIME_SCENE_IDS.has(runtimeSceneId) || observer || questInstance) return null;
         let event = WorldProgressionSystem.getSpecialBuildingEvent(sceneId);
-        if (!event) return null;
+        // 首座主城是安全的新手建设实例，不在城内刷新中立特色建筑和守军。
+        // 事件保持 pending，既不伪造完成，也不提前解锁特色科技。
+        if (!event || event.suppressedByFirstCapital) return event;
         let building = findEventBuilding(event);
         if (event.status === 'completed') {
             if (building?._planeFeatureNeutral) applyPlayerState(building, event);

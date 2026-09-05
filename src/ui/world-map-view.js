@@ -59,6 +59,7 @@ export class WorldMapView {
         const multipliers = [...this.cellCosts.values()].map((cost) => cost.multiplier);
         this.costRange = { min: Math.min(...multipliers), max: Math.max(...multipliers) };
         this.selected = null;
+        this.recommendedCellId = null;
         this.states = new Map();
         this.width = this.height = 0;
         this.scale = 1;
@@ -340,6 +341,13 @@ export class WorldMapView {
         this._stateSignature = signature;
         this.states = new Map(states.map((state) => [state.id, state]));
         this.selected = selected;
+        this.invalidate();
+    }
+
+    setFoundingRecommendation(cellId) {
+        const next = this.cellById.has(cellId) ? cellId : null;
+        if (next === this.recommendedCellId) return;
+        this.recommendedCellId = next;
         this.invalidate();
     }
 
@@ -644,6 +652,19 @@ export class WorldMapView {
         const selectedEntry = this.states.get(this.selected)?.entryCell;
         if (this.grid) for (const cell of visible) {
             this._hex(cell); ctx.strokeStyle = this.colors.line; ctx.lineWidth = .7; ctx.stroke();
+        }
+        const recommendedCell = this.cellById.get(this.recommendedCellId);
+        if (recommendedCell) {
+            const point = this.screenPoint(recommendedCell.id);
+            this._hex(recommendedCell);
+            ctx.save();
+            ctx.fillStyle = this.colors.warning; ctx.globalAlpha = .13; ctx.fill(); ctx.globalAlpha = 1;
+            ctx.strokeStyle = this.colors.warning; ctx.lineWidth = 2.5; ctx.setLineDash([6, 4]); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.font = `800 ${this.fontSizes.meta} ${this.font}`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = this.colors.warning;
+            ctx.fillText('建议城址', point.x, point.y - Math.max(12, this.scale * 0.48));
+            ctx.restore();
         }
         const selectedCell = this.cellById.get(selectedEntry?.id);
         if (selectedCell) {

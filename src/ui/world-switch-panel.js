@@ -249,6 +249,7 @@ export const WorldSwitchPanel = {
     },
     openFirstFoundingSelection() {
         if (WorldProgressionSystem.getFoundingState().status !== 'selecting') return false;
+        Strategy.ensureCampaign();
         const candidates = WorldProgressionSystem.getFirstFoundingCandidates();
         if (!candidates.length) {
             SceneManager.showTopNotification('当前没有满足条件的首城位面，请稍后重试', { tone: 'warning' });
@@ -256,8 +257,18 @@ export const WorldSwitchPanel = {
         }
         this._firstFoundingSelection = true;
         this._foundingCelebration = null;
-        this._selectedCellId = null;
-        return this.open(candidates[0].sceneId);
+        const recommendation = WorldProgressionSystem.ensureFirstFoundingRecommendation();
+        if (recommendation?.cellId) {
+            Strategy.revealMapArea(recommendation.cellId,
+                WorldProgressionSystem.config.firstFounding?.initialVisionRadius || 3,
+                { key: 'first_founding_recommendation' });
+        }
+        this._selectedCellId = recommendation?.cellId || null;
+        const opened = this.open(recommendation?.sceneId || candidates[0].sceneId);
+        if (opened && this._panel?.isOpen && recommendation?.cell) {
+            this._selectCell(recommendation.cell, true, 'worlds');
+        }
+        return opened;
     },
     openAtEvent(id) {
         if (!this._allowOpen()) return false;
@@ -278,6 +289,13 @@ export const WorldSwitchPanel = {
     get isOpen() { return this._getPanel().isOpen; },
 
     _openingFocus(requestedWorldId) {
+        if (this._firstFoundingSelection) {
+            Strategy.ensureCampaign();
+            const recommendation = WorldProgressionSystem.ensureFirstFoundingRecommendation();
+            if (recommendation?.cellId) {
+                return { sceneId: recommendation.sceneId, cellId: recommendation.cellId };
+            }
+        }
         const worlds = visibleWorlds({ includeFirstFoundingCandidates: this._firstFoundingSelection });
         const visibleIds = new Set(worlds.map((world) => world.id));
         const focusForWorld = (worldId) => ({
@@ -553,6 +571,9 @@ export const WorldSwitchPanel = {
                 this._render(); return;
             }
             if (button.dataset.armyCell) { this._selectCell(strategicCell(button.dataset.armyCell), true, 'campaign'); return; }
+            if (button.dataset.firstFoundingRecommendation) {
+                this._selectCell(strategicCell(button.dataset.firstFoundingRecommendation), true, 'worlds'); return;
+            }
             if (button.dataset.firstFoundingCell) this._claimFirstFoundingCell(button.dataset.firstFoundingCell);
             else if (button.dataset.enterFirstFounding) this._enterFirstFoundingWorld(button.dataset.enterFirstFounding);
             else if (button.dataset.selectWorld) this._selectWorld(button.dataset.selectWorld, true);
@@ -1063,10 +1084,12 @@ export const WorldSwitchPanel = {
         if (this._firstFoundingSelection) {
             const cfg = WorldProgressionSystem.getWorldConfig(world.id);
             const site = WorldProgressionSystem.inspectFirstFoundingCell(this._selectedCellId);
+            const recommendation = WorldProgressionSystem.ensureFirstFoundingRecommendation();
             const selectedHere = site.runtimeSceneId === world.id;
             const canConfirm = selectedHere && site.ok;
+            const isRecommendation = canConfirm && site.cellId === recommendation?.cellId;
             const siteText = !selectedHere ? '请在地图中点击一个地格作为首城位置。'
-                : canConfirm ? `已选择 (${site.cell.q}, ${site.cell.r}) · ${site.terrainLabel || '当前地貌'}，满足建城条件。`
+                : canConfirm ? `已选择 (${site.cell.q}, ${site.cell.r}) · ${site.terrainLabel || '当前地貌'}，满足建城条件${isRecommendation ? '（系统建议位置）' : ''}。`
                     : `当前地格不可建城：${site.reason}`;
             return `
                 <ol class="wm-progress" aria-label="首城授予内容">
@@ -1074,10 +1097,12 @@ export const WorldSwitchPanel = {
                     <li class="is-current" aria-current="step">在大地图点击首城地格</li>
                     <li>免费建立市政厅与首座传送门</li>
                 </ol>
-                <p class="wm-hint">${escapeHtml(cfg?.description || world.desc || '')}作为该地貌的生成模板；正式城市坐标以你在大地图点击的地格为准。</p>
+                <p class="wm-hint">${escapeHtml(cfg?.description || world.desc || '')}作为该地貌的生成模板；系统已揭开建议点周边视野，正式城市坐标仍以你最后确认的地格为准。</p>
                 <p class="wm-result">${escapeHtml(siteText)}</p>
                 <ul class="wm-benefits"><li>本次首城建造费用为 0。</li><li>确认后可立即进入首城，也可稍后从主神空间传送门前往。</li></ul>
                 <div class="wm-actions">
+                    ${recommendation?.cellId && this._selectedCellId !== recommendation.cellId
+                        ? `<button type="button" class="ws-go is-secondary" data-first-founding-recommendation="${escapeHtml(recommendation.cellId)}">返回系统建议位置</button>` : ''}
                     <button type="button" class="ws-go is-primary" data-first-founding-cell="${selectedHere ? escapeHtml(site.cellId) : ''}" ${canConfirm ? '' : 'disabled'}>确认在所选地格建立首城</button>
                 </div>`;
         }
@@ -1087,6 +1112,11 @@ export const WorldSwitchPanel = {
         const guard = Strategy.getMapVisibleEnemies().find((enemy) => enemy.objective?.sceneId === world.id);
         const order = world.entryCell && Strategy.mapOrder(world.entryCell.id);
         const featureName = producerBuildings[worldConfig.featureBuilding?.cfgKey]?.name;
+        const featureEvent = WorldProgressionSystem.getSpecialBuildingEvent?.(world.id);
+        const featureBenefit = featureEvent?.suppressedByFirstCapital
+            ? '<li>首座主城是安全建设实例，不会在城内刷新中立特色建筑夺取事件。</li>'
+            : featureName
+                ? `<li>特色事件目标：${escapeHtml(featureName)}；夺取控制权后才开放对应特色科技。</li>` : '';
         const steps = [
             { label: '定位信标', done: !!world.entryCell },
             { label: '击败信标守军 / 已有通关资格', done: world.eligible },
@@ -1097,7 +1127,7 @@ export const WorldSwitchPanel = {
             ${steps.length ? `<ol class="wm-progress" aria-label="位面接通进度">${steps.map((step, index) => `<li class="${step.done ? 'is-complete' : index === currentStep ? 'is-current' : ''}"${index === currentStep ? ' aria-current="step"' : ''}>${escapeHtml(step.label)}${step.done ? ' · 已完成' : ''}</li>`).join('')}</ol>` : ''}
             <p class="wm-hint">出征入口：当前位面的指挥所、司令部或国防部。编组后以军团行军，接触敌军进入独立位面遭遇战。普通地牢仍由原NPC入口进入。</p>
             ${guard ? `<p class="wm-result">信标守军：${escapeHtml(guard.name)} · ${guard.roster.length} 个单位</p>` : ''}
-            <ul class="wm-benefits"><li>接通后可建设、生产与驻防；观察不移动本体。</li>${featureName ? `<li>首次接通配置包含：${escapeHtml(featureName)}。相关招募与升级仍需满足科技和资源条件。</li>` : ''}</ul>
+            <ul class="wm-benefits"><li>接通后可建设、生产与驻防；观察不移动本体。</li>${featureBenefit}</ul>
             <div class="wm-actions">
                 ${!world.entryCell ? `<button type="button" class="ws-go is-primary" data-discover-world="${world.id}" ${SceneManager.isLoading ? 'disabled' : ''}>定位此区域的信标</button>` : ''}
                 ${world.entryCell && WorldProgressionSystem.getTrackedWorldId() !== world.id ? `<button type="button" class="ws-go is-secondary" data-discover-world="${world.id}" ${SceneManager.isLoading ? 'disabled' : ''}>追踪此目标</button>` : ''}
@@ -1333,6 +1363,17 @@ export const WorldSwitchPanel = {
         if (!el) return;
         const current = SceneManager.getCurrentWorldId();
         Strategy.ensureCampaign();
+        const foundingRecommendation = this._firstFoundingSelection
+            ? WorldProgressionSystem.ensureFirstFoundingRecommendation() : null;
+        if (foundingRecommendation?.cellId) {
+            Strategy.revealMapArea(foundingRecommendation.cellId,
+                WorldProgressionSystem.config.firstFounding?.initialVisionRadius || 3,
+                { key: 'first_founding_recommendation' });
+            if (!this._selectedCellId) {
+                this._selectedCellId = foundingRecommendation.cellId;
+                this._selectedId = foundingRecommendation.sceneId;
+            }
+        }
         const mapIntel = Strategy.refreshMapIntel();
         const army = Strategy.state.army, enemies = Strategy.getMapVisibleEnemies(), wars = Strategy.getMapWars();
         const detached = Strategy.state.detachments.find((unit) => unit.id === this._controlledDetachmentId);
@@ -1379,6 +1420,7 @@ export const WorldSwitchPanel = {
             [...Strategy.state.detachments, ...Strategy.state.convoys, ...Strategy.state.settlers].map(visualArmy), this._controlledArmyId);
         this._map?.setRouteStops(controlledSupport ? [...(controlledSupport.waypoints || []), ...(controlledSupport.destination ? [controlledSupport.destination] : [])] : Strategy.routeStops());
         this._map?.setSettlements(Strategy.getMapSettlements(), wars);
+        this._map?.setFoundingRecommendation(foundingRecommendation?.cellId || null);
         this._map?.setMapIntel(mapIntel);
         if (this._hoverTarget && !this._hoverTimer) this._renderHover();
         const home = Game._observerMode ? Game._observerHomeScene : current;
@@ -1406,8 +1448,9 @@ export const WorldSwitchPanel = {
                 || (selectedFoundingCell?.planeSceneId === WorldProgressionSystem.getRuntimeSceneId(world.id)
                     ? selectedFoundingCell : null);
             const eligible = persistent && WorldProgressionSystem.isWorldEligible(world.id);
-            const specialEvent = persistent && connected
+            const rawSpecialEvent = persistent && connected
                 ? WorldProgressionSystem.getSpecialBuildingEvent?.(world.id) : null;
+            const specialEvent = rawSpecialEvent?.suppressedByFirstCapital ? null : rawSpecialEvent;
             const hallAlive = persistent && SceneManager._hasLiveWorldAnchor?.(world.id, 'city_hall');
             const isCurrent = current === world.id;
             const isHome = Game._observerMode && home === world.id;
@@ -1440,13 +1483,13 @@ export const WorldSwitchPanel = {
             <p>${escapeHtml(celebration.terrain || '新位面')}已完成登记：市政厅、首座传送门和大地图权限均已启用。</p>
             <button type="button" class="ws-go is-primary" data-enter-first-founding="${celebration.sceneId}">进入首座位面</button>`
             : this._firstFoundingSelection
-                ? `<strong>小鼠大王的首城授予</strong><p>可在 ${states.length} 种地貌中自由查看，并直接点击一个合法地格作为首城位置。确认后免费建立市政厅与首座传送门。</p>`
+                ? `<strong>小鼠大王的首城授予</strong><p>已随机标出一处安全建议位置并揭开周边视野；你仍可在 ${states.length} 种地貌中自由查看，改选任意合法地格。确认后免费建立市政厅与首座传送门。</p>`
                 : awaitingFirstFounding
                     ? '<strong>大地图已解锁</strong><p>返回主神空间与小鼠大王交谈，开启首城选址；批准前可查看航图，但不能提前定位、远征或建造。</p>'
                     : this._objectiveHtml(tracked || selected));
         const map = worldMapInfo();
         el.querySelector('#wmContext').textContent = this._firstFoundingSelection
-            ? `首城选址：点击任意合法地格 · ${states.length} 种地貌模板 · 确认后不可更改`
+            ? `首城选址：已提供初始视野与建议点 · 可改选任意合法地格 · 确认后不可更改`
             : `${Game._observerMode ? '观察视野' : '当前所在'}：${this._worldName(current)} · 已接通 ${connectedPlaneCount}${registeredPlaneCount > connectedPlaneCount ? ` · 已登记 ${registeredPlaneCount}` : ''} · ${map.cellCount}格`;
         el.querySelector('#wmContext').title = `${map.kind === 'generated' ? '随机大陆' : '旧版大陆'} · 地图种子 ${map.seed}`;
         this._setSectionHtml('wmDestinations', states.map((world) => `

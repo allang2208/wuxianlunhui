@@ -42,7 +42,7 @@ export const WorldStrategySystem = {
     _pendingBattleReturn: null,
 
     reset() { this.state = initial(); this._resetMarchScheduler(); this._invasionReconCache = null; this._observedWars = null;
-        this._mapVisibleCells = this._mapExploredCells = null; this._mapVisibleSignature = this._mapExploredSignature = null; this._mapIntelRevision = 0;
+        this._mapVisibleCells = this._mapExploredCells = null; this._mapVisibleSignature = this._mapExploredSignature = this._mapRevealedSignature = null; this._mapIntelRevision = 0;
         Progression.setStrategicSiteCells([]); this._accumulator = 0; this._busy = false; this._transitionTarget = null; this._pendingBattleReturn = null; this._battle?.hideHud(); this._battle?.clearResult(); this.announceJournalRestore(); },
     get active() { return !!this.state.army; },
     get inBattle() { return this.active && manager()?.currentScene === STRATEGY_BATTLE_SCENE; },
@@ -832,7 +832,7 @@ export const WorldStrategySystem = {
         this._resetMarchScheduler();
         this._invasionReconCache = null;
         this.state = [1, 2, 3, 4, 5].includes(saved?.version) ? { ...initial(), ...clone(saved), version: 5 } : initial();
-        this._mapVisibleCells = this._mapExploredCells = null; this._mapVisibleSignature = this._mapExploredSignature = null; this._mapIntelRevision = 0;
+        this._mapVisibleCells = this._mapExploredCells = null; this._mapVisibleSignature = this._mapExploredSignature = this._mapRevealedSignature = null; this._mapIntelRevision = 0;
         this.restoreJournal();
         const now = strategicNow();
         this.ensureCampaign();
