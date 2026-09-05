@@ -1,0 +1,7 @@
+Use case: identity-preserve
+Asset type: game-character running keyframe used as a Doubao video reference
+Primary request: Edit the exact approved Frostbound Centurion into one mid-stride in-place run keyframe toward screen-right.
+Identity invariants: preserve the exact fur hood, closed frost-dark iron mask, quilted charcoal coat, layered shoulder/chest/forearm/shin armor, short mantle, gloves, boots and one complete heavy ashwood spear with one leaf spearhead.
+Structure invariants: exactly two arms, two hands, two legs, two boots and one spear; both hands visibly control the same spear.
+Pose/camera: full body, slightly elevated side-dominant low-three-quarter orthographic-like game view; masked head, chest, pelvis, knees, boot toes and stride axis clearly face right; one leg forward and one back; spear carried low and forward without hiding the legs; generous margins on pure white.
+Avoid: attack, shield, sword, second spear, missing hand, front/left/back view, crossed legs, crop, shadow, scenery, text or watermark.

@@ -1,0 +1,43 @@
+Asset type: full-body elite enemy mother image for a 2D game animation pipeline.
+
+Reference roles:
+- Image 1 is the ONLY identity, costume, material, silhouette-detail and prop reference. Preserve this exact Polar Night High Priest design.
+- Image 2 is ONLY a camera and body-axis reference. Do not copy its hood, armor, cape, spear, proportions or identity.
+
+Primary edit:
+Repose and re-camera the exact character from Image 1 into an animation-ready neutral standing mother facing screen-right. Correct camera and pose only; do not redesign the character.
+
+Camera and direction contract:
+- Slightly elevated, orthographic-like low three-quarter game camera, not an eye-level frontal hero portrait.
+- Strong screen-right side-dominant view, approximately 75 to 85 percent profile. The silhouette must read as moving toward screen-right.
+- The hood eye slit/nose direction, shoulder line, chest plane, pelvis, both knees and BOTH boot toes must all share the same horizontal screen-right axis.
+- Narrow the frontal torso presentation. Do not leave the chest or pelvis facing the viewer.
+- Neutral stable stance with one boot a little forward and the other a little back for leg separation; both boot toes point right, never outward in opposite directions.
+- Root point is the midpoint between the two planted soles. Keep both feet on one consistent ground line with no floating or false perspective.
+
+Identity invariants from Image 1:
+- Preserve the stitched black hood and narrow dark eye slit.
+- Preserve the dense black layered ritual robes, chains, engraved panels and cracked icy dark-metal shoulder mantle.
+- Preserve the large rigid crescent-and-blade ritual crown/fan behind the upper body. Keep its distinctive spikes count/readability and do not shrink it into an ordinary halo.
+- Preserve exactly one complete crescent staff with the central dark faceted crystal in the right hand.
+- Preserve exactly one large reliquary bell in the left hand.
+- Preserve the same elite, ominous, frost-worn material language and realistic game-concept rendering.
+
+Prop staging:
+- Staff stays slightly forward on the screen-right side, fully visible from crescent head through the lower tip, with comfortable margins.
+- Bell hangs lower and slightly behind from the left hand, clearly separated from the robe silhouette.
+- Crown, staff and bell must not merge into each other or be cropped.
+
+Anatomy and framing:
+- Exactly two arms, two hands, two legs and two boots; no duplicate limbs, fingers, props or crown pieces.
+- Full character, full crown, full staff and full bell inside frame with generous white margins on all sides.
+- Pure white seamless studio background, soft contact shadow only.
+- No text, watermark, border, VFX, magic aura, particles or environment.
+
+Do not change anything except camera, pose and clean prop separation. The result must be ready to derive idle, run, cast/attack and death keyframes after user approval.
+
+Correction pass and selection record:
+- First output `exec-c1db7206-f8af-4865-9be7-5fceb05f4e92.png` was rejected offline because the chest/pelvis and near boot still read too frontally.
+- The targeted correction requested an 85-90 percent screen-right profile with the chest, belt, knees, shins and both boot toes sharing the rightward axis.
+- Selected output: `exec-cd78f8ff-c100-42bd-9932-19773e231eea.png`.
+- Project candidate: `../mother/05-polar-night-high-priest-v03-right-profile-candidate.png`.

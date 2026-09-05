@@ -1,0 +1,54 @@
+{
+  "idle": {
+    "video": "videos/polar-night-high-priest/idle-doubao-v01.mp4",
+    "gif": "previews/polar-night-high-priest/idle-doubao-v01-preview.gif",
+    "contact": "previews/polar-night-high-priest/idle-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  },
+  "running": {
+    "video": "videos/polar-night-high-priest/running-doubao-v01.mp4",
+    "gif": "previews/polar-night-high-priest/running-doubao-v01-preview.gif",
+    "contact": "previews/polar-night-high-priest/running-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  },
+  "attacking": {
+    "video": "videos/polar-night-high-priest/attacking-doubao-v01.mp4",
+    "gif": "previews/polar-night-high-priest/attacking-doubao-v01-preview.gif",
+    "contact": "previews/polar-night-high-priest/attacking-doubao-v01-contact.png",
+    "sourceSize": [
+      1280,
+      720
+    ],
+    "sourceFrameCount": 121,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.041666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  },
+  "dying": {
+    "video": "videos/polar-night-high-priest/dying-h3-v01.mp4",
+    "gif": "previews/polar-night-high-priest/dying-h3-v01-preview.gif",
+    "contact": "previews/polar-night-high-priest/dying-h3-v01-contact.png",
+    "sourceSize": [
+      1024,
+      576
+    ],
+    "sourceFrameCount": 124,
+    "sourceFps": 24.0,
+    "sourceDurationSeconds": 5.166666666666667,
+    "previewRange": "entire source, no trimming, no retiming"
+  }
+}

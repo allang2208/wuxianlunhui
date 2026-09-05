@@ -1,0 +1,20 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser snow-dungeon elite monster animation pipeline
+
+Reference role: Image 1 is the approved normal Polar Night Cantor family reference. Preserve its faceless stitched black hood, dark layered ritual robes, frost-damaged shoulder mantle, right hand holding one staff, left hand holding one handbell, wrapped boots, screen-right body direction, cold low-saturation PBR materials, camera elevation and production-asset clarity. Create a recognizable elite priest evolution of that same cult, not an unrelated wizard and not a mere recolor.
+
+Primary request: Create exactly one elite Polar Night High Priest, a senior battlefield ritualist, holding a calm animation-friendly neutral ritual stance.
+
+Elite design: a tall gaunt human cult leader in layered charcoal and black robes with a broad asymmetric mantle of cracked frost-darkened metal scales over the shoulders; the stitched hood remains completely faceless except for one narrow horizontal eye slit; three short backward-pointing rime-metal fins rise from the mantle behind the hood like a restrained ritual crest, not a crown or halo. The right hand holds exactly one tall dark ritual staff topped by a compact forked crescent of bone and frost metal; the left hand holds exactly one larger square-shouldered cracked iron handbell with a visible handle and clapper. Subtle pale blue vein patterns appear on the exposed fingers and inside material cracks only, without emitting light. No floating objects, book, extra weapon, skull pile or aura.
+
+Anatomy and material: physically plausible adult human anatomy, exactly two arms and two legs, separate readable hands with one prop each, natural shoulder and wrist placement, believable upright weight, high-detail rough cloth, stitched leather, worn iron, bone and opaque frost crust; no glossy plastic.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, low saturation, readable silhouette, physically believable materials; elite ritual complexity but not a boss.
+
+Pose: hood, chest, pelvis, knees and boot toes all clearly face screen-right in a low three-quarter stance; calm neutral ritual idle with both boots on one baseline and legs readable beneath the robe; staff planted beside the forward foot without hiding it, bell hanging naturally clear of the robe, no casting action.
+
+Composition and camera: low three-quarter orthographic-style locked camera with slight elevation matching Image 1; complete single subject occupying about 68% canvas height and no more than 62% width; centered with generous margins; full hood crest, robe hem, boots, staff top/bottom and bell visible.
+
+Scene and lighting: flat pure white #FFFFFF studio background, no horizon or floor, soft flat diffuse light, at most faint neutral contact occlusion beneath boots and staff tip, no cast shadow.
+
+Avoid: missing bell, missing staff, duplicated props, extra arms, floating bell, spell effects, glowing orb, open book, skull staff, antlers, giant crown, halo, boss-scale cape, visible face, front-facing torso, scenery, snow particles, mist, aura, dramatic lighting, cropping, text, logo, watermark, cartoon, anime, chibi, low-poly toy.

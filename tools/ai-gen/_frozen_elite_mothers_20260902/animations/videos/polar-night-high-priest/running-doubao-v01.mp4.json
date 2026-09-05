@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\polar-night-high-priest-running-keyframe-v01-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\polar-night-high-priest\\running-doubao-v01-keyframe.txt",
+  "promptChars": 740,
+  "promptSha256": "4ced23b7ad35e30986c7568e084ab11c1da97d4bda901c3006fade00c5337abc",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T08:24:41.774Z",
+  "sourceUrlScheme": "https"
+}

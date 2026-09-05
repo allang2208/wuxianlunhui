@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T10:16:01.503385+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\videos\\polar-night-high-priest\\dying-h3-v01.mp4",
+    "bytes": 578985,
+    "sha256": "e77307620bdc0cd422ac4c1ccaf50a00b794f1bc3a24ff578d7ecda221f7542f"
+  },
+  "promptId": "dcc11e1c-32f1-44e2-b3bf-07251dc40e12",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 902054,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Polar Night High Priest identity, equipment, proportions, deliberately compact screen scale, and slightly elevated right-facing three-quarter game view. Preserve the stitched faceless hood, narrow eye slit, engraved layered black robes, cracked frost-metal mantle, exactly one huge asymmetrical blade-and-crescent ritual crown attached behind the left-back shoulder, exactly one complete tall crescent-and-crystal staff in the right hand, exactly one large square reliquary bell in the left hand, and both wrapped black boots.\n\n0.0-0.7 seconds: the shoulders slacken and both knees weaken once. The character remains right-facing and begins losing height from the supplied foot-root without rising, stepping forward, or changing screen scale.\n\n0.7-2.8 seconds: both knees buckle and the torso sinks continuously down and toward screen right, then rolls onto one side in a single irreversible collapse. The attached rear crown descends with the torso. The complete staff lowers with the right arm and may settle diagonally alongside the body; the bell remains in the left hand or settles immediately beside it. The props retain their exact topology and never pass through the torso.\n\n2.8-5.17 seconds: the body, robes, crown, staff, bell, both hands and both boots settle into one readable low final pose and remain completely still through the last frame. The ending does not recover or return to the opening pose.\n\nKeep the camera locked, the background uniformly white, and the complete horizontal final silhouette inside broad margins. Preserve exactly two arms, two hands, two legs, two boots, one attached rear crown, one staff and one bell. No zoom, crop, duplicated rigid prop, fused limb, left-facing reversal, gore, dismemberment, magic, particles, text, scenery, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Polar Night High Priest identity, equipment, proportions, deliberately compact screen scale, and slightly elevated right-facing three-quarter game view. Preserve the stitched faceless hood, narrow eye slit, engraved layered black robes, cracked frost-metal mantle, exactly one huge asymmetrical blade-and-crescent ritual crown attached behind the left-back shoulder, exactly one complete tall crescent-and-crystal staff in the right hand, exactly one large square reliquary bell in the left hand, and both wrapped black boots.\n\n0.0-0.7 seconds: the shoulders slacken and both knees weaken once. The character remains right-facing and begins losing height from the supplied foot-root without rising, stepping forward, or changing screen scale.\n\n0.7-2.8 seconds: both knees buckle and the torso sinks continuously down and toward screen right, then rolls onto one side in a single irreversible collapse. The attached rear crown descends with the torso. The complete staff lowers with the right arm and may settle diagonally alongside the body; the bell remains in the left hand or settles immediately beside it. The props retain their exact topology and never pass through the torso.\n\n2.8-5.17 seconds: the body, robes, crown, staff, bell, both hands and both boots settle into one readable low final pose and remain completely still through the last frame. The ending does not recover or return to the opening pose.\n\nKeep the camera locked, the background uniformly white, and the complete horizontal final silhouette inside broad margins. Preserve exactly two arms, two hands, two legs, two boots, one attached rear crown, one staff and one bell. No zoom, crop, duplicated rigid prop, fused limb, left-facing reversal, gore, dismemberment, magic, particles, text, scenery, or added objects, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Polar Night High Priest identity, equipment, proportions, deliberately compact screen scale, and slightly elevated right-facing three-quarter game view. Preserve the stitched faceless hood, narrow eye slit, engraved layered black robes, cracked frost-metal mantle, exactly one huge asymmetrical blade-and-crescent ritual crown attached behind the left-back shoulder, exactly one complete tall crescent-and-crystal staff in the right hand, exactly one large square reliquary bell in the left hand, and both wrapped black boots.\n\n0.0-0.7 seconds: the shoulders slacken and both knees weaken once. The character remains right-facing and begins losing height from the supplied foot-root without rising, stepping forward, or changing screen scale.\n\n0.7-2.8 seconds: both knees buckle and the torso sinks continuously down and toward screen right, then rolls onto one side in a single irreversible collapse. The attached rear crown descends with the torso. The complete staff lowers with the right arm and may settle diagonally alongside the body; the bell remains in the left hand or settles immediately beside it. The props retain their exact topology and never pass through the torso.\n\n2.8-5.17 seconds: the body, robes, crown, staff, bell, both hands and both boots settle into one readable low final pose and remain completely still through the last frame. The ending does not recover or return to the opening pose.\n\nKeep the camera locked, the background uniformly white, and the complete horizontal final silhouette inside broad margins. Preserve exactly two arms, two hands, two legs, two boots, one attached rear crown, one staff and one bell. No zoom, crop, duplicated rigid prop, fused limb, left-facing reversal, gore, dismemberment, magic, particles, text, scenery, or added objects, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b8c8cdaf6db763297255c728ce4484b54bc14f4aee8ffdde1a6a2d2142e095fd",
+  "effectivePromptSha256": "326d09fdf6a07bdd39dd3d90ded646351ff8668c974db79d800e9ac8ec51f039",
+  "finalPromptSha256": "6a6c88e3a401f4338bdd5d650eacd953b829839dd6f989ec6a0e1bacc6f1dda3",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\polar-night-high-priest\\dying-h3-v01.txt",
+      "bytes": 1838,
+      "sha256": "9dfe95fe6109209fa0ad1a5eed26fa6639a1f9b8cb328393799c26f18977c035"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\polar-night-high-priest-mother-video-safe-1024x576.png",
+      "bytes": 196784,
+      "sha256": "1c445325682a9d6c92f5b9bbcf2d3a9a7e3c4f34a06b73b6ae1c683bf59b277b"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\videos\\polar-night-high-priest\\dying-h3-v01_contact.png",
+    "bytes": 250972,
+    "sha256": "2b3a0d1ed4f5edfb5c918bae1be0751b531bba1fcff11b09bdc087830d6a066d"
+  },
+  "elapsedSeconds": 430.761
+}
