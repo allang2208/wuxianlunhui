@@ -1,5 +1,16 @@
 
 import { PATH_DEFERRED } from './pathfinder.js';
+import { WallSystem } from '../world/wall-system.js';
+
+// A* 使用实体的实际地面碰撞圆心；对外路径仍保持实体脚点坐标。
+function toEntityPath(path, offset) {
+    if (!Array.isArray(path) || !(offset.x || offset.y)) return path;
+    return path.map((point) => ({
+        ...point,
+        x: point.x - offset.x,
+        y: point.y - offset.y
+    }));
+}
 
 let nextPathRequestId = 1;
 
@@ -62,6 +73,18 @@ class PathManager {
 
     getPathRequestId() {
         return this._requestId;
+    }
+
+    _findPath(pathPlanner, targetX, targetY, radius, options) {
+        const offset = WallSystem.getEntityMoveOffset(this.enemy);
+        return toEntityPath(pathPlanner.findPath(
+            this.enemy.x + offset.x,
+            this.enemy.y + offset.y,
+            targetX + offset.x,
+            targetY + offset.y,
+            radius,
+            options
+        ), offset);
     }
 
     // ==================== 路径设置 ====================
@@ -173,17 +196,20 @@ class PathManager {
         if (!pathPlanner || !pathPlanner.isPointBlocked) return false;
         if (this.enemy._spawnEgress) return false;
         const radius = this.enemy.groundRadius;
+        const offset = WallSystem.getEntityMoveOffset(this.enemy);
         // 每次只预读前方最多 8 段走廊，控制多单位检查成本；拓扑版本变化时立即执行。
         // 出兵离场阶段起点可能仍在来源建筑 footprint 内，先让既有 egress 契约把单位带出。
         const endIdx = Math.min(this.path.length - 1, this.pathIdx + 8);
-        let prev = { x: this.enemy.x, y: this.enemy.y };
+        let prev = { x: this.enemy.x + offset.x, y: this.enemy.y + offset.y };
         for (let i = this.pathIdx; i <= endIdx; i++) {
             const node = this.path[i];
-            const corridorBlocked = pathPlanner.isSegmentBlocked?.(prev.x, prev.y, node.x, node.y, radius);
-            if (pathPlanner.isPointBlocked(node.x, node.y, radius) || corridorBlocked) {
+            const nodeX = node.x + offset.x;
+            const nodeY = node.y + offset.y;
+            const corridorBlocked = pathPlanner.isSegmentBlocked?.(prev.x, prev.y, nodeX, nodeY, radius);
+            if (pathPlanner.isPointBlocked(nodeX, nodeY, radius) || corridorBlocked) {
                 return this._repairPath(i, pathPlanner);
             }
-            prev = node;
+            prev = { x: nodeX, y: nodeY };
         }
         return true;
     }
@@ -211,9 +237,7 @@ class PathManager {
         // （旧实现回退到阻挡点前 2 个节点，怪物会掉头折返已走过的路径点，表现为"瞬间反向"）
         let altPath = null;
         try {
-            altPath = pathPlanner.findPath(
-                this.enemy.x, this.enemy.y, end.x, end.y, radius, pathOptions
-            );
+            altPath = this._findPath(pathPlanner, end.x, end.y, radius, pathOptions);
         } catch (e) {
             this._warn('[PathManager] findPath failed: ' + e.message);
         }
@@ -235,9 +259,7 @@ class PathManager {
         const finalTarget = this.path[this.path.length - 1];
         let newPath = null;
         try {
-            newPath = pathPlanner.findPath(
-                this.enemy.x, this.enemy.y, finalTarget.x, finalTarget.y, radius, pathOptions
-            );
+            newPath = this._findPath(pathPlanner, finalTarget.x, finalTarget.y, radius, pathOptions);
         } catch (e) {
             this._warn('[PathManager] full recalc failed: ' + e.message);
         }
@@ -326,9 +348,7 @@ class PathManager {
         const pathOptions = this._pathOptions();
         let path = null;
         try {
-            path = pathPlanner.findPath(
-                this.enemy.x, this.enemy.y, targetX, targetY, radius, pathOptions
-            );
+            path = this._findPath(pathPlanner, targetX, targetY, radius, pathOptions);
         } catch (e) {
             this._warn('[PathManager] forceRecalc failed: ' + e.message);
         }
@@ -342,12 +362,18 @@ class PathManager {
 
         // [NEW] A* 失败：尝试 RegionIndex 找最近出口
         // 只在封闭空间（如地牢战斗房间）使用，开放地图不适用
+        const offset = WallSystem.getEntityMoveOffset(this.enemy);
         const exitResult = pathPlanner.findPathToExit(
-            this.enemy.x, this.enemy.y, targetX, targetY, radius, pathOptions
+            this.enemy.x + offset.x,
+            this.enemy.y + offset.y,
+            targetX + offset.x,
+            targetY + offset.y,
+            radius,
+            pathOptions
         );
         if (exitResult === PATH_DEFERRED) return PATH_DEFERRED;
         if (exitResult && exitResult.path) {
-            this.setPath(exitResult.path, pathPlanner);
+            this.setPath(toEntityPath(exitResult.path, offset), pathPlanner);
             this._isExitPath = true;
             this._exitTargetX = targetX;
             this._exitTargetY = targetY;
