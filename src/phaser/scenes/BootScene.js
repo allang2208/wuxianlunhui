@@ -1385,6 +1385,8 @@ export class BootScene extends Scene {
 
         // 煮锅（其他，静态贴图，巫婆伴生）
         this.load.image('enemy_cauldron', 'assets/enemies/cauldron/bowl.png');
+        // 毒瓶小图原样复用 witch/projective.png，在煮锅资源族中独立驻留。
+        this.load.image('enemy_cauldron_projectile', enemyConfigData.cauldron.textures.projectile);
 
         // 恐怖地牢专属普通、精英和领主：布局、帧数与脚点均由配置真源给出。
         for (const [type, family] of [

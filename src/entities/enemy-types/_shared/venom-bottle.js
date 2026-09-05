@@ -8,7 +8,7 @@ import { surfaceEffectFromEntity } from '../../../physics/elevation.js';
 /**
  * 毒液瓶共享机制（巫婆攻击 2 / 煮锅伴生攻击共用，单一实现勿重复）
  *
- * 流程：抛物线投射物（witch/projective.png，flyDuration 落地，落地前每秒 360° 旋转）
+ * 流程：抛物线投射物（宿主配置纹理，默认巫婆毒瓶；flyDuration 落地，落地前每秒 360° 旋转）
  *   → 落点 GroundZone 毒液区（椭圆 impactRadius、持续 zoneDuration、矿洞绿烟同款绿色烟雾填满：
  *     白色软圆 smoke_particle + 绿色 tint + ADD 亮色混合）
  *   → 每 tickMs 对区内敌对单位造成 魔法攻击×damageMul 魔法伤害，并叠 poisonStacks 层中毒
@@ -40,7 +40,7 @@ export function throwVenomBottle(host, cfg, tx, ty, surfaceContext = null) {
     const warning = createGroundWarning(tx, ty, cfg.impactRadius ?? 200);
 
     const handle = launchArcProjectile({
-        textureKey: 'enemy_witch_projectile',
+        textureKey: cfg.projectileTexture || 'enemy_witch_projectile',
         size: cfg.projectileSize || 48,
         sx, sy, tx, ty,
         arcHeight: cfg.arcHeight ?? 100,

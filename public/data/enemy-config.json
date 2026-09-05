@@ -6220,6 +6220,7 @@
     "scatterRadius": 150,
     "flyDuration": 1500,
     "arcHeight": 100,
+    "projectileTexture": "enemy_cauldron_projectile",
     "projectileSize": 240,
     "impactRadius": 200,
     "zoneDuration": 6000,
@@ -6279,7 +6280,8 @@
    }
   },
   "textures": {
-   "idle": "assets/enemies/cauldron/bowl.png"
+   "idle": "assets/enemies/cauldron/bowl.png",
+   "projectile": "assets/enemies/cauldron/projectile.png"
   },
   "description": "巫婆的煮锅，锅里翻滚着冒泡的绿色毒液。无法移动、免疫一切状态，每隔一段时间向入侵者泼洒毒液瓶。",
   "skills": [
