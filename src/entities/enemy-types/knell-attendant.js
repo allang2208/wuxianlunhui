@@ -3,7 +3,7 @@ import { hostilesOf } from './_shared/enemy-utils.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { WallSystem } from '../../world/wall-system.js';
+import { hasAttackLineOfSight } from '../../combat/melee-reach.js';
 import { DamagePipeline } from '../../combat/damage-pipeline.js';
 import { fireGroundShockwave } from '../../effects/combat-fx.js';
 
@@ -16,8 +16,7 @@ export class KnellAttendant extends HorrorNormalEnemy {
             radius,radius*PERSPECTIVE_SCALE_Y,surfaceEffectFromEntity(this));
     }
     _hasPulseLos(target) {
-        const ignore=target?._coverSeg?{segs:new Set([target._coverSeg])}:null;
-        return !WallSystem.blocked(this.x,this.y,target.x,target.y,ignore);
+        return hasAttackLineOfSight(this, target);
     }
     _canStartAction(target) { return this._pulseShape().intersectsEntity(target) && this._hasPulseLos(target); }
     _createActionContext() { return {}; }
