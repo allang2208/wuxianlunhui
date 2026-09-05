@@ -1,0 +1,122 @@
+[
+  {
+    "id": "geothermal_power",
+    "raw": "raw/geothermal_power.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/technology-icons/geothermal_power.png",
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "alphaBBox": [
+      65,
+      12,
+      958,
+      1012
+    ]
+  },
+  {
+    "id": "geothermal_power_standardization",
+    "raw": "raw/geothermal_power_standardization.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/technology-icons/geothermal_power_standardization.png",
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "alphaBBox": [
+      59,
+      12,
+      964,
+      1012
+    ]
+  },
+  {
+    "id": "geothermal_closed_loop",
+    "raw": "raw/geothermal_closed_loop.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/geothermal-closed-loop.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      10,
+      250,
+      245
+    ]
+  },
+  {
+    "id": "geothermal_deep_exchanger",
+    "raw": "raw/geothermal_deep_exchanger.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/geothermal-deep-exchanger.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      7,
+      250,
+      249
+    ]
+  },
+  {
+    "id": "geothermal_heat_recovery",
+    "raw": "raw/geothermal_heat_recovery.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/geothermal-heat-recovery.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      8,
+      250,
+      248
+    ]
+  },
+  {
+    "id": "geothermal_maintenance_staff",
+    "raw": "raw/geothermal_maintenance_staff.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/geothermal-maintenance-staff.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      8,
+      250,
+      247
+    ]
+  }
+]

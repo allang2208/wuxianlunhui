@@ -1,0 +1,288 @@
+{
+  "sourceArchive": {
+    "date": "2026-08-31",
+    "cleanupManifest": "tools/ai-gen/building-assets-cleanup-20260831.json",
+    "canonicalModelManifest": "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/manifest.json",
+    "historyOnly": ["continuationSelection", "currentLocalRepair", "materialSelection", "modelApproval", "structureGeneration"],
+    "removedPathPolicy": "Historical rejected candidates and V1 binaries were moved to the ignored recovery directory; only latestVisualSelection and runtimeDelivery identify active art. Retained text metadata is provenance, not an input manifest."
+  },
+  "status": "original_v3_v01_integrated_runtime_pending_user_test",
+  "runtimeDelivery": {
+    "date": "2026-08-31",
+    "authorization": "User requested game integration, economic panel, two technology nodes, four upgrades and matching icons after choosing the original V3 V01",
+    "asset": "assets/terrain/geothermal_power_plant.png",
+    "acceptedCutout": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_final_cutout.png",
+    "metadata": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_runtime_metadata.json",
+    "icons": "tools/ai-gen/_geothermal_power_plant_20260831/icons/manifest.json",
+    "implementation": "docs/geothermal-power-plant.md",
+    "artException": "Latest explicit original-image choice and game-integration request take precedence over additional 48-step refinement; no rejected repair or new building generation used",
+    "runtimeTested": false
+  },
+  "latestVisualSelection": {
+    "date": "2026-08-31",
+    "userReply": "还是原图好",
+    "selectedSource": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+    "comparisonPosition": "left original image, before local repair",
+    "decision": "Use the original V3 V01 appearance, including its original pipes and badge; do not continue this local repair",
+    "runtimeAccepted": true
+  },
+  "continuationSelection": {
+    "date": "2026-08-31",
+    "userReply": "同意",
+    "selectedSource": "structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+    "scope": "Continue the recommended new V01 material direction and correct remaining local pipe and three-heat-stroke details; not runtime acceptance",
+    "requestedAdditionalUpload": "Selected V01 raw and a local repair mask to 192.168.3.142:8188 alongside the previously authorized Depth and prompt; no Edge or other files",
+    "additionalUploadAuthorized": true,
+    "additionalUploadAuthorizationDate": "2026-08-31",
+    "additionalUploadAuthorizationReply": "同意",
+    "generationStarted": true,
+    "generationCompleted": true,
+    "localRepairDirectory": "local_repair_v4",
+    "submittedInputs": ["selected V01 raw", "local repair mask", "model V2 full Depth", "prompt"],
+    "edgeControl": false
+  },
+  "currentModelManifest": "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/manifest.json",
+  "currentCorrectionBatch": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step",
+  "currentLocalRepair": {
+    "status": "rejected_by_user_original_preferred",
+    "directory": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4",
+    "previousRecommendedPreview": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/geothermal_power_plant_refine_v01_local_locked.png",
+    "generatedRawSource": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/strong_d072/geothermal_power_plant/geothermal_power_plant_refine_v01_raw.png",
+    "comparison": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/comparison/page_01.png",
+    "mask": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/geothermal_local_repair_mask.png",
+    "editablePixels": 16857,
+    "totalPixels": 1048576,
+    "scope": "Foreground right-well pipe connection and three-stroke wall badge only; other pixels and source alpha reused exactly",
+    "standardAttempt": {"denoise": 0.3, "steps": 48, "seeds": [128861, 128862], "generationSeconds": [56.3, 66.3], "result": "Both preserved the old bridge and four-stroke badge; not recommended"},
+    "localCorrectionException": {"denoise": 0.72, "steps": 48, "depthStrength": 0.75, "seeds": [128871, 128872], "generationSeconds": [166.6, 158.7], "nonstandardOverride": true},
+    "review": {
+      "previousRecommendedSeed": 128871,
+      "userDecision": "还是原图好; local repair not selected, original V3 V01 remains the chosen visual source",
+      "v01": "Three distinct heat strokes; continuous brown right-well connection into the exchanger area; redundant near-side bridge removed. Other areas retain the chosen raw through bounded compositing.",
+      "v02": "Four strokes and broken/disconnected pipe ends remain; rejected for delivery.",
+      "selectedByUser": null,
+      "runtimeAccepted": false,
+      "remainingBoundary": "Local repair is not full-model pixel fidelity or runtime cutout acceptance; original exterior shadow and other unmasked details remain unchanged."
+    },
+    "edgeControl": false
+  },
+  "materialSelection": {
+    "date": "2026-08-31",
+    "reference": "structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+    "scope": "material direction only; model correction and new 12-step batch authorized",
+    "geometryAccepted": false
+  },
+  "modelApproval": {
+    "date": "2026-08-31",
+    "userRequest": "同意进行12步出图",
+    "approvedStage": "structure",
+    "steps": 12,
+    "variants": 3,
+    "selectedCandidate": null
+  },
+  "structureGeneration": {
+    "status": "completed_awaiting_user_review",
+    "destinationAuthorization": {
+      "date": "2026-08-31",
+      "userReply": "同意",
+      "scope": "Upload this geothermal station Depth image and prompt to 192.168.3.142:8188 for the three 12-step structure candidates"
+    },
+    "backend": "flux2-dev-depth",
+    "destination": "http://192.168.3.142:8188",
+    "size": "1024x1024",
+    "steps": 12,
+    "variants": 3,
+    "firstSeed": 128831,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "edgeControl": false,
+    "rawOnly": true,
+    "outputDirectory": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/geothermal_power_plant",
+    "generatedCandidates": 3,
+    "contactSheet": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/contact_raw/page_01.png",
+    "promptFile": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_prompt.txt",
+    "candidates": [
+      {
+        "file": "geothermal_power_plant_structure_v01_raw.png",
+        "seed": 128831,
+        "generationSeconds": 80.5,
+        "visualFindings": "Rear-shifted left wellhead and invented bright emblem on the exchanger; changed piping and visible exterior cast shadow."
+      },
+      {
+        "file": "geothermal_power_plant_structure_v02_raw.png",
+        "seed": 128832,
+        "generationSeconds": 68.5,
+        "visualFindings": "Three wellheads instead of two; closed exchanger housing reinterpreted as an exposed pipe bundle; changed piping and exterior cast shadow."
+      },
+      {
+        "file": "geothermal_power_plant_structure_v03_raw.png",
+        "seed": 128833,
+        "generationSeconds": 66.3,
+        "visualFindings": "Two wells and two roof fans remain readable, but well positions and pipe routes drift; enclosed machine housings are reinterpreted and the recessed open entrance is replaced by a closed door."
+      }
+    ],
+    "review": {
+      "method": "Viewed all three full raw images alongside the approved model and Depth; no game runtime validation",
+      "selectedCandidate": null,
+      "approvedForRefinement": false,
+      "recommendation": "Keep the approved Blender geometry; correct the 12-step structural drift before any 48-step refinement. V03 may serve only as a material-direction reference, not accepted geometry."
+    },
+    "previousBlocker": "Initial upload blocked by sandbox and destination-authorization review; resolved by explicit user authorization on 2026-08-31."
+  },
+  "correctionGeneration": {
+    "status": "completed_awaiting_user_review_with_remaining_drift",
+    "modelManifest": "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/manifest.json",
+    "depthSource": "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_depth.png",
+    "materialReference": "structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+    "referenceUse": "Human material and palette reference only, not an img2img input or accepted geometry",
+    "backend": "flux2-dev-depth",
+    "destination": "http://192.168.3.142:8188",
+    "size": "1024x1024",
+    "steps": 12,
+    "variants": 3,
+    "firstSeed": 128831,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "edgeControl": false,
+    "initImage": null,
+    "rawOnly": true,
+    "outputDirectory": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant",
+    "contactSheet": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/contact_raw/page_01.png",
+    "promptFile": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_prompt.txt",
+    "candidates": [
+      {
+        "file": "geothermal_power_plant_structure_v01_raw.png",
+        "seed": 128831,
+        "generationSeconds": 50.2,
+        "visualFindings": "Closest to the original V01 charcoal and aged-brass palette. Two foreground wells, visible connecting pipes, two roof fans, sealed housings and a dark open entrance. Pipe routes still differ from the model, heat badge has four strokes instead of three, and exterior cast shadow remains."
+      },
+      {
+        "file": "geothermal_power_plant_structure_v02_raw.png",
+        "seed": 128832,
+        "generationSeconds": 56.3,
+        "visualFindings": "Wellheads still read as disconnected pillars. Extra roof details, exposed machine ribs and a four-stroke badge drift from the source. Not recommended."
+      },
+      {
+        "file": "geothermal_power_plant_structure_v03_raw.png",
+        "seed": 128833,
+        "generationSeconds": 56.3,
+        "visualFindings": "Both foreground wellheads have visible pipe links and the badge has three vertical strokes. Pipe routing and bronze-heavy turbine casing still differ from the source; bright badge and exterior cast shadow remain."
+      }
+    ],
+    "review": {
+      "method": "Viewed the corrected Blender preview and Depth, all three raw images and the raw contact sheet; asset-production review only, no game runtime validation",
+      "recommendedMaterialCandidate": "geothermal_power_plant_structure_v01_raw.png",
+      "selectedCandidate": null,
+      "approvedForRefinement": false,
+      "recommendation": "Offer new V01 as the closest material continuation, with remaining pipe and badge drift explicitly disclosed. Do not automatically advance to 48 steps or runtime assets."
+    },
+    "previousCorrectionBatch": "structure_correction_v2_12step: three raw candidates retained; well connecting pipes were omitted and V03 had an incorrect badge",
+    "edgeAttempt": "Rejected before execution because additional Edge-image upload was not explicitly authorized; no Edge uploaded or used. Completed the approved smaller-scope Depth-and-prompt-only alternative."
+  },
+  "builder": "tools/ai-gen/geothermal-power-plant-blender.py",
+  "runtimeIntegrationActive": true,
+  "referenceBuilding": "solar_power_plant",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 938,
+    "topMargin": 24,
+    "widthMargin": 0.94
+  },
+  "palette": {
+    "foundation": [0.25, 0.27, 0.27, 1],
+    "stone": [0.43, 0.45, 0.43, 1],
+    "plaster": [0.54, 0.56, 0.53, 1],
+    "timber": [0.12, 0.10, 0.08, 1],
+    "roof": [0.13, 0.17, 0.18, 1],
+    "thatch": [0.40, 0.34, 0.23, 1],
+    "iron": [0.055, 0.072, 0.077, 1],
+    "brass": [0.42, 0.32, 0.17, 1],
+    "glass": [0.055, 0.20, 0.24, 1],
+    "glow": [0.40, 0.59, 0.61, 1],
+    "straw": [0.40, 0.34, 0.22, 1],
+    "hotPipe": [0.39, 0.19, 0.115, 1],
+    "coldPipe": [0.12, 0.28, 0.29, 1],
+    "machine": [0.31, 0.36, 0.32, 1],
+    "warning": [0.62, 0.47, 0.19, 1]
+  },
+  "buildings": {
+    "geothermal_power_plant": {
+      "assetId": "geothermal_power_plant",
+      "name": "地热能发电站",
+      "assetClass": "geothermal_power_station",
+      "foundationStyle": "worn_concrete",
+      "footprintCells": 4,
+      "logicalFootprintProjection": [512, 256],
+      "bodyDepthExclude": ["GeothermalPlant_Foundation_Base", "GeothermalPlant_InsetServicePad"],
+      "dimensions": {
+        "foundation": [900, 720, 20],
+        "padInset": 28,
+        "padHeight": 8,
+        "controlHall": [386, 248, 176],
+        "controlHallCenter": [216, 178],
+        "hallWallThickness": 12,
+        "hallDoorWidth": 63,
+        "hallDoorHeight": 91,
+        "hallRoofHeight": 13,
+        "wellRadius": 54,
+        "wellHeadRadius": 25,
+        "wellHeadHeight": 94,
+        "productionWellCenter": [-321, -196],
+        "reinjectionWellCenter": [-321, 95],
+        "heatExchangerCenter": [-151, 155, 141],
+        "heatExchangerRadius": 63,
+        "heatExchangerLength": 242,
+        "turbineCenter": [84, -171, 118],
+        "turbineRadius": 67,
+        "turbineLength": 233,
+        "generatorCenter": [285, -171, 109],
+        "generatorRadius": 52,
+        "generatorLength": 118,
+        "coolerSize": [160, 136, 42],
+        "coolerOffsetsX": [-91, 91],
+        "primaryPipeRadius": 15,
+        "secondaryPipeRadius": 12,
+        "serviceLaneWidth": 48
+      },
+      "structuralIdentity": [
+        "one low rectangular concrete foundation matching the solar reference model dimensions",
+        "two sealed ground wellheads with independent valves; production and reinjection",
+        "one horizontal heat exchanger on grounded saddle supports",
+        "one horizontal turbine mechanically coupled to one generator",
+        "one low single-storey flat-roof control hall with a real recessed entrance",
+        "two attached roof condenser fan housings with fixed grilles",
+        "closed warm supply and muted teal return pipe runs; no open lava or fire",
+        "one attached wordless three-heat-wave identity plate",
+        "no people, vehicles, solar panels, cooling towers, smokestacks or external road art"
+      ],
+      "implementedGameplayIntent": {
+        "technologyTier": 4,
+        "parallelTo": "solar_power",
+        "proposedPrerequisites": ["wind_power", "mansion_construction"],
+        "referenceResearchBaseCost": 520,
+        "outputRelativeToSolar": 0.85,
+        "referenceComparison": "same upgrade levels, workforce, conversion and neutral conditions",
+        "proposedBaseCycleMs": 4000,
+        "proposedRawEnergyPerCycle": 510,
+        "proposedConversionRate": 0.9,
+        "proposedInitialWorkerSlots": 3,
+        "proposedFullEfficiencyWorkerCount": 5,
+        "proposedEnergyOutputIncrement": 17,
+        "allowedWithoutSunlight": true,
+        "explicitlyAllowedPlanes": ["dungeon", "mine"],
+        "solarBuildRequiresNaturalSunlight": true,
+        "solarNightIsNotSunlessPlane": true,
+        "roadIntent": "same outer-road rule as solar; not baked into the model"
+      }
+    }
+  }
+}

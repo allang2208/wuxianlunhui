@@ -1,0 +1,34 @@
+Use case: stylized-concept
+Asset type: World-122 4x4 closed-loop geothermal power station, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: one compact closed-loop geothermal station on the complete 4x4 base: exactly TWO upright sealed wellheads on separate foreground circular sockets, one closed cylindrical heat exchanger at left, one closed coaxial turbine-generator at right, and one rear single-storey control room with exactly TWO roof fans. Follow the visible pipe runs. The entrance is an open double doorway with a deep dark interior; a small flat three-heat-wave plate stays attached above it
+Generation stage: structure geothermal-station candidate
+Detail budget: model-sized functional parts only; minor gauges and fasteners remain subordinate to the solid machine housings
+Palette lock: first-batch V01 material direction: dark blue-charcoal exchanger shell with restrained oxidized bronze end bands; muted gray-green turbine and fan casings; aged brass valves; warm brown supply pipes and subdued gray-teal return pipes; worn neutral-gray concrete. Use broad painted metal fields, sparse wear and calm highlights, without the V01 floating yellow emblem or its misplaced components
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: worn_concrete
+Foundation contract — worn plain-concrete industrial plinth:
+Use one low integrated fair-faced concrete hardstand, fully visible and completely contained inside the authored footprint. Preserve formwork seams and fine air pores, then add restrained chipped corners, shallow cracks, dust, rain stains and practical industrial wear without turning the base into rubble. Keep the perimeter uniformly chamfered for clean isometric-grid joining; no medieval stone paving, marble podium, detached platform or terrain patch.
+
+
+Composition/framing: use the corrected model projection without moving its parts; keep the open doorway and foreground well silhouettes readable
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: no detached emblem, new machine, open tube bundle, text or scenery; absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the foundation
+Asset-specific absolute exclusions: keep machine shells sealed and door leaves visibly open; do not turn circular well sockets into extra pumps, place a well behind the exchanger, invent pipe branches, or attach an emblem to machinery

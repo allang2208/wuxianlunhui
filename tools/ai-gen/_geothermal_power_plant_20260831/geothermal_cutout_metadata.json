@@ -1,0 +1,64 @@
+{
+  "source": "tools\\ai-gen\\_geothermal_power_plant_20260831\\geothermal_power_plant_accepted_body.png",
+  "output": "tools\\ai-gen\\_geothermal_power_plant_20260831\\geothermal_power_plant_bounded_cutout.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    55,
+    210,
+    38
+  ],
+  "matteEdgeWidth": 0.0,
+  "matteTolerance": 100.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": false,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [
+    "733,525,852,603"
+  ],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [
+    "965,650,1024,683"
+  ],
+  "clearAlphaPolygons": [
+    "852,526;1024,526;1024,651;964,651;852,595",
+    "0,737;61,737;456,934;964,682;1024,682;1024,1024;0,1024"
+  ],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    59,
+    314,
+    969,
+    937
+  ],
+  "fileSize": [
+    910,
+    623
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    906,
+    619
+  ],
+  "displayW": 512,
+  "displayH": 351,
+  "footOffsetY": 173,
+  "scaleX": 0.5626373626373626,
+  "scaleY": 0.5634028892455859
+}

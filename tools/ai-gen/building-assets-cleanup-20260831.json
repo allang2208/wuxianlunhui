@@ -1,0 +1,326 @@
+{
+  "date": "2026-08-31",
+  "scope": "Only this task's geothermal station and mushroom farm asset sources; no runtime assets or parallel-task files",
+  "mode": "recoverable relocation; no permanent deletion",
+  "recoveryRoot": "tools/.trash-building-assets-20260831",
+  "selectedSources": [
+    "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/refine_48step_corrected_20260830/mushroom_farm/mushroom_farm_refine_v02_raw.png"
+  ],
+  "retainedBinaryFiles": [
+    "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_accepted_body.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_cutout_preview.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_final_cutout.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/icons/icons-preview.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/icons/raw/geothermal_closed_loop.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/icons/raw/geothermal_deep_exchanger.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/icons/raw/geothermal_heat_recovery.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/icons/raw/geothermal_maintenance_staff.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/icons/raw/geothermal_power_standardization.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/icons/raw/geothermal_power.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_body_depth.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_depth.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_model_approval_preview.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_model_preview.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/model_correction_v2/geothermal_power_plant_model.blend",
+    "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_depth.png",
+    "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/mushroom_farm_body_depth.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/mushroom_farm_depth.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/mushroom_farm_model_approval_preview.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/mushroom_farm_model_preview.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/mushroom_farm_model.blend",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/fence-after.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/fence-before.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/fence-canopy-after.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/fence-canopy-before.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/mushroom_farm_body.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/mushroom_farm_clean.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/mushroom_farm_fence_fixed.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm_repair_mask.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_depth.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_v02_local_raw.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_v02_raw.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/refine_48step_corrected_20260830/mushroom_farm/mushroom_farm_refine_depth.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/refine_48step_corrected_20260830/mushroom_farm/mushroom_farm_refine_v02_raw.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_depth.png",
+    "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_v02_raw.png"
+  ],
+  "movedFiles": [
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_body_depth.png",
+      "bytes": 66337,
+      "reason": "Superseded V1 model; editable V2 model and its Depth retained"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_bounded_cutout.png",
+      "bytes": 670205,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_depth.png",
+      "bytes": 71034,
+      "reason": "Superseded V1 model; editable V2 model and its Depth retained"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_model_approval_preview.png",
+      "bytes": 871401,
+      "reason": "Superseded V1 model; editable V2 model and its Depth retained"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_model_preview.png",
+      "bytes": 871401,
+      "reason": "Superseded V1 model; editable V2 model and its Depth retained"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/geothermal_power_plant_model.blend",
+      "bytes": 284645,
+      "reason": "Superseded V1 model; editable V2 model and its Depth retained"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/00_before_local_locked.png",
+      "bytes": 1165641,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/geothermal_local_repair_mask.png",
+      "bytes": 20991,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/geothermal_power_plant_refine_v01_local_locked.png",
+      "bytes": 1323675,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/geothermal_power_plant_refine_v02_local_locked.png",
+      "bytes": 1323377,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/mask_review.png",
+      "bytes": 1319118,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/comparison/page_01.png",
+      "bytes": 281587,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/generated/geothermal_power_plant/geothermal_power_plant_refine_depth.png",
+      "bytes": 72596,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/generated/geothermal_power_plant/geothermal_power_plant_refine_edge.png",
+      "bytes": 17244,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/generated/geothermal_power_plant/geothermal_power_plant_refine_v01_raw.png",
+      "bytes": 1135939,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/generated/geothermal_power_plant/geothermal_power_plant_refine_v02_raw.png",
+      "bytes": 1134335,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/strong_d072/geothermal_power_plant/geothermal_power_plant_refine_depth.png",
+      "bytes": 72596,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/strong_d072/geothermal_power_plant/geothermal_power_plant_refine_edge.png",
+      "bytes": 17244,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/strong_d072/geothermal_power_plant/geothermal_power_plant_refine_v01_raw.png",
+      "bytes": 1137509,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/local_repair_v4/strong_d072/geothermal_power_plant/geothermal_power_plant_refine_v02_raw.png",
+      "bytes": 1136899,
+      "reason": "User rejected local repair; original V3 V01 selected"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/contact_raw/page_01.png",
+      "bytes": 785091,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_depth.png",
+      "bytes": 71034,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_edge.png",
+      "bytes": 16931,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+      "bytes": 1219002,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_v02_raw.png",
+      "bytes": 1193938,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_12step_seed128831/geothermal_power_plant/geothermal_power_plant_structure_v03_raw.png",
+      "bytes": 1178357,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v2_12step/geothermal_power_plant/geothermal_power_plant_structure_depth.png",
+      "bytes": 72596,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v2_12step/geothermal_power_plant/geothermal_power_plant_structure_edge.png",
+      "bytes": 17244,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v2_12step/geothermal_power_plant/geothermal_power_plant_structure_v01_raw.png",
+      "bytes": 1160971,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v2_12step/geothermal_power_plant/geothermal_power_plant_structure_v02_raw.png",
+      "bytes": 1186771,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v2_12step/geothermal_power_plant/geothermal_power_plant_structure_v03_raw.png",
+      "bytes": 1136973,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/contact_raw/page_01.png",
+      "bytes": 765182,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_edge.png",
+      "bytes": 17244,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_v02_raw.png",
+      "bytes": 1199399,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_geothermal_power_plant_20260831/structure_correction_v3_12step/geothermal_power_plant/geothermal_power_plant_structure_v03_raw.png",
+      "bytes": 1133303,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/mushroom_farm_cutout.png",
+      "bytes": 632299,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/mushroom_farm_fence_alpha.png",
+      "bytes": 608201,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/mushroom_farm_keyed_preview.png",
+      "bytes": 548914,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/accepted_20260831/mushroom_farm_keyed.png",
+      "bytes": 633275,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm_repair_regions.png",
+      "bytes": 1021522,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_edge.png",
+      "bytes": 21049,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_v01_local_raw.png",
+      "bytes": 1030296,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_v01_raw.png",
+      "bytes": 1045010,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/refine_48step_corrected_20260830/contact_raw/page_01.png",
+      "bytes": 448908,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/refine_48step_corrected_20260830/mushroom_farm/mushroom_farm_refine_edge.png",
+      "bytes": 21049,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/refine_48step_corrected_20260830/mushroom_farm/mushroom_farm_refine_v01_raw.png",
+      "bytes": 1068032,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/contact_raw/page_01.png",
+      "bytes": 674386,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_edge.png",
+      "bytes": 21049,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_v01_raw.png",
+      "bytes": 1064315,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_v03_raw.png",
+      "bytes": 1062403,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_correction_12step_20260830/mushroom_farm/mushroom_farm_structure_depth.png",
+      "bytes": 67461,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_correction_12step_20260830/mushroom_farm/mushroom_farm_structure_edge.png",
+      "bytes": 21049,
+      "reason": "Regenerable intermediate, unused edge control or candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_correction_12step_20260830/mushroom_farm/mushroom_farm_structure_v01_raw.png",
+      "bytes": 1056189,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_correction_12step_20260830/mushroom_farm/mushroom_farm_structure_v02_raw.png",
+      "bytes": 1062821,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    },
+    {
+      "path": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_correction_12step_20260830/mushroom_farm/mushroom_farm_structure_v03_raw.png",
+      "bytes": 1090133,
+      "reason": "Unselected candidate; not an ancestor of the accepted image"
+    }
+  ]
+}

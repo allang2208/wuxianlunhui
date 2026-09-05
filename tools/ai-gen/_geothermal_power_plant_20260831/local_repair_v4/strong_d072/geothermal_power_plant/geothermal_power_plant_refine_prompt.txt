@@ -1,0 +1,35 @@
+Use case: stylized-concept
+Asset type: World-122 4x4 closed-loop geothermal power station, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: Repair ONLY the masked parts of the selected geothermal station. At the foreground right well, replace the low turquoise bridge between the wells with ONE continuous warm-brown pipe joining that well's rear-side port to the existing side port of the left cylindrical heat exchanger, following the diagonal pipe in Depth. Restore quiet concrete where the redundant bridge is removed. Keep the left well's existing curved connection. On the existing small plate above the door, show exactly THREE separate upright gently S-shaped strokes in matte aged brass, aligned with the plate perspective. All well bodies, valves, machine housings, roof fans, entrance, walls, foundation, materials and unmasked pixels remain unchanged
+Generation stage: refine geothermal-station candidate
+Detail budget: model-sized functional parts only; minor gauges and fasteners remain subordinate to the solid machine housings
+Local masked-refinement contract: regenerate only the white/red mask regions and preserve every unmasked pixel, silhouette, opening, component position, material value, lighting value and green backdrop exactly. Apply the primary request only inside the mask; do not spread the correction or reinterpret adjacent architecture.
+Palette lock: match the selected image's charcoal-gray housings, subdued gray-green motor, oxidized bronze flanges and worn neutral-gray concrete; the repaired pipe is dull warm brown, and the three badge strokes are non-emissive aged brass
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: worn_concrete
+Foundation contract — worn plain-concrete industrial plinth:
+Use one low integrated fair-faced concrete hardstand, fully visible and completely contained inside the authored footprint. Preserve formwork seams and fine air pores, then add restrained chipped corners, shallow cracks, dust, rain stains and practical industrial wear without turning the base into rubble. Keep the perimeter uniformly chamfered for clean isometric-grid joining; no medieval stone paving, marble podium, detached platform or terrain patch.
+
+
+Composition/framing: use the corrected model projection without moving its parts; keep the open doorway and foreground well silhouettes readable
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: no detached emblem, new machine, open tube bundle, text or scenery; absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the foundation
+Asset-specific absolute exclusions: no extra wellhead, new branch, well-to-well bridge, fourth heat stroke, lettering, glow or exposed tube bundle; preserve the selected material identity

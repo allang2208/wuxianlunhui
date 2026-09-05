@@ -1,0 +1,36 @@
+Use case: stylized-concept
+Asset type: World-122 4x4 closed-loop geothermal power station, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: preserve the supplied complete low 4x4 concrete base and every modeled component: the two sealed valve-equipped ground wellheads, left horizontal exchanger on saddle supports, front/right coaxial turbine-generator group, rear low single-storey control hall, exactly two roof fans with fixed grilles, and the warm supply and cool return pipes following their exact authored routes. Keep the central service lane open and all components physically connected and grounded; do not redesign the approved massing
+Generation stage: structure geothermal-station candidate
+Structure contract: preserve the supplied complete 4x4 foundation, two sealed ground wellheads, one horizontal heat exchanger, one coaxial turbine-generator assembly, one single-storey control hall and exactly two attached roof condenser fan housings; preserve all authored closed pipe connections and the clear service lane
+Detail budget: prioritize readable machinery housings, thick connected pipe bends, flanges, valves, saddle supports and fixed fan grilles; keep minor gauges and fasteners subordinate to the approved massing
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: worn_concrete
+Foundation contract — worn plain-concrete industrial plinth:
+Use one low integrated fair-faced concrete hardstand, fully visible and completely contained inside the authored footprint. Preserve formwork seams and fine air pores, then add restrained chipped corners, shallow cracks, dust, rain stains and practical industrial wear without turning the base into rubble. Keep the perimeter uniformly chamfered for clean isometric-grid joining; no medieval stone paving, marble podium, detached platform or terrain patch.
+Geothermal identity: compact closed-loop modern renewable-energy plant, in the same technology family as the photovoltaic station.
+Material assignment: worn neutral-gray concrete base, gray-green machine housings, dark steel saddles and fan grilles, aged brass valves, muted warm-brown supply pipes and subdued gray-teal return pipes; colors distinguish the two closed circuits without becoming saturated or emissive.
+Keep the attached three-heat-wave badge wordless; do not reinterpret the machinery as medieval timber architecture, a fuel-burning plant or an open mining rig.
+
+Composition/framing: follow the supplied full-foundation orthographic Depth exactly; keep all four corners visible, all machines grounded inside the low 4x4 base, the control room single-storey and the service lane clear; no perspective convergence or rearrangement of the two wells, exchanger, turbine, generator or closed pipe circuit
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: no extra building, floor, tower, smokestack, cooling tower, drilling derrick, open bore, lava, fire, steam plume, solar panel, wind turbine, loose machinery, external road, people, vehicles, readable text or watermark; no cast shadow, ground shadow or green-backdrop gradient; do not omit, disconnect or duplicate the authored pipes and machines
+Asset-specific absolute exclusions: no extra wellhead, tank, pipe branch, fan, door, floor, building or roof equipment; no open steam jet, lava, fire, smokestack, cooling tower, drilling tower, solar panel, landscape, external road, vehicle or person; no tiny readable text, logo, glow haze, strong rust or dense surface noise
