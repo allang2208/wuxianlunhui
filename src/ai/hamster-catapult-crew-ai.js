@@ -34,7 +34,7 @@ export class HamsterCatapultCrewAI extends HamsterScoutAI {
         this._attackTimer = Math.max(0, this._attackTimer - dt);
         this._updateProjectile(dt, entities);
         if (m._dying || m.hp <= 0) return;
-        if (!this._shotActive && MovementSystem.continueStairTransit(m, dt, entities)) {
+        if (!this._shotActive && MovementSystem.continueStairTransit?.(m, dt, entities)) {
             m.advanceAnimationClock('walk', dt);
             return;
         }
