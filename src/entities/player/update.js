@@ -18,6 +18,7 @@ import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
 import { BuildingRoadSystem } from '../../world/building-road-system.js';
 import { waxSealSpeedMultiplier } from '../../combat/wax-seal-status.js';
+import { getDashReadyTimeMs } from '../../config/dash-attack-config.js';
 
 const updateMixin = {
 update(dt, entities) {
@@ -520,26 +521,24 @@ update(dt, entities) {
                 // 冲刺攻击计时：追踪长按Shift持续时间
                 if (isSprinting && !this._isDashing) {
                     this._sprintDuration += dt;
-                    // 计算触发时间：基础333ms，每级减少3%
+                    // 读取当前冲刺形态的配置阈值；三种形态 Lv1 均为 1000ms。
                     const activeDashSkill = this._getActiveDashSkillId();
                     const dashLevel = this._getDashSkillLevel(activeDashSkill);
-                    const triggerTime = 333 * (1 - (dashLevel - 1) * 0.03);
+                    const activeDashSkillData = this.skills?.[activeDashSkill];
+                    const triggerTime = getDashReadyTimeMs(activeDashSkill, dashLevel, activeDashSkillData);
                     // 冲刺攻击可发动条件检查（与下方dash触发保持同步）
                     const currentWeapon = this.equipments[this.weaponMode];
                     const isWeaponEquipped = currentWeapon && currentWeapon.name;
                     const isMelee = isWeaponEquipped && currentWeapon.category === 'weapon_melee';
-                    const dashReady = isMelee && this._sprintDuration >= triggerTime && !this._isDashing && this.skills && this.skills[activeDashSkill];
-                    // 单次触发金光汇聚特效，触发后激活跟随光环
-                    if (dashReady) {
-                        if (!this._dashConvergeShown) {
-                            // 首次触发：播放汇聚特效一次，并激活跟随光环
-                            this._dashConvergeShown = true;
-                            EffectManager.add(new DashConvergeEffect(this.x, this.y, this));
-                            this._dashConvergeAuraActive = true;
-                        }
+                    const canChargeDash = isMelee && !this._isDashing && !!activeDashSkillData;
+                    // 汇聚覆盖完整蓄势过程；达到阈值时闭合为脚下 footprint 金环并保持到释放/取消。
+                    if (canChargeDash && !this._dashConvergeShown) {
+                        this._dashConvergeShown = true;
+                        EffectManager.add(new DashConvergeEffect(this.x, this.y, this, triggerTime));
                     }
-                } else if (!Input.isSprint() || !this._isSprintDirectionAllowed()) {
-                    // 松开Shift、停步或转为后退时结束蓄势，不能带着就绪状态倒退冲刺。
+                    this._dashConvergeAuraActive = canChargeDash && this._sprintDuration >= triggerTime;
+                } else if (!isSprinting || !Input.isSprint() || !this._isSprintDirectionAllowed()) {
+                    // 必须连续真实奔跑；松开Shift、停步、体力耗尽或转为后退都会丢失蓄势。
                     this._sprintDuration = 0;
                     this._dashConvergeShown = false;
                     this._dashConvergeAuraActive = false;
@@ -1168,11 +1167,15 @@ update(dt, entities) {
                             primaryPressed = false;
                         }
                     } else if (primaryPressed) {
-                        // 计算冲刺攻击触发时间：基础333ms，每级减少3%
+                        // 与就绪特效、技能面板共用同一配置阈值。
                         const activeDashSkill = this._getActiveDashSkillId();
                         const dashLevel = this._getDashSkillLevel(activeDashSkill);
-                        const triggerTime = 333 * (1 - (dashLevel - 1) * 0.03);
-                        if (isMelee && this._sprintDuration >= triggerTime && !this._isDashing && !(this.weaponAnim && this.weaponAnim.isAttacking)
+                        const triggerTime = getDashReadyTimeMs(
+                            activeDashSkill,
+                            dashLevel,
+                            this.skills?.[activeDashSkill]
+                        );
+                        if (isMelee && isSprinting && this._sprintDuration >= triggerTime && !this._isDashing && !(this.weaponAnim && this.weaponAnim.isAttacking)
                             && !this._attackRecovering && !this._dashRecoverAt) {
                             // 冲刺攻击触发（攻击动画锁定：任何一段攻击未播完前不触发，收势/定格期同样拒绝）
                             this.dashSystem.trigger(entities);

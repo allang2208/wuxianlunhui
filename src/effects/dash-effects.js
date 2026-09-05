@@ -1,4 +1,5 @@
 import { Easing } from '../config/math-utils.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 
 function _parseHexColor(hex) {
     const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
@@ -8,20 +9,23 @@ function _parseHexColor(hex) {
 }
 
 class DashConvergeEffect {
-    constructor(x, y, target) {
+    constructor(x, y, target, readyMs = 666) {
         this.x = x; this.y = y;
         this.target = target || null;
-        this.life = 600; this.maxLife = 600; this.active = true;
+        this.readyMs = Math.max(1, Number(readyMs) || 666);
+        this.active = true;
+        this.phaseMs = 0;
         this.particles = [];
-        for (let i = 0; i < 16; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 80 + Math.random() * 120;
+        const particleCount = 24;
+        for (let i = 0; i < particleCount; i++) {
+            const targetAngle = (i / particleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.12;
+            const sourceAngle = targetAngle + (Math.random() - 0.5) * 0.9;
             this.particles.push({
-                sx: Math.cos(angle) * dist,
-                sy: Math.sin(angle) * dist,
-                delay: Math.random() * 200,
-                size: 2 + Math.random() * 3,
-                speed: 9.36 + Math.random() * 15.6,
+                targetAngle,
+                sourceAngle,
+                sourceScale: 2.8 + Math.random() * 2.2,
+                delayRatio: Math.random() * 0.22,
+                size: 1.4 + Math.random() * 1.8,
                 color: _parseHexColor(['#ffd700', '#ffaa33', '#ffcc00', '#ffe066'][Math.floor(Math.random() * 4)])
             });
         }
@@ -33,52 +37,145 @@ class DashConvergeEffect {
         const scene = window.__phaserScene;
         if (this._graphics || !scene) return;
         this._graphics = scene.add.graphics();
-        this._graphics.setDepth(this.y + 48);
+        this._graphics.setDepth(this.y - 998);
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(this._graphics);
     }
 
     update(dt = 16.67) {
-        this.life -= dt;
-        if (this.life <= 0) {
-            this.active = false;
-            if (this._graphics) { this._graphics.destroy(); this._graphics = null; }
+        const target = this.target;
+        if (!target || !target.active || target._isDashing || !target._dashConvergeShown) {
+            this._destroy();
             return;
         }
-        if (this.target && this.target.active) {
-            this.x = this.target.x;
-            this.y = this.target.y;
-        }
+        this.phaseMs += Math.max(0, Number(dt) || 0);
+        const anchor = this._footprintAnchor();
+        this.x = anchor.x;
+        this.y = anchor.y;
         this._redraw();
+    }
+
+    _destroy() {
+        this.active = false;
+        if (this._graphics) { this._graphics.destroy(); this._graphics = null; }
+    }
+
+    _footprintAnchor() {
+        const target = this.target;
+        const targetX = Number(target?.x);
+        const targetY = Number(target?.y);
+        const colliderX = Number(target?.collider?.x);
+        const colliderY = Number(target?.collider?.y);
+        // 直接按实体本帧位置复算 Collider 中心，避免高速奔跑时读取到上一帧 syncPosition。
+        const x = Number.isFinite(targetX)
+            ? targetX + (Number(target?.colliderOffsetX) || 0)
+            : (Number.isFinite(colliderX) ? colliderX : this.x);
+        const physicalY = Number.isFinite(targetY)
+            ? targetY + (Number(target?.colliderOffsetY) || 0)
+            : (Number.isFinite(colliderY) ? colliderY : this.y);
+        const targetZ = Number(target?.z);
+        const colliderZ = Number(target?.collider?.bottomZ);
+        const surfaceZ = Number.isFinite(targetZ) ? targetZ : (Number.isFinite(colliderZ) ? colliderZ : 0);
+        return { x, y: physicalY - surfaceZ };
+    }
+
+    _footprintRadius() {
+        return Math.max(
+            12,
+            Number(this.target?.collider?.radius)
+                || Number(this.target?.groundRadius)
+                || Number(this.target?.collisionRadius)
+                || 22.5
+        );
+    }
+
+    _strokeEllipseArc(g, radiusX, radiusY, amount) {
+        const arcAmount = Math.max(0, Math.min(1, amount));
+        if (arcAmount <= 0) return;
+        const start = -Math.PI / 2;
+        const steps = Math.max(2, Math.ceil(48 * arcAmount));
+        g.beginPath();
+        for (let i = 0; i <= steps; i++) {
+            const angle = start + Math.PI * 2 * arcAmount * (i / steps);
+            const px = Math.cos(angle) * radiusX;
+            const py = Math.sin(angle) * radiusY;
+            if (i === 0) g.moveTo(px, py);
+            else g.lineTo(px, py);
+        }
+        g.strokePath();
     }
 
     _redraw() {
         if (!this._graphics || !this._graphics.active) return;
-        const elapsed = this.maxLife - this.life;
+        const chargeProgress = Math.max(0, Math.min(
+            1,
+            (Number(this.target?._sprintDuration) || 0) / this.readyMs
+        ));
+        const ready = this.target?._dashConvergeAuraActive === true;
+        const radiusX = this._footprintRadius();
+        const radiusY = radiusX * PERSPECTIVE_SCALE_Y;
         const g = this._graphics;
         g.clear();
         g.setPosition(this.x, this.y);
-        g.setDepth(this.y + 48);
+        g.setDepth(this.y - 998);
+
+        // 黄色光点从 footprint 外围收向椭圆边线，而不是堆到人物中心。
         this.particles.forEach(p => {
-            if (elapsed < p.delay) return;
-            const t = Math.min(1, (elapsed - p.delay) / (this.maxLife - p.delay));
+            const t = Math.max(0, Math.min(
+                1,
+                (chargeProgress - p.delayRatio) / (1 - p.delayRatio)
+            ));
+            if (t <= 0 || ready) return;
             const easeT = Easing.easeOutQuad(t);
-            const px = p.sx * (1 - easeT);
-            const py = p.sy * (1 - easeT);
-            const alpha = t < 0.3 ? t / 0.3 : (1 - t) * 1.5;
-            const size = p.size * (1 - t * 0.5);
+            const targetX = Math.cos(p.targetAngle) * radiusX;
+            const targetY = Math.sin(p.targetAngle) * radiusY;
+            const sourceX = Math.cos(p.sourceAngle) * radiusX * p.sourceScale;
+            const sourceY = Math.sin(p.sourceAngle) * radiusY * p.sourceScale;
+            const px = sourceX + (targetX - sourceX) * easeT;
+            const py = sourceY + (targetY - sourceY) * easeT;
+            const trailT = Math.max(0, easeT - 0.12);
+            const trailX = sourceX + (targetX - sourceX) * trailT;
+            const trailY = sourceY + (targetY - sourceY) * trailT;
+            const fadeIn = Math.min(1, t / 0.18);
+            const alpha = fadeIn * (0.9 - t * 0.2);
+            const size = p.size * (1 - t * 0.25);
+            g.lineStyle(Math.max(1, size * 0.8), 0x9a5a00, alpha * 0.45);
+            g.lineBetween(trailX, trailY, px, py);
+            g.fillStyle(p.color.hex, alpha * 0.25);
+            g.fillCircle(px, py, size * 2.4);
             g.fillStyle(p.color.hex, alpha);
             g.fillCircle(px, py, size);
-            g.fillStyle(p.color.hex, alpha * 0.4);
-            g.fillCircle(px - p.sx * p.speed * 3, py - p.sy * p.speed * 3, size * 1.5);
         });
-        if (elapsed > 400) {
-            const flashT = Math.min(1, (elapsed - 400) / 200);
-            g.fillStyle(0xffd700, flashT * 0.6);
-            g.fillCircle(0, 0, 8 + flashT * 12);
+
+        // 后半段逐步闭合 footprint；就绪后维持完整、带呼吸高光的金色环。
+        const ringProgress = Easing.easeOutQuad(Math.max(0, Math.min(1, (chargeProgress - 0.42) / 0.58)));
+        if (ringProgress > 0) {
+            const pulse = ready ? 0.88 + Math.sin(this.phaseMs * 0.012) * 0.12 : 1;
+            g.lineStyle(5, 0x6b3b00, 0.42 * ringProgress);
+            this._strokeEllipseArc(g, radiusX, radiusY, ringProgress);
+            g.lineStyle(3, 0xffbd24, 0.88 * ringProgress * pulse);
+            this._strokeEllipseArc(g, radiusX, radiusY, ringProgress);
+            g.lineStyle(1.2, 0xfff1a3, 0.95 * ringProgress * pulse);
+            this._strokeEllipseArc(g, radiusX, radiusY, ringProgress);
+        }
+
+        if (ready) {
+            const orbit = this.phaseMs * 0.0045;
+            for (let i = 0; i < 4; i++) {
+                const angle = orbit + i * Math.PI / 2;
+                const px = Math.cos(angle) * radiusX;
+                const py = Math.sin(angle) * radiusY;
+                g.fillStyle(0xffd86b, 0.24);
+                g.fillCircle(px, py, 5);
+                g.fillStyle(0xffffd0, 0.95);
+                g.fillCircle(px, py, 1.6);
+            }
         }
     }
 
+    getFogPosition() {
+        return this.target ? { x: this.target.x, y: this.target.y } : { x: this.x, y: this.y };
     }
+}
 
 class DashAuraEffect {
     constructor(x, y, target) {

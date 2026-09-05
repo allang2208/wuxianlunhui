@@ -14,6 +14,7 @@ import {
 } from '../config/magic-categories.js';
 import { getDroneValues, getPushStrikeValues, getWhirlwindRadius } from '../config/skill-formulas.js';
 import { getShieldDefenseValues } from '../config/shield-config.js';
+import { getDashReadyTimeMs } from '../config/dash-attack-config.js';
 
 function buildSkillDetailModel(skill, displaySkill) {
     const tags = skill.tags || [];
@@ -702,7 +703,7 @@ export const SkillManager = {
             // 击退距离/触发时间；攻击范围与实际判定同口径（dash-system._checkHit）
             const curWpn = Game.player && Game.player.equipments ? Game.player.equipments[Game.player.weaponMode] : null;
             const baseKnockback = (curWpn && curWpn.attack && curWpn.attack.knockback) || 8;
-            const triggerTime = 333 * (1 - (displaySkill.level - 1) * 0.03);
+            const triggerTime = getDashReadyTimeMs(skill.id, displaySkill.level, skill);
             const craftRangeDelta = (curWpn && curWpn._craftEffects && curWpn._craftEffects.rangeDelta) || 0;
             // 扇形范围：武器攻击范围 + rangeBonusBase + 等级×rangeLevelBonus + rangeBonusFlat
             const baseRange = (curWpn && curWpn.attack && curWpn.attack.range)
@@ -748,7 +749,7 @@ export const SkillManager = {
                 const nextKnockback = skill.id === 'dashAttackThrust'
                     ? thrustDashDist * (nextEffect.speedMul || 1)
                     : baseKnockback + (nextEffect.knockbackBonus || 0) + (displaySkill.level + 1) * (nextEffect.knockbackLevelBonus || 0);
-                const nextTrigger = 333 * (1 - displaySkill.level * 0.03);
+                const nextTrigger = getDashReadyTimeMs(skill.id, displaySkill.level + 1, skill);
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级击退距离</span><span class="sd-stat-val pos">${nextKnockback}px</span></div>`;
                 if (skill.id === 'dashAttackThrust') {
                     const nextLen = rectLen + craftRangeDelta; // 突刺长度不随等级变化（lengthBonus=0）
@@ -1343,17 +1344,17 @@ export const SkillManager = {
             html += `<p>• 每次击中敌人积累 1 点经验</p>`;
             html += `<p>• 同时攻击到两个以上敌人时，额外获得 3 点经验</p>`;
             html += `<p>• 每次击杀目标增加 15 点经验</p>`;
-            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">触发条件：长按Shift冲刺超过0.75秒后，使用近战武器左键攻击</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">触发条件：持续横向冲刺，看到脚下金色环闭合后点击左键</p>`;
         } else if (skill.id === 'dashAttackThrust') {
             html += `<p>• 每次击中敌人积累 1 点经验</p>`;
             html += `<p>• 同时攻击到两个以上敌人时，额外获得 3 点经验</p>`;
             html += `<p>• 每次击杀目标增加 15 点经验</p>`;
-            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">触发条件：装备骑士长剑时，长按Shift冲刺超过0.75秒后，使用近战武器左键攻击</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">触发条件：装备骑士长剑持续横向冲刺，看到脚下金色环闭合后点击左键</p>`;
         } else if (skill.id === 'dashAttackFire') {
             html += `<p>• 每次击中敌人积累 1 点经验</p>`;
             html += `<p>• 同时攻击到两个以上敌人时，额外获得 3 点经验</p>`;
             html += `<p>• 每次击杀目标增加 15 点经验</p>`;
-            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">触发条件：装备夜与火之剑时，长按Shift冲刺超过0.75秒后，使用近战武器左键攻击</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">触发条件：装备夜与火之剑持续横向冲刺，看到脚下金色环闭合后点击左键</p>`;
         } else if (skill.id === 'whirlwind') {
             html += `<p>• 每次击中敌人积累 1 点经验</p>`;
             html += `<p>• 同时攻击到两个以上敌人时，额外获得 3 点经验</p>`;
