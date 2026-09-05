@@ -8694,13 +8694,37 @@ body.dungeon-route-split-mode .dungeon-route-controls button:focus-visible {
 
 .opening-cinematic[data-effect="storm"] .opening-cinematic-atmosphere::before,
 .opening-cinematic[data-effect="storm-after"] .opening-cinematic-atmosphere::before {
-    background-image: repeating-linear-gradient(106deg,
-        transparent 0 24px,
-        rgba(190, 216, 230, 0.22) 25px 26px,
-        transparent 27px 47px);
-    background-size: 170px 220px;
-    opacity: 0.32;
-    animation: opening-rain-drift 560ms linear infinite;
+    inset: -18%;
+    background-image:
+        radial-gradient(ellipse 1px 52px at 19% 23%, rgba(224, 242, 251, 0.92) 0 12%, rgba(181, 211, 228, 0.48) 56%, transparent 100%),
+        radial-gradient(ellipse 1.2px 74px at 63% 41%, rgba(218, 239, 250, 0.82) 0 10%, rgba(159, 196, 218, 0.38) 58%, transparent 100%),
+        radial-gradient(ellipse 1.55px 104px at 34% 67%, rgba(226, 244, 252, 0.72) 0 9%, rgba(147, 185, 208, 0.3) 60%, transparent 100%),
+        radial-gradient(ellipse 2px 148px at 78% 72%, rgba(233, 247, 253, 0.62) 0 8%, rgba(141, 181, 205, 0.22) 64%, transparent 100%);
+    background-repeat: repeat;
+    background-size: 149px 263px, 223px 389px, 331px 541px, 479px 739px;
+    background-position: 11px -263px, 79px -389px, 157px -541px, 251px -739px;
+    opacity: 0.26;
+    filter: blur(0.15px);
+    transform: rotate(8deg) scale(1.08);
+    transform-origin: center;
+    will-change: background-position;
+    animation: opening-rain-near-drift 1170ms linear infinite;
+}
+
+.opening-cinematic[data-effect="storm"] .opening-cinematic-atmosphere,
+.opening-cinematic[data-effect="storm-after"] .opening-cinematic-atmosphere {
+    --opening-rain-far-strong: rgba(207, 232, 245, 0.16);
+    --opening-rain-far-medium: rgba(168, 204, 224, 0.09);
+    --opening-rain-far-soft: rgba(139, 177, 201, 0.055);
+    background-image:
+        radial-gradient(ellipse 0.7px 34px at 27% 18%, var(--opening-rain-far-strong) 0 18%, transparent 100%),
+        radial-gradient(ellipse 0.85px 46px at 71% 48%, var(--opening-rain-far-medium) 0 16%, transparent 100%),
+        radial-gradient(ellipse 1px 62px at 42% 76%, var(--opening-rain-far-soft) 0 14%, transparent 100%);
+    background-repeat: repeat;
+    background-size: 179px 313px, 269px 433px, 397px 607px;
+    background-position: 23px -313px, 97px -433px, 181px -607px;
+    will-change: background-position;
+    animation: opening-rain-far-drift 2530ms linear infinite;
 }
 
 .opening-cinematic[data-effect="storm"] .opening-cinematic-atmosphere::after {
@@ -8710,7 +8734,13 @@ body.dungeon-route-split-mode .dungeon-route-controls button:focus-visible {
 }
 
 .opening-cinematic[data-effect="storm-after"] .opening-cinematic-atmosphere::before {
-    opacity: 0.16;
+    opacity: 0.12;
+}
+
+.opening-cinematic[data-effect="storm-after"] .opening-cinematic-atmosphere {
+    --opening-rain-far-strong: rgba(207, 232, 245, 0.08);
+    --opening-rain-far-medium: rgba(168, 204, 224, 0.045);
+    --opening-rain-far-soft: rgba(139, 177, 201, 0.028);
 }
 
 .opening-cinematic[data-effect="grave-dust"] .opening-cinematic-atmosphere::before,
@@ -8951,9 +8981,14 @@ body.dungeon-route-split-mode .dungeon-route-controls button:focus-visible {
     to { transform: scale(1.035) translate3d(0, -0.15%, 0); }
 }
 
-@keyframes opening-rain-drift {
-    from { background-position: 0 -220px; }
-    to { background-position: -34px 0; }
+@keyframes opening-rain-near-drift {
+    from { background-position: 11px -263px, 79px -389px, 157px -541px, 251px -739px; }
+    to { background-position: 11px 0, 79px 0, 157px 0, 251px 0; }
+}
+
+@keyframes opening-rain-far-drift {
+    from { background-position: 23px -313px, 97px -433px, 181px -607px; }
+    to { background-position: 23px 0, 97px 0, 181px 0; }
 }
 
 @keyframes opening-lightning-flash {
