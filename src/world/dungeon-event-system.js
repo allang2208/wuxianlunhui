@@ -983,8 +983,24 @@ export const DungeonEventSystem = {
     _eventOverlay: null,
     _eventTypewriter: null,
     _eventPreviousFocus: null,
+    _eventElectronEsc: null,
     _onComplete: null,
     _dungeonMapSystem: null, // 地牢地图系统引用（用于探查巡逻）
+
+    _bindOverlayEscape(overlay, onEscape) {
+        overlay.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            event.stopPropagation();
+            onEscape();
+        });
+        this._eventElectronEsc = (event) => {
+            if (this._eventOverlay !== overlay || !overlay.isConnected) return;
+            event.stopImmediatePropagation();
+            onEscape();
+        };
+        window.addEventListener('electron-esc', this._eventElectronEsc, true);
+    },
 
     /**
      * 随机选择一个事件类型
@@ -1029,7 +1045,7 @@ export const DungeonEventSystem = {
      * @returns {Object|null}
      */
     getEventConfig(eventType) {
-        return DUNGEON_EVENT_CONFIG[eventType] || null;
+        return getUniversalEventConfig(eventType) || null;
     },
 
     /**
@@ -1298,7 +1314,11 @@ export const DungeonEventSystem = {
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
         this._eventOverlay = overlay;
-        rightCol.querySelector('button')?.focus({ preventScroll: true });
+        const firstChoice = rightCol.querySelector('button');
+        firstChoice?.focus({ preventScroll: true });
+        // 事件选择是必须结算的游戏决策，Esc 不得丢弃事件；只消费按键并把焦点
+        // 留在选择项，避免打开背后的暂停菜单。
+        this._bindOverlayEscape(overlay, () => firstChoice?.focus({ preventScroll: true }));
 
         // 使用通用打字机组件显示剧情描述
         this._eventTypewriter = new TypewriterText(text, { clickTarget: overlay });
@@ -1446,6 +1466,11 @@ export const DungeonEventSystem = {
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
         this._eventOverlay = overlay;
+        // 结果页已完成结算，Esc 与“继续探索”同义；按钮的 300ms 防穿透期内只消费按键。
+        this._bindOverlayEscape(overlay, () => {
+            if (!btn.disabled) btn.click();
+            else btn.focus({ preventScroll: true });
+        });
 
         // 使用通用打字机组件显示结果文本
         this._eventTypewriter = new TypewriterText(text, { clickTarget: overlay });
@@ -1456,6 +1481,10 @@ export const DungeonEventSystem = {
      * 清理UI
      */
     _cleanupUI(restoreFocus = false) {
+        if (this._eventElectronEsc) {
+            window.removeEventListener('electron-esc', this._eventElectronEsc, true);
+            this._eventElectronEsc = null;
+        }
         if (this._eventTypewriter) {
             this._eventTypewriter.destroy();
             this._eventTypewriter = null;
