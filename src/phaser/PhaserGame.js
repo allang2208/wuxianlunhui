@@ -9,6 +9,16 @@ import { GameScene } from './scenes/GameScene.js';
 import { HudScene } from './scenes/HudScene.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { GameRuntime } from '../utils/game-runtime.js';
+
+// 可见性暂停由 GameRuntime 与旧逻辑循环统一处理；Phaser 自己的 visible/resume
+// 不能越过暂停菜单。保留 hasFocus 给输入使用，不让 blur 将世界时间强制压到 60 帧步长。
+class RuntimePhaserGame extends PhaserGameClass {
+    onHidden() {}
+    onVisible() {}
+    onBlur() { this.hasFocus = false; }
+    onFocus() { this.hasFocus = true; }
+}
 
 let _phaserGame = null;
 
@@ -25,7 +35,7 @@ export const PhaserGame = {
 
         const parentEl = getElement('gameCanvas')?.parentElement || document.body;
 
-        _phaserGame = new PhaserGameClass({
+        _phaserGame = new RuntimePhaserGame({
             type: AUTO,           // 自动选择 WebGL / Canvas
             parent: parentEl,            // 挂载到现有游戏容器
             width: window.innerWidth || 1920,
@@ -63,6 +73,13 @@ export const PhaserGame = {
             },
             scene: [BootScene, GameScene, HudScene],
             ...config,
+            callbacks: {
+                ...config.callbacks,
+                postBoot(game) {
+                    GameRuntime.attachPhaser(game);
+                    config.callbacks?.postBoot?.(game);
+                },
+            },
         });
 
         // 设置 Phaser Canvas 的 CSS：覆盖在原有 Canvas 上方，透明背景，让鼠标事件穿透
