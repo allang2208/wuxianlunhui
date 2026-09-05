@@ -14,10 +14,15 @@ export const TopNotificationQueue = {
     _active: null,
 
     /** render(host, duration)同步挂载本条内容，可返回附属特效的清理函数。 */
-    enqueue({ group = 'notice', duration = 3000, render }) {
+    enqueue({ group = 'notice', duration = 3000, render, onComplete = null }) {
         if (typeof document === 'undefined' || !document.body || typeof render !== 'function') return;
         const ms = Number(duration);
-        this._pending.push({ group, duration: Number.isFinite(ms) && ms > 0 ? ms : 3000, render });
+        this._pending.push({
+            group,
+            duration: Number.isFinite(ms) && ms > 0 ? ms : 3000,
+            render,
+            onComplete: typeof onComplete === 'function' ? onComplete : null,
+        });
         this._drain();
     },
 
@@ -30,6 +35,7 @@ export const TopNotificationQueue = {
         const headline = options.emphasis === 'headline' || Number.parseFloat(options.fontSize) >= 24;
         this.enqueue({
             duration: options.duration || 3000,
+            onComplete: options.onComplete,
             render(host, duration) {
                 const label = document.createElement('div');
                 label.className = `top-notification top-notification--${tone}${headline ? ' top-notification--headline' : ''}`;
@@ -62,12 +68,12 @@ export const TopNotificationQueue = {
                 active.timer = TimerManager.setTimeout(() => this._finish(active), entry.duration);
             } catch (error) {
                 console.error('[TopNotificationQueue] 提示渲染失败:', error);
-                this._finish(active, false);
+                this._finish(active, { advance: false, completed: false });
             }
         }
     },
 
-    _finish(active, advance = true) {
+    _finish(active, { advance = true, completed = true } = {}) {
         if (this._active !== active) return;
         if (active.timer !== null) TimerManager.clearTimeout(active.timer);
         try { active.dispose?.(); }
@@ -76,6 +82,10 @@ export const TopNotificationQueue = {
             active.host.remove();
             this._active = null;
         }
+        if (completed && active.entry.onComplete) {
+            try { active.entry.onComplete(); }
+            catch (error) { console.error('[TopNotificationQueue] 完成回调失败:', error); }
+        }
         if (advance) this._drain();
     },
 
@@ -83,7 +93,7 @@ export const TopNotificationQueue = {
     clear(group = null) {
         this._pending = group === null ? [] : this._pending.filter(entry => entry.group !== group);
         if (this._active && (group === null || this._active.entry.group === group)) {
-            this._finish(this._active, group !== null);
+            this._finish(this._active, { advance: group !== null, completed: false });
         }
     },
 

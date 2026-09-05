@@ -32,6 +32,7 @@ export const TechnologyGate = {
         type,
         id,
         preserveLayout = true,
+        lockedMode = 'hide',
         when = null,
     } = {}) {
         if (!element || !type || !id) return element;
@@ -44,6 +45,7 @@ export const TechnologyGate = {
         binding.type = type;
         binding.id = id;
         binding.preserveLayout = preserveLayout !== false;
+        binding.lockedMode = lockedMode;
         binding.when = typeof when === 'function' ? when : null;
         bindings.set(element, binding);
         this.refresh(element);
@@ -60,6 +62,10 @@ export const TechnologyGate = {
                 type: element.dataset.technologyGateType,
                 id: element.dataset.technologyGateId,
                 preserveLayout: element.dataset.technologyGateLayout !== 'collapse',
+                // 只在显式标记的升级操作组内保留原生按钮；整张卡片和其它门禁仍隐藏。
+                lockedMode: element.matches('button')
+                    && element.closest('[data-technology-gate-locked-mode="disable"]')
+                    ? 'disable' : 'hide',
             });
         }
         return elements.length;
@@ -82,6 +88,18 @@ export const TechnologyGate = {
             if (baseline.inert != null) element.inert = baseline.inert;
             element.classList.remove('technology-gated-hidden');
             return true;
+        }
+
+        if (binding.lockedMode === 'disable' && baseline.disabled != null) {
+            element.style.display = baseline.display;
+            element.style.visibility = baseline.visibility;
+            element.style.pointerEvents = baseline.pointerEvents;
+            element.disabled = true;
+            restoreAttribute(element, 'tabindex', baseline.tabIndexAttribute);
+            restoreAttribute(element, 'aria-hidden', baseline.ariaHidden);
+            if (baseline.inert != null) element.inert = baseline.inert;
+            element.classList.remove('technology-gated-hidden');
+            return false;
         }
 
         if (binding.preserveLayout) {

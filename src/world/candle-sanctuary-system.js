@@ -2,6 +2,8 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 import { WorldInstanceSystem } from './world-instance-system.js';
+import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import { TechnologySystem } from './technology-system.js';
 
 export const WORLD125_CANDLE_BUILDING_ID = 'dungeon_candle';
 export const WORLD125_CANDLE_RANGE_MODULE_ID = 'candle_light_range';
@@ -86,6 +88,29 @@ export const CandleSanctuarySystem = {
             moduleId,
             this.getModuleLevel(building, moduleId)
         );
+    },
+
+    startUpgrade(building, moduleId = WORLD125_CANDLE_RANGE_MODULE_ID) {
+        const module = building?._cfg?.modules?.[moduleId];
+        if (!isCandleBuilding(building) || !module) return { ok: false, reason: '未知烛台升级项目' };
+        if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+            return { ok: false, reason: `需要先完成科技：${technologyName || moduleId}` };
+        }
+        if (this.getModuleLevel(building, moduleId) >= Math.max(0, Number(module.maxLevel) || 0)) {
+            return { ok: false, reason: '照明范围已满级' };
+        }
+        if (building._candleUpgrade) return { ok: false, reason: '已有烛台项目正在升级' };
+        const cost = this.getUpgradeCost(building, moduleId);
+        if (!cost) return { ok: false, reason: '升级费用配置缺失' };
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
+        building._candleUpgrade = {
+            moduleId,
+            totalMs: Math.max(1, Number(cost.timeMs) || 1),
+            remainMs: Math.max(1, Number(cost.timeMs) || 1),
+        };
+        return { ok: true, cost, moduleId };
     },
 
     updateBuilding(building, dt) {
