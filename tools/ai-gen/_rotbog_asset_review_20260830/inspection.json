@@ -1,0 +1,3090 @@
+{
+  "scope": "asset pixels only; no game/runtime test; no repaired pixels",
+  "actions": {
+    "idle": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\idle.png",
+      "sheetSize": [
+        5120,
+        2560
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            165,
+            350,
+            483,
+            525
+          ],
+          "semiTransparentPixels": 8076,
+          "blueExcessPixels": 10,
+          "cyanExcessPixels": 1193
+        },
+        {
+          "index": 1,
+          "bbox": [
+            164,
+            350,
+            484,
+            526
+          ],
+          "semiTransparentPixels": 8867,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            163,
+            350,
+            485,
+            527
+          ],
+          "semiTransparentPixels": 9323,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 4922
+        },
+        {
+          "index": 3,
+          "bbox": [
+            162,
+            350,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9574,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            162,
+            350,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9366,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 5203
+        },
+        {
+          "index": 5,
+          "bbox": [
+            162,
+            350,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9664,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9573,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 5203
+        },
+        {
+          "index": 7,
+          "bbox": [
+            162,
+            350,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9650,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 8,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9550,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 5258
+        },
+        {
+          "index": 9,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9674,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9510,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 5171
+        },
+        {
+          "index": 11,
+          "bbox": [
+            162,
+            349,
+            486,
+            527
+          ],
+          "semiTransparentPixels": 9723,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            162,
+            349,
+            486,
+            527
+          ],
+          "semiTransparentPixels": 9702,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 5216
+        },
+        {
+          "index": 13,
+          "bbox": [
+            162,
+            349,
+            485,
+            527
+          ],
+          "semiTransparentPixels": 9919,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            162,
+            349,
+            485,
+            527
+          ],
+          "semiTransparentPixels": 9828,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 5302
+        },
+        {
+          "index": 15,
+          "bbox": [
+            162,
+            348,
+            485,
+            527
+          ],
+          "semiTransparentPixels": 9785,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            162,
+            348,
+            485,
+            527
+          ],
+          "semiTransparentPixels": 9668,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 5348
+        },
+        {
+          "index": 17,
+          "bbox": [
+            162,
+            348,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9575,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            162,
+            348,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9542,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 5194
+        },
+        {
+          "index": 19,
+          "bbox": [
+            162,
+            348,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9543,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 20,
+          "bbox": [
+            162,
+            348,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9526,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 5218
+        },
+        {
+          "index": 21,
+          "bbox": [
+            162,
+            349,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9518,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 22,
+          "bbox": [
+            162,
+            349,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9504,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 5174
+        },
+        {
+          "index": 23,
+          "bbox": [
+            162,
+            349,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9533,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 24,
+          "bbox": [
+            162,
+            349,
+            485,
+            526
+          ],
+          "semiTransparentPixels": 9493,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 5058
+        },
+        {
+          "index": 25,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9544,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 26,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9514,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 5044
+        },
+        {
+          "index": 27,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9388,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 28,
+          "bbox": [
+            162,
+            350,
+            486,
+            526
+          ],
+          "semiTransparentPixels": 9356,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 5077
+        },
+        {
+          "index": 29,
+          "bbox": [
+            164,
+            350,
+            485,
+            525
+          ],
+          "semiTransparentPixels": 8763,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        }
+      ]
+    },
+    "walk": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\walking.png",
+      "sheetSize": [
+        5120,
+        3200
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            151,
+            346,
+            492,
+            531
+          ],
+          "semiTransparentPixels": 9509,
+          "blueExcessPixels": 14,
+          "cyanExcessPixels": 1154
+        },
+        {
+          "index": 1,
+          "bbox": [
+            173,
+            343,
+            491,
+            531
+          ],
+          "semiTransparentPixels": 9375,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            185,
+            341,
+            489,
+            532
+          ],
+          "semiTransparentPixels": 9378,
+          "blueExcessPixels": 3,
+          "cyanExcessPixels": 1667
+        },
+        {
+          "index": 3,
+          "bbox": [
+            183,
+            345,
+            491,
+            533
+          ],
+          "semiTransparentPixels": 10005,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            181,
+            349,
+            492,
+            534
+          ],
+          "semiTransparentPixels": 9517,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 2783
+        },
+        {
+          "index": 5,
+          "bbox": [
+            163,
+            347,
+            493,
+            531
+          ],
+          "semiTransparentPixels": 10978,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            147,
+            345,
+            494,
+            532
+          ],
+          "semiTransparentPixels": 9613,
+          "blueExcessPixels": 6,
+          "cyanExcessPixels": 2420
+        },
+        {
+          "index": 7,
+          "bbox": [
+            144,
+            347,
+            495,
+            532
+          ],
+          "semiTransparentPixels": 10098,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 8,
+          "bbox": [
+            143,
+            349,
+            495,
+            533
+          ],
+          "semiTransparentPixels": 9923,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2612
+        },
+        {
+          "index": 9,
+          "bbox": [
+            170,
+            344,
+            492,
+            532
+          ],
+          "semiTransparentPixels": 10822,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            186,
+            342,
+            490,
+            532
+          ],
+          "semiTransparentPixels": 9638,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 2460
+        },
+        {
+          "index": 11,
+          "bbox": [
+            183,
+            346,
+            491,
+            533
+          ],
+          "semiTransparentPixels": 9842,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            182,
+            349,
+            491,
+            535
+          ],
+          "semiTransparentPixels": 9280,
+          "blueExcessPixels": 3,
+          "cyanExcessPixels": 2398
+        },
+        {
+          "index": 13,
+          "bbox": [
+            162,
+            346,
+            493,
+            531
+          ],
+          "semiTransparentPixels": 9820,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            150,
+            345,
+            494,
+            532
+          ],
+          "semiTransparentPixels": 9631,
+          "blueExcessPixels": 3,
+          "cyanExcessPixels": 2215
+        },
+        {
+          "index": 15,
+          "bbox": [
+            144,
+            348,
+            495,
+            532
+          ],
+          "semiTransparentPixels": 9865,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            142,
+            349,
+            495,
+            532
+          ],
+          "semiTransparentPixels": 9674,
+          "blueExcessPixels": 6,
+          "cyanExcessPixels": 2403
+        },
+        {
+          "index": 17,
+          "bbox": [
+            171,
+            343,
+            492,
+            532
+          ],
+          "semiTransparentPixels": 10059,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            184,
+            342,
+            491,
+            532
+          ],
+          "semiTransparentPixels": 9625,
+          "blueExcessPixels": 3,
+          "cyanExcessPixels": 2261
+        },
+        {
+          "index": 19,
+          "bbox": [
+            183,
+            346,
+            491,
+            534
+          ],
+          "semiTransparentPixels": 9876,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 20,
+          "bbox": [
+            183,
+            347,
+            490,
+            536
+          ],
+          "semiTransparentPixels": 9080,
+          "blueExcessPixels": 11,
+          "cyanExcessPixels": 2744
+        },
+        {
+          "index": 21,
+          "bbox": [
+            165,
+            346,
+            493,
+            529
+          ],
+          "semiTransparentPixels": 9736,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 22,
+          "bbox": [
+            155,
+            346,
+            494,
+            530
+          ],
+          "semiTransparentPixels": 9660,
+          "blueExcessPixels": 5,
+          "cyanExcessPixels": 2598
+        },
+        {
+          "index": 23,
+          "bbox": [
+            143,
+            348,
+            494,
+            531
+          ],
+          "semiTransparentPixels": 9858,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 24,
+          "bbox": [
+            140,
+            348,
+            494,
+            532
+          ],
+          "semiTransparentPixels": 9790,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 2520
+        },
+        {
+          "index": 25,
+          "bbox": [
+            168,
+            344,
+            492,
+            532
+          ],
+          "semiTransparentPixels": 10026,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 26,
+          "bbox": [
+            174,
+            343,
+            491,
+            532
+          ],
+          "semiTransparentPixels": 9860,
+          "blueExcessPixels": 5,
+          "cyanExcessPixels": 2214
+        },
+        {
+          "index": 27,
+          "bbox": [
+            184,
+            345,
+            490,
+            533
+          ],
+          "semiTransparentPixels": 9324,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 28,
+          "bbox": [
+            184,
+            345,
+            490,
+            534
+          ],
+          "semiTransparentPixels": 9056,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2193
+        },
+        {
+          "index": 29,
+          "bbox": [
+            166,
+            346,
+            494,
+            529
+          ],
+          "semiTransparentPixels": 9687,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 30,
+          "bbox": [
+            160,
+            346,
+            494,
+            530
+          ],
+          "semiTransparentPixels": 9616,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2257
+        },
+        {
+          "index": 31,
+          "bbox": [
+            141,
+            347,
+            494,
+            531
+          ],
+          "semiTransparentPixels": 9907,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 32,
+          "bbox": [
+            139,
+            347,
+            494,
+            532
+          ],
+          "semiTransparentPixels": 9779,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2590
+        },
+        {
+          "index": 33,
+          "bbox": [
+            158,
+            345,
+            492,
+            532
+          ],
+          "semiTransparentPixels": 10015,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 34,
+          "bbox": [
+            160,
+            345,
+            492,
+            532
+          ],
+          "semiTransparentPixels": 9916,
+          "blueExcessPixels": 5,
+          "cyanExcessPixels": 2464
+        },
+        {
+          "index": 35,
+          "bbox": [
+            185,
+            341,
+            490,
+            533
+          ],
+          "semiTransparentPixels": 9625,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 36,
+          "bbox": [
+            185,
+            341,
+            490,
+            533
+          ],
+          "semiTransparentPixels": 9452,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 2578
+        },
+        {
+          "index": 37,
+          "bbox": [
+            178,
+            347,
+            492,
+            531
+          ],
+          "semiTransparentPixels": 10303,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 38,
+          "bbox": [
+            176,
+            348,
+            493,
+            531
+          ],
+          "semiTransparentPixels": 10119,
+          "blueExcessPixels": 4,
+          "cyanExcessPixels": 2497
+        },
+        {
+          "index": 39,
+          "bbox": [
+            162,
+            347,
+            493,
+            530
+          ],
+          "semiTransparentPixels": 10631,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        }
+      ]
+    },
+    "attack": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\attacking.png",
+      "sheetSize": [
+        6144,
+        2560
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            220,
+            336,
+            555,
+            521
+          ],
+          "semiTransparentPixels": 11223,
+          "blueExcessPixels": 5,
+          "cyanExcessPixels": 1557
+        },
+        {
+          "index": 1,
+          "bbox": [
+            220,
+            338,
+            555,
+            521
+          ],
+          "semiTransparentPixels": 11384,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            220,
+            340,
+            555,
+            520
+          ],
+          "semiTransparentPixels": 10999,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2577
+        },
+        {
+          "index": 3,
+          "bbox": [
+            221,
+            342,
+            553,
+            519
+          ],
+          "semiTransparentPixels": 10859,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            222,
+            345,
+            551,
+            517
+          ],
+          "semiTransparentPixels": 10319,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 2268
+        },
+        {
+          "index": 5,
+          "bbox": [
+            223,
+            343,
+            550,
+            517
+          ],
+          "semiTransparentPixels": 10333,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            224,
+            342,
+            549,
+            517
+          ],
+          "semiTransparentPixels": 10206,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 2458
+        },
+        {
+          "index": 7,
+          "bbox": [
+            224,
+            339,
+            548,
+            518
+          ],
+          "semiTransparentPixels": 10275,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 8,
+          "bbox": [
+            224,
+            338,
+            546,
+            518
+          ],
+          "semiTransparentPixels": 10248,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 2539
+        },
+        {
+          "index": 9,
+          "bbox": [
+            224,
+            332,
+            544,
+            518
+          ],
+          "semiTransparentPixels": 10532,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            224,
+            329,
+            542,
+            517
+          ],
+          "semiTransparentPixels": 10574,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 2446
+        },
+        {
+          "index": 11,
+          "bbox": [
+            224,
+            323,
+            539,
+            517
+          ],
+          "semiTransparentPixels": 10805,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            224,
+            321,
+            538,
+            517
+          ],
+          "semiTransparentPixels": 10837,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 2898
+        },
+        {
+          "index": 13,
+          "bbox": [
+            230,
+            336,
+            611,
+            525
+          ],
+          "semiTransparentPixels": 11535,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            233,
+            335,
+            640,
+            527
+          ],
+          "semiTransparentPixels": 11348,
+          "blueExcessPixels": 1,
+          "cyanExcessPixels": 2884
+        },
+        {
+          "index": 15,
+          "bbox": [
+            233,
+            343,
+            640,
+            527
+          ],
+          "semiTransparentPixels": 10978,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            233,
+            344,
+            640,
+            527
+          ],
+          "semiTransparentPixels": 10828,
+          "blueExcessPixels": 3,
+          "cyanExcessPixels": 2549
+        },
+        {
+          "index": 17,
+          "bbox": [
+            233,
+            345,
+            640,
+            527
+          ],
+          "semiTransparentPixels": 10940,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            233,
+            345,
+            640,
+            527
+          ],
+          "semiTransparentPixels": 10916,
+          "blueExcessPixels": 4,
+          "cyanExcessPixels": 2633
+        },
+        {
+          "index": 19,
+          "bbox": [
+            232,
+            344,
+            629,
+            526
+          ],
+          "semiTransparentPixels": 11019,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 20,
+          "bbox": [
+            232,
+            344,
+            626,
+            526
+          ],
+          "semiTransparentPixels": 10913,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2839
+        },
+        {
+          "index": 21,
+          "bbox": [
+            232,
+            345,
+            594,
+            525
+          ],
+          "semiTransparentPixels": 11647,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 22,
+          "bbox": [
+            232,
+            345,
+            586,
+            525
+          ],
+          "semiTransparentPixels": 11517,
+          "blueExcessPixels": 5,
+          "cyanExcessPixels": 2494
+        },
+        {
+          "index": 23,
+          "bbox": [
+            221,
+            338,
+            561,
+            522
+          ],
+          "semiTransparentPixels": 11554,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 24,
+          "bbox": [
+            220,
+            336,
+            558,
+            522
+          ],
+          "semiTransparentPixels": 11402,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2391
+        },
+        {
+          "index": 25,
+          "bbox": [
+            220,
+            335,
+            556,
+            522
+          ],
+          "semiTransparentPixels": 11409,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 26,
+          "bbox": [
+            220,
+            335,
+            556,
+            522
+          ],
+          "semiTransparentPixels": 11389,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 2624
+        },
+        {
+          "index": 27,
+          "bbox": [
+            220,
+            336,
+            556,
+            522
+          ],
+          "semiTransparentPixels": 11354,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 28,
+          "bbox": [
+            220,
+            336,
+            556,
+            522
+          ],
+          "semiTransparentPixels": 11346,
+          "blueExcessPixels": 2,
+          "cyanExcessPixels": 1898
+        }
+      ]
+    },
+    "charge": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\charge.png",
+      "sheetSize": [
+        6144,
+        2560
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            219,
+            336,
+            555,
+            523
+          ],
+          "semiTransparentPixels": 9769,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 1,
+          "bbox": [
+            221,
+            345,
+            561,
+            523
+          ],
+          "semiTransparentPixels": 11329,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            225,
+            340,
+            567,
+            521
+          ],
+          "semiTransparentPixels": 12462,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 3,
+          "bbox": [
+            228,
+            340,
+            568,
+            520
+          ],
+          "semiTransparentPixels": 11872,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            232,
+            339,
+            568,
+            517
+          ],
+          "semiTransparentPixels": 10762,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 5,
+          "bbox": [
+            232,
+            339,
+            568,
+            517
+          ],
+          "semiTransparentPixels": 10807,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            232,
+            339,
+            567,
+            517
+          ],
+          "semiTransparentPixels": 10690,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 7,
+          "bbox": [
+            230,
+            339,
+            567,
+            517
+          ],
+          "semiTransparentPixels": 10710,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 8,
+          "bbox": [
+            230,
+            339,
+            567,
+            517
+          ],
+          "semiTransparentPixels": 10609,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 9,
+          "bbox": [
+            230,
+            339,
+            567,
+            517
+          ],
+          "semiTransparentPixels": 10846,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            232,
+            339,
+            567,
+            517
+          ],
+          "semiTransparentPixels": 10874,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 11,
+          "bbox": [
+            221,
+            345,
+            568,
+            520
+          ],
+          "semiTransparentPixels": 12196,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            217,
+            347,
+            568,
+            522
+          ],
+          "semiTransparentPixels": 12190,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 13,
+          "bbox": [
+            184,
+            330,
+            581,
+            521
+          ],
+          "semiTransparentPixels": 12925,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            171,
+            322,
+            585,
+            521
+          ],
+          "semiTransparentPixels": 13854,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 15,
+          "bbox": [
+            240,
+            322,
+            576,
+            519
+          ],
+          "semiTransparentPixels": 12184,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            244,
+            310,
+            573,
+            511
+          ],
+          "semiTransparentPixels": 11807,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 17,
+          "bbox": [
+            185,
+            328,
+            579,
+            510
+          ],
+          "semiTransparentPixels": 11266,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            165,
+            320,
+            579,
+            509
+          ],
+          "semiTransparentPixels": 11536,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 19,
+          "bbox": [
+            236,
+            325,
+            581,
+            516
+          ],
+          "semiTransparentPixels": 12494,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 20,
+          "bbox": [
+            236,
+            324,
+            581,
+            521
+          ],
+          "semiTransparentPixels": 12156,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 21,
+          "bbox": [
+            180,
+            326,
+            576,
+            509
+          ],
+          "semiTransparentPixels": 12991,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 22,
+          "bbox": [
+            174,
+            314,
+            575,
+            498
+          ],
+          "semiTransparentPixels": 12452,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 23,
+          "bbox": [
+            233,
+            318,
+            573,
+            510
+          ],
+          "semiTransparentPixels": 11954,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 24,
+          "bbox": [
+            233,
+            329,
+            572,
+            522
+          ],
+          "semiTransparentPixels": 11830,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 25,
+          "bbox": [
+            172,
+            328,
+            563,
+            523
+          ],
+          "semiTransparentPixels": 13440,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 26,
+          "bbox": [
+            171,
+            329,
+            562,
+            526
+          ],
+          "semiTransparentPixels": 12778,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 27,
+          "bbox": [
+            210,
+            332,
+            563,
+            524
+          ],
+          "semiTransparentPixels": 13717,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 28,
+          "bbox": [
+            214,
+            330,
+            563,
+            521
+          ],
+          "semiTransparentPixels": 13415,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 29,
+          "bbox": [
+            217,
+            331,
+            561,
+            521
+          ],
+          "semiTransparentPixels": 13583,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 30,
+          "bbox": [
+            218,
+            332,
+            561,
+            521
+          ],
+          "semiTransparentPixels": 13568,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        }
+      ]
+    },
+    "summon": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\summon.png",
+      "sheetSize": [
+        6144,
+        3200
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            218,
+            336,
+            558,
+            524
+          ],
+          "semiTransparentPixels": 7007,
+          "blueExcessPixels": 50,
+          "cyanExcessPixels": 457
+        },
+        {
+          "index": 1,
+          "bbox": [
+            213,
+            340,
+            559,
+            517
+          ],
+          "semiTransparentPixels": 6867,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            207,
+            344,
+            559,
+            517
+          ],
+          "semiTransparentPixels": 6169,
+          "blueExcessPixels": 20,
+          "cyanExcessPixels": 380
+        },
+        {
+          "index": 3,
+          "bbox": [
+            206,
+            314,
+            543,
+            517
+          ],
+          "semiTransparentPixels": 6130,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            206,
+            273,
+            536,
+            524
+          ],
+          "semiTransparentPixels": 6835,
+          "blueExcessPixels": 36,
+          "cyanExcessPixels": 442
+        },
+        {
+          "index": 5,
+          "bbox": [
+            206,
+            272,
+            536,
+            524
+          ],
+          "semiTransparentPixels": 7178,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            206,
+            272,
+            535,
+            523
+          ],
+          "semiTransparentPixels": 7535,
+          "blueExcessPixels": 37,
+          "cyanExcessPixels": 389
+        },
+        {
+          "index": 7,
+          "bbox": [
+            206,
+            270,
+            535,
+            523
+          ],
+          "semiTransparentPixels": 6977,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 8,
+          "bbox": [
+            206,
+            270,
+            535,
+            523
+          ],
+          "semiTransparentPixels": 6771,
+          "blueExcessPixels": 30,
+          "cyanExcessPixels": 306
+        },
+        {
+          "index": 9,
+          "bbox": [
+            206,
+            270,
+            531,
+            517
+          ],
+          "semiTransparentPixels": 6855,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            206,
+            270,
+            531,
+            517
+          ],
+          "semiTransparentPixels": 7024,
+          "blueExcessPixels": 26,
+          "cyanExcessPixels": 292
+        },
+        {
+          "index": 11,
+          "bbox": [
+            206,
+            269,
+            531,
+            517
+          ],
+          "semiTransparentPixels": 6660,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            206,
+            269,
+            531,
+            517
+          ],
+          "semiTransparentPixels": 6228,
+          "blueExcessPixels": 27,
+          "cyanExcessPixels": 354
+        },
+        {
+          "index": 13,
+          "bbox": [
+            206,
+            271,
+            532,
+            517
+          ],
+          "semiTransparentPixels": 6012,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            206,
+            272,
+            532,
+            517
+          ],
+          "semiTransparentPixels": 5977,
+          "blueExcessPixels": 31,
+          "cyanExcessPixels": 303
+        },
+        {
+          "index": 15,
+          "bbox": [
+            202,
+            267,
+            530,
+            517
+          ],
+          "semiTransparentPixels": 7134,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            200,
+            265,
+            530,
+            524
+          ],
+          "semiTransparentPixels": 6973,
+          "blueExcessPixels": 19,
+          "cyanExcessPixels": 348
+        },
+        {
+          "index": 17,
+          "bbox": [
+            200,
+            265,
+            528,
+            524
+          ],
+          "semiTransparentPixels": 6830,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            200,
+            265,
+            527,
+            524
+          ],
+          "semiTransparentPixels": 6893,
+          "blueExcessPixels": 25,
+          "cyanExcessPixels": 309
+        },
+        {
+          "index": 19,
+          "bbox": [
+            200,
+            265,
+            526,
+            524
+          ],
+          "semiTransparentPixels": 7062,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 20,
+          "bbox": [
+            200,
+            265,
+            526,
+            524
+          ],
+          "semiTransparentPixels": 7145,
+          "blueExcessPixels": 27,
+          "cyanExcessPixels": 354
+        },
+        {
+          "index": 21,
+          "bbox": [
+            200,
+            265,
+            518,
+            524
+          ],
+          "semiTransparentPixels": 6587,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 22,
+          "bbox": [
+            200,
+            265,
+            518,
+            524
+          ],
+          "semiTransparentPixels": 6538,
+          "blueExcessPixels": 21,
+          "cyanExcessPixels": 332
+        },
+        {
+          "index": 23,
+          "bbox": [
+            200,
+            265,
+            522,
+            524
+          ],
+          "semiTransparentPixels": 7001,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 24,
+          "bbox": [
+            200,
+            265,
+            524,
+            524
+          ],
+          "semiTransparentPixels": 7057,
+          "blueExcessPixels": 25,
+          "cyanExcessPixels": 284
+        },
+        {
+          "index": 25,
+          "bbox": [
+            200,
+            265,
+            518,
+            524
+          ],
+          "semiTransparentPixels": 7188,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 26,
+          "bbox": [
+            200,
+            265,
+            518,
+            524
+          ],
+          "semiTransparentPixels": 7197,
+          "blueExcessPixels": 27,
+          "cyanExcessPixels": 419
+        },
+        {
+          "index": 27,
+          "bbox": [
+            200,
+            265,
+            522,
+            524
+          ],
+          "semiTransparentPixels": 7234,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 28,
+          "bbox": [
+            200,
+            265,
+            524,
+            524
+          ],
+          "semiTransparentPixels": 7300,
+          "blueExcessPixels": 26,
+          "cyanExcessPixels": 320
+        },
+        {
+          "index": 29,
+          "bbox": [
+            200,
+            265,
+            518,
+            524
+          ],
+          "semiTransparentPixels": 6848,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 30,
+          "bbox": [
+            200,
+            265,
+            518,
+            524
+          ],
+          "semiTransparentPixels": 6793,
+          "blueExcessPixels": 13,
+          "cyanExcessPixels": 392
+        },
+        {
+          "index": 31,
+          "bbox": [
+            200,
+            265,
+            525,
+            524
+          ],
+          "semiTransparentPixels": 7165,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 32,
+          "bbox": [
+            200,
+            265,
+            526,
+            524
+          ],
+          "semiTransparentPixels": 7235,
+          "blueExcessPixels": 20,
+          "cyanExcessPixels": 293
+        },
+        {
+          "index": 33,
+          "bbox": [
+            201,
+            288,
+            536,
+            524
+          ],
+          "semiTransparentPixels": 6750,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 34,
+          "bbox": [
+            201,
+            291,
+            537,
+            524
+          ],
+          "semiTransparentPixels": 6663,
+          "blueExcessPixels": 28,
+          "cyanExcessPixels": 277
+        },
+        {
+          "index": 35,
+          "bbox": [
+            216,
+            332,
+            557,
+            524
+          ],
+          "semiTransparentPixels": 6545,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 36,
+          "bbox": [
+            218,
+            336,
+            558,
+            524
+          ],
+          "semiTransparentPixels": 6443,
+          "blueExcessPixels": 25,
+          "cyanExcessPixels": 376
+        },
+        {
+          "index": 37,
+          "bbox": [
+            218,
+            336,
+            558,
+            524
+          ],
+          "semiTransparentPixels": 6469,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 38,
+          "bbox": [
+            218,
+            336,
+            558,
+            524
+          ],
+          "semiTransparentPixels": 6442,
+          "blueExcessPixels": 22,
+          "cyanExcessPixels": 349
+        }
+      ]
+    },
+    "phase_open": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\phase_open.png",
+      "sheetSize": [
+        7168,
+        3200
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            283,
+            342,
+            623,
+            531
+          ],
+          "semiTransparentPixels": 6596,
+          "blueExcessPixels": 42,
+          "cyanExcessPixels": 440
+        },
+        {
+          "index": 1,
+          "bbox": [
+            283,
+            347,
+            623,
+            528
+          ],
+          "semiTransparentPixels": 6546,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            283,
+            351,
+            623,
+            527
+          ],
+          "semiTransparentPixels": 6471,
+          "blueExcessPixels": 23,
+          "cyanExcessPixels": 271
+        },
+        {
+          "index": 3,
+          "bbox": [
+            283,
+            353,
+            623,
+            528
+          ],
+          "semiTransparentPixels": 6378,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            283,
+            352,
+            623,
+            529
+          ],
+          "semiTransparentPixels": 6350,
+          "blueExcessPixels": 29,
+          "cyanExcessPixels": 348
+        },
+        {
+          "index": 5,
+          "bbox": [
+            283,
+            340,
+            621,
+            530
+          ],
+          "semiTransparentPixels": 6942,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            283,
+            328,
+            618,
+            530
+          ],
+          "semiTransparentPixels": 7290,
+          "blueExcessPixels": 10,
+          "cyanExcessPixels": 306
+        },
+        {
+          "index": 7,
+          "bbox": [
+            283,
+            313,
+            615,
+            537
+          ],
+          "semiTransparentPixels": 8395,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 8,
+          "bbox": [
+            283,
+            304,
+            612,
+            541
+          ],
+          "semiTransparentPixels": 9048,
+          "blueExcessPixels": 26,
+          "cyanExcessPixels": 350
+        },
+        {
+          "index": 9,
+          "bbox": [
+            283,
+            293,
+            607,
+            553
+          ],
+          "semiTransparentPixels": 10509,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            283,
+            287,
+            604,
+            559
+          ],
+          "semiTransparentPixels": 11227,
+          "blueExcessPixels": 29,
+          "cyanExcessPixels": 507
+        },
+        {
+          "index": 11,
+          "bbox": [
+            267,
+            280,
+            603,
+            569
+          ],
+          "semiTransparentPixels": 12379,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            257,
+            277,
+            603,
+            574
+          ],
+          "semiTransparentPixels": 13483,
+          "blueExcessPixels": 41,
+          "cyanExcessPixels": 720
+        },
+        {
+          "index": 13,
+          "bbox": [
+            257,
+            278,
+            602,
+            579
+          ],
+          "semiTransparentPixels": 12956,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            257,
+            278,
+            602,
+            581
+          ],
+          "semiTransparentPixels": 12920,
+          "blueExcessPixels": 39,
+          "cyanExcessPixels": 450
+        },
+        {
+          "index": 15,
+          "bbox": [
+            257,
+            278,
+            602,
+            581
+          ],
+          "semiTransparentPixels": 13189,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            257,
+            278,
+            602,
+            581
+          ],
+          "semiTransparentPixels": 13276,
+          "blueExcessPixels": 40,
+          "cyanExcessPixels": 742
+        },
+        {
+          "index": 17,
+          "bbox": [
+            257,
+            277,
+            602,
+            581
+          ],
+          "semiTransparentPixels": 12734,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            257,
+            277,
+            602,
+            581
+          ],
+          "semiTransparentPixels": 12748,
+          "blueExcessPixels": 35,
+          "cyanExcessPixels": 488
+        },
+        {
+          "index": 19,
+          "bbox": [
+            257,
+            278,
+            602,
+            581
+          ],
+          "semiTransparentPixels": 12752,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 20,
+          "bbox": [
+            257,
+            278,
+            602,
+            581
+          ],
+          "semiTransparentPixels": 12779,
+          "blueExcessPixels": 30,
+          "cyanExcessPixels": 589
+        },
+        {
+          "index": 21,
+          "bbox": [
+            257,
+            277,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12934,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 22,
+          "bbox": [
+            257,
+            277,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12965,
+          "blueExcessPixels": 28,
+          "cyanExcessPixels": 491
+        },
+        {
+          "index": 23,
+          "bbox": [
+            257,
+            278,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12818,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 24,
+          "bbox": [
+            257,
+            278,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12808,
+          "blueExcessPixels": 54,
+          "cyanExcessPixels": 612
+        },
+        {
+          "index": 25,
+          "bbox": [
+            257,
+            278,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12831,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 26,
+          "bbox": [
+            257,
+            278,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12837,
+          "blueExcessPixels": 58,
+          "cyanExcessPixels": 692
+        },
+        {
+          "index": 27,
+          "bbox": [
+            257,
+            277,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12887,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 28,
+          "bbox": [
+            257,
+            277,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 12833,
+          "blueExcessPixels": 57,
+          "cyanExcessPixels": 551
+        },
+        {
+          "index": 29,
+          "bbox": [
+            256,
+            278,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 13205,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 30,
+          "bbox": [
+            256,
+            278,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 13206,
+          "blueExcessPixels": 56,
+          "cyanExcessPixels": 810
+        },
+        {
+          "index": 31,
+          "bbox": [
+            272,
+            277,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 11385,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 32,
+          "bbox": [
+            273,
+            277,
+            603,
+            581
+          ],
+          "semiTransparentPixels": 11395,
+          "blueExcessPixels": 52,
+          "cyanExcessPixels": 597
+        }
+      ]
+    },
+    "enraged_idle": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\enraged_idle.png",
+      "sheetSize": [
+        7168,
+        1920
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            255,
+            279,
+            599,
+            582
+          ],
+          "semiTransparentPixels": 13011,
+          "blueExcessPixels": 52,
+          "cyanExcessPixels": 631
+        },
+        {
+          "index": 1,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 13131,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 13446,
+          "blueExcessPixels": 50,
+          "cyanExcessPixels": 737
+        },
+        {
+          "index": 3,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12923,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12726,
+          "blueExcessPixels": 37,
+          "cyanExcessPixels": 658
+        },
+        {
+          "index": 5,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 13182,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 13357,
+          "blueExcessPixels": 53,
+          "cyanExcessPixels": 754
+        },
+        {
+          "index": 7,
+          "bbox": [
+            255,
+            278,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12854,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 8,
+          "bbox": [
+            255,
+            278,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12855,
+          "blueExcessPixels": 60,
+          "cyanExcessPixels": 602
+        },
+        {
+          "index": 9,
+          "bbox": [
+            254,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12774,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            254,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12771,
+          "blueExcessPixels": 47,
+          "cyanExcessPixels": 507
+        },
+        {
+          "index": 11,
+          "bbox": [
+            255,
+            278,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12790,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            255,
+            278,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12802,
+          "blueExcessPixels": 48,
+          "cyanExcessPixels": 519
+        },
+        {
+          "index": 13,
+          "bbox": [
+            255,
+            279,
+            599,
+            582
+          ],
+          "semiTransparentPixels": 12870,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            255,
+            279,
+            599,
+            582
+          ],
+          "semiTransparentPixels": 12848,
+          "blueExcessPixels": 49,
+          "cyanExcessPixels": 558
+        },
+        {
+          "index": 15,
+          "bbox": [
+            254,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 13254,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            254,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 13257,
+          "blueExcessPixels": 58,
+          "cyanExcessPixels": 759
+        },
+        {
+          "index": 17,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 13042,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            255,
+            279,
+            601,
+            582
+          ],
+          "semiTransparentPixels": 12954,
+          "blueExcessPixels": 57,
+          "cyanExcessPixels": 588
+        },
+        {
+          "index": 19,
+          "bbox": [
+            255,
+            279,
+            600,
+            582
+          ],
+          "semiTransparentPixels": 12846,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        }
+      ]
+    },
+    "dying": {
+      "path": "assets\\enemies\\rotbog_rhinoceros_beetle_king\\dying.png",
+      "sheetSize": [
+        7168,
+        2560
+      ],
+      "actualColumns": 8,
+      "configuredColumns": 8,
+      "frames": [
+        {
+          "index": 0,
+          "bbox": [
+            279,
+            292,
+            619,
+            479
+          ],
+          "semiTransparentPixels": 7060,
+          "blueExcessPixels": 45,
+          "cyanExcessPixels": 689
+        },
+        {
+          "index": 1,
+          "bbox": [
+            279,
+            294,
+            619,
+            479
+          ],
+          "semiTransparentPixels": 7002,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 2,
+          "bbox": [
+            279,
+            295,
+            619,
+            479
+          ],
+          "semiTransparentPixels": 7003,
+          "blueExcessPixels": 26,
+          "cyanExcessPixels": 391
+        },
+        {
+          "index": 3,
+          "bbox": [
+            279,
+            298,
+            620,
+            479
+          ],
+          "semiTransparentPixels": 7299,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 4,
+          "bbox": [
+            279,
+            301,
+            621,
+            479
+          ],
+          "semiTransparentPixels": 7333,
+          "blueExcessPixels": 22,
+          "cyanExcessPixels": 430
+        },
+        {
+          "index": 5,
+          "bbox": [
+            281,
+            308,
+            623,
+            479
+          ],
+          "semiTransparentPixels": 7396,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 6,
+          "bbox": [
+            282,
+            310,
+            625,
+            479
+          ],
+          "semiTransparentPixels": 7042,
+          "blueExcessPixels": 20,
+          "cyanExcessPixels": 351
+        },
+        {
+          "index": 7,
+          "bbox": [
+            282,
+            310,
+            625,
+            479
+          ],
+          "semiTransparentPixels": 7042,
+          "blueExcessPixels": 20,
+          "cyanExcessPixels": 351
+        },
+        {
+          "index": 8,
+          "bbox": [
+            271,
+            339,
+            626,
+            479
+          ],
+          "semiTransparentPixels": 6028,
+          "blueExcessPixels": 18,
+          "cyanExcessPixels": 255
+        },
+        {
+          "index": 9,
+          "bbox": [
+            265,
+            327,
+            617,
+            480
+          ],
+          "semiTransparentPixels": 5741,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 10,
+          "bbox": [
+            263,
+            316,
+            627,
+            481
+          ],
+          "semiTransparentPixels": 5620,
+          "blueExcessPixels": 12,
+          "cyanExcessPixels": 188
+        },
+        {
+          "index": 11,
+          "bbox": [
+            261,
+            327,
+            624,
+            474
+          ],
+          "semiTransparentPixels": 4745,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 12,
+          "bbox": [
+            260,
+            332,
+            623,
+            473
+          ],
+          "semiTransparentPixels": 4455,
+          "blueExcessPixels": 11,
+          "cyanExcessPixels": 148
+        },
+        {
+          "index": 13,
+          "bbox": [
+            260,
+            328,
+            621,
+            477
+          ],
+          "semiTransparentPixels": 5008,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 14,
+          "bbox": [
+            260,
+            327,
+            621,
+            479
+          ],
+          "semiTransparentPixels": 5044,
+          "blueExcessPixels": 9,
+          "cyanExcessPixels": 171
+        },
+        {
+          "index": 15,
+          "bbox": [
+            260,
+            328,
+            625,
+            480
+          ],
+          "semiTransparentPixels": 5250,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 16,
+          "bbox": [
+            259,
+            328,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 5223,
+          "blueExcessPixels": 12,
+          "cyanExcessPixels": 106
+        },
+        {
+          "index": 17,
+          "bbox": [
+            259,
+            331,
+            624,
+            483
+          ],
+          "semiTransparentPixels": 4919,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 18,
+          "bbox": [
+            258,
+            331,
+            624,
+            483
+          ],
+          "semiTransparentPixels": 4945,
+          "blueExcessPixels": 23,
+          "cyanExcessPixels": 180
+        },
+        {
+          "index": 19,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4797,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 20,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4785,
+          "blueExcessPixels": 28,
+          "cyanExcessPixels": 204
+        },
+        {
+          "index": 21,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4693,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 22,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4705,
+          "blueExcessPixels": 30,
+          "cyanExcessPixels": 297
+        },
+        {
+          "index": 23,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4645,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 24,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4646,
+          "blueExcessPixels": 29,
+          "cyanExcessPixels": 295
+        },
+        {
+          "index": 25,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4800,
+          "blueExcessPixels": 0,
+          "cyanExcessPixels": 0
+        },
+        {
+          "index": 26,
+          "bbox": [
+            258,
+            331,
+            625,
+            483
+          ],
+          "semiTransparentPixels": 4798,
+          "blueExcessPixels": 29,
+          "cyanExcessPixels": 342
+        }
+      ]
+    }
+  },
+  "chargeKey08VsRuntime16": {
+    "identicalPixels": true,
+    "changedPixels": 0
+  },
+  "sourceVideo": {
+    "path": "tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\charge-doubao-v03.mp4",
+    "width": 1280,
+    "height": 720
+  }
+}

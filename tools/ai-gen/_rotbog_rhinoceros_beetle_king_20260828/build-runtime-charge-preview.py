@@ -49,9 +49,12 @@ def distributed_gif_durations(frame_count: int, total_ms: int) -> list[int]:
 def main() -> None:
     sheet_path = ROOT / "spritesheets" / "runtime" / "charge.png"
     sheet = Image.open(sheet_path).convert("RGBA")
+    # The contact sheet uses five columns, but the RIFE source is packed in eight.
+    # Derive extraction columns from the actual PNG instead of the preview layout.
+    source_cols = sheet.width // CELL_W
     frames = []
     for index in range(FRAME_COUNT):
-        row, col = divmod(index, COLS)
+        row, col = divmod(index, source_cols)
         crop = sheet.crop((col * CELL_W, row * CELL_H, (col + 1) * CELL_W, (row + 1) * CELL_H))
         frames.append(checker(crop))
 
