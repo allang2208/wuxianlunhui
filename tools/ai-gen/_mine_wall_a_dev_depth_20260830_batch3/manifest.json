@@ -1,0 +1,14 @@
+{
+  "batch": 3,
+  "stage": "all three generated raws rejected before compose",
+  "request": "request.json",
+  "model": "flux2-dev-depth",
+  "controlNetUsed": true,
+  "runtimeInstalled": false,
+  "approved": false,
+  "composed": false,
+  "seeds": [122083030, 122083031, 122083032],
+  "rejection": "All three raws contain engraved/grid-like hatch marks; 01 and 02 also exaggerate contour irregularities. Alpha cropping cannot repair an unsuitable internal structure.",
+  "nextBatch": "../_mine_wall_a_dev_depth_20260830_batch4",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}

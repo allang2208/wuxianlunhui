@@ -1,0 +1,38 @@
+{
+  "date": "2026-08-30",
+  "scope": "asset production review of generated raw images, composed contact sheet and variant 01 offline dual-axis assembly; not game validation",
+  "result": "reject all three for runtime promotion",
+  "runtimeInstalled": false,
+  "approved": false,
+  "variants": [
+    {
+      "id": 1,
+      "decision": "reject; rock material reference only",
+      "observations": [
+        "Added raised top rim and bottom band remain visible inside the restored alpha",
+        "Side faces retain a strong blue versus neutral hue difference",
+        "Dual-axis assembly exposes repeated face boundaries and fissures; seamless material acceptance not met"
+      ]
+    },
+    {
+      "id": 2,
+      "decision": "reject",
+      "observations": [
+        "Added masonry courses at the bottom of an excavated rock module",
+        "Top cap and side hue shift remain after alpha and luminance restoration"
+      ]
+    },
+    {
+      "id": 3,
+      "decision": "reject",
+      "observations": [
+        "Added miniature wooden architectural panels and a stone foundation",
+        "Large chunky relief and separate cap contradict the continuous excavated rock identity"
+      ]
+    }
+  ],
+  "finding": "Depth constrains broad geometry but does not prevent invented interior structures. Exact alpha and low-frequency luminance restoration cannot remove those structures or guarantee seamless RGB.",
+  "hypothesis": "The complete shared building-style prompt contains foundation and architectural vocabulary that may encourage building details. This is not a confirmed sole cause.",
+  "nextDirection": "Keep Dev and authored Depth; separate shared PBR material and lighting clauses from building identity/foundation clauses. Establish a wall-specific material prompt and seam requirements before further generation. Do not promote this batch to 48 steps or propagate to B/C/gate.",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}

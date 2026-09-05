@@ -1,0 +1,23 @@
+{
+  "stage": "原生PBR模型候选",
+  "runtimeInstalled": false,
+  "geometry": "geometry.json",
+  "model": "mine_wall_a_rockface.blend",
+  "native": "wall_a_native.png",
+  "candidate": "wall_a_native.png",
+  "bodyDepth": "wall_a_body_depth.png",
+  "alpha": "wall_a_alpha.png",
+  "oldGateSource": "../_abandoned_mine_wall_kit_20260828/generation/final_12step/gate_frames",
+  "previews": [
+    "wall-a-comparison.png",
+    "wall-a-seam-assembly.png",
+    "wall-a-floor-context.png"
+  ],
+  "scope": "A baseline only; B/C, gate, formal assets and runtime untouched",
+  "assembly": "Offline same-anchor sprite composition, not runtime verification",
+  "knownLimits": [
+    "Only A is new; old B/C are not style-matched",
+    "Old gate shown only as interface reference",
+    "Fixed sprite lighting and repeat motifs remain visible at long distances"
+  ]
+}

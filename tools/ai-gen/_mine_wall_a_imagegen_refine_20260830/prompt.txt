@@ -1,0 +1,20 @@
+Use case: precise-object-edit / material refinement.
+Asset: abandoned mine repeating wall block A for a 2.5D strategy game.
+Input image 1 is the ONLY edit target and the exact geometry/composition authority: the current Blender rendered continuous slate wall block.
+Input image 2 is the matching Blender body depth/structural silhouette reference ONLY; never copy its white color into the wall.
+Input image 3 is a STYLE reference ONLY: the game's existing blacksmith building. Borrow its credible restrained material rendering, not its architecture, windows, metal panels, orange light, foundation, or objects.
+
+Style trigger: wuxianlunhui world122 building style v5.
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count and footprint. Vocabulary comes only from the Blender model; do not invent ornaments or extra structures.
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes. Avoid dense speckle, granular stone, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+Color treatment: low saturation, neutral contrast and restrained value separation. Muted cool charcoal/slate grey; no bright edging, candy color, neon, bloom or colored haze.
+Lighting: preserve image 1's soft neutral upper-left top-side illumination and relative face brightness. No cast shadow, ground shadow, backdrop shadow, detached ambient shadow, cinematic rim light, or dramatic grading.
+Shape treatment: crisp readable silhouettes, modest bevels and believable thickness. Preserve orthographic 2.5D presentation; no tilt-shift, painterly brushwork or cel outlines.
+Consistency: large forms and calm color fields dominate; surface detail remains subordinate.
+
+Change ONLY surface material quality on image 1: make the solid carved slate/siltstone read as credible excavated mine bedrock, with a few shallow interrupted cleavage fissures, restrained small tool scars, subtle broad mineral variations and softly weathered rock faces. Improve the too-flat top surface through material shading only. Preserve the existing principal shallow cracks and their levels; do not make them deep mortar courses or bulging wavy ribbons. This is ONE continuous rock mass, never masonry, stacked boulders, pavers, loose rubble, or snow.
+
+STRICT INVARIANTS: retain the original 1024 by 1024 square canvas, object size, position, complete alpha silhouette and all six outer corners, the top diamond, central vertical arris, bottom foot edges, camera angle, aspect and vertical height. Keep broad face brightness close to input 1; do not brighten the top into a separate pale cap. Keep the silhouette and outer edge bands unchanged. Do not crop, enlarge, rotate, round off, deform or recenter the block. No perimeter rim, border, ground plinth or isolated dark outline: this block repeats alongside identical blocks. No wood, rails, supports, doorway, ore crystals, lights, vegetation, props, people, text, labels, comparison panels, or watermark.
+
+Output ONE refined block A on a genuinely transparent background, in the exact composition of input 1. Do not output a scene, contact sheet, diagram, albedo swatch or depth map.

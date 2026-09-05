@@ -1,0 +1,64 @@
+{
+  "key": "abandoned_mine_block_a",
+  "canvas": [
+    1024,
+    1024
+  ],
+  "groundCenter": [
+    512.0,
+    761.9959
+  ],
+  "display": [
+    260,
+    259
+  ],
+  "wallH": 132,
+  "halfThick": 13,
+  "footprint": [
+    128,
+    64
+  ],
+  "modelCore": [
+    2.12,
+    2.12,
+    3.04
+  ],
+  "camera": {
+    "position": [
+      10.0,
+      -10.0,
+      9.645000457763672
+    ],
+    "target": [
+      0,
+      0,
+      1.48
+    ],
+    "orthoScale": 5.25
+  },
+  "allowFlipX": false,
+  "runtimeInstalled": false,
+  "seamContract": {
+    "solidCore": true,
+    "textureAndReliefPeriodWorld": 1.8275990652206153,
+    "crownEdgeHeight": 3.043,
+    "runtimeSteps": [
+      [
+        64,
+        32
+      ],
+      [
+        -64,
+        32
+      ]
+    ],
+    "futureVariantsReuseBase": true,
+    "joinedReliefCorners": true
+  },
+  "variants": [
+    "a",
+    "b",
+    "c"
+  ],
+  "materialMapping": "shared flat AI albedo / mirrored shader period / native Blender lighting"
+}

@@ -1,0 +1,16 @@
+{
+  "batch": 2,
+  "stage": "generated and composed; not promoted; continued to batch 3",
+  "approved": false,
+  "runtimeInstalled": false,
+  "viewed": ["all three raw images", "wall_a_dev_candidates.png", "wall_a_structure_v02_seams.png", "wall_a_structure_v03_seams.png"],
+  "improvement": "No invented masonry foundation or wooden panels in these three raws",
+  "remaining": [
+    "01: pronounced upper/lower strata and isolated top gouge",
+    "02: repeated top fissure motif in continuous assembly",
+    "03: deep local peeling and repeated chips",
+    "Low-frequency luminance restoration leaves purple-grey material beside native cold-grey silhouette collar"
+  ],
+  "next": "Batch 3 uses calmer surface wording and native low-frequency RGB restoration while keeping geometry, alpha, seeds per request and Dev/Depth provenance explicit",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}

@@ -1,0 +1,46 @@
+{
+  "stage": "A/B/C shared model PBR candidates",
+  "runtimeInstalled": false,
+  "model": "mine_wall_pbr_kit.blend",
+  "geometry": "geometry.json",
+  "variants": {
+    "a": {
+      "beauty": "wall_a.png",
+      "alpha": "wall_a_alpha.png",
+      "bodyDepth": "wall_a_body_depth.png"
+    },
+    "b": {
+      "beauty": "wall_b.png",
+      "alpha": "wall_b_alpha.png",
+      "bodyDepth": "wall_b_body_depth.png"
+    },
+    "c": {
+      "beauty": "wall_c.png",
+      "alpha": "wall_c_alpha.png",
+      "bodyDepth": "wall_c_body_depth.png"
+    }
+  },
+  "albedo": {
+    "file": "slate_albedo_imagegen.png",
+    "provider": "built-in imagegen",
+    "actualSize": [
+      1254,
+      1254
+    ],
+    "promptFile": "slate-albedo-prompt.txt",
+    "generatedSource": "C:/Users/allan/.codex/generated_images/01a0503a-ea76-7b41-93cb-8be0380b0688/exec-84ba1c3b-4700-48cb-a8f4-a149e293fb44.png",
+    "use": "Base Color only, shared shader mirror period; not AI wall-image refinement or displacement"
+  },
+  "previews": [
+    "wall-kit-contact.png",
+    "wall-kit-seam-assembly.png",
+    "wall-kit-floor-context.png"
+  ],
+  "oldGateSource": "../_abandoned_mine_wall_kit_20260828/generation/final_12step/gate_frames",
+  "scope": "Candidates only; no runtime configs, formal PNG replacement or gate redesign",
+  "knownLimits": [
+    "Authored slab layers and mirror period remain recognizable on long walls",
+    "Old gate has not received the new shared material",
+    "Offline composition is not game rendering, all gate directions or dynamic occlusion acceptance"
+  ]
+}

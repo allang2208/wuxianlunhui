@@ -1,0 +1,4 @@
+Use case: background-extraction.
+Edit the attached image: remove ONLY the white and very light grey checkerboard background outside the rock block and replace it with genuine transparent alpha.
+The checkerboard is baked into the input RGB pixels; it is not currently transparency. The output must have a REAL alpha channel with alpha zero in the empty margins. DO NOT draw a new checkerboard. DO NOT use white, black, grey or any other solid background as a substitute for alpha.
+Keep the entire dark slate rock block exactly as it is, including all dark pixels inside it. Do not change its texture, lighting, geometry, silhouette, size, location, angle, contours or any cracks. Preserve the input canvas dimensions and composition. Clean, naturally antialiased alpha around the existing silhouette, no halo. No shadow or additional object. Return the same block as one transparent PNG cutout, not a comparison.

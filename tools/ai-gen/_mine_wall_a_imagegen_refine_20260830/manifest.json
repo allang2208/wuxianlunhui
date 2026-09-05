@@ -1,0 +1,76 @@
+{
+  "asset": "abandoned_mine_wall_block_a",
+  "date": "2026-08-30",
+  "stage": "imagegen material exploration; not production-ready",
+  "runtimeInstalled": false,
+  "approved": false,
+  "provider": "built-in image_gen",
+  "controlNetUsed": false,
+  "exactAlphaRestored": false,
+  "geometryAuthority": "../_mine_wall_pbr_kit_v2_20260830/geometry.json",
+  "originalBeauty": "../_mine_wall_pbr_kit_v2_20260830/wall_a.png",
+  "originalAlpha": "../_mine_wall_pbr_kit_v2_20260830/wall_a_alpha.png",
+  "bodyDepthReference": "../_mine_wall_pbr_kit_v2_20260830/wall_a_body_depth.png",
+  "styleReference": "../../../assets/terrain/blacksmith_lv3.png",
+  "styleContract": "../prompts/world122-building-style.md",
+  "outputs": [
+    {
+      "file": "wall_a_pass1.png",
+      "prompt": "prompt.txt",
+      "inputImages": [
+        "../_mine_wall_pbr_kit_v2_20260830/wall_a.png",
+        "../_mine_wall_pbr_kit_v2_20260830/wall_a_body_depth.png",
+        "../../../assets/terrain/blacksmith_lv3.png"
+      ],
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a0503a-ea76-7b41-93cb-8be0380b0688/exec-281d81d7-1afd-4f11-9336-9c88b2ec9988.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "RGBA",
+      "cornerAlpha": 0,
+      "assessment": "Reject for installation: added top/bottom edge bands, silhouette drift, contrast and grain too strong. Keep as direct input to pass2."
+    },
+    {
+      "file": "wall_a_pass2.png",
+      "prompt": "prompt_pass2.txt",
+      "inputImages": [
+        "../_mine_wall_pbr_kit_v2_20260830/wall_a.png",
+        "wall_a_pass1.png",
+        "../_mine_wall_pbr_kit_v2_20260830/wall_a_body_depth.png"
+      ],
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a0503a-ea76-7b41-93cb-8be0380b0688/exec-1e3bd21f-af7b-43de-96ee-930fc74fce66.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "RGB",
+      "cornerAlpha": 255,
+      "assessment": "Material study only: reduced perimeter bands, but baked checkerboard background, outline drift and excessive grain remain."
+    },
+    {
+      "file": "wall_a_cutout_attempt.png",
+      "prompt": "prompt_cutout.txt",
+      "inputImages": [
+        "wall_a_pass2.png"
+      ],
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a0503a-ea76-7b41-93cb-8be0380b0688/exec-8779540f-6235-4975-9c6e-8ce02645342c.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "RGB",
+      "cornerAlpha": 255,
+      "assessment": "Failed background extraction: still opaque checkerboard and changed body shading. Do not use."
+    }
+  ],
+  "limitations": [
+    "Requested 1024 square output returned 1254 square in every pass.",
+    "Reference-conditioned image edits are not pixel-exact Blender Depth or Alpha locks.",
+    "No native-lighting recovery, boundary restoration or seam assembly was performed.",
+    "No B/C or gate refinement; do not propagate this batch.",
+    "No runtime assets, geometry, gate rendering code, or gameplay were changed."
+  ],
+  "nextRequired": "Use the established Blender Depth constrained material pipeline and deterministic original-Alpha/native-lighting restoration before a production wall candidate; avoid repeated unconstrained editing.",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}
