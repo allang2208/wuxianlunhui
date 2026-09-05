@@ -1,0 +1,1141 @@
+{
+  "asset": "oreSpider",
+  "cell": [
+    512,
+    512
+  ],
+  "columns": 8,
+  "greenRule": "alpha>3, G>=28, G-max(R,B)>=7; strong alpha>12, G>=40, excess>=14",
+  "sheets": {
+    "idle": {
+      "path": "assets/enemies/ore_spider/idle.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "mode": "RGBA",
+      "frameCount": 1,
+      "fileBytes": 146859,
+      "fileSha256": "6246fa1b84bcb170fc6a1f99d155c3b1bdf14e5b00f82f2b27e07104a0853892",
+      "headFileSha256": "6246fa1b84bcb170fc6a1f99d155c3b1bdf14e5b00f82f2b27e07104a0853892",
+      "headSize": [
+        4096,
+        2048
+      ],
+      "pixelsEqualHead": true,
+      "headSuspectGreenPixels": 0,
+      "headStrongGreenPixels": 0,
+      "changedPixelsFromHead": 0,
+      "changedRgbPixelsFromHead": 0,
+      "changedAlphaPixelsFromHead": 0,
+      "sameIndexHeadComparison": [
+        {
+          "frame": 0,
+          "alphaIou": 1.0,
+          "overlapRgbMae": 0.0
+        }
+      ],
+      "suspectGreenPixels": 0,
+      "strongGreenPixels": 0,
+      "topSuspectColors": [],
+      "frames": [
+        {
+          "frame": 0,
+          "visiblePixels": 39550,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        }
+      ]
+    },
+    "walking": {
+      "path": "assets/enemies/ore_spider/walking.png",
+      "size": [
+        4096,
+        1024
+      ],
+      "mode": "RGBA",
+      "frameCount": 14,
+      "fileBytes": 1294969,
+      "fileSha256": "b551b36942cd3d4a7782b0f00627ddbe5467adb2eae17b907f47f0a1a6090180",
+      "headFileSha256": "f5e64a21849ddb187e47af2a172a4f32adbcc784a417ae4ed2ac9032e83fbbd0",
+      "headSize": [
+        4096,
+        2048
+      ],
+      "pixelsEqualHead": false,
+      "headSuspectGreenPixels": 7,
+      "headStrongGreenPixels": 0,
+      "changedPixelsFromHead": 3669974,
+      "changedRgbPixelsFromHead": 3669556,
+      "changedAlphaPixelsFromHead": 177368,
+      "sameIndexHeadComparison": [
+        {
+          "frame": 0,
+          "alphaIou": 0.809102,
+          "overlapRgbMae": 29.8869
+        },
+        {
+          "frame": 1,
+          "alphaIou": 0.801143,
+          "overlapRgbMae": 29.3989
+        },
+        {
+          "frame": 2,
+          "alphaIou": 0.735362,
+          "overlapRgbMae": 31.5752
+        },
+        {
+          "frame": 3,
+          "alphaIou": 0.711993,
+          "overlapRgbMae": 30.103
+        },
+        {
+          "frame": 4,
+          "alphaIou": 0.733664,
+          "overlapRgbMae": 30.0193
+        },
+        {
+          "frame": 5,
+          "alphaIou": 0.782636,
+          "overlapRgbMae": 28.8766
+        },
+        {
+          "frame": 6,
+          "alphaIou": 0.821941,
+          "overlapRgbMae": 25.4808
+        },
+        {
+          "frame": 7,
+          "alphaIou": 0.810296,
+          "overlapRgbMae": 27.0397
+        },
+        {
+          "frame": 8,
+          "alphaIou": 0.776576,
+          "overlapRgbMae": 28.6899
+        },
+        {
+          "frame": 9,
+          "alphaIou": 0.67275,
+          "overlapRgbMae": 29.8901
+        },
+        {
+          "frame": 10,
+          "alphaIou": 0.652389,
+          "overlapRgbMae": 29.5394
+        },
+        {
+          "frame": 11,
+          "alphaIou": 0.683565,
+          "overlapRgbMae": 28.2275
+        },
+        {
+          "frame": 12,
+          "alphaIou": 0.71318,
+          "overlapRgbMae": 27.7173
+        },
+        {
+          "frame": 13,
+          "alphaIou": 0.765418,
+          "overlapRgbMae": 27.99
+        }
+      ],
+      "suspectGreenPixels": 0,
+      "strongGreenPixels": 0,
+      "topSuspectColors": [],
+      "frames": [
+        {
+          "frame": 0,
+          "visiblePixels": 41299,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 1,
+          "visiblePixels": 41065,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 2,
+          "visiblePixels": 41297,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 3,
+          "visiblePixels": 42083,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 4,
+          "visiblePixels": 42495,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 5,
+          "visiblePixels": 42422,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 6,
+          "visiblePixels": 41764,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 7,
+          "visiblePixels": 41155,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 8,
+          "visiblePixels": 41703,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 9,
+          "visiblePixels": 41745,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 10,
+          "visiblePixels": 41936,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 11,
+          "visiblePixels": 42301,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 12,
+          "visiblePixels": 41811,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 13,
+          "visiblePixels": 41387,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        }
+      ]
+    },
+    "attacking": {
+      "path": "assets/enemies/ore_spider/attacking.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "mode": "RGBA",
+      "frameCount": 28,
+      "fileBytes": 2346141,
+      "fileSha256": "592bbdf6a640b67e2d6e81e14292639588542d9ae4a9444f1ee90288813a50d6",
+      "headFileSha256": "60247e70b92871d263a51b3f1794a34ab2041a12d6415455be59e9d9b4f0aff4",
+      "headSize": [
+        4096,
+        2048
+      ],
+      "pixelsEqualHead": false,
+      "headSuspectGreenPixels": 37,
+      "headStrongGreenPixels": 0,
+      "changedPixelsFromHead": 7339341,
+      "changedRgbPixelsFromHead": 7339017,
+      "changedAlphaPixelsFromHead": 329629,
+      "sameIndexHeadComparison": [
+        {
+          "frame": 0,
+          "alphaIou": 0.799566,
+          "overlapRgbMae": 25.8247
+        },
+        {
+          "frame": 1,
+          "alphaIou": 0.790732,
+          "overlapRgbMae": 26.2276
+        },
+        {
+          "frame": 2,
+          "alphaIou": 0.786421,
+          "overlapRgbMae": 26.2133
+        },
+        {
+          "frame": 3,
+          "alphaIou": 0.781232,
+          "overlapRgbMae": 26.1385
+        },
+        {
+          "frame": 4,
+          "alphaIou": 0.787226,
+          "overlapRgbMae": 25.4289
+        },
+        {
+          "frame": 5,
+          "alphaIou": 0.792965,
+          "overlapRgbMae": 24.4448
+        },
+        {
+          "frame": 6,
+          "alphaIou": 0.792121,
+          "overlapRgbMae": 24.9944
+        },
+        {
+          "frame": 7,
+          "alphaIou": 0.793524,
+          "overlapRgbMae": 24.8258
+        },
+        {
+          "frame": 8,
+          "alphaIou": 0.792254,
+          "overlapRgbMae": 24.1165
+        },
+        {
+          "frame": 9,
+          "alphaIou": 0.763161,
+          "overlapRgbMae": 25.4478
+        },
+        {
+          "frame": 10,
+          "alphaIou": 0.734521,
+          "overlapRgbMae": 30.519
+        },
+        {
+          "frame": 11,
+          "alphaIou": 0.704721,
+          "overlapRgbMae": 32.8945
+        },
+        {
+          "frame": 12,
+          "alphaIou": 0.7071,
+          "overlapRgbMae": 31.7233
+        },
+        {
+          "frame": 13,
+          "alphaIou": 0.713868,
+          "overlapRgbMae": 32.307
+        },
+        {
+          "frame": 14,
+          "alphaIou": 0.720969,
+          "overlapRgbMae": 32.7389
+        },
+        {
+          "frame": 15,
+          "alphaIou": 0.727441,
+          "overlapRgbMae": 32.6524
+        },
+        {
+          "frame": 16,
+          "alphaIou": 0.738198,
+          "overlapRgbMae": 32.4859
+        },
+        {
+          "frame": 17,
+          "alphaIou": 0.75017,
+          "overlapRgbMae": 32.6088
+        },
+        {
+          "frame": 18,
+          "alphaIou": 0.77057,
+          "overlapRgbMae": 31.0462
+        },
+        {
+          "frame": 19,
+          "alphaIou": 0.759801,
+          "overlapRgbMae": 29.3462
+        },
+        {
+          "frame": 20,
+          "alphaIou": 0.740392,
+          "overlapRgbMae": 28.49
+        },
+        {
+          "frame": 21,
+          "alphaIou": 0.785727,
+          "overlapRgbMae": 29.9608
+        },
+        {
+          "frame": 22,
+          "alphaIou": 0.779022,
+          "overlapRgbMae": 29.266
+        },
+        {
+          "frame": 23,
+          "alphaIou": 0.775276,
+          "overlapRgbMae": 29.6407
+        },
+        {
+          "frame": 24,
+          "alphaIou": 0.760467,
+          "overlapRgbMae": 30.3218
+        },
+        {
+          "frame": 25,
+          "alphaIou": 0.764571,
+          "overlapRgbMae": 31.0141
+        },
+        {
+          "frame": 26,
+          "alphaIou": 0.809891,
+          "overlapRgbMae": 24.6463
+        },
+        {
+          "frame": 27,
+          "alphaIou": 0.794921,
+          "overlapRgbMae": 26.333
+        }
+      ],
+      "suspectGreenPixels": 0,
+      "strongGreenPixels": 0,
+      "topSuspectColors": [],
+      "frames": [
+        {
+          "frame": 0,
+          "visiblePixels": 42162,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 1,
+          "visiblePixels": 42139,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 2,
+          "visiblePixels": 42126,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 3,
+          "visiblePixels": 42121,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 4,
+          "visiblePixels": 41923,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 5,
+          "visiblePixels": 41277,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 6,
+          "visiblePixels": 41041,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 7,
+          "visiblePixels": 40985,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 8,
+          "visiblePixels": 40704,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 9,
+          "visiblePixels": 40774,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 10,
+          "visiblePixels": 41050,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 11,
+          "visiblePixels": 41348,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 12,
+          "visiblePixels": 41577,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 13,
+          "visiblePixels": 41507,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 14,
+          "visiblePixels": 41391,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 15,
+          "visiblePixels": 41438,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 16,
+          "visiblePixels": 41229,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 17,
+          "visiblePixels": 41242,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 18,
+          "visiblePixels": 41688,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 19,
+          "visiblePixels": 42923,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 20,
+          "visiblePixels": 44649,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 21,
+          "visiblePixels": 43168,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 22,
+          "visiblePixels": 43307,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 23,
+          "visiblePixels": 43430,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 24,
+          "visiblePixels": 43507,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 25,
+          "visiblePixels": 43380,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 26,
+          "visiblePixels": 41605,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 27,
+          "visiblePixels": 41953,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        }
+      ]
+    },
+    "slam": {
+      "path": "assets/enemies/ore_spider/attacking-2.png",
+      "size": [
+        4096,
+        1536
+      ],
+      "mode": "RGBA",
+      "frameCount": 18,
+      "fileBytes": 1562997,
+      "fileSha256": "4c8f4386b67c9201b54723ddb7fe3c46ab431049993355cd04ba905aa9e40ec1",
+      "headFileSha256": "259b36e1f061b911835a3cbc4e44f2bcc59508360b7efd2c6431a813abeb14c4",
+      "headSize": [
+        4096,
+        2048
+      ],
+      "pixelsEqualHead": false,
+      "headSuspectGreenPixels": 0,
+      "headStrongGreenPixels": 0,
+      "changedPixelsFromHead": 4718316,
+      "changedRgbPixelsFromHead": 4718086,
+      "changedAlphaPixelsFromHead": 151468,
+      "sameIndexHeadComparison": [
+        {
+          "frame": 0,
+          "alphaIou": 0.81217,
+          "overlapRgbMae": 28.7686
+        },
+        {
+          "frame": 1,
+          "alphaIou": 0.842633,
+          "overlapRgbMae": 27.5876
+        },
+        {
+          "frame": 2,
+          "alphaIou": 0.842991,
+          "overlapRgbMae": 27.6731
+        },
+        {
+          "frame": 3,
+          "alphaIou": 0.846673,
+          "overlapRgbMae": 27.5289
+        },
+        {
+          "frame": 4,
+          "alphaIou": 0.739387,
+          "overlapRgbMae": 27.8959
+        },
+        {
+          "frame": 5,
+          "alphaIou": 0.727556,
+          "overlapRgbMae": 26.3619
+        },
+        {
+          "frame": 6,
+          "alphaIou": 0.752984,
+          "overlapRgbMae": 28.732
+        },
+        {
+          "frame": 7,
+          "alphaIou": 0.733646,
+          "overlapRgbMae": 25.2828
+        },
+        {
+          "frame": 8,
+          "alphaIou": 0.75306,
+          "overlapRgbMae": 30.4788
+        },
+        {
+          "frame": 9,
+          "alphaIou": 0.825455,
+          "overlapRgbMae": 21.4712
+        },
+        {
+          "frame": 10,
+          "alphaIou": 0.880646,
+          "overlapRgbMae": 20.6628
+        },
+        {
+          "frame": 11,
+          "alphaIou": 0.856056,
+          "overlapRgbMae": 24.0175
+        },
+        {
+          "frame": 12,
+          "alphaIou": 0.883531,
+          "overlapRgbMae": 21.4028
+        },
+        {
+          "frame": 13,
+          "alphaIou": 0.894811,
+          "overlapRgbMae": 21.9004
+        },
+        {
+          "frame": 14,
+          "alphaIou": 0.846011,
+          "overlapRgbMae": 27.4999
+        },
+        {
+          "frame": 15,
+          "alphaIou": 0.842872,
+          "overlapRgbMae": 27.6525
+        },
+        {
+          "frame": 16,
+          "alphaIou": 0.842345,
+          "overlapRgbMae": 27.5587
+        },
+        {
+          "frame": 17,
+          "alphaIou": 0.811951,
+          "overlapRgbMae": 28.7193
+        }
+      ],
+      "suspectGreenPixels": 0,
+      "strongGreenPixels": 0,
+      "topSuspectColors": [],
+      "frames": [
+        {
+          "frame": 0,
+          "visiblePixels": 37811,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 1,
+          "visiblePixels": 36745,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 2,
+          "visiblePixels": 35697,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 3,
+          "visiblePixels": 35479,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 4,
+          "visiblePixels": 39069,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 5,
+          "visiblePixels": 40575,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 6,
+          "visiblePixels": 39904,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 7,
+          "visiblePixels": 40168,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 8,
+          "visiblePixels": 38664,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 9,
+          "visiblePixels": 40660,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 10,
+          "visiblePixels": 38823,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 11,
+          "visiblePixels": 37721,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 12,
+          "visiblePixels": 36205,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 13,
+          "visiblePixels": 35374,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 14,
+          "visiblePixels": 35464,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 15,
+          "visiblePixels": 35691,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 16,
+          "visiblePixels": 36741,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        },
+        {
+          "frame": 17,
+          "visiblePixels": 37792,
+          "suspectGreenPixels": 0,
+          "strongGreenPixels": 0,
+          "suspectAlphaSum": 0
+        }
+      ]
+    },
+    "dying": {
+      "path": "assets/enemies/ore_spider/dying.png",
+      "size": [
+        4096,
+        1024
+      ],
+      "mode": "RGBA",
+      "frameCount": 12,
+      "fileBytes": 1002758,
+      "fileSha256": "0f886ef9c05f025bb492e28adbcb1d3e7968d2e4062a726506efd2e7df105d3c",
+      "headFileSha256": "ebd6a01bf3147211282d67ebe5e6ceddc4109df2e166e37b4a5837ea9cadc46a",
+      "headSize": [
+        4096,
+        2048
+      ],
+      "pixelsEqualHead": false,
+      "headSuspectGreenPixels": 0,
+      "headStrongGreenPixels": 0,
+      "changedPixelsFromHead": 3145716,
+      "changedRgbPixelsFromHead": 3145242,
+      "changedAlphaPixelsFromHead": 268506,
+      "sameIndexHeadComparison": [
+        {
+          "frame": 0,
+          "alphaIou": 0.681315,
+          "overlapRgbMae": 29.5923
+        },
+        {
+          "frame": 1,
+          "alphaIou": 0.84885,
+          "overlapRgbMae": 26.4286
+        },
+        {
+          "frame": 2,
+          "alphaIou": 0.740985,
+          "overlapRgbMae": 28.715
+        },
+        {
+          "frame": 3,
+          "alphaIou": 0.678553,
+          "overlapRgbMae": 31.1788
+        },
+        {
+          "frame": 4,
+          "alphaIou": 0.631497,
+          "overlapRgbMae": 31.9218
+        },
+        {
+          "frame": 5,
+          "alphaIou": 0.595119,
+          "overlapRgbMae": 31.8732
+        },
+        {
+          "frame": 6,
+          "alphaIou": 0.581412,
+          "overlapRgbMae": 28.2833
+        },
+        {
+          "frame": 7,
+          "alphaIou": 0.591897,
+          "overlapRgbMae": 27.7297
+        },
+        {
+          "frame": 8,
+          "alphaIou": 0.575288,
+          "overlapRgbMae": 30.569
+        },
+        {
+          "frame": 9,
+          "alphaIou": 0.468743,
+          "overlapRgbMae": 32.1216
+        },
+        {
+          "frame": 10,
+          "alphaIou": 0.414284,
+          "overlapRgbMae": 30.7638
+        },
+        {
+          "frame": 11,
+          "alphaIou": 0.362085,
+          "overlapRgbMae": 32.4024
+        }
+      ],
+      "suspectGreenPixels": 2475,
+      "strongGreenPixels": 464,
+      "topSuspectColors": [
+        [
+          [
+            29,
+            39,
+            19,
+            255
+          ],
+          4
+        ],
+        [
+          [
+            72,
+            86,
+            60,
+            255
+          ],
+          3
+        ],
+        [
+          [
+            36,
+            51,
+            24,
+            255
+          ],
+          3
+        ],
+        [
+          [
+            75,
+            89,
+            66,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            23,
+            32,
+            11,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            25,
+            32,
+            9,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            45,
+            52,
+            37,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            28,
+            42,
+            25,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            20,
+            32,
+            2,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            39,
+            49,
+            27,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            37,
+            48,
+            25,
+            255
+          ],
+          2
+        ],
+        [
+          [
+            19,
+            33,
+            13,
+            255
+          ],
+          2
+        ]
+      ],
+      "frames": [
+        {
+          "frame": 0,
+          "visiblePixels": 44047,
+          "suspectGreenPixels": 173,
+          "strongGreenPixels": 26,
+          "suspectAlphaSum": 44115
+        },
+        {
+          "frame": 1,
+          "visiblePixels": 40189,
+          "suspectGreenPixels": 114,
+          "strongGreenPixels": 20,
+          "suspectAlphaSum": 29070
+        },
+        {
+          "frame": 2,
+          "visiblePixels": 40548,
+          "suspectGreenPixels": 137,
+          "strongGreenPixels": 20,
+          "suspectAlphaSum": 34935
+        },
+        {
+          "frame": 3,
+          "visiblePixels": 41970,
+          "suspectGreenPixels": 197,
+          "strongGreenPixels": 33,
+          "suspectAlphaSum": 50235
+        },
+        {
+          "frame": 4,
+          "visiblePixels": 42050,
+          "suspectGreenPixels": 249,
+          "strongGreenPixels": 41,
+          "suspectAlphaSum": 63495
+        },
+        {
+          "frame": 5,
+          "visiblePixels": 41343,
+          "suspectGreenPixels": 252,
+          "strongGreenPixels": 50,
+          "suspectAlphaSum": 64260
+        },
+        {
+          "frame": 6,
+          "visiblePixels": 37335,
+          "suspectGreenPixels": 222,
+          "strongGreenPixels": 46,
+          "suspectAlphaSum": 56610
+        },
+        {
+          "frame": 7,
+          "visiblePixels": 36915,
+          "suspectGreenPixels": 240,
+          "strongGreenPixels": 57,
+          "suspectAlphaSum": 61200
+        },
+        {
+          "frame": 8,
+          "visiblePixels": 35467,
+          "suspectGreenPixels": 224,
+          "strongGreenPixels": 41,
+          "suspectAlphaSum": 57120
+        },
+        {
+          "frame": 9,
+          "visiblePixels": 34675,
+          "suspectGreenPixels": 237,
+          "strongGreenPixels": 42,
+          "suspectAlphaSum": 60435
+        },
+        {
+          "frame": 10,
+          "visiblePixels": 32216,
+          "suspectGreenPixels": 208,
+          "strongGreenPixels": 44,
+          "suspectAlphaSum": 53040
+        },
+        {
+          "frame": 11,
+          "visiblePixels": 30058,
+          "suspectGreenPixels": 222,
+          "strongGreenPixels": 44,
+          "suspectAlphaSum": 56610
+        }
+      ]
+    }
+  }
+}

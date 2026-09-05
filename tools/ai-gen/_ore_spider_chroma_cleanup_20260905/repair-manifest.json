@@ -1,0 +1,1081 @@
+{
+    "asset":  "oreSpider",
+    "date":  "2026-09-05",
+    "scope":  [
+                  "walking",
+                  "attacking"
+              ],
+    "unchangedStates":  [
+                            "idle",
+                            "slam",
+                            "dying"
+                        ],
+    "cell":  [
+                 512,
+                 512
+             ],
+    "columns":  8,
+    "method":  {
+                   "candidate":  "alpha\u003e3 and G\u003e=20 and G-max(R,B)\u003e=4",
+                   "seed":  "alpha\u003e12 and G\u003e=36 and G-max(R,B)\u003e=12",
+                   "selection":  "all candidate green-dominant pixels in the two contaminated sheets",
+                   "operation":  "selected pixels -\u003e transparent black; every other visible pixel unchanged"
+               },
+    "states":  {
+                   "walking":  {
+                                   "formalPath":  "assets/enemies/ore_spider/walking.png",
+                                   "beforeSha256":  "ee148bbc146b75379da97109ed437b8fc6230f75cba1659d8bd39b6d53cc5e91",
+                                   "candidateSha256":  "b551b36942cd3d4a7782b0f00627ddbe5467adb2eae17b907f47f0a1a6090180",
+                                   "dimensions":  [
+                                                      4096,
+                                                      1024
+                                                  ],
+                                   "frameCount":  14,
+                                   "durationMs":  1400,
+                                   "loop":  true,
+                                   "removedPixels":  21529,
+                                   "remainingStrongGreenPixels":  0,
+                                   "remainingCandidateGreenPixels":  0,
+                                   "nonGreenVisiblePixelsChanged":  0,
+                                   "maxAbsBottomBboxDelta":  2,
+                                   "frames":  [
+                                                  {
+                                                      "candidateGreenPixels":  1403,
+                                                      "strongSeedPixels":  1067,
+                                                      "removedPixels":  1403,
+                                                      "changedPixels":  1403,
+                                                      "changedAlphaPixels":  1403,
+                                                      "changedRgbPixels":  1403,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         134,
+                                                                         120,
+                                                                         378,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        136,
+                                                                        121,
+                                                                        377,
+                                                                        378
+                                                                    ],
+                                                      "frame":  0
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1463,
+                                                      "strongSeedPixels":  1103,
+                                                      "removedPixels":  1463,
+                                                      "changedPixels":  1463,
+                                                      "changedAlphaPixels":  1463,
+                                                      "changedRgbPixels":  1463,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         135,
+                                                                         117,
+                                                                         377,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        136,
+                                                                        119,
+                                                                        376,
+                                                                        377
+                                                                    ],
+                                                      "frame":  1
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1479,
+                                                      "strongSeedPixels":  1125,
+                                                      "removedPixels":  1479,
+                                                      "changedPixels":  1479,
+                                                      "changedAlphaPixels":  1479,
+                                                      "changedRgbPixels":  1479,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         134,
+                                                                         110,
+                                                                         377,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        136,
+                                                                        111,
+                                                                        375,
+                                                                        377
+                                                                    ],
+                                                      "frame":  2
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1642,
+                                                      "strongSeedPixels":  1243,
+                                                      "removedPixels":  1642,
+                                                      "changedPixels":  1642,
+                                                      "changedAlphaPixels":  1642,
+                                                      "changedRgbPixels":  1642,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         128,
+                                                                         103,
+                                                                         384,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        130,
+                                                                        104,
+                                                                        383,
+                                                                        377
+                                                                    ],
+                                                      "frame":  3
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1692,
+                                                      "strongSeedPixels":  1284,
+                                                      "removedPixels":  1692,
+                                                      "changedPixels":  1692,
+                                                      "changedAlphaPixels":  1692,
+                                                      "changedRgbPixels":  1692,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         127,
+                                                                         105,
+                                                                         384,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        129,
+                                                                        106,
+                                                                        382,
+                                                                        377
+                                                                    ],
+                                                      "frame":  4
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1702,
+                                                      "strongSeedPixels":  1304,
+                                                      "removedPixels":  1702,
+                                                      "changedPixels":  1702,
+                                                      "changedAlphaPixels":  1702,
+                                                      "changedRgbPixels":  1702,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         130,
+                                                                         112,
+                                                                         383,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        131,
+                                                                        114,
+                                                                        381,
+                                                                        377
+                                                                    ],
+                                                      "frame":  5
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1338,
+                                                      "strongSeedPixels":  1023,
+                                                      "removedPixels":  1338,
+                                                      "changedPixels":  1338,
+                                                      "changedAlphaPixels":  1338,
+                                                      "changedRgbPixels":  1338,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         134,
+                                                                         119,
+                                                                         377,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        136,
+                                                                        121,
+                                                                        376,
+                                                                        378
+                                                                    ],
+                                                      "frame":  6
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1275,
+                                                      "strongSeedPixels":  965,
+                                                      "removedPixels":  1275,
+                                                      "changedPixels":  1275,
+                                                      "changedAlphaPixels":  1275,
+                                                      "changedRgbPixels":  1275,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         146,
+                                                                         120,
+                                                                         367,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        147,
+                                                                        122,
+                                                                        366,
+                                                                        378
+                                                                    ],
+                                                      "frame":  7
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1418,
+                                                      "strongSeedPixels":  1081,
+                                                      "removedPixels":  1418,
+                                                      "changedPixels":  1418,
+                                                      "changedAlphaPixels":  1418,
+                                                      "changedRgbPixels":  1418,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         145,
+                                                                         114,
+                                                                         368,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        146,
+                                                                        116,
+                                                                        367,
+                                                                        377
+                                                                    ],
+                                                      "frame":  8
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1714,
+                                                      "strongSeedPixels":  1358,
+                                                      "removedPixels":  1714,
+                                                      "changedPixels":  1714,
+                                                      "changedAlphaPixels":  1714,
+                                                      "changedRgbPixels":  1714,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         134,
+                                                                         107,
+                                                                         377,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        136,
+                                                                        108,
+                                                                        376,
+                                                                        377
+                                                                    ],
+                                                      "frame":  9
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1717,
+                                                      "strongSeedPixels":  1287,
+                                                      "removedPixels":  1717,
+                                                      "changedPixels":  1717,
+                                                      "changedAlphaPixels":  1717,
+                                                      "changedRgbPixels":  1717,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         132,
+                                                                         104,
+                                                                         380,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        134,
+                                                                        106,
+                                                                        379,
+                                                                        377
+                                                                    ],
+                                                      "frame":  10
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1573,
+                                                      "strongSeedPixels":  1212,
+                                                      "removedPixels":  1573,
+                                                      "changedPixels":  1573,
+                                                      "changedAlphaPixels":  1573,
+                                                      "changedRgbPixels":  1573,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         130,
+                                                                         109,
+                                                                         382,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        131,
+                                                                        111,
+                                                                        381,
+                                                                        378
+                                                                    ],
+                                                      "frame":  11
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1624,
+                                                      "strongSeedPixels":  1212,
+                                                      "removedPixels":  1624,
+                                                      "changedPixels":  1624,
+                                                      "changedAlphaPixels":  1624,
+                                                      "changedRgbPixels":  1624,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         128,
+                                                                         117,
+                                                                         384,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        130,
+                                                                        118,
+                                                                        382,
+                                                                        377
+                                                                    ],
+                                                      "frame":  12
+                                                  },
+                                                  {
+                                                      "candidateGreenPixels":  1489,
+                                                      "strongSeedPixels":  1124,
+                                                      "removedPixels":  1489,
+                                                      "changedPixels":  1489,
+                                                      "changedAlphaPixels":  1489,
+                                                      "changedRgbPixels":  1489,
+                                                      "nonGreenVisiblePixelsChanged":  0,
+                                                      "remainingCandidateGreenPixels":  0,
+                                                      "remainingStrongGreenPixels":  0,
+                                                      "bboxBefore":  [
+                                                                         134,
+                                                                         120,
+                                                                         378,
+                                                                         379
+                                                                     ],
+                                                      "bboxAfter":  [
+                                                                        135,
+                                                                        121,
+                                                                        377,
+                                                                        378
+                                                                    ],
+                                                      "frame":  13
+                                                  }
+                                              ],
+                                   "previewGif":  "tools/ai-gen/_ore_spider_chroma_cleanup_20260905/previews/walking-clean.gif",
+                                   "comparisonGif":  "tools/ai-gen/_ore_spider_chroma_cleanup_20260905/previews/walking-before-after.gif"
+                               },
+                   "attacking":  {
+                                     "formalPath":  "assets/enemies/ore_spider/attacking.png",
+                                     "beforeSha256":  "3c81d88d76d00148cc3c628236967e4ea3c9d12d5efa9311212ecc24ce3b13c6",
+                                     "candidateSha256":  "592bbdf6a640b67e2d6e81e14292639588542d9ae4a9444f1ee90288813a50d6",
+                                     "dimensions":  [
+                                                        4096,
+                                                        2048
+                                                    ],
+                                     "frameCount":  28,
+                                     "durationMs":  1500,
+                                     "loop":  false,
+                                     "removedPixels":  35417,
+                                     "remainingStrongGreenPixels":  0,
+                                     "remainingCandidateGreenPixels":  0,
+                                     "nonGreenVisiblePixelsChanged":  0,
+                                     "maxAbsBottomBboxDelta":  2,
+                                     "frames":  [
+                                                    {
+                                                        "candidateGreenPixels":  1073,
+                                                        "strongSeedPixels":  818,
+                                                        "removedPixels":  1073,
+                                                        "changedPixels":  1073,
+                                                        "changedAlphaPixels":  1073,
+                                                        "changedRgbPixels":  1073,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           121,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          122,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  0
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1081,
+                                                        "strongSeedPixels":  827,
+                                                        "removedPixels":  1081,
+                                                        "changedPixels":  1081,
+                                                        "changedAlphaPixels":  1081,
+                                                        "changedRgbPixels":  1081,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           129,
+                                                                           121,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          122,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  1
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1079,
+                                                        "strongSeedPixels":  822,
+                                                        "removedPixels":  1079,
+                                                        "changedPixels":  1079,
+                                                        "changedAlphaPixels":  1079,
+                                                        "changedRgbPixels":  1079,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           129,
+                                                                           121,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          122,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  2
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1080,
+                                                        "strongSeedPixels":  837,
+                                                        "removedPixels":  1080,
+                                                        "changedPixels":  1080,
+                                                        "changedAlphaPixels":  1080,
+                                                        "changedRgbPixels":  1080,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           129,
+                                                                           121,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          122,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  3
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1163,
+                                                        "strongSeedPixels":  926,
+                                                        "removedPixels":  1163,
+                                                        "changedPixels":  1163,
+                                                        "changedAlphaPixels":  1163,
+                                                        "changedRgbPixels":  1163,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           129,
+                                                                           122,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          123,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  4
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1212,
+                                                        "strongSeedPixels":  915,
+                                                        "removedPixels":  1212,
+                                                        "changedPixels":  1212,
+                                                        "changedAlphaPixels":  1212,
+                                                        "changedRgbPixels":  1212,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           127,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          128,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  5
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1255,
+                                                        "strongSeedPixels":  977,
+                                                        "removedPixels":  1255,
+                                                        "changedPixels":  1255,
+                                                        "changedAlphaPixels":  1255,
+                                                        "changedRgbPixels":  1255,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           129,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          130,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  6
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1339,
+                                                        "strongSeedPixels":  1037,
+                                                        "removedPixels":  1339,
+                                                        "changedPixels":  1339,
+                                                        "changedAlphaPixels":  1339,
+                                                        "changedRgbPixels":  1339,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           128,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          129,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  7
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1297,
+                                                        "strongSeedPixels":  1006,
+                                                        "removedPixels":  1297,
+                                                        "changedPixels":  1297,
+                                                        "changedAlphaPixels":  1297,
+                                                        "changedRgbPixels":  1297,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           130,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          131,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  8
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1282,
+                                                        "strongSeedPixels":  1002,
+                                                        "removedPixels":  1282,
+                                                        "changedPixels":  1282,
+                                                        "changedAlphaPixels":  1282,
+                                                        "changedRgbPixels":  1282,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           129,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          130,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  9
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1214,
+                                                        "strongSeedPixels":  943,
+                                                        "removedPixels":  1214,
+                                                        "changedPixels":  1214,
+                                                        "changedAlphaPixels":  1214,
+                                                        "changedRgbPixels":  1214,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           128,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          130,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  10
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1272,
+                                                        "strongSeedPixels":  985,
+                                                        "removedPixels":  1272,
+                                                        "changedPixels":  1272,
+                                                        "changedAlphaPixels":  1272,
+                                                        "changedRgbPixels":  1272,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           127,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          129,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  11
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1295,
+                                                        "strongSeedPixels":  999,
+                                                        "removedPixels":  1295,
+                                                        "changedPixels":  1295,
+                                                        "changedAlphaPixels":  1295,
+                                                        "changedRgbPixels":  1295,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           127,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          128,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  12
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1292,
+                                                        "strongSeedPixels":  1013,
+                                                        "removedPixels":  1292,
+                                                        "changedPixels":  1292,
+                                                        "changedAlphaPixels":  1292,
+                                                        "changedRgbPixels":  1292,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           128,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          129,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  13
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1291,
+                                                        "strongSeedPixels":  992,
+                                                        "removedPixels":  1291,
+                                                        "changedPixels":  1291,
+                                                        "changedAlphaPixels":  1291,
+                                                        "changedRgbPixels":  1291,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           128,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          130,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  14
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1274,
+                                                        "strongSeedPixels":  987,
+                                                        "removedPixels":  1274,
+                                                        "changedPixels":  1274,
+                                                        "changedAlphaPixels":  1274,
+                                                        "changedRgbPixels":  1274,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           128,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          129,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  15
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1441,
+                                                        "strongSeedPixels":  1105,
+                                                        "removedPixels":  1441,
+                                                        "changedPixels":  1441,
+                                                        "changedAlphaPixels":  1441,
+                                                        "changedRgbPixels":  1441,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           128,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          129,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  16
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1482,
+                                                        "strongSeedPixels":  1139,
+                                                        "removedPixels":  1482,
+                                                        "changedPixels":  1482,
+                                                        "changedAlphaPixels":  1482,
+                                                        "changedRgbPixels":  1482,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           126,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          129,
+                                                                          127,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  17
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1413,
+                                                        "strongSeedPixels":  1076,
+                                                        "removedPixels":  1413,
+                                                        "changedPixels":  1413,
+                                                        "changedAlphaPixels":  1413,
+                                                        "changedRgbPixels":  1413,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           122,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          130,
+                                                                          123,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  18
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1115,
+                                                        "strongSeedPixels":  838,
+                                                        "removedPixels":  1115,
+                                                        "changedPixels":  1115,
+                                                        "changedAlphaPixels":  1115,
+                                                        "changedRgbPixels":  1115,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           126,
+                                                                           118,
+                                                                           384,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          128,
+                                                                          119,
+                                                                          383,
+                                                                          378
+                                                                      ],
+                                                        "frame":  19
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1440,
+                                                        "strongSeedPixels":  1095,
+                                                        "removedPixels":  1440,
+                                                        "changedPixels":  1440,
+                                                        "changedAlphaPixels":  1440,
+                                                        "changedRgbPixels":  1440,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           106,
+                                                                           121,
+                                                                           405,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          108,
+                                                                          122,
+                                                                          404,
+                                                                          378
+                                                                      ],
+                                                        "frame":  20
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1334,
+                                                        "strongSeedPixels":  1008,
+                                                        "removedPixels":  1334,
+                                                        "changedPixels":  1334,
+                                                        "changedAlphaPixels":  1334,
+                                                        "changedRgbPixels":  1334,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           115,
+                                                                           121,
+                                                                           396,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          116,
+                                                                          123,
+                                                                          394,
+                                                                          378
+                                                                      ],
+                                                        "frame":  21
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1196,
+                                                        "strongSeedPixels":  903,
+                                                        "removedPixels":  1196,
+                                                        "changedPixels":  1196,
+                                                        "changedAlphaPixels":  1196,
+                                                        "changedRgbPixels":  1196,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           118,
+                                                                           120,
+                                                                           393,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          119,
+                                                                          121,
+                                                                          393,
+                                                                          378
+                                                                      ],
+                                                        "frame":  22
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1246,
+                                                        "strongSeedPixels":  957,
+                                                        "removedPixels":  1246,
+                                                        "changedPixels":  1246,
+                                                        "changedAlphaPixels":  1246,
+                                                        "changedRgbPixels":  1246,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           118,
+                                                                           120,
+                                                                           394,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          119,
+                                                                          121,
+                                                                          392,
+                                                                          378
+                                                                      ],
+                                                        "frame":  23
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1231,
+                                                        "strongSeedPixels":  930,
+                                                        "removedPixels":  1231,
+                                                        "changedPixels":  1231,
+                                                        "changedAlphaPixels":  1231,
+                                                        "changedRgbPixels":  1231,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           116,
+                                                                           120,
+                                                                           394,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          117,
+                                                                          121,
+                                                                          393,
+                                                                          378
+                                                                      ],
+                                                        "frame":  24
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1357,
+                                                        "strongSeedPixels":  1034,
+                                                        "removedPixels":  1357,
+                                                        "changedPixels":  1357,
+                                                        "changedAlphaPixels":  1357,
+                                                        "changedRgbPixels":  1357,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           116,
+                                                                           120,
+                                                                           394,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          118,
+                                                                          121,
+                                                                          393,
+                                                                          378
+                                                                      ],
+                                                        "frame":  25
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1348,
+                                                        "strongSeedPixels":  1037,
+                                                        "removedPixels":  1348,
+                                                        "changedPixels":  1348,
+                                                        "changedAlphaPixels":  1348,
+                                                        "changedRgbPixels":  1348,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           129,
+                                                                           123,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          131,
+                                                                          125,
+                                                                          382,
+                                                                          377
+                                                                      ],
+                                                        "frame":  26
+                                                    },
+                                                    {
+                                                        "candidateGreenPixels":  1315,
+                                                        "strongSeedPixels":  1020,
+                                                        "removedPixels":  1315,
+                                                        "changedPixels":  1315,
+                                                        "changedAlphaPixels":  1315,
+                                                        "changedRgbPixels":  1315,
+                                                        "nonGreenVisiblePixelsChanged":  0,
+                                                        "remainingCandidateGreenPixels":  0,
+                                                        "remainingStrongGreenPixels":  0,
+                                                        "bboxBefore":  [
+                                                                           128,
+                                                                           121,
+                                                                           382,
+                                                                           379
+                                                                       ],
+                                                        "bboxAfter":  [
+                                                                          130,
+                                                                          122,
+                                                                          381,
+                                                                          378
+                                                                      ],
+                                                        "frame":  27
+                                                    }
+                                                ],
+                                     "previewGif":  "tools/ai-gen/_ore_spider_chroma_cleanup_20260905/previews/attacking-clean.gif",
+                                     "comparisonGif":  "tools/ai-gen/_ore_spider_chroma_cleanup_20260905/previews/attacking-before-after.gif"
+                                 }
+               },
+    "installed":  true,
+    "installedSha256":  {
+                            "walking":  "b551b36942cd3d4a7782b0f00627ddbe5467adb2eae17b907f47f0a1a6090180",
+                            "attacking":  "592bbdf6a640b67e2d6e81e14292639588542d9ae4a9444f1ee90288813a50d6"
+                        }
+}
