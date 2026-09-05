@@ -1,0 +1,61 @@
+{
+  "idle": {
+    "source": "videos/idle-user-1.mp4",
+    "frameCount": 121,
+    "fps": 24.119601328903656,
+    "size": [
+      960,
+      960
+    ],
+    "gif": "previews/videos/idle-source-preview.gif",
+    "contact": "previews/videos/idle-source-contact-24.png"
+  },
+  "attacking": {
+    "source": "videos/attacking-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/attacking-source-preview.gif",
+    "contact": "previews/videos/attacking-source-contact-24.png",
+    "denseContact": "previews/videos/attacking-source-contact-f036-f096-step2.png"
+  },
+  "moving_attacking": {
+    "source": "videos/moving-attacking-h3-v02.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/moving_attacking-source-preview.gif",
+    "contact": "previews/videos/moving_attacking-source-contact-24.png",
+    "denseContact": null
+  },
+  "standing_attacking": {
+    "source": "videos/standing-attacking-h3-v03.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/standing_attacking-source-preview.gif",
+    "contact": "previews/videos/standing_attacking-source-contact-24.png",
+    "denseContact": "previews/videos/standing_attacking-source-contact-f024-f080-step2.png"
+  },
+  "dying": {
+    "source": "videos/dying-h3-v01.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/dying-source-preview.gif",
+    "contact": "previews/videos/dying-source-contact-24.png",
+    "denseContact": "previews/videos/dying-source-contact-f024-f072-step2.png"
+  }
+}
