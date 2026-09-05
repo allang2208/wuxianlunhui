@@ -3,7 +3,8 @@
 Uses the accepted World-122 street/decor camera contract: orthographic 30-degree
 camera, 44.8-degree model-root rotation, and one fixed prop camera scale. Runtime
 supplies a mathematically periodic black square paver base and collision-free
-world-grid placement; the rejected white rubble detail layer is not generated.
+world-grid placement; props contain no baked cast-shadow layer, and the rejected
+white rubble detail layer is not generated.
 """
 
 from __future__ import annotations
@@ -58,7 +59,6 @@ def setup_materials():
 
 def start(name: str, x: float, y: float):
     S.new_model(name, (x, y, 0))
-    S.add_shadow(2.2, 1.25, 0.006)
     return name
 
 
@@ -306,6 +306,7 @@ def main():
         },
         "baseContract": "mathematically seamless building-standard 2:1 black square paver grid; 26.565-degree axes, 128x64 brick period and 1024x512 texture period; material language sampled from legacy blackbrick.png",
         "collisionContract": "all 18 props are floor-baked visual-only decorations",
+        "shadowPolicy": "no-authored-cast-shadow",
         "tiles": tile_names,
         "props": prop_names,
         "model": str(BLEND_OUT.relative_to(REPO)).replace("\\", "/"),

@@ -2,8 +2,9 @@
 
 `prepare` builds one 6x3 fixed-cell init sheet and matching Depth sheet.
 `finalize --dev-raw ...` splits the single FLUX.2 Dev render, removes the
-magenta matte per cell without discarding disconnected fragments, restores the
-authored soft contact shadow, and creates a labeled approval sheet.
+magenta matte per cell without discarding disconnected fragments, keeps only
+the generated prop body (no authored cast-shadow layer), and creates a labeled
+approval sheet.
 """
 
 from __future__ import annotations
@@ -145,16 +146,6 @@ def matte_cutout(tile: Image.Image, model: Image.Image):
     return Image.fromarray(rgba, "RGBA")
 
 
-def authored_shadow(model: Image.Image):
-    rgba = np.asarray(model.convert("RGBA"), dtype=np.uint8)
-    alpha = rgba[..., 3]
-    shadow_alpha = np.where((alpha > 0) & (alpha < 170), np.minimum(alpha, 62), 0).astype(np.uint8)
-    layer = np.zeros_like(rgba)
-    layer[..., :3] = (18, 25, 29)
-    layer[..., 3] = shadow_alpha
-    return Image.fromarray(layer, "RGBA")
-
-
 def finalize(dev_raw: Path):
     manifest = load_manifest()
     props = manifest["props"]
@@ -171,15 +162,16 @@ def finalize(dev_raw: Path):
         tile = raw.crop((x, y, x + CELL, y + CELL))
         tile.save(raw_dir / f"{prop['key']}_dev_raw.png", optimize=True)
         model = Image.open(ROOT / prop["modelRender"]).convert("RGBA")
-        cut = matte_cutout(tile, model)
-        composed = Image.alpha_composite(authored_shadow(model), cut)
+        # Dev 的生成提示本来就禁止 cast shadow；正式图只保留抠出的主体，
+        # 不再把 Blender 模型中的方向性接触投影重新叠回地板装饰。
+        composed = matte_cutout(tile, model)
         out = out_dir / f"{prop['key']}.png"
         composed.save(out, optimize=True)
         finals.append(composed)
         prop["devCandidate"] = f"candidates/{prop['key']}.png"
         prop["devRawCell"] = f"dev-raw-cells/{prop['key']}_dev_raw.png"
     contact = ROOT / "review" / "frozen-props-dev-contact-sheet.png"
-    make_labeled_sheet(finals, props, contact, "冰原位面 / 冰原地牢 · Dev材质候选18件")
+    make_labeled_sheet(finals, props, contact, "冰原位面 / 冰原地牢 · Dev无投影小物18件")
     manifest["devGeneration"] = {
         "model": "flux2-dev-depth",
         "batchLayout": [COLS, ROWS],
@@ -188,6 +180,7 @@ def finalize(dev_raw: Path):
         "denoise": 0.28,
         "steps": 24,
         "background": "#FF00FF",
+        "shadowPolicy": "no-authored-cast-shadow",
         "raw": str(dev_raw.relative_to(REPO)).replace("\\", "/"),
         "approvalContactSheet": str(contact.relative_to(REPO)).replace("\\", "/"),
     }

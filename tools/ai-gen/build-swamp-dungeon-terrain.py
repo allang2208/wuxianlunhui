@@ -2,7 +2,8 @@
 
 The camera contract matches the accepted road/desert/dungeon terrain workflow:
 orthographic 30-degree camera, 44.8-degree model root, exact 2:1 detail cells,
-and a fixed prop camera. Runtime bakes every prop into the floor canvas.
+and a fixed prop camera. Runtime bakes every prop into the floor canvas; props
+contain no baked cast-shadow layer.
 """
 
 from __future__ import annotations
@@ -62,7 +63,6 @@ def setup_materials():
 
 def start(name: str, x: float, y: float):
     S.new_model(name, (x, y, 0))
-    S.add_shadow(2.2, 1.25, 0.006)
     return name
 
 
@@ -298,6 +298,7 @@ def main():
         },
         "baseContract": "color-graded seamless wet mud beneath transparent details",
         "collisionContract": "all 18 props are floor-baked visual-only decorations",
+        "shadowPolicy": "no-authored-cast-shadow",
         "tiles": tile_names,
         "props": prop_names,
         "model": str(BLEND_OUT.relative_to(REPO)).replace("\\", "/"),
