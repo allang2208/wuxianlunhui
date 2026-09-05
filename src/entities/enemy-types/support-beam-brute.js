@@ -1,3 +1,5 @@
+import { DamagePipeline } from '../../combat/damage-pipeline.js';
+import { attackFrameAt } from './_shared/attack-timing.js';
 import { startCorpseTimeline, updateCorpseTimeline } from './_shared/corpse-timeline.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
@@ -96,6 +98,7 @@ export class SupportBeamBrute extends Enemy {
         }
 
         super.update(dt, entities);
+        if (!this.active || this._isDead) return;
 
         if (this._breakTimer > 0) {
             this._breakTimer = Math.max(0, this._breakTimer - dt);
@@ -113,8 +116,7 @@ export class SupportBeamBrute extends Enemy {
             return;
         }
 
-        if (this.hasStatusEffect
-            && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
+        if (this.isCombatActionBlocked()) {
             this._cancelAttack();
             this.vx = 0;
             this.vy = 0;
@@ -127,7 +129,7 @@ export class SupportBeamBrute extends Enemy {
             this._attackTimer = Math.max(0, this._attackTimer - dt);
             this._attackAnimTimer = this._attackTimer;
             const cfg = this._attackPhaseConfig || this._getCurrentAttackConfig();
-            const duration = Math.max(1, Number(cfg.duration) || 5083);
+            const duration = Math.max(1, Number(cfg.duration) || (this._beamBroken ? 1300 : 1800));
             const frames = Math.max(1, Number(cfg.frames) || 61);
             const hitMs = Math.max(0, Number(cfg.hitFrame) || 0) / frames * duration;
             const elapsedBefore = duration - previous;
@@ -135,6 +137,7 @@ export class SupportBeamBrute extends Enemy {
             if (!this._attackHitDone && elapsedBefore < hitMs && elapsedAfter >= hitMs) {
                 this._attackHitDone = true;
                 this._dealAttackHit();
+                if (this.isCombatActionBlocked()) return;
             }
             if (this._attackTimer <= 0) this._clearAttackLock();
         } else {
@@ -176,7 +179,7 @@ export class SupportBeamBrute extends Enemy {
         }
         if (pending) pending.active = false;
 
-        const duration = Math.max(1, Number(cfg.duration) || 5083);
+        const duration = Math.max(1, Number(cfg.duration) || (this._beamBroken ? 1300 : 1800));
         this._attackTimer = duration;
         this._attackAnimTimer = duration;
         this._attackHitDone = false;
@@ -198,12 +201,11 @@ export class SupportBeamBrute extends Enemy {
         const cfg = this._attackPhaseConfig || this._getCurrentAttackConfig();
         if (!canImpactBasicMelee(this, target, snapshot)) return;
         const damage = Math.max(1, Math.round((this.data?.atk || 0) * (Number(cfg.damageMul) || 1)));
-        target.takeDamage(damage, this, 'physical', true);
-        const parried = target.shieldSystem && target.shieldSystem._lastParried;
-        const knockback = Math.max(0, Number(cfg.knockback) || 0);
-        if (!parried && knockback > 0 && typeof target.applyKnockback === 'function') {
-            target.applyKnockback(snapshot.worldAngle, knockback);
-        }
+        DamagePipeline.applyHit(this, target, {
+            damage, damageType: 'physical', isMelee: true,
+            knockback: Math.max(0, Number(cfg.knockback) || 0), angle: snapshot.worldAngle,
+            confirmedHitContext: { skillId: 'supportBeamStrike' },
+        });
     }
 
     _cancelAttack() {
@@ -261,7 +263,7 @@ export class SupportBeamBrute extends Enemy {
         if (this._beamBroken || !this.active) return;
         this._beamBroken = true;
         this._cancelAttack();
-        if (this._attackTelegraphTimer > 0) this._attackTelegraphTimer = 0;
+        this._clearAttackTelegraph();
         const breakCfg = this._getBreakConfig();
         this._breakTimer = Math.max(1, Number(breakCfg.duration) || 4417);
         this._attackAnimTimer = this._breakTimer;
@@ -318,12 +320,28 @@ export class SupportBeamBrute extends Enemy {
             flipX = Math.cos(this.rotation || 0) < 0;
         }
         const renderCfg = this.config?.render || {};
+        const textures = this.config?.textures || {};
+        const layoutKey = this._animState.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        const layout = textures.frameLayouts?.[layoutKey] || {};
+        const frameWidth = layout.frameWidth || 512;
+        const frameHeight = layout.frameHeight || 640;
+        // 素材按共同主体比例制作；宽攻击帧只增加挥梁留白，不能按最长边缩小身体。
+        const scale = (renderCfg.spriteSize || 326) / (textures.referenceCell || 640);
         const oneShot = attacking || this._animState === 'beam_break';
         const phaserState = this._animState === 'death'
             ? 'death'
             : (oneShot ? 'attack' : (this._animState.includes('walk') ? 'walk' : 'idle'));
+        const duration = attacking
+            ? Math.max(1, Number((this._attackPhaseConfig || this._getCurrentAttackConfig()).duration) || (this._beamBroken ? 1300 : 1800))
+            : Math.max(1, Number(this._getBreakConfig().duration) || 4417);
         return {
-            spriteSize: renderCfg.spriteSize || 326,
+            ...(oneShot ? {
+                manualFrame: true,
+                frame: attackFrameAt(layout, duration - (attacking ? this._attackTimer : this._breakTimer), duration),
+            } : {}),
+            spriteSize: Math.max(frameWidth, frameHeight) * scale,
+            // 持梁攻击采用非对称裁框，固定起手主体锚点；不逐帧居中改写动作轨迹。
+            frameAnchorX: layout.anchorX ?? frameWidth / 2,
             collisionWidth: renderCfg.collisionWidth || 88,
             collisionHeight: renderCfg.collisionHeight || 198,
             textOffsetY: -(renderCfg.spriteSize || 326) / 2 - 10,

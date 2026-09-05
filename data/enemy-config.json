@@ -11570,6 +11570,10 @@
    "weight": 1,
    "assaultReady": true
   },
+  "attackTelegraph": {
+   "overlapWindup": true,
+   "durationMs": 350
+  },
   "id": "supportBeamBrute",
   "name": "支护梁巨尸",
   "type": "精英",
@@ -11597,10 +11601,10 @@
   "luck": 7,
   "attackRange": 360,
   "attackDistance": 360,
-  "aiInterval": 1500,
+  "aiInterval": 150,
   "attack": {
    "type": "thrust",
-   "cooldown": 7000,
+   "cooldown": 3400,
    "range": 360,
    "dynamicRange": 360,
    "width": 90,
@@ -11634,12 +11638,12 @@
     "forwardOffset": 36,
     "backExtension": 8,
     "width": 90,
-    "duration": 5083,
+    "duration": 1800,
     "frames": 61,
     "hitFrame": 30,
     "damageMul": 1.45,
     "knockback": 120,
-    "cooldown": 7000
+    "cooldown": 3400
    },
    "unarmedSmash": {
     "range": 87,
@@ -11648,12 +11652,12 @@
     "forwardOffset": 34,
     "backExtension": 12,
     "width": 120,
-    "duration": 5083,
+    "duration": 1300,
     "frames": 61,
     "hitFrame": 36,
     "damageMul": 1.65,
     "knockback": 90,
-    "cooldown": 6000
+    "cooldown": 2700
    }
   },
   "death": {
@@ -11690,6 +11694,7 @@
    "unarmedWalk": "assets/enemies/support_beam_brute/unarmed_walk.png",
    "unarmedAttack": "assets/enemies/support_beam_brute/unarmed_attack.png",
    "death": "assets/enemies/support_beam_brute/death.png",
+   "referenceCell": 640,
    "frameLayouts": {
     "armedIdle": {
      "columns": 8,
@@ -11723,8 +11728,9 @@
      "rows": 8,
      "frameWidth": 1024,
      "frameHeight": 640,
+     "anchorX": 217,
      "frameCount": 61,
-     "duration": 5083,
+     "duration": 1800,
      "hitFrame": 30,
      "repeat": 0
     },
@@ -11752,7 +11758,7 @@
      "frameWidth": 512,
      "frameHeight": 640,
      "frameCount": 61,
-     "duration": 5083,
+     "duration": 1300,
      "hitFrame": 36,
      "repeat": 0
     },
@@ -11775,11 +11781,11 @@
    },
    {
     "name": "持梁突击",
-    "desc": "360px 起手与命中范围，61 帧攻击动画第 30 帧结算物理攻击 ×1.45 并击退 120px；冷却 7s。"
+    "desc": "360px 起手与命中范围，61 帧攻击动画第 30 帧结算物理攻击 ×1.45 并击退 120px；冷却 3.4s。"
    },
    {
     "name": "双拳砸击",
-    "desc": "横梁断裂后启用：87px 起手与命中范围，61 帧攻击动画第 36 帧结算物理攻击 ×1.65 并击退 90px；冷却 6s。"
+    "desc": "横梁断裂后启用：87px 起手与命中范围，61 帧攻击动画第 36 帧结算物理攻击 ×1.65 并击退 90px；冷却 2.7s。"
    }
   ],
   "attackType": "物理"
