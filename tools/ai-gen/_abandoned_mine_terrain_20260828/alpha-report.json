@@ -7,12 +7,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      98,
       201,
       168,
-      240
+      237
     ],
-    "opaquePixels": 1499
+    "opaquePixels": 805
   },
   {
     "key": "abandoned_mine_prop_coal_chunks",
@@ -23,11 +23,11 @@
     ],
     "alphaBBox": [
       92,
-      207,
+      208,
       165,
-      240
+      237
     ],
-    "opaquePixels": 1498
+    "opaquePixels": 1004
   },
   {
     "key": "abandoned_mine_prop_ore_fragments",
@@ -37,12 +37,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      100,
       202,
-      160,
-      240
+      156,
+      234
     ],
-    "opaquePixels": 1503
+    "opaquePixels": 949
   },
   {
     "key": "abandoned_mine_prop_broken_sleepers",
@@ -52,12 +52,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      108,
       205,
-      160,
+      151,
       240
     ],
-    "opaquePixels": 1416
+    "opaquePixels": 721
   },
   {
     "key": "abandoned_mine_prop_rail_spikes",
@@ -67,12 +67,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      107,
       206,
-      160,
-      240
+      150,
+      238
     ],
-    "opaquePixels": 1369
+    "opaquePixels": 345
   },
   {
     "key": "abandoned_mine_prop_broken_rail",
@@ -82,12 +82,12 @@
       256
     ],
     "alphaBBox": [
-      92,
+      104,
       198,
-      164,
-      242
+      152,
+      240
     ],
-    "opaquePixels": 1728
+    "opaquePixels": 761
   },
   {
     "key": "abandoned_mine_prop_rotten_planks",
@@ -97,12 +97,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      106,
       206,
-      160,
+      154,
       241
     ],
-    "opaquePixels": 1382
+    "opaquePixels": 790
   },
   {
     "key": "abandoned_mine_prop_timber_offcuts",
@@ -112,12 +112,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      109,
       203,
-      160,
-      240
+      154,
+      239
     ],
-    "opaquePixels": 1393
+    "opaquePixels": 680
   },
   {
     "key": "abandoned_mine_prop_rope_coil",
@@ -127,12 +127,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      104,
       207,
       160,
-      240
+      234
     ],
-    "opaquePixels": 1470
+    "opaquePixels": 950
   },
   {
     "key": "abandoned_mine_prop_broken_chain",
@@ -142,12 +142,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      105,
       199,
-      160,
+      149,
       241
     ],
-    "opaquePixels": 1454
+    "opaquePixels": 693
   },
   {
     "key": "abandoned_mine_prop_pickaxe",
@@ -157,12 +157,12 @@
       256
     ],
     "alphaBBox": [
-      94,
+      110,
       202,
-      162,
-      242
+      146,
+      237
     ],
-    "opaquePixels": 1514
+    "opaquePixels": 314
   },
   {
     "key": "abandoned_mine_prop_shovel",
@@ -172,12 +172,12 @@
       256
     ],
     "alphaBBox": [
-      94,
-      206,
+      98,
+      207,
       167,
-      242
+      229
     ],
-    "opaquePixels": 1527
+    "opaquePixels": 453
   },
   {
     "key": "abandoned_mine_prop_floor_lantern",
@@ -187,12 +187,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      115,
       185,
-      160,
-      240
+      141,
+      230
     ],
-    "opaquePixels": 1718
+    "opaquePixels": 746
   },
   {
     "key": "abandoned_mine_prop_helmet",
@@ -202,12 +202,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      106,
       201,
-      160,
-      240
+      153,
+      233
     ],
-    "opaquePixels": 1621
+    "opaquePixels": 959
   },
   {
     "key": "abandoned_mine_prop_dynamite",
@@ -217,12 +217,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      109,
       201,
-      160,
-      240
+      150,
+      237
     ],
-    "opaquePixels": 1402
+    "opaquePixels": 572
   },
   {
     "key": "abandoned_mine_prop_fuse_spool",
@@ -232,12 +232,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      106,
       195,
-      160,
+      151,
       241
     ],
-    "opaquePixels": 1820
+    "opaquePixels": 1401
   },
   {
     "key": "abandoned_mine_prop_minecart_wheel",
@@ -247,12 +247,12 @@
       256
     ],
     "alphaBBox": [
-      96,
+      109,
       190,
-      160,
-      240
+      147,
+      239
     ],
-    "opaquePixels": 1731
+    "opaquePixels": 979
   },
   {
     "key": "abandoned_mine_prop_ore_sack",
@@ -262,11 +262,11 @@
       256
     ],
     "alphaBBox": [
-      96,
+      108,
       185,
-      160,
-      240
+      148,
+      232
     ],
-    "opaquePixels": 2001
+    "opaquePixels": 1275
   }
 ]

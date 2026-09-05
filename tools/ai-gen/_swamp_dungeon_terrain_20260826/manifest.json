@@ -10,6 +10,7 @@
   },
   "baseContract": "color-graded seamless wet mud beneath transparent details",
   "collisionContract": "all 18 props are floor-baked visual-only decorations",
+  "shadowPolicy": "no-authored-cast-shadow",
   "tiles": [
     "swamp_detail_mud_00",
     "swamp_detail_mud_01",

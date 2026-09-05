@@ -10,6 +10,7 @@
   },
   "baseContract": "mathematically seamless building-standard 2:1 black square paver grid; 26.565-degree axes, 128x64 brick period and 1024x512 texture period; material language sampled from legacy blackbrick.png",
   "collisionContract": "all 18 props are floor-baked visual-only decorations",
+  "shadowPolicy": "no-authored-cast-shadow",
   "tiles": [],
   "props": [
     "dungeon_prop_loose_cobbles",
