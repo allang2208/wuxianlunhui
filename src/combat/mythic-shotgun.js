@@ -91,7 +91,7 @@ export function createVoidFuneralHitHandler(source, weapon, entities, blastDamag
     if (!params) return null;
     let triggered = false;
     return (hitTarget, projectile) => {
-        if (triggered || !source || source.active === false || !hitTarget) return;
+        if (triggered || !source || source.active === false || !hitTarget || hitTarget.shieldSystem?._lastParried) return;
         triggered = true;
         const effects = weapon._craftEffects || {};
         const range = Math.max(80,
@@ -125,7 +125,7 @@ export function createVoidFuneralHitHandler(source, weapon, entities, blastDamag
                 knockback,
                 angle,
             });
-            if (result.hit && !result.killed && bindDurationMs > 0) {
+            if (result.hit && !result.killed && !target.shieldSystem?._lastParried && bindDurationMs > 0) {
                 target.addStatusEffect?.('bind', bindDurationMs, {
                     name: '葬潮束缚', icon: '◈', color: '#7b61ff',
                 });

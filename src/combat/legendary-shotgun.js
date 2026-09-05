@@ -214,7 +214,7 @@ function handleRoyalHuntHit(source, weapon, blastDamage, hitTarget, projectile) 
     );
     const bindDurationMs = Math.max(0,
         (Number(params.bindDurationMs) || 400) + (Number(effects.huntBindDurationDelta) || 0));
-    if (result.hit && !result.killed && bindDurationMs > 0) {
+    if (result.hit && !result.killed && !hitTarget.shieldSystem?._lastParried && bindDurationMs > 0) {
         hitTarget.addStatusEffect?.('bind', bindDurationMs, {
             name: '王猎锁定', icon: '♛', color: '#c52c42',
         });
@@ -226,7 +226,7 @@ export function createLegendaryShotgunHitHandler(source, weapon, entities, blast
     if (!weapon?.eclipseVerdictParams && !weapon?.royalHuntParams) return null;
     let triggered = false;
     return (hitTarget, projectile) => {
-        if (triggered || !source || source.active === false || !hitTarget) return;
+        if (triggered || !source || source.active === false || !hitTarget || hitTarget.shieldSystem?._lastParried) return;
         triggered = true;
         if (weapon.eclipseVerdictParams) {
             handleEclipseHit(source, weapon, entities, blastDamage, blast, hitTarget, projectile);
