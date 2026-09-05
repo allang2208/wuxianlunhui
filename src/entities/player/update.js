@@ -250,6 +250,7 @@ update(dt, entities) {
                     aimWorld: null,
                     primaryDown: false,
                     primaryPressed: false,
+                    runSpeed: false,
                     runVisual: false,
                 };
                 const move = rtsEnabled ? rtsIntent.move : Input.getMovement();
@@ -307,8 +308,12 @@ update(dt, entities) {
                     }
                 } else if (!isDroneControlling) {
                     let sprint = Input.isSprint() && this.data.stamina > 0 && this._isSprintDirectionAllowed();
+                    let rtsRun = !!(rtsEnabled && rtsIntent.runSpeed);
                     // 防御状态：禁止奔跑
-                    if (this.shieldSystem && this.shieldSystem.defending) sprint = false;
+                    if (this.shieldSystem && this.shieldSystem.defending) {
+                        sprint = false;
+                        rtsRun = false;
+                    }
                     // 攻击期间禁止奔跑（平衡调整：单手持枪（含双持手枪）可跑步开火；
                     // 双手枪械（机枪/突击步枪）与近战武器维持开火打断奔跑）
                     const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
@@ -317,7 +322,8 @@ update(dt, entities) {
                         const isGunEquip = equipForSprint && isGunWeapon(equipForSprint);
                         if (!isGunEquip || isTwoHanded(equipForSprint)) sprint = false;
                     }
-                    let targetSpeed = sprint ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
+                    // RTS 跑步与手动奔跑共用速度真源，但不进入真实 sprint 的体力/蓄势状态。
+                    let targetSpeed = (sprint || rtsRun) ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
                     // 减速状态（致残）：移动速度减半
                     if (this.hasStatusEffect && this.hasStatusEffect('slow')) targetSpeed *= 0.5;
                     // 束缚状态：无法移动
@@ -481,8 +487,8 @@ update(dt, entities) {
                 // 奔跑状态只认上方已经过举盾、攻击、双手枪开火/瞄准与体力结算的最终 sprint。
                 // 渲染、烟尘和冲刺攻击蓄力共用这一真值，避免各自重算后出现速度与腿层不一致。
                 this._isSprinting = !!(resolvedSprint && this.isMoving && !this.isDodging);
-                // 格挡只允许步行。RTS 跑姿是表现标志而非 sprint 真值，也必须在这里
-                // 读取最终防御状态收口，否则它会绕过上方 sprint=false 重新切回跑步腿层。
+                // 格挡只允许步行。RTS 跑姿虽与奔跑速度同步，但仍不是 sprint 真值；
+                // 它不消耗体力、不累计冲刺蓄势，也不能绕过最终防御状态重新切回跑步腿层。
                 this._rtsRunVisual = !!(rtsEnabled && rtsIntent.runVisual && this.isMoving
                     && !(this.shieldSystem && this.shieldSystem.defending));
                 // ===== 行走/奔跑动画已由 Phaser 处理 =====

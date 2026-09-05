@@ -32,7 +32,7 @@ export function nowMs() {
     return performance.now();
 }
 
-/** 指挥移动只复用奔跑表现，不等同于冲刺速度、耐力或冲刺攻击状态。 */
+/** 指挥移动复用奔跑表现；速度由独立 RTS 意图同步，仍不等同于真实冲刺、耐力或冲刺攻击状态。 */
 export function isPlayerRunVisual(player) {
     return !!(player && (player._isSprinting || player._rtsRunVisual));
 }

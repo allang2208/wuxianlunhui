@@ -15,6 +15,7 @@ function emptyIntent() {
         aimWorld: null,
         primaryDown: false,
         primaryPressed: false,
+        runSpeed: false,
         runVisual: false,
     };
 }
@@ -154,6 +155,7 @@ export class PlayerRtsController {
             ? Math.min(1, move.distance / 64, distance / 24)
             : 1;
         intent.move = { x: dx / distance * approachScale, y: dy / distance * approachScale };
+        intent.runSpeed = true;
         intent.runVisual = true;
         intent.aimWorld = { x: movementTarget.x, y: movementTarget.y };
         return intent;
