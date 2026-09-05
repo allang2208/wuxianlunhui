@@ -13,6 +13,7 @@ import {
     ENERGY_NODE_GROUND_CONTACT_COUNT,
     ENERGY_NODE_RUBBLE_COUNT,
 } from '../../world/energy-node-textures.js';
+import { WALL_BATTLEMENT_RUNE_VARIANT_COUNT } from '../../world/wall-battlement.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 import companionConfigData from '../../../data/companion-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
@@ -444,6 +445,13 @@ export class BootScene extends Scene {
             this.load.image(
                 `wall_tower_${tier}_foreground`,
                 `assets/terrain/wall_tower_${tier}_foreground.png`
+            );
+        }
+        // 最高科技女墙的独立符文池：完整双槽共用一枚，运行时在接缝正中稳定抽取。
+        for (let variant = 1; variant <= WALL_BATTLEMENT_RUNE_VARIANT_COUNT; variant++) {
+            this.load.image(
+                `wall_battlement_rune_decal_${variant}`,
+                `assets/terrain/wall_battlement_rune_decal_${variant}.png`
             );
         }
         // 2026-08-17：4 格门图标（面板缩略图 + 放置幽灵预览）

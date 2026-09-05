@@ -9,6 +9,26 @@ const EDGE_DEFS = Object.freeze({
 
 export const WALL_BATTLEMENT_EDGES = Object.freeze(Object.keys(EDGE_DEFS));
 export const WALL_BATTLEMENT_SLOTS = Object.freeze([0, 1]);
+export const WALL_BATTLEMENT_RUNE_VARIANT_COUNT = 4;
+export const WALL_BATTLEMENT_RUNE_VISUAL = Object.freeze({
+    width: 24,
+    height: 30,
+    alpha: 0.82,
+});
+
+/**
+ * 符文只随机选型，不进入生命周期或存档：墙格与外沿共同生成稳定编号，
+ * 保证刷新、读档和科技换肤前后不会跳图。
+ */
+export function wallBattlementRuneVariant(wallCell, edge) {
+    const key = `${Number(wallCell?.i) || 0}:${Number(wallCell?.j) || 0}:${edge || ''}`;
+    let hash = 2166136261;
+    for (let index = 0; index < key.length; index++) {
+        hash ^= key.charCodeAt(index);
+        hash = Math.imul(hash, 16777619) >>> 0;
+    }
+    return (hash % WALL_BATTLEMENT_RUNE_VARIANT_COUNT) + 1;
+}
 
 /** 女墙沿支撑墙外沿拖建时的格网切向；几何方向只在本模块定义。 */
 export function wallBattlementTangentAxis(edge) {
