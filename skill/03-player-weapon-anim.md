@@ -459,6 +459,7 @@
 ### 冲刺技能随武器替换、修炼与动作快照合同（2026-08-24）
 
 - **武器映射**：生锈长剑、符文剑使用 `dashAttack`；骑士长剑通过当前装备的 `skillOverrides.dashAttackThrust` 使用 `dashAttackThrust`；夜与火之剑通过 `skillOverrides.dashAttackFire` 使用 `dashAttackFire`。只认 `equipments[weaponMode]` 当前槽位物品为真源，`player._skillOverrides` 只能同步镜像，禁止由刚拖动但未激活的物品反向覆盖当前技能。
+- **奔跑与突刺姿势分层（2026-09-05）**：冲刺蓄势与已就绪属于输入状态，不得提前替换持盾奔跑循环；骑士长剑只有真正进入 `_isDashing + player_dash_attack_thrust` 后才切换前指突刺姿势。
 - **动作快照**：冲刺起手必须锁定 `_dashSkillId / _dashWeaponItem / _dashSkillOverrides`，冲刺主体的动画、位移、判定、伤害和剑精通均读取该快照；冲刺、末帧定格和 recover 期间禁止 `F` 切换武器，避免同一次动作中途从突刺变成挥砍、换伤害或丢失修炼。冲刺主体结束、撞墙中止、眩晕、复活和重生必须清空快照，后续定格/recover 由武器切换锁继续保护。
 - **共享修炼、独立效果**：`dashAttack` 是三种冲刺形态唯一的等级/经验真源；突刺与火焰变体只提供各自 `getEffect(sharedLevel)`。技能面板显示共享等级和经验，但伤害、范围、击退等必须套用当前变体公式，升级刷新需要同时刷新三张卡及当前打开的变体详情。
 - **突刺统计口径**：三段持续突刺用 `_dashThrustPhase.totalHitCount / totalKillCount` 发放冲刺与剑精通经验；同一目标被三段命中按三次有效伤害计数，击杀也必须保留，禁止退化成唯一目标数或固定 `killCount=0`。

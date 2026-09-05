@@ -52,7 +52,6 @@ export class PlayerSwordShieldMotion {
         this.poseBank = motion;
         this.thrustIdle = false;
         this.thrustExitPose = null;
-        this.prepareResumeAt = null;
     }
 
     beginFrame() {
@@ -97,7 +96,6 @@ export class PlayerSwordShieldMotion {
             if (this.session?.style !== 'thrust') this.session = { style: 'thrust', origin: 0 };
         } else if (key === 'run') {
             this.runOffset = this.returnPhase ?? 0;
-            this.prepareResumeAt = this.returnPhase == null ? null : nowMs();
             this.returnPhase = null;
             this.session = null;
         } else if (key !== 'dash_recover') {
@@ -123,7 +121,6 @@ export class PlayerSwordShieldMotion {
         this.runOffset = 0;
         this.thrustIdle = false;
         this.thrustExitPose = null;
-        this.prepareResumeAt = null;
     }
 
     _syncNativeThrustRecovery(player, body) {
@@ -176,19 +173,8 @@ export class PlayerSwordShieldMotion {
                 this.poseBank = soloMotion;
                 return soloMotion.poses[this.lastRunFrame];
             }
-            // 只使用真实冲刺就绪进度；RTS的跑步显示不授予突击预备。
-            if (this._thrustAvailable() && player._isSprinting && Input.isSprint()
-                && player._getActiveDashSkillId?.() === 'dashAttackThrust'
-                && player.skills?.dashAttackThrust && player.data.stamina > 0
-                && player._isSprintDirectionAllowed?.() && player._hasHorizontalDashInput?.()) {
-                const level = player._getDashSkillLevel('dashAttackThrust');
-                const readyMs = 333 * (1 - (level - 1) * 0.03);
-                const duration = Math.max(1, Math.min(thrust.prepareMs, readyMs));
-                let amount = Math.max(0, Math.min(1, (player._sprintDuration - Math.max(0, readyMs-duration)) / duration));
-                // 收势回跑后仍可能已达就绪阈值；只缓入上身，不复位游戏计时或限制点击。
-                if (this.prepareResumeAt !== null) amount = Math.min(amount, Math.max(0, (nowMs()-this.prepareResumeAt)/thrust.prepareMs));
-                if (amount > 0) return this._thrustPose(thrust.preparation[this.lastRunFrame], amount);
-            }
+            // 蓄势/已就绪只由脚下 footprint 金环表达，不能占用持盾奔跑姿势。
+            // 真正释放后由 _selectThrust 的 _isDashing + dash_attack_thrust 分支切入突刺。
             return motion.poses[motion.run[this.lastRunFrame]];
         }
         this.lastRunFrame = null;
