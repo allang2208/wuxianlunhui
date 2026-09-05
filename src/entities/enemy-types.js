@@ -24,6 +24,7 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { surfaceEffectFromEntity } from '../physics/elevation.js';
 import { EffectFactory } from '../utils/effect-factory.js';
 import { playSoundFrom } from './enemy-types/_shared/enemy-utils.js';
+import { attackFrameAt } from './enemy-types/_shared/attack-timing.js';
 import {
     createGroundWarning,
     destroyWarning,
@@ -1640,7 +1641,7 @@ class ZombieDogEnemy extends CircleEnemy {
         this._animState = 'idle';
         this._animStateTimer = 0;
         this._lastHorizontalFacing = 'right';
-        this._attackDuration = this._getFrameLayout('attack').duration ?? 700;
+        this._attackDuration = this._getFrameLayout('attack').duration ?? 1000;
         this._loopingSoundState = null;
         this._loopingSoundTimer = 0;
 
@@ -1649,6 +1650,7 @@ class ZombieDogEnemy extends CircleEnemy {
         this._deathStarted = false;
         this._deathAnimTimer = 0;
         this._corpseTimer = 0;
+        this._syncAnimationFootOffset();
     }
 
     update(dt, entities) {
@@ -1659,12 +1661,17 @@ class ZombieDogEnemy extends CircleEnemy {
         super.update(dt, entities);
         // 石化需冻结当前动作帧，不能像眩晕/冻结那样把动画计时继续推进。
         if (this.hasStatusEffect?.('petrified')) return;
-        // 递减攻击动画计时器；计时器归零后不再显示 attack 动画
-        if (this._attackTimer > 0) {
+        if (!this.active || this._isDead) return;
+        // 普攻贴图和命中窗口共享逻辑时钟，旧式动作保留原倒计时。
+        const basicTimeline = this._pendingThrust?.active && this._pendingThrust.basicMeleeTimeline;
+        if (basicTimeline) {
+            this._attackTimer = Math.max(0, basicTimeline.durationMs - (this._pendingThrust.timelineElapsedMs || 0));
+            this._attackAnimTimer = this._attackTimer;
+        } else if (this._attackTimer > 0) {
             this._attackTimer -= dt;
             if (this._attackTimer < 0) this._attackTimer = 0;
         }
-        if (this._attackAnimTimer > 0) {
+        if (!basicTimeline && this._attackAnimTimer > 0) {
             this._attackAnimTimer -= dt;
             if (this._attackAnimTimer < 0) this._attackAnimTimer = 0;
         }
@@ -1709,6 +1716,7 @@ class ZombieDogEnemy extends CircleEnemy {
                 this._animStateTimer = 0;
             }
         }
+        this._syncAnimationFootOffset();
         this._syncConfiguredLoopSound(dt);
     }
 
@@ -1749,15 +1757,38 @@ class ZombieDogEnemy extends CircleEnemy {
      */
     triggerWeaponAnim() {
         if (this._attackTimer > 0) return;
-        if (this.target?.active) {
+        const lockedAngle = this._pendingThrust?.basicMeleeSnapshot?.worldAngle;
+        if (Number.isFinite(lockedAngle)) {
+            const horizontal = Math.cos(lockedAngle);
+            if (Math.abs(horizontal) > 0.0001) {
+                this._lastHorizontalFacing = horizontal < 0 ? 'left' : 'right';
+            }
+        } else if (this.target?.active) {
             this._lastHorizontalFacing = this.target.x < this.x ? 'left' : 'right';
         }
         super.triggerWeaponAnim();
-        this._attackTimer = this._attackDuration || 700;
+        this._animState = 'attack';
+        this._animStateTimer = 0;
+        this._attackTimer = this._attackDuration || 1000;
         this._attackAnimTimer = this._attackTimer;
         this._animFrame = 0;
         this._animTimer = 0;
+        this._syncAnimationFootOffset();
         playSoundFrom(this, 'attack');
+    }
+
+    _syncBasicMeleeVisualClock(pending, step) {
+        if (this._pendingThrust !== pending || this.isCombatActionBlocked()) return;
+        this._attackTimer = Math.max(0, pending.basicMeleeTimeline.durationMs - step.elapsedMs);
+        this._attackAnimTimer = this._attackTimer;
+        this._animState = step.completed ? 'idle' : 'attack';
+        this._animStateTimer = 0;
+        this._syncAnimationFootOffset();
+    }
+
+    _getAttackVisualClock() {
+        const timeline = this._pendingThrust?.active && this._pendingThrust.basicMeleeTimeline;
+        return timeline ? { elapsed: this._pendingThrust.timelineElapsedMs || 0, duration: timeline.durationMs } : null;
     }
 
     _getFrameLayout(state = this._animState) {
@@ -1768,6 +1799,27 @@ class ZombieDogEnemy extends CircleEnemy {
             frameCount: 1,
             footY: 410,
         };
+    }
+
+    _syncAnimationFootOffset(layout = this._getFrameLayout()) {
+        // 紧凑裁框的高度各不相同；必须在场景同步位置前更新脚点偏移，
+        // 不能等 _getPhaserOptions 切纹理时才更新，否则切状态首帧会纵向跳动。
+        const referenceCell = this.config?.textures?.referenceCell ?? 512;
+        const height = layout.frameHeight ?? referenceCell;
+        const scale = (this.config?.render?.spriteSize || 151) / referenceCell;
+        this.footOffsetY = ((layout.footY ?? height) - height / 2) * scale;
+    }
+
+    _syncPetrifiedBodyAnchor(sprite) {
+        // 场景仍会把冻结精灵重置到实体脚点，但跳过普通动画锚点接线。
+        // 必须读取真正冻结的纹理，不能按石化期间可能变化的逻辑状态换帧。
+        const state = sprite.texture?.key?.replace('enemy_zombie_dog_', '');
+        const layout = this.config?.textures?.frameLayouts?.[state];
+        if (!layout) return;
+        sprite.x += (layout.frameWidth / 2 - layout.anchorX)
+            * Math.abs(sprite.scaleX) * (sprite.flipX ? -1 : 1);
+        sprite.y += this.footOffsetY
+            - (layout.footY - layout.frameHeight / 2) * Math.abs(sprite.scaleY);
     }
 
     _getDeathConfig() {
@@ -1802,6 +1854,7 @@ class ZombieDogEnemy extends CircleEnemy {
         this._tacticalTarget = null;
         this._animState = 'death';
         this._animStateTimer = 0;
+        this._syncAnimationFootOffset();
         const death = this._getDeathConfig();
         const duration = death.duration ?? 1800;
         const holdMs = death.holdMs ?? 1000;
@@ -1816,7 +1869,7 @@ class ZombieDogEnemy extends CircleEnemy {
             case 'death':  return 'enemy_zombie_dog_death';
             case 'attack': return 'enemy_zombie_dog_attack';
             case 'run':    return 'enemy_zombie_dog_run';
-            case 'walk':   return 'enemy_zombie_dog_walk';
+            case 'walk':   return 'enemy_zombie_dog_run';
             default:       return 'enemy_zombie_dog_idle';
         }
     }
@@ -1830,17 +1883,28 @@ class ZombieDogEnemy extends CircleEnemy {
         const baseSpriteSize = renderCfg.spriteSize || 151;
         const pixelScale = baseSpriteSize / referenceCell;
         const spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
-        const footY = layout.footY ?? frameHeight;
-        this.footOffsetY = (footY - frameHeight / 2) * pixelScale;
+        this._syncAnimationFootOffset(layout);
+        const clock = this._getAttackVisualClock();
+        const deathDuration = this._getDeathConfig().duration ?? layout.duration ?? 1800;
+        const visualClock = this._deathStarted
+            ? { elapsed: deathDuration - this._deathAnimTimer, duration: deathDuration }
+            : clock;
         return {
+            ...(visualClock ? {
+                manualFrame: true,
+                frame: attackFrameAt(layout, visualClock.elapsed, visualClock.duration),
+            } : {}),
             spriteSize,
+            frameAnchorX: layout.anchorX,
+            // 驻留恢复可能先换纹理再进入本方法；按当前格重算固定像素比例。
+            dynamicSpriteSize: true,
             collisionWidth: renderCfg.collisionWidth || 80,
             collisionHeight: renderCfg.collisionHeight || 79,
             textOffsetY: -baseSpriteSize / 2 - 10,
             flipX: this._lastHorizontalFacing === 'left',
             animState: this._animState,
-            // 新母版已经统一脚底锚点；v2 动画键不套用旧素材的逐帧偏移表。
-            animKey: `enemy_zombie_dog_${this._animState}_v2`,
+            // v3 使用同一素材缩放/脚点，保留扑咬与腾空轨迹，不套旧逐帧偏移表。
+            animKey: `enemy_zombie_dog_${this._animState}_v3`,
         };
     }
 }

@@ -681,7 +681,7 @@ export class BootScene extends Scene {
             });
         }
 
-        // 僵尸犬 H3 五动作母版：路径、帧格和有效帧数统一读取 enemy-config。
+        // 僵尸犬 v3 四动作：慢移与奔跑共用一个纹理，只改变动画播放速度。
         const zombieDogTextures = enemyConfigData.zombieDog?.textures || {};
         const zombieDogLayouts = zombieDogTextures.frameLayouts || {};
         const loadZombieDogSheet = (state, textureKey, fallbackPath, fallbackWidth = 512) => {
@@ -692,11 +692,10 @@ export class BootScene extends Scene {
                 endFrame: Math.max(0, (layout.frameCount || 1) - 1),
             });
         };
-        loadZombieDogSheet('idle', 'enemy_zombie_dog_idle', 'assets/enemies/zombie_dog/v2/idle.png');
-        loadZombieDogSheet('walk', 'enemy_zombie_dog_walk', 'assets/enemies/zombie_dog/v2/walking.png');
-        loadZombieDogSheet('run', 'enemy_zombie_dog_run', 'assets/enemies/zombie_dog/v2/running.png');
-        loadZombieDogSheet('attack', 'enemy_zombie_dog_attack', 'assets/enemies/zombie_dog/v2/attacking.png', 640);
-        loadZombieDogSheet('death', 'enemy_zombie_dog_death', 'assets/enemies/zombie_dog/v2/dying.png');
+        loadZombieDogSheet('idle', 'enemy_zombie_dog_idle', 'assets/enemies/zombie_dog/v3/idle.png');
+        loadZombieDogSheet('run', 'enemy_zombie_dog_run', 'assets/enemies/zombie_dog/v3/running.png');
+        loadZombieDogSheet('attack', 'enemy_zombie_dog_attack', 'assets/enemies/zombie_dog/v3/attacking.png');
+        loadZombieDogSheet('death', 'enemy_zombie_dog_death', 'assets/enemies/zombie_dog/v3/dying.png');
 
         // 棕熊四动作母版：walking 同时承担普通移动与逻辑 run 状态的视觉播放。
         const brownBearTextures = enemyConfigData.brownBear?.textures || {};
@@ -1756,10 +1755,14 @@ export class BootScene extends Scene {
         const createZombieDogAnim = (state, textureKey) => {
             const layout = zombieDogLayouts[state] || {};
             const frameCount = layout.frameCount || 1;
+            const frames = this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 });
+            if (Array.isArray(layout.frameDurations)) {
+                frames.forEach((frame, index) => { frame.duration = layout.frameDurations[index]; });
+            }
             const animation = {
-                // v2 后缀隔离旧素材专用 sprite-offsets；新母版自身已完成脚底/位移对齐。
-                key: `enemy_zombie_dog_${state}_v2`,
-                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                // v3 后缀隔离旧素材偏移表；攻击/死亡的实体时钟读取同一逐帧时长。
+                key: `enemy_zombie_dog_${state}_v3`,
+                frames,
                 repeat: layout.repeat ?? (state === 'idle' || state === 'walk' || state === 'run' ? -1 : 0),
             };
             if (layout.duration) animation.duration = layout.duration;
@@ -1767,7 +1770,7 @@ export class BootScene extends Scene {
             this.anims.create(animation);
         };
         createZombieDogAnim('idle', 'enemy_zombie_dog_idle');
-        createZombieDogAnim('walk', 'enemy_zombie_dog_walk');
+        createZombieDogAnim('walk', 'enemy_zombie_dog_run');
         createZombieDogAnim('run', 'enemy_zombie_dog_run');
         createZombieDogAnim('attack', 'enemy_zombie_dog_attack');
         createZombieDogAnim('death', 'enemy_zombie_dog_death');

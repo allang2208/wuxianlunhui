@@ -268,6 +268,7 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
                     const step = stepBasicMeleeTimeline(pending, dt);
                     if (!step) return;
                     const timeline = pending.basicMeleeTimeline;
+                    this._syncBasicMeleeVisualClock?.(pending, step);
                     if (pending.basicMeleeSnapshot) {
                         pending.basicMeleeSnapshot.timelineFrame = step.frameIndex;
                     }

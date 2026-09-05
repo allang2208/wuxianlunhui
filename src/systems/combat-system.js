@@ -208,6 +208,7 @@ class CombatSystemImpl {
             const step = stepBasicMeleeTimeline(pending, dt);
             if (!step) return;
             const timeline = pending.basicMeleeTimeline;
+            enemy._syncBasicMeleeVisualClock?.(pending, step);
             if (pending.basicMeleeSnapshot) {
                 pending.basicMeleeSnapshot.timelineFrame = step.frameIndex;
             }
