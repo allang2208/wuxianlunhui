@@ -28,7 +28,7 @@ class DamagePipeline {
      * @param {{value:number}} [options.killCountRef] 击杀计数引用
      * @param {boolean} [options.isMelee=true] 是否为近战攻击（影响盾牌弹反效果）
      * @param {object} [options.confirmedHitContext] 传给来源确认命中钩子的技能上下文
-     * @returns {{hit:boolean,killed:boolean,skillExpEligible:boolean}}
+     * @returns {{hit:boolean,killed:boolean,skillExpEligible:boolean,parried:boolean}}
      */
     static applyHit(source, target, options = {}) {
         const {
@@ -44,7 +44,12 @@ class DamagePipeline {
             confirmedHitContext = null
         } = options;
         if (isMelee && !canMeleeShareSurface(source, target)) {
-            return { hit: false, killed: false, skillExpEligible: false };
+            return { hit: false, killed: false, skillExpEligible: false, parried: false };
+        }
+        // 在附魔/命中钩子之前拒绝正式无敌；护盾吸收和弹反仍交给 takeDamage。
+        if (target._isIncomingHitBlocked?.(source, isMelee)) {
+            if (target.shieldSystem) target.shieldSystem._lastParried = false;
+            return { hit: false, killed: false, skillExpEligible: false, parried: false };
         }
 
         const weapon = currentWeapon !== undefined
@@ -62,27 +67,18 @@ class DamagePipeline {
         const wasAlive = target.hp > 0;
         const skillExpEligible = target._grantsSkillTrainingExp !== false;
         target.takeDamage(damage, source, damageType, isMelee, effectContext?._hitContext || null);
-        const killed = wasAlive && target.hp <= 0;
-
-        // 枪械手感反馈（COD/Sakanako 式命中确认链）：远程命中 → hitmarker 三级 + 音效 + trauma + 击杀 hitstop
-        // 近战已有独立打击音（下方节流播放），不重复触发
-        // 玩家命中反馈（震屏/hitmarker/trauma）仅限真正的玩家——防御塔等友方结构
-        // 开火命中不震动玩家屏幕（2026-08-14）
-        if (!isMelee && source && source._faction === 'player' && !source._isDefenseStructure && !source._isDefenseTower && GunFeel) {
-            GunFeel.onPlayerHit({ killed, crit: !!target._lastHitCrit });
-        }
+        // 在任何附伤/确认命中回调之前快照，避免嵌套受击覆盖本次结果。
+        const parried = !!target.shieldSystem?._lastParried;
+        const critical = !!target._lastHitCrit;
 
         // 灼锋焰甲：Buff 期间非魔法攻击命中附带魔法伤害 + 火花（火焰护甲附伤）
-        if (damageType !== 'magic' && source && source._faction === 'player' && source.flameArmorSystem
+        if (!parried && damageType !== 'magic' && source && source._faction === 'player' && source.flameArmorSystem
                 && typeof source.hasStatusEffect === 'function' && source.hasStatusEffect('flameArmor')) {
             source.flameArmorSystem.onPhysicalHit(target, source);
         }
 
-        // 盾牌弹反成功后，不应再对持盾者施加击退、 craft 特效等后续效果
-        const parried = target.shieldSystem && target.shieldSystem._lastParried;
-
         // 玩家/防御塔枪械命中僵尸或动物时播放统一肉体命中声。
-        // 友方仓鼠属于 companion 阵营，不会进入本分支。
+        // 友方仓鼠使用 companion 阵营，且目标必须是 enemy，因此不会进入本分支。
         if (!parried && isPlayerOrTowerGunHit(source, target, weapon)) {
             const path = audioConfig.combatCues?.gunHitZombieAnimal;
             if (path && SoundManager && typeof SoundManager.playWorld === 'function') {
@@ -92,25 +88,6 @@ class DamagePipeline {
                 const hitY = Number.isFinite(colliderY) ? colliderY : target.y;
                 SoundManager.playWorld(path, hitX, hitY);
             }
-        }
-
-        // 仅在伤害调用完成、确认未被弹反后触发的附加效果入口。
-        // 需要“每次实际命中”语义的怪物效果（如棕蛇毒牙）走这里，避免在
-        // takeDamage 之前无法识别弹反，也不改变旧 _onHitEntity 的既有时序。
-        if (!parried && typeof source._onConfirmedHitEntity === 'function') {
-            source._onConfirmedHitEntity(target, {
-                killed,
-                ...(confirmedHitContext && typeof confirmedHitContext === 'object'
-                    ? confirmedHitContext
-                    : {}),
-            });
-        }
-
-        if (skillExpEligible && hitCountRef && typeof hitCountRef.value === 'number') {
-            hitCountRef.value++;
-        }
-        if (skillExpEligible && killed && killCountRef && typeof killCountRef.value === 'number') {
-            killCountRef.value++;
         }
 
         // 玩家近战攻击命中音效（assets/sounds/weapons/sword/hitting.mp3；
@@ -155,7 +132,23 @@ class DamagePipeline {
             source._triggerRuneSwordCooldownReduction();
         }
 
-        return { hit: true, killed, skillExpEligible };
+        // 附伤完成后再结算本次击杀，不能沿用基础物理伤害后的中间结果。
+        if (!parried && typeof source._onConfirmedHitEntity === 'function') {
+            source._onConfirmedHitEntity(target, {
+                ...(confirmedHitContext && typeof confirmedHitContext === 'object'
+                    ? confirmedHitContext : {}),
+                killed: wasAlive && target.hp <= 0,
+            });
+        }
+        const killed = wasAlive && target.hp <= 0;
+        if (skillExpEligible && hitCountRef && typeof hitCountRef.value === 'number') hitCountRef.value++;
+        if (skillExpEligible && killed && killCountRef && typeof killCountRef.value === 'number') killCountRef.value++;
+        if (!parried && !isMelee && source && source._faction === 'player'
+                && !source._isDefenseStructure && !source._isDefenseTower && GunFeel) {
+            GunFeel.onPlayerHit({ killed, crit: critical });
+        }
+
+        return { hit: true, killed, skillExpEligible, parried };
     }
 }
 
