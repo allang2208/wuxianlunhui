@@ -7,6 +7,7 @@ import {
 } from './structure-depth.js';
 import lightingAssets from '../../data/environment-lighting-assets.json';
 import swampStoneWallKit from '../../data/swamp-stone-wall-kit.json';
+const ZERO_MOVE_OFFSET = Object.freeze({ x: 0, y: 0 });
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
 // base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
@@ -1931,6 +1932,26 @@ const WallSystem = {
     },
     projectileBlocked(x1, y1, z1, x2, y2, z2, ignore = null) {
         return !!this.projectileWallHit(x1, y1, z1, x2, y2, z2, ignore);
+    },
+    /** 高架交通以逻辑脚点查询承托/Portal，地面才使用Collider偏移后的圆心。 */
+    usesElevatedMovement(entity) {
+        return !!(entity?._surfaceRouteActive || entity?._surfaceNavWaiting
+            || entity?._surfaceExitCommand || entity?._elevatedNavigationBridge
+            || entity?._surfaceKind === 'stairs' || entity?._surfaceKind === 'wall_walk');
+    },
+    getEntityMoveOffset(entity) {
+        if (this.usesElevatedMovement(entity)) return ZERO_MOVE_OFFSET;
+        const x = Number(entity?.colliderOffsetX) || 0, y = Number(entity?.colliderOffsetY) || 0;
+        return x || y ? { x, y } : ZERO_MOVE_OFFSET;
+    },
+    resolveEntityMove(entity, x, y, nx, ny, r, ignore = undefined) {
+        if (ignore === undefined) ignore = this.ignoreForEntity(entity);
+        const offset = this.getEntityMoveOffset(entity);
+        if (!(offset.x || offset.y)) return this.resolve(x, y, nx, ny, r, ignore);
+        const cx = x + offset.x, cy = y + offset.y;
+        const resolved = this.resolve(cx, cy, nx + offset.x, ny + offset.y, r, ignore);
+        // 用增量回写保留完全阻挡时的严格坐标相等；不依赖尚未同步的Collider缓存。
+        return { x: x + (resolved.x - cx), y: y + (resolved.y - cy) };
     },
     resolve(x, y, nx, ny, r, ignore = null) {
         if (ignore) {
