@@ -1357,7 +1357,30 @@
         "catNest": [120, 116, 82]
       }
     },
-    "thatch_hut": { "dimensions": { "foundation": [420, 340, 16], "body": [318, 236, 136], "roof": [372, 292, 116] } },
+    "thatch_hut": {
+      "paletteOverrides": {
+        "foundation": [0.28, 0.27, 0.24, 1.0],
+        "stone": [0.34, 0.33, 0.29, 1.0],
+        "plaster": [0.56, 0.51, 0.41, 1.0],
+        "timber": [0.16, 0.09, 0.045, 1.0],
+        "roof": [0.31, 0.12, 0.06, 1.0],
+        "thatch": [0.42, 0.30, 0.105, 1.0],
+        "iron": [0.07, 0.075, 0.07, 1.0],
+        "brass": [0.40, 0.23, 0.055, 1.0],
+        "glass": [0.34, 0.17, 0.045, 1.0],
+        "glow": [0.95, 0.28, 0.025, 1.0],
+        "straw": [0.54, 0.38, 0.12, 1.0]
+      },
+      "dimensions": {
+        "foundation": [420, 340, 16],
+        "commandHall": [236, 120, 110],
+        "commandRoof": [286, 174, 78],
+        "lookout": [86, 86, 188],
+        "lookoutRoof": [68, 60],
+        "supplyAwning": [112, 90, 86]
+      },
+      "bodyDepthExclude": ["ThatchHutLV1_TierCompoundFoundation"]
+    },
     "thatch_hut_lv2": {
       "cameraOverrides": { "widthMargin": 0.90, "bottomY": 925, "topMargin": 42 },
       "paletteOverrides": {
@@ -1373,14 +1396,14 @@
         "glow": [0.78, 0.26, 0.025, 1.0],
         "straw": [0.49, 0.36, 0.14, 1.0]
       },
-      "bodyDepthExclude": [
-        "ThatchHutLV2_DrillYardFoundation",
-        "ThatchHutLV2_DrillCourtInset"
-      ],
+      "bodyDepthExclude": ["ThatchHutLV2_TierCompoundFoundation"],
       "dimensions": {
         "foundation": [420, 340, 16],
-        "drillHall": [250, 124, 122],
-        "drillRoof": [292, 174, 74]
+        "commandHall": [246, 126, 118],
+        "commandRoof": [296, 180, 82],
+        "lookout": [92, 92, 204],
+        "lookoutRoof": [72, 64],
+        "supplyAwning": [120, 94, 92]
       }
     },
     "thatch_hut_lv3": {
@@ -1388,7 +1411,7 @@
       "paletteOverrides": {
         "foundation": [0.23, 0.235, 0.21, 1.0],
         "stone": [0.31, 0.32, 0.29, 1.0],
-        "plaster": [0.37, 0.40, 0.32, 1.0],
+        "plaster": [0.18, 0.22, 0.13, 1.0],
         "timber": [0.095, 0.07, 0.045, 1.0],
         "roof": [0.16, 0.18, 0.15, 1.0],
         "thatch": [0.22, 0.24, 0.15, 1.0],
@@ -1398,10 +1421,15 @@
         "glow": [0.46, 0.58, 0.25, 1.0],
         "straw": [0.28, 0.27, 0.14, 1.0]
       },
-      "bodyDepthExclude": ["ThatchHutLV3_TrainingGroundFoundation"],
+      "bodyDepthExclude": ["ThatchHutLV3_TierCompoundFoundation"],
       "dimensions": {
         "foundation": [420, 340, 16],
-        "commandHut": [228, 108, 94]
+        "commandHall": [264, 144, 138],
+        "commandRoof": [314, 202, 96],
+        "lookout": [106, 106, 244],
+        "lookoutRoof": [78, 72],
+        "operationsWing": [126, 108, 104],
+        "operationsRoof": [158, 144, 68]
       }
     },
     "cheese_farm": {
