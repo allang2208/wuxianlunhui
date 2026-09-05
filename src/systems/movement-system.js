@@ -53,9 +53,8 @@ import { canMeleeShareSurface } from '../combat/melee-surface.js';
 const MAX_PATHFIND_RANGE = 800;
 const GATE_CACHE_TTL_MS = Math.max(50, Number(performanceConfig.gatePursuit?.cacheTtlMs) || 250);
 const GATE_TARGET_QUERY_RADIUS = Math.max(500, Number(performanceConfig.gatePursuit?.targetQueryRadiusPx) || 1500);
-const resolveWallFor = (entity, x, y, nx, ny, radius) => WallSystem.resolve(
-    x, y, nx, ny, radius,
-    WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(entity) : null
+const resolveWallFor = (entity, x, y, nx, ny, radius) => WallSystem.resolveEntityMove(
+    entity, x, y, nx, ny, radius
 );
 
 /**
@@ -821,16 +820,17 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * @returns {{x:number, y:number}}
      */
     _pickRelayPoint(enemy, tx, ty) {
+        const offset = WallSystem.getEntityMoveOffset(enemy);
         const hierarchical = HierarchicalRoutePlanner.getNextWaypoint(
-            enemy.x,
-            enemy.y,
-            tx,
-            ty,
+            enemy.x + offset.x,
+            enemy.y + offset.y,
+            tx + offset.x,
+            ty + offset.y,
             enemy.groundRadius,
             pathFinder,
         );
         if (hierarchical === HIERARCHY_DEFERRED) return HIERARCHY_DEFERRED;
-        if (hierarchical) return hierarchical;
+        if (hierarchical) return { ...hierarchical, x: hierarchical.x - offset.x, y: hierarchical.y - offset.y };
         const dx = tx - enemy.x;
         const dy = ty - enemy.y;
         const dist = Math.hypot(dx, dy) || 1;
@@ -848,9 +848,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 // 无墙系统时直接用主方向
                 if (!WallSystem || !WallSystem.blocked) return mainPoint;
             }
-              const wallBlocked = WallSystem.blocked(enemy.x, enemy.y, px, py);
+              const wallBlocked = WallSystem.blocked(enemy.x + offset.x, enemy.y + offset.y,
+                  px + offset.x, py + offset.y);
               const entityBlocked = !!(pathFinder && pathFinder._isBlocked
-                  && pathFinder._isBlocked(px, py, enemy.groundRadius));
+                  && pathFinder._isBlocked(px + offset.x, py + offset.y, enemy.groundRadius));
             if (!wallBlocked && !entityBlocked) {
                 return { x: px, y: py };
             }
@@ -1848,13 +1849,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         // 玩家控制器每帧都会发布高架输入意图；AI 也必须把本帧实际采用的移动方向交给
         // 统一表面导航。wall_walk 不安装 _surfaceMoveAxes，缺少该字段时墙顶→楼梯的
         // Portal 永远不会接管，路线节点和楼梯方向预约都会卡住。
-        const usesElevatedMovementContract = !!(
-            enemy._surfaceRouteActive
-            || enemy._surfaceNavWaiting
-            || enemy._surfaceKind === 'stairs'
-            || enemy._surfaceKind === 'wall_walk'
-            || enemy._elevatedNavigationBridge
-        );
+        const usesElevatedMovementContract = WallSystem.usesElevatedMovement(enemy);
         const surfaceIntentLength = Math.hypot(moveX, moveY);
         if (!enemy._surfaceNavWaiting
             && surfaceIntentLength > 1e-6
@@ -1943,6 +1938,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     _tryUnstuck(enemy) {
         if (!WallSystem || !WallSystem.canMoveTo) return;
         if (enemy._surfaceRouteActive
+            || enemy._surfaceExitCommand
             || enemy._surfaceNavWaiting
             || enemy._surfaceKind === 'stairs'
             || enemy._surfaceKind === 'wall_walk') {
@@ -1989,6 +1985,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         const r = enemy.groundRadius;
         const wallIgnore = WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(enemy) : null;
+        const offset = WallSystem.getEntityMoveOffset(enemy);
         // 卡死恢复改 resolve 小步滑移（玩家贴墙同口径），不再 45px 盲跳——
         // 旧版 8 方向 canMoveTo 瞬移是"贴墙周期性瞬移"的根因：跳完仍卡，500ms 后再跳。
         // 只在能缩短与目标距离时移动；移动量 ≤ 3 倍单帧步长，视觉上仍是连续移动
@@ -2004,8 +2001,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 const er = resolveWallFor(enemy, enemy.x, enemy.y, tx, ty, r);
                 const moved = Math.hypot(er.x - enemy.x, er.y - enemy.y);
                 if (moved < 1
-                    || !WallSystem.canMoveTo(er.x, er.y, r, wallIgnore)
-                    || pathFinder?.isPointBlocked?.(er.x, er.y, r)) continue;
+                    || !WallSystem.canMoveTo(er.x + offset.x, er.y + offset.y, r, wallIgnore)
+                    || pathFinder?.isPointBlocked?.(er.x + offset.x, er.y + offset.y, r)) continue;
                 const dd = hasTarget ? Math.hypot(intentTarget.x - er.x, intentTarget.y - er.y) : 0;
                 if (dd < bestDist) { bestDist = dd; best = er; }
             }

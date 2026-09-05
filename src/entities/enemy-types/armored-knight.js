@@ -475,7 +475,8 @@ export class ArmoredKnight extends Enemy {
                 const step = Math.min(speed * dtSec, Math.max(0, d - contactDist));
                 intendedX = fromX + (dx / d) * step;
                 intendedY = fromY + (dy / d) * step;
-                const r = WallSystem.resolve(fromX, fromY, intendedX, intendedY, this.groundRadius);
+                const r = WallSystem.resolveEntityMove(this, fromX, fromY, intendedX, intendedY,
+                    this.groundRadius, null);
                 this._chargeTraveled += Math.hypot(r.x - fromX, r.y - fromY);
                 this.x = r.x;
                 this.y = r.y;

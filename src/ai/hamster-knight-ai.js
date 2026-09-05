@@ -332,8 +332,13 @@ export class HamsterKnightAI {
                 m.rotation = Math.atan2(dy, dx);
                 if (Math.abs(dx) > 20) m._lastFaceRight = dx > 0;
                 const contact = (m.groundRadius || 0) + (target.groundRadius || target.collisionRadius || 0);
-                const step = Math.min(speed * dt / 1000, Math.max(0, distance - contact));
-                const resolved = WallSystem.resolve(
+                const elevated = WallSystem.usesElevatedMovement(m);
+                const moveDt = elevated ? Math.min(dt, 34) : dt;
+                if (elevated) m._surfaceInputIntent = { x: dx / distance, y: dy / distance };
+                // 只限制位置积分；加速、命中窗口、冷却和动画仍使用真实dt。
+                const step = Math.min(speed * moveDt / 1000, Math.max(0, distance - contact));
+                const resolved = WallSystem.resolveEntityMove(
+                    m,
                     m.x,
                     m.y,
                     m.x + dx / distance * step,
@@ -344,6 +349,7 @@ export class HamsterKnightAI {
                 this._chargeTraveled += Math.hypot(resolved.x - m.x, resolved.y - m.y);
                 m.x = resolved.x;
                 m.y = resolved.y;
+                m.collider?.syncPosition?.();
             }
         }
 
