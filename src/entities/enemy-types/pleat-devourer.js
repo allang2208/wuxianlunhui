@@ -95,7 +95,6 @@ export class PleatDevourer extends HorrorNormalEnemy {
     }
 
     _getPhaserOptions() {
-        return { ...super._getPhaserOptions(), flipX: false,
-            manualFrame: true, frameAnchorX: this._layout().footX };
+        return { ...super._getPhaserOptions(), manualFrame: true, frameAnchorX: this._layout().footX };
     }
 }
