@@ -418,7 +418,13 @@ export class HamsterShooterAI {
             }
             // 铁匠铺能力：毒箭（2026-08-17）——命中按概率叠加一层中毒（20% + 5%/级）
             const poisonLv = getAbilityLevel('poison_arrow');
-            if (poisonLv > 0 && Math.random() < getAbilityValue(getBuildingUpgradeAbility('poison_arrow'), poisonLv)
+            const poisonAbility = getBuildingUpgradeAbility('poison_arrow');
+            const poisonCap = Number(poisonAbility?.maxStacks);
+            // 毒箭只补到自身上限；不削减或续时其它来源已有的更高层中毒。
+            const belowPoisonCap = !Number.isFinite(poisonCap)
+                || Math.max(0, Number(hit._poisonStacks) || 0) < Math.max(0, Math.floor(poisonCap));
+            if (hit.hp > 0 && poisonLv > 0 && belowPoisonCap
+                && Math.random() < getAbilityValue(poisonAbility, poisonLv)
                 && typeof hit.applyPoison === 'function') {
                 hit.applyPoison(1);
                 if (EffectManager) {

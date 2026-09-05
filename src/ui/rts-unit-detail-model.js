@@ -90,7 +90,11 @@ function abilityEffectText(abilityId, ability, level, kind = null) {
     const configuredCap = Number(ability?.unitValueCaps?.[kind]);
     const value = Number.isFinite(configuredCap) ? Math.min(rawValue, configuredCap) : rawValue;
     switch (abilityId) {
-        case 'poison_arrow': return `命中中毒概率 ${signedPercent(value, { absolute: true })}`;
+        case 'poison_arrow': {
+            const cap = Number(ability.maxStacks);
+            const limit = Number.isFinite(cap) ? ` · 毒箭最多叠至 ${compactNumber(cap, 0)} 层` : '';
+            return `命中中毒概率 ${signedPercent(value, { absolute: true })}${limit}`;
+        }
         case 'auto_guard': return `触发 ${signedPercent(value, { absolute: true })} · 减伤 ${compactNumber(finite(ability.damageReduction) * 100)}%`;
         case 'sweep_aoe': return `扇形 AOE 伤害强化 ${signedPercent(value, { absolute: true })}`;
         case 'mark_arrow': return `标记概率 ${signedPercent(value, { absolute: true })} · 目标承伤 +${compactNumber(finite(ability.damageAmplify) * 100)}%`;
