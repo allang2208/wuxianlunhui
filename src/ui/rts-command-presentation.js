@@ -2,7 +2,7 @@
 export const RTS_ORDER_UI = Object.freeze({
     move: { name: '移动', cell: 0, target: 'point', cursor: 'move', hint: '左键指定位置；沿现有寻路移动，不主动接敌。Shift可追加。' },
     attack: { name: '指定攻击', cell: 1, target: 'enemy', cursor: 'attack_target', hint: '左键点击可见敌人，追击并攻击该目标。Shift可追加；小地图不能指定敌人。' },
-    attack_move: { name: '移动攻击', cell: 2, target: 'point', cursor: 'attack_move', hint: '左键指定终点，沿途接敌，战斗结束后继续前进。Shift可追加；玩家不支持。', wheelHint: '以轮盘开启处为终点，沿途接敌，战斗结束后继续前进。Shift可追加；玩家不支持。' },
+    attack_move: { name: '移动攻击', cell: 2, target: 'point', cursor: 'attack_move', iconImage: 'assets/ui/cursors/attack-target-cold-steel.png', hint: '左键指定终点，沿途接敌，战斗结束后继续前进。Shift可追加；玩家不支持。', wheelHint: '以轮盘开启处为终点，沿途接敌，战斗结束后继续前进。Shift可追加；玩家不支持。' },
     patrol: { name: '巡逻', cell: 3, target: 'point', cursor: 'patrol', hint: '左键指定另一端，在当前位置与目标间往返接敌。Shift可追加；玩家不支持。', wheelHint: '以轮盘开启处为另一端，往返巡逻接敌。Shift可追加；玩家不支持。' },
     stop: { name: '停止', cell: 4, hint: '中止当前指令并清空队列；仓鼠士兵恢复自动接敌，可追击。玩家和正式队友原地待命。' },
     hold: { name: '坚守', cell: 5, hint: '清空队列并原地待命；仓鼠士兵只攻击当前位置能打到的敌人，不追击。玩家和正式队友不自动攻击。' },
@@ -17,6 +17,9 @@ export const RTS_ORDER_UI = Object.freeze({
 
 /** 图集为4列3行。只裁切背景视窗，不额外创建或复制12张纹理。 */
 export function rtsOrderIcon(mode) {
-    const { cell } = RTS_ORDER_UI[mode];
-    return `<span class="rts-order-icon" aria-hidden="true" style="background-position:${(cell % 4) * 100 / 3}% ${Math.floor(cell / 4) * 50}%"></span>`;
+    const { cell, iconImage } = RTS_ORDER_UI[mode];
+    const style = iconImage
+        ? `background-image:url("${iconImage}");background-size:contain;background-position:center;background-repeat:no-repeat;`
+        : `background-position:${(cell % 4) * 100 / 3}% ${Math.floor(cell / 4) * 50}%`;
+    return `<span class="rts-order-icon" aria-hidden="true" style="${style}"></span>`;
 }
