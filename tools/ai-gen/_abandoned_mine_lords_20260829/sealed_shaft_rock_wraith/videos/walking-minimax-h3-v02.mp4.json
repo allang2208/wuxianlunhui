@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T14:58:18.243471+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\walking-minimax-h3-v02.mp4",
+    "bytes": 682938,
+    "sha256": "8ab1e20998676c4724e7a5f61a0f4501e8372c7d62eb210e4f4e4de0617b1028"
+  },
+  "promptId": "96494b95-0cc0-4141-9416-fbd872526f4c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026083022,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied 1024x576 first and last image as the exact geometry, framing and identity of the Sealed-Shaft Rock Wraith. A tall headless ore humanoid has two arms, two legs, dusty muted purple crystals, coal-black stone seams, embedded timbers, rusted braces, and a single upright conical steel mining drill in place of its head. Preserve its slender vertical proportions and all attached equipment.\n\nOver 5.17 seconds perform one complete heavy walking cycle IN PLACE: the screen-right foot lifts and plants, then the screen-left foot lifts and plants. Each foot clears the ground, the knees bend gently, and the shoulders and arms counter-swing with the weight transfer. Pelvis stays above the original ground point. Both legs remain long and distinct. The drill stays upright, mounted rigidly in the shoulder bearing. Return to the exact opening pose, gait phase and drill phase at the end.\n\nLocked orthographic studio camera, unchanged pure white background. The character occupies exactly the same height and width as the supplied first image throughout, except small natural joint articulation. Keep a generous white gap below the toes and above the drill tip on every frame. Constant camera distance, constant body scale, stable limb lengths and torso volume. Only the joints articulate; stone and metal do not deform. No zoom, squashing, stretching, perspective change, camera tracking, forward travel, sliding feet, floor, cast shadow, dust, sparks, text or detached pieces.",
+  "effectivePrompt": "Use the supplied 1024x576 first and last image as the exact geometry, framing and identity of the Sealed-Shaft Rock Wraith. A tall headless ore humanoid has two arms, two legs, dusty muted purple crystals, coal-black stone seams, embedded timbers, rusted braces, and a single upright conical steel mining drill in place of its head. Preserve its slender vertical proportions and all attached equipment.\n\nOver 5.17 seconds perform one complete heavy walking cycle IN PLACE: the screen-right foot lifts and plants, then the screen-left foot lifts and plants. Each foot clears the ground, the knees bend gently, and the shoulders and arms counter-swing with the weight transfer. Pelvis stays above the original ground point. Both legs remain long and distinct. The drill stays upright, mounted rigidly in the shoulder bearing. Return to the exact opening pose, gait phase and drill phase at the end.\n\nLocked orthographic studio camera, unchanged pure white background. The character occupies exactly the same height and width as the supplied first image throughout, except small natural joint articulation. Keep a generous white gap below the toes and above the drill tip on every frame. Constant camera distance, constant body scale, stable limb lengths and torso volume. Only the joints articulate; stone and metal do not deform. No zoom, squashing, stretching, perspective change, camera tracking, forward travel, sliding feet, floor, cast shadow, dust, sparks, text or detached pieces.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied 1024x576 first and last image as the exact geometry, framing and identity of the Sealed-Shaft Rock Wraith. A tall headless ore humanoid has two arms, two legs, dusty muted purple crystals, coal-black stone seams, embedded timbers, rusted braces, and a single upright conical steel mining drill in place of its head. Preserve its slender vertical proportions and all attached equipment.\n\nOver 5.17 seconds perform one complete heavy walking cycle IN PLACE: the screen-right foot lifts and plants, then the screen-left foot lifts and plants. Each foot clears the ground, the knees bend gently, and the shoulders and arms counter-swing with the weight transfer. Pelvis stays above the original ground point. Both legs remain long and distinct. The drill stays upright, mounted rigidly in the shoulder bearing. Return to the exact opening pose, gait phase and drill phase at the end.\n\nLocked orthographic studio camera, unchanged pure white background. The character occupies exactly the same height and width as the supplied first image throughout, except small natural joint articulation. Keep a generous white gap below the toes and above the drill tip on every frame. Constant camera distance, constant body scale, stable limb lengths and torso volume. Only the joints articulate; stone and metal do not deform. No zoom, squashing, stretching, perspective change, camera tracking, forward travel, sliding feet, floor, cast shadow, dust, sparks, text or detached pieces. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "44fcec752dfdf7745b87ebc39fed6022f48390266910e5e642eb25d88826d654",
+  "effectivePromptSha256": "44fcec752dfdf7745b87ebc39fed6022f48390266910e5e642eb25d88826d654",
+  "finalPromptSha256": "72cb8e190bee77cbb091ae61fd6f3cfdd53a2dd069ff7ac5a760aa06c3801f5d",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\walking-minimax-h3-v02.txt",
+      "bytes": 1487,
+      "sha256": "de5cf6512d0e4f0122f4a8f79dec41796181a054da3ba4822aa667261f767de3"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\crystal-bore-video-safe-v02.png",
+      "bytes": 175279,
+      "sha256": "0fb9895af093936c48c7042589ca9fbb42e2f5a35d1160195a988ec20bf7b4e9"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\crystal-bore-video-safe-v02.png",
+      "bytes": 175279,
+      "sha256": "0fb9895af093936c48c7042589ca9fbb42e2f5a35d1160195a988ec20bf7b4e9"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\walking-minimax-h3-v02_contact.png",
+    "bytes": 286253,
+    "sha256": "790154fa0bd9d514de097703941bfbc37921d07b49c0c079b0e8377ceda824c1"
+  },
+  "elapsedSeconds": 460.789
+}

@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T15:06:50.425249+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\dying-minimax-h3-v02.mp4",
+    "bytes": 457012,
+    "sha256": "861e7643b7625bf41675c77301f9b0727497c74db73819d27285e32fe6774ec9"
+  },
+  "promptId": "8c3a85bf-6424-46b5-800d-768d7919931f",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026083026,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied 1024x576 image defines the exact geometry and framing of the Sealed-Shaft Rock Wraith: a tall headless ore humanoid with two arms, two legs, dusty muted purple crystals, coal-black seams, embedded timbers, rusted braces, and one conical steel mining drill in place of its head. Preserve the long limbs, slender upright torso, rigid stone plates and single attached drill.\n\nOne irreversible death, seen by a locked orthographic camera over 5.17 seconds. During the first half second the drill slows. The knees buckle, the torso tips toward screen-right, and the connected body falls onto its side. One hand reaches down during the fall. Complete the collapse by 3.0 seconds and hold the same motionless sideways corpse for the rest of the clip. The drill naturally tilts together with the torso and remains attached. Preserve the natural downwards and sideways falling path; finish where the body lands, without recentering.\n\nKeep the original camera distance, orthographic projection, body proportions, limb lengths and stone material throughout. The whole falling trajectory and final corpse stay inside the 1024x576 white canvas with safe margins. Articulation and rigid-body rotation change the silhouette naturally; the body is never stretched or rescaled. White empty studio background without floor or shadow. No camera zoom, reframing, crop, bounce, return to standing, disintegration, separated rocks, dust, sparks, new limbs, text or watermark.",
+  "effectivePrompt": "The supplied 1024x576 image defines the exact geometry and framing of the Sealed-Shaft Rock Wraith: a tall headless ore humanoid with two arms, two legs, dusty muted purple crystals, coal-black seams, embedded timbers, rusted braces, and one conical steel mining drill in place of its head. Preserve the long limbs, slender upright torso, rigid stone plates and single attached drill.\n\nOne irreversible death, seen by a locked orthographic camera over 5.17 seconds. During the first half second the drill slows. The knees buckle, the torso tips toward screen-right, and the connected body falls onto its side. One hand reaches down during the fall. Complete the collapse by 3.0 seconds and hold the same motionless sideways corpse for the rest of the clip. The drill naturally tilts together with the torso and remains attached. Preserve the natural downwards and sideways falling path; finish where the body lands, without recentering.\n\nKeep the original camera distance, orthographic projection, body proportions, limb lengths and stone material throughout. The whole falling trajectory and final corpse stay inside the 1024x576 white canvas with safe margins. Articulation and rigid-body rotation change the silhouette naturally; the body is never stretched or rescaled. White empty studio background without floor or shadow. No camera zoom, reframing, crop, bounce, return to standing, disintegration, separated rocks, dust, sparks, new limbs, text or watermark.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied 1024x576 image defines the exact geometry and framing of the Sealed-Shaft Rock Wraith: a tall headless ore humanoid with two arms, two legs, dusty muted purple crystals, coal-black seams, embedded timbers, rusted braces, and one conical steel mining drill in place of its head. Preserve the long limbs, slender upright torso, rigid stone plates and single attached drill.\n\nOne irreversible death, seen by a locked orthographic camera over 5.17 seconds. During the first half second the drill slows. The knees buckle, the torso tips toward screen-right, and the connected body falls onto its side. One hand reaches down during the fall. Complete the collapse by 3.0 seconds and hold the same motionless sideways corpse for the rest of the clip. The drill naturally tilts together with the torso and remains attached. Preserve the natural downwards and sideways falling path; finish where the body lands, without recentering.\n\nKeep the original camera distance, orthographic projection, body proportions, limb lengths and stone material throughout. The whole falling trajectory and final corpse stay inside the 1024x576 white canvas with safe margins. Articulation and rigid-body rotation change the silhouette naturally; the body is never stretched or rescaled. White empty studio background without floor or shadow. No camera zoom, reframing, crop, bounce, return to standing, disintegration, separated rocks, dust, sparks, new limbs, text or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "2294412c63809d522f731fe01bee2d80c8e69e9233eda83c9cd5464a9e7c98cf",
+  "effectivePromptSha256": "2294412c63809d522f731fe01bee2d80c8e69e9233eda83c9cd5464a9e7c98cf",
+  "finalPromptSha256": "1956d505005673caceb149ad18b4557ed1e975ceda89c37044b4faf084742278",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\dying-minimax-h3-v02.txt",
+      "bytes": 1467,
+      "sha256": "ad993349bd84d5348930d1f8a1f5f71696639cbf7c94ff1c9629de0416db70e4"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\crystal-bore-video-safe-v02.png",
+      "bytes": 175279,
+      "sha256": "0fb9895af093936c48c7042589ca9fbb42e2f5a35d1160195a988ec20bf7b4e9"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\dying-minimax-h3-v02_contact.png",
+    "bytes": 243728,
+    "sha256": "af05a9bc9bc3efa02c29b050c5a9e9736ca2878b24be2bcdddaa9a80d09f0ad3"
+  },
+  "elapsedSeconds": 510.875
+}
