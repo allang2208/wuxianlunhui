@@ -31,6 +31,7 @@ PROMPT = {
     "snow-packed": os.path.join(DIR, "prompts", "floor-seamless-snow-packed.txt"),
     "snow-wind": os.path.join(DIR, "prompts", "floor-seamless-snow-wind.txt"),
     "grass-forest": os.path.join(DIR, "prompts", "floor-seamless-grass-forest.txt"),
+    "abandoned-mine": os.path.join(DIR, "prompts", "floor-seamless-abandoned-mine.txt"),
 }
 DESAT_DEFAULT = {
     "mud": 0.55,
@@ -41,6 +42,7 @@ DESAT_DEFAULT = {
     "snow-packed": 0.28,
     "snow-wind": 0.35,
     "grass-forest": 0.42,
+    "abandoned-mine": 0.56,
 }
 
 
@@ -57,16 +59,23 @@ def main():
     ap.add_argument("--host", default="192.168.3.142")
     ap.add_argument("--model", default="flux2-dev-fp8")
     ap.add_argument("--size", default="1024x1024")
+    ap.add_argument("--steps", type=int, default=None,
+                    help="采样步数；不填时沿用模型注册表默认值")
     ap.add_argument("--desat", type=float, default=None,
                     help="降饱和比例（默认 mud 0.55 / sand 0.5；--no-desat 跳过）")
     ap.add_argument("--no-desat", action="store_true")
     args = ap.parse_args()
 
     raw = os.path.join(os.path.dirname(args.out), f"_raw_{args.kind}_{args.seed}.png")
-    run(sys.executable, os.path.join(DIR, "comfyui-gen.py"),
+    generate_args = [
+        sys.executable, os.path.join(DIR, "comfyui-gen.py"),
         "--host", args.host, "--model", args.model,
         "--prompt-file", PROMPT[args.kind], "--size", args.size,
-        "--seed", str(args.seed), "--out", raw)
+        "--seed", str(args.seed), "--out", raw,
+    ]
+    if args.steps is not None:
+        generate_args.extend(["--steps", str(args.steps)])
+    run(*generate_args)
     run(sys.executable, os.path.join(DIR, "make-seamless.py"), raw, args.out)
     if not args.no_desat:
         desat = args.desat if args.desat is not None else DESAT_DEFAULT[args.kind]

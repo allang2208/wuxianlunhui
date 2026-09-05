@@ -59,7 +59,7 @@ def add_rubble(objects, collection, root, name, size, location, material,
     return obj
 
 
-def build_research_contact(collection, root, materials):
+def build_research_contact(collection, root, materials, spec):
     """Four attached wall courses, column shoes and a shallow entry threshold."""
     objects = []
     stone = materials["stone"]
@@ -108,53 +108,72 @@ def build_research_contact(collection, root, materials):
     return objects
 
 
-def build_church_contact(collection, root, materials):
-    """Warm discontinuous masonry trim for doors, buttresses and wall feet."""
+def build_church_contact(collection, root, materials, spec):
+    """Symmetric low masonry contacts for the current no-tower chapel."""
     objects = []
     stone = materials["stone"]
     foundation = materials["foundation"]
+    dims = spec["dimensions"]
+    _, _, fh = dims["foundation"]
+    bw, bd, _ = dims["body"]
+    nw, nd, _ = dims["narthex"]
+    sw, sd, _ = dims["sideChapel"]
+
+    body_y = 0
+    narthex_y = body_y - bd / 2 - nd / 2 + 30
+    front_y = narthex_y - nd / 2 - 4
+    main_front_y = body_y - bd / 2 - 4
+    wing_x = bw / 2 + sw / 2 - 32
+    wing_y = body_y + 12
 
     # The doorway gets the only pronounced step; it is deliberately shallow so
     # the chapel still reads as standing on the shared road surface.
     add_box(objects, collection, root, "ChurchContact_MainDoor_LowerThreshold",
-            (104, 34, 7), (10, -216, 3.5), foundation, bevel_width=2.5)
+            (104, 34, 7), (0, front_y - 17, 3.5), foundation, bevel_width=2.5)
     add_box(objects, collection, root, "ChurchContact_MainDoor_UpperThreshold",
-            (84, 24, 9), (10, -201, 8), stone, bevel_width=2)
+            (84, 24, 9), (0, front_y - 4, 8), stone, bevel_width=2)
 
-    # Low blocks continue the existing buttress rhythm into the terrain.  These
-    # are individual toes, not a perimeter foundation.
-    front_y = -134
-    for index, x in enumerate((-92, 76, 122)):
+    # Every contact toe has an exact mirrored partner.  They continue the
+    # modeled nave and side-chapel buttresses without creating a second plinth.
+    for side, label in ((-1, "Left"), (1, "Right")):
+        x = side * (bw / 2 - 18)
         add_box(objects, collection, root,
-                f"ChurchContact_FrontButtressToe_{index}",
-                (30, 40, 14), (x, front_y - 8, 7), foundation,
+                f"ChurchContact_FrontButtressToe_{label}",
+                (30, 40, 14), (x, main_front_y - 8, 7), foundation,
                 bevel_width=3)
-    side_x = -153
-    for index, y in enumerate((-58, 28, 92)):
-        add_box(objects, collection, root,
-                f"ChurchContact_SideButtressToe_{index}",
-                (40, 30, 14), (side_x - 8, y, 7), foundation,
-                bevel_width=3)
+        side_x = side * (bw / 2 + 11)
+        for index, y in enumerate((-82, 82)):
+            add_box(objects, collection, root,
+                    f"ChurchContact_MainSideButtressToe_{label}_{index}",
+                    (40, 30, 14), (side_x, y, 7), foundation,
+                    bevel_width=3)
+        chapel_outer_x = side * (wing_x + sw / 2 + 4)
+        for index, y in enumerate((wing_y - sd / 2 + 24,
+                                   wing_y + sd / 2 - 24)):
+            add_box(objects, collection, root,
+                    f"ChurchContact_SideChapelButtressToe_{label}_{index}",
+                    (30, 34, 14), (chapel_outer_x, y, 7), foundation,
+                    bevel_width=3)
 
-    # Broken wall-foot courses fill only the most abrupt gaps between supports.
-    for index, (size, location) in enumerate((
-            ((58, 18, 11), (-45, -132, 5.5)),
-            ((43, 18, 11), (25, -132, 5.5)),
-            ((18, 52, 11), (-151, -15, 5.5)),
-            ((18, 42, 11), (-151, 63, 5.5)),
-            ((78, 18, 10), (20, 149, 5)))):
+    # Short mirrored wall-foot courses soften the two abrupt transitions from
+    # the centered narthex to the nave.  The full authored foundation remains
+    # in the main body sprite and is not duplicated here.
+    for side, label in ((-1, "Left"), (1, "Right")):
         add_box(objects, collection, root,
-                f"ChurchContact_DiscontinuousWallCourse_{index}",
-                size, location, stone, bevel_width=2.5)
-
-    for index, (size, location, rotation) in enumerate((
-            ((19, 14, 9), (-48, -148, 4.5), (0, 0, 18)),
-            ((15, 11, 7), (48, -143, 3.5), (0, 0, -12)),
-            ((18, 13, 8), (-174, -88, 4), (0, 0, 29)),
-            ((14, 10, 7), (-169, 118, 3.5), (0, 0, -24)))):
+                f"ChurchContact_NarthexWallCourse_{label}",
+                (54, 18, 11),
+                (side * (nw / 2 + 29), main_front_y, 5.5),
+                stone, bevel_width=2.5)
         add_rubble(objects, collection, root,
-                   f"ChurchContact_WallHuggingRubble_{index}",
-                   size, location, foundation, rotation=rotation)
+                   f"ChurchContact_FrontRubble_{label}",
+                   (17, 12, 8),
+                   (side * 76, main_front_y - 15, 4),
+                   foundation, rotation=(0, 0, side * 18))
+        add_rubble(objects, collection, root,
+                   f"ChurchContact_SideRubble_{label}",
+                   (15, 11, 7),
+                   (side * (wing_x + sw / 2 + 16), wing_y + 10, 3.5),
+                   foundation, rotation=(0, 0, side * -24))
     return objects
 
 
@@ -205,7 +224,7 @@ def main():
         building_id.upper() + "_GROUND_CONTACT_EDITABLE_COMPONENTS")
     bpy.context.scene.collection.children.link(overlay_collection)
     overlay_objects = BUILDERS[building_id](
-        overlay_collection, reference_root, material_map())
+        overlay_collection, reference_root, material_map(), spec)
 
     # The institute's large procedural foundation informed framing/depth only;
     # the accepted body sprite excludes it, so the alignment preview does too.

@@ -26,6 +26,12 @@ PREVIEW_DIR = (
     / "layer_pack"
 )
 
+# Authored mask/activity coordinates were drawn against the first accepted
+# 898x514 cutout.  Later texture refinements may change the tight crop by a
+# pixel or two, so map that reference coordinate space onto the installed
+# runtime canvas instead of stretching the approved art back to the old size.
+REFERENCE_SIZE = (898, 514)
+
 # Keep the upper mask close to the actual connected building silhouettes.  A
 # previous broad insurance mask also copied open grass, which made the left and
 # centre pasture pockets unusable for cows.
@@ -79,11 +85,19 @@ SAFE_CORRIDORS = [
 ]
 
 
+def scaled_points(
+    points: list[tuple[int, int]], size: tuple[int, int]
+) -> list[tuple[int, int]]:
+    scale_x = size[0] / REFERENCE_SIZE[0]
+    scale_y = size[1] / REFERENCE_SIZE[1]
+    return [(round(x * scale_x), round(y * scale_y)) for x, y in points]
+
+
 def masked_layer(source: Image.Image, polygons: list[list[tuple[int, int]]]) -> Image.Image:
     mask = Image.new("L", source.size, 0)
     draw = ImageDraw.Draw(mask)
     for polygon in polygons:
-        draw.polygon(polygon, fill=255)
+        draw.polygon(scaled_points(polygon, source.size), fill=255)
     alpha = Image.new("L", source.size, 0)
     alpha = Image.composite(source.getchannel("A"), alpha, mask)
     layer = source.copy()
@@ -118,12 +132,13 @@ def build_preview(source: Image.Image, structure: Image.Image, foreground: Image
         tint = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(tint)
         for polygon_points in SAFE_ACTIVITY_ZONES.values():
-            polygon = [(x, y + y_offset) for x, y in polygon_points]
+            scaled = scaled_points(polygon_points, source.size)
+            polygon = [(x, y + y_offset) for x, y in scaled]
             draw.polygon(polygon, fill=(28, 210, 116, 86), outline=(80, 255, 165, 255), width=4)
-            for x, y in polygon_points:
+            for x, y in scaled:
                 draw.ellipse((x - 3, y + y_offset - 3, x + 3, y + y_offset + 3), fill=(220, 255, 235, 255))
         for corridor in SAFE_CORRIDORS:
-            points = [(x, y + y_offset) for x, y in corridor["points"]]
+            points = [(x, y + y_offset) for x, y in scaled_points(corridor["points"], source.size)]
             draw.line(points, fill=(70, 205, 255, 235), width=5, joint="curve")
             for x, y in points:
                 draw.ellipse((x - 4, y - 4, x + 4, y + 4), fill=(205, 244, 255, 255))
@@ -150,8 +165,8 @@ def build_preview(source: Image.Image, structure: Image.Image, foreground: Image
 
 def main() -> None:
     source = Image.open(SOURCE).convert("RGBA")
-    if source.size != (898, 514):
-        raise ValueError(f"Unexpected cheese farm size: {source.size}; masks require 898x514")
+    if source.width <= 0 or source.height <= 0:
+        raise ValueError(f"Invalid cheese farm size: {source.size}")
 
     structure = masked_layer(source, STRUCTURE_OCCLUDER_POLYGONS)
     foreground = masked_layer(source, FRONT_FENCE_POLYGONS)
