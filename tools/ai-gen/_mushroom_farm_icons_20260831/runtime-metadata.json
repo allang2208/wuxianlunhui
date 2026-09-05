@@ -1,0 +1,122 @@
+[
+  {
+    "id": "mushroom_cultivation",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "output": "assets/ui/technology-icons/mushroom_cultivation.png",
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "alphaBBox": [
+      85,
+      12,
+      938,
+      1012
+    ],
+    "shape": "hex"
+  },
+  {
+    "id": "mushroom_standardization",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "output": "assets/ui/technology-icons/mushroom_standardization.png",
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "alphaBBox": [
+      87,
+      12,
+      936,
+      1012
+    ],
+    "shape": "hex"
+  },
+  {
+    "id": "mushroom-strain-selection",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "output": "assets/ui/building-upgrades/mushroom-strain-selection.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      6,
+      249,
+      250
+    ],
+    "shape": "cut-corner-square"
+  },
+  {
+    "id": "mushroom-growth-cycle",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "output": "assets/ui/building-upgrades/mushroom-growth-cycle.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      6,
+      250,
+      249
+    ],
+    "shape": "cut-corner-square"
+  },
+  {
+    "id": "mushroom-bed-expansion",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "output": "assets/ui/building-upgrades/mushroom-bed-expansion.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      7,
+      6,
+      248,
+      250
+    ],
+    "shape": "cut-corner-square"
+  },
+  {
+    "id": "mushroom-harvest-cart",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "output": "assets/ui/building-upgrades/mushroom-harvest-cart.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      7,
+      6,
+      248,
+      250
+    ],
+    "shape": "cut-corner-square"
+  }
+]

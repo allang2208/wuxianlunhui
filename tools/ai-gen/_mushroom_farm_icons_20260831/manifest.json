@@ -1,0 +1,78 @@
+{
+  "created": "2026-08-31",
+  "scope": "Two mushroom-farm technology badges and four upgrade badges; generated individually with existing badge templates.",
+  "icons": [
+    {
+      "id": "mushroom_cultivation",
+      "kind": "technology",
+      "subject": "Replace the cow, milking equipment and pasture with a small shaded mushroom growing bed: three large edible cream and chestnut mushrooms on a dark compost bed under a low muted olive cloth canopy. The mushrooms and cultivation bed are the unmistakable main silhouette, not a whole distant building.",
+      "generator": "built-in image_gen",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05325-2373-77c2-9a2a-b29f01fba71e/exec-be806092-f84a-4d70-ba3d-4167eff6d604.png",
+      "raw": "raw/mushroom_cultivation-raw.png",
+      "runtime": "assets/ui/technology-icons/mushroom_cultivation.png",
+      "template": "assets/ui/technology-icons/dairy_husbandry.png",
+      "background": "checker",
+      "prompt": "Use case: precise-object-edit. Asset type: a new World-122 mushroom farming technology UI icon, made as a separate copy of the supplied badge template. Input image 1 is the editable frame/style template; preserve its point-top six-sided cold-steel silver hexagonal rim, charcoal faceted inner field and tiny bottom cyan inset. Primary request: Replace the cow, milking equipment and pasture with a small shaded mushroom growing bed: three large edible cream and chestnut mushrooms on a dark compost bed under a low muted olive cloth canopy. The mushrooms and cultivation bed are the unmistakable main silhouette, not a whole distant building. Preserve front-facing frame geometry, scale, complete rim and small transparent safety margin. Restrained polished game PBR, simple readable volumes, soft upper-left lighting, no overly detailed noise. The central subject stays fully inside the frame and fills its inner field. True transparent RGBA background OUTSIDE the complete badge, not black or drawn checkerboard; dark inner badge remains opaque. Output one centered square icon only, no contact sheet, no labels, no numbers, no lettering, no watermark, no additional frames."
+    },
+    {
+      "id": "mushroom_standardization",
+      "kind": "technology",
+      "subject": "Replace the cow, milking equipment and pasture with a mushroom cultivation standardization station: two orderly short tiers of wooden mushroom cultivation trays, a single large edible mushroom centerpiece, and one small brass caliper lying at the base. Visually express organized controlled mushroom farming, not gears alone.",
+      "generator": "built-in image_gen",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05325-2373-77c2-9a2a-b29f01fba71e/exec-9c4c238f-4e59-4d45-9e88-7292f975e9b1.png",
+      "raw": "raw/mushroom_standardization-raw.png",
+      "runtime": "assets/ui/technology-icons/mushroom_standardization.png",
+      "template": "assets/ui/technology-icons/dairy_husbandry.png",
+      "background": "checker",
+      "prompt": "Use case: precise-object-edit. Asset type: a new World-122 mushroom farming technology UI icon, made as a separate copy of the supplied badge template. Input image 1 is the editable frame/style template; preserve its point-top six-sided cold-steel silver hexagonal rim, charcoal faceted inner field and tiny bottom cyan inset. Primary request: Replace the cow, milking equipment and pasture with a mushroom cultivation standardization station: two orderly short tiers of wooden mushroom cultivation trays, a single large edible mushroom centerpiece, and one small brass caliper lying at the base. Visually express organized controlled mushroom farming, not gears alone. Preserve front-facing frame geometry, scale, complete rim and small transparent safety margin. Restrained polished game PBR, simple readable volumes, soft upper-left lighting, no overly detailed noise. The central subject stays fully inside the frame and fills its inner field. True transparent RGBA background OUTSIDE the complete badge, not black or drawn checkerboard; dark inner badge remains opaque. Output one centered square icon only, no contact sheet, no labels, no numbers, no lettering, no watermark, no additional frames."
+    },
+    {
+      "id": "mushroom-strain-selection",
+      "kind": "upgrade",
+      "subject": "Replace the transport cart with one large clear squat glass culture jar holding vivid ivory branching mycelium and a chestnut edible mushroom specimen, a small seedling-like mushroom beside it. Show selected fungal strains for higher yield. Ivory and chestnut are the focus, subtle olive secondary accent.",
+      "generator": "built-in image_gen",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05325-2373-77c2-9a2a-b29f01fba71e/exec-d3606663-95f0-482e-b3e6-234a1c97cbc7.png",
+      "raw": "raw/mushroom-strain-selection-raw.png",
+      "runtime": "assets/ui/building-upgrades/mushroom-strain-selection.png",
+      "template": "assets/ui/building-upgrades/steam-transport-cart.png",
+      "background": "black",
+      "prompt": "Use case: precise-object-edit. Asset type: a new World-122 mushroom farming building-upgrade UI icon, made as a separate copy of the supplied badge template. Input image 1 is the editable frame/style template; preserve its bevelled cut-corner square cold-steel frame, exactly four corner rivets and charcoal recessed inner field. Primary request: Replace the transport cart with one large clear squat glass culture jar holding vivid ivory branching mycelium and a chestnut edible mushroom specimen, a small seedling-like mushroom beside it. Show selected fungal strains for higher yield. Ivory and chestnut are the focus, subtle olive secondary accent. Preserve front-facing frame geometry, scale, complete rim and small transparent safety margin. Restrained polished game PBR, simple readable volumes, soft upper-left lighting, no overly detailed noise. The central subject stays fully inside the frame and fills its inner field. True transparent RGBA background OUTSIDE the complete badge, not black or drawn checkerboard; dark inner badge remains opaque. Output one centered square icon only, no contact sheet, no labels, no numbers, no lettering, no watermark, no additional frames."
+    },
+    {
+      "id": "mushroom-growth-cycle",
+      "kind": "upgrade",
+      "subject": "Replace the transport cart with a broad brass watering/misting nozzle above two edible chestnut mushrooms, with three large clear water droplets descending. Show controlled humidity to speed cultivation, not a potion bottle or magical spell. Muted aqua droplets, ivory mushrooms, worn brass.",
+      "generator": "built-in image_gen",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05325-2373-77c2-9a2a-b29f01fba71e/exec-d687b335-4c27-42a6-9b21-ea85d0d3bf00.png",
+      "raw": "raw/mushroom-growth-cycle-raw.png",
+      "runtime": "assets/ui/building-upgrades/mushroom-growth-cycle.png",
+      "template": "assets/ui/building-upgrades/steam-transport-cart.png",
+      "background": "checker",
+      "prompt": "Use case: precise-object-edit. Asset type: a new World-122 mushroom farming building-upgrade UI icon, made as a separate copy of the supplied badge template. Input image 1 is the editable frame/style template; preserve its bevelled cut-corner square cold-steel frame, exactly four corner rivets and charcoal recessed inner field. Primary request: Replace the transport cart with a broad brass watering/misting nozzle above two edible chestnut mushrooms, with three large clear water droplets descending. Show controlled humidity to speed cultivation, not a potion bottle or magical spell. Muted aqua droplets, ivory mushrooms, worn brass. Preserve front-facing frame geometry, scale, complete rim and small transparent safety margin. Restrained polished game PBR, simple readable volumes, soft upper-left lighting, no overly detailed noise. The central subject stays fully inside the frame and fills its inner field. True transparent RGBA background OUTSIDE the complete badge, not black or drawn checkerboard; dark inner badge remains opaque. Output one centered square icon only, no contact sheet, no labels, no numbers, no lettering, no watermark, no additional frames."
+    },
+    {
+      "id": "mushroom-bed-expansion",
+      "kind": "upgrade",
+      "subject": "Replace the transport cart with a compact three-tier wooden rack containing orderly dark compost trays and clusters of edible cream and chestnut mushrooms. The stepped stacked trays must read clearly at small size, expressing layered production capacity. No floor landscape.",
+      "generator": "built-in image_gen",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05325-2373-77c2-9a2a-b29f01fba71e/exec-6829000f-90a7-48b4-b50a-3207a653ef62.png",
+      "raw": "raw/mushroom-bed-expansion-raw.png",
+      "runtime": "assets/ui/building-upgrades/mushroom-bed-expansion.png",
+      "template": "assets/ui/building-upgrades/steam-transport-cart.png",
+      "background": "checker",
+      "prompt": "Use case: precise-object-edit. Asset type: a new World-122 mushroom farming building-upgrade UI icon, made as a separate copy of the supplied badge template. Input image 1 is the editable frame/style template; preserve its bevelled cut-corner square cold-steel frame, exactly four corner rivets and charcoal recessed inner field. Primary request: Replace the transport cart with a compact three-tier wooden rack containing orderly dark compost trays and clusters of edible cream and chestnut mushrooms. The stepped stacked trays must read clearly at small size, expressing layered production capacity. No floor landscape. Preserve front-facing frame geometry, scale, complete rim and small transparent safety margin. Restrained polished game PBR, simple readable volumes, soft upper-left lighting, no overly detailed noise. The central subject stays fully inside the frame and fills its inner field. True transparent RGBA background OUTSIDE the complete badge, not black or drawn checkerboard; dark inner badge remains opaque. Output one centered square icon only, no contact sheet, no labels, no numbers, no lettering, no watermark, no additional frames."
+    },
+    {
+      "id": "mushroom-harvest-cart",
+      "kind": "upgrade",
+      "subject": "Replace the empty transport cart with a lightweight wooden handcart carrying a single woven basket full of large cream and chestnut edible mushrooms. Two sturdy small wheels, clear curved handle, subtle short muted aqua movement accent, expressing faster mushroom delivery. Keep the basket and mushrooms readable.",
+      "generator": "built-in image_gen",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05325-2373-77c2-9a2a-b29f01fba71e/exec-dd22f34e-8a5b-4397-ad5f-5c649b77e3ea.png",
+      "raw": "raw/mushroom-harvest-cart-raw.png",
+      "runtime": "assets/ui/building-upgrades/mushroom-harvest-cart.png",
+      "template": "assets/ui/building-upgrades/steam-transport-cart.png",
+      "background": "checker",
+      "prompt": "Use case: precise-object-edit. Asset type: a new World-122 mushroom farming building-upgrade UI icon, made as a separate copy of the supplied badge template. Input image 1 is the editable frame/style template; preserve its bevelled cut-corner square cold-steel frame, exactly four corner rivets and charcoal recessed inner field. Primary request: Replace the empty transport cart with a lightweight wooden handcart carrying a single woven basket full of large cream and chestnut edible mushrooms. Two sturdy small wheels, clear curved handle, subtle short muted aqua movement accent, expressing faster mushroom delivery. Keep the basket and mushrooms readable. Preserve front-facing frame geometry, scale, complete rim and small transparent safety margin. Restrained polished game PBR, simple readable volumes, soft upper-left lighting, no overly detailed noise. The central subject stays fully inside the frame and fills its inner field. True transparent RGBA background OUTSIDE the complete badge, not black or drawn checkerboard; dark inner badge remains opaque. Output one centered square icon only, no contact sheet, no labels, no numbers, no lettering, no watermark, no additional frames."
+    }
+  ]
+}
