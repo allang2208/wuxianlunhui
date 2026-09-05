@@ -2900,6 +2900,7 @@
 - 稳定建筑键 `engineer_camp`，通过 `recruitmentTiers` 表达工程师营地→工程工坊→载具工厂；三档同为4×4逻辑占格，每级独立 `visualFootprint`，科研换代不删除已招募低级部队。单位对应投石组→野战炮组→榴弹炮组，两名工程师和器械为一个实体、占2军事人口。
 - 科技放在“军事指挥/工程器械”独立lane3，column1/3/6；原后续行与行标题一起顺延。基础成本180/520/920，实际270/1560/4140点。营地要求阵地射击与城防工事；工坊要求营地与烧制砖工艺；工厂显式AND要求工坊、黑火药、蒸汽工业标准化、现代机械制造，不能仅凭间接依赖省略黑火药。
 - 三级单位须同步登记生产类/配置、资源驻留、升级kind、兵线与读档、军事人口和后台估算；继承类判定先榴弹炮/野战炮，再投石组，最后斥候。人口权重须由公共人口计费协议统一消费，不能只改招募按钮或JSON。发布时若该公共协议尚未合入目标分支，按第15卷§15.7暂停提交，不夹带其他会话协议，也不退回每组1人口。
+- 近代炮兵完成时，`engineer_camp_industrial`必须同时解除对应行级`placeholder`、在三级`unitTypes`登记稳定短键，并由同一科技显式拥有`recruitmentTier:engineer_camp_industrial`与`unit:<key>`；新增解锁后同步提升`technology-tree.json`版本和`TechnologySystem.VERSION`，让已完成该科技的旧档自然继承。玩法闭环还要逐项核对`PRODUCER_UNIT_CFG/CLASS/CONFIG_PATH`、`FRIENDLY_UNIT_CONFIGS`、`UNIT_KIND_CFG/getUnitKind`、升级传播、兵线/快照、前后台AOE与公共军事人口表；只补科技卡、生产名称或前台实体均不算完成。
 - 当前制作与未验收边界见 `docs/engineer-building-branch-design.md`、`docs/hamster-catapult-crew.md`；SKILL只维护合同，完成进度写CHANGELOG。
 
 #### 通用科技配置与解锁

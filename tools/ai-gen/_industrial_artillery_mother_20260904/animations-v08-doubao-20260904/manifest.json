@@ -78,8 +78,6 @@
       "startedAt": "2026-09-04T17:28:51.724855+08:00",
       "downloadedAt": "2026-09-04T17:31:31.954165+08:00",
       "provenance": "videos/industrial-artillery-crew-idle-doubao-v02-no-fire.mp4.json",
-      "gif": "previews/industrial-artillery-crew-idle-doubao-v02-no-fire.gif",
-      "contact": "previews/industrial-artillery-crew-idle-doubao-v02-no-fire-contact.png",
       "sha256": "11A9DD1EA5D650FDB534A790ED966AEB3712B4F2D7D50126B7E4F1DB7AE2059D",
       "visualReview": {
         "reviewedAt": "2026-09-04T17:31:59.2727065+08:00",
@@ -107,8 +105,6 @@
       "startedAt": "2026-09-04T17:50:27.179380+08:00",
       "downloadedAt": "2026-09-04T17:52:50.372260+08:00",
       "provenance": "videos/industrial-artillery-crew-running-doubao-v01.mp4.json",
-      "gif": "previews/industrial-artillery-crew-running-doubao-v01.gif",
-      "contact": "previews/industrial-artillery-crew-running-doubao-v01-contact.png",
       "sha256": "6A24919EA4DFB895E3313EF5F8AB96E8D51164EF6B982DA9BE4C71DC07896E66",
       "visualReview": {
         "reviewedAt": "2026-09-04T17:59:04.1184478+08:00",
@@ -135,8 +131,6 @@
       "startedAt": "2026-09-04T17:53:13.374191+08:00",
       "downloadedAt": "2026-09-04T17:55:41.893096+08:00",
       "provenance": "videos/industrial-artillery-crew-attacking-doubao-v01.mp4.json",
-      "gif": "previews/industrial-artillery-crew-attacking-doubao-v01.gif",
-      "contact": "previews/industrial-artillery-crew-attacking-doubao-v01-contact.png",
       "sha256": "6E13B40E76F96869D4324288737D50B52220230ADE8D778F0B8BEADDFB42C7EC",
       "visualReview": {
         "reviewedAt": "2026-09-04T17:59:04.1184478+08:00",
@@ -164,8 +158,6 @@
       "startedAt": "2026-09-04T17:55:57.763110+08:00",
       "downloadedAt": "2026-09-04T17:58:20.250712+08:00",
       "provenance": "videos/industrial-artillery-crew-dying-doubao-v01.mp4.json",
-      "gif": "previews/industrial-artillery-crew-dying-doubao-v01.gif",
-      "contact": "previews/industrial-artillery-crew-dying-doubao-v01-contact.png",
       "sha256": "62077A8FED93C31169EC52C941323717EC75E6784C42CDDEFDDDFD3605C2276E",
       "visualReview": {
         "reviewedAt": "2026-09-04T17:59:04.1184478+08:00",
@@ -189,10 +181,13 @@
       "action": "idle",
       "version": "v01",
       "prompt": "prompts/idle-doubao-v01.txt",
-      "video": "videos/industrial-artillery-crew-idle-doubao-v01.mp4",
       "provenance": "videos/industrial-artillery-crew-idle-doubao-v01.mp4.json",
-      "gif": "previews/industrial-artillery-crew-idle-doubao-v01.gif",
-      "contact": "previews/industrial-artillery-crew-idle-doubao-v01-contact.png",
+      "removedArtifacts": [
+        "videos/industrial-artillery-crew-idle-doubao-v01.mp4",
+        "previews/industrial-artillery-crew-idle-doubao-v01.gif",
+        "previews/industrial-artillery-crew-idle-doubao-v01-contact.png"
+      ],
+      "binaryRetained": false,
       "startedAt": "2026-09-04T17:19:22.190581+08:00",
       "downloadedAt": "2026-09-04T17:21:55.088863+08:00",
       "status": "source_rejected_action_semantics",
@@ -210,6 +205,7 @@
     "The attacking clip has one correct firing event, but its pale smoke remains visible for roughly 0.9 seconds; confirm the visual weight is acceptable.",
     "During the dying clip the right crew member is temporarily occluded behind the carriage while falling, then resolves into a distinct final prone pose; confirm this overlap reads naturally."
   ],
+  "archiveCleanup": "../cleanup-manifest.json",
   "postGenerationGate": "Completed: source review, user approval, fixed-transform cutout, RIFE 2x, timed previews, budget check and runtime publication. User game validation remains pending.",
   "spriteProducts": {
     "productionPlan": "sprite-production-plan.json",
