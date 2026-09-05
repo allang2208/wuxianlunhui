@@ -1,3 +1,4 @@
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
@@ -50,6 +51,7 @@ export class CoreDrillWorm extends Enemy {
         this._grinderSnapshot = null;
         this._grinderHitDone = false;
 
+        this._burrowTarget = null;
         this._burrowDestination = null;
         this._burrowSurfaceContext = null;
         this._burrowWarning = null;
@@ -156,11 +158,12 @@ export class CoreDrillWorm extends Enemy {
         if (this._actionState !== 'idle') return false;
         const target = this.target?.active && this.target?.hittable ? this.target : null;
         const cfg = this._getBurrowConfig();
-        if (!target) return false;
+        if (!target || this.isCombatActionBlocked() || !canMeleeShareSurface(this, target)) return false;
         const distance = Math.hypot(target.x - this.x, target.y - this.y);
         if (distance < (cfg.minRange ?? 210) || distance > (cfg.maxRange ?? 700)) return false;
 
         const duration = Math.max(1, Number(cfg.enterDuration) || 2583);
+        this._burrowTarget = target;
         this._actionState = 'burrow_enter';
         this._actionTimer = duration;
         this._attackAnimTimer = duration;
@@ -224,7 +227,11 @@ export class CoreDrillWorm extends Enemy {
 
     _enterUnderground() {
         const cfg = this._getBurrowConfig();
-        const target = this.target?.active ? this.target : null;
+        const target = this._burrowTarget;
+        if (!target?.active || target.hittable === false || !canMeleeShareSurface(this, target)) {
+            this._finishAction();
+            return;
+        }
         const hiddenMs = Math.max(1, Number(cfg.hiddenDuration) || 900);
         const exitMs = Math.max(1, Number(cfg.exitDuration) || 1583);
         const exitFrames = Math.max(1, Number(cfg.exitFrames) || 19);
@@ -247,10 +254,12 @@ export class CoreDrillWorm extends Enemy {
             destinationY += leadY;
         }
         const safe = WallSystem.findSafeSpawn(destinationX, destinationY, this.groundRadius || 48, 16);
-        this._burrowDestination = {
-            x: Number.isFinite(safe?.x) ? safe.x : destinationX,
-            y: Number.isFinite(safe?.y) ? safe.y : destinationY,
-        };
+        // findSafeSpawn 失败时也可能返回原坐标，有限数值并不能证明落点可站立。
+        if (!this._isBurrowLandingSafe(safe)) {
+            this._finishAction();
+            return;
+        }
+        this._burrowDestination = { x: safe.x, y: safe.y };
         this._burrowSurfaceContext = target
             ? surfaceEffectFromEntity(target)
             : surfaceEffectFromEntity(this);
@@ -274,7 +283,12 @@ export class CoreDrillWorm extends Enemy {
 
     _beginBurrowExit() {
         const cfg = this._getBurrowConfig();
-        const destination = this._burrowDestination || { x: this.x, y: this.y };
+        const destination = this._burrowDestination;
+        // 预警后地形可能变化；失败时取消攻击并在尚未离开的原位置重新显形。
+        if (!this._isBurrowLandingSafe(destination)) {
+            this._finishAction();
+            return;
+        }
         this.x = destination.x;
         this.y = destination.y;
         this.collider?.syncPosition?.();
@@ -288,6 +302,11 @@ export class CoreDrillWorm extends Enemy {
         this._animState = 'burrow_exit';
         this._animStateTimer = 0;
         this._burrowImpactDone = false;
+    }
+
+    _isBurrowLandingSafe(point) {
+        return Number.isFinite(point?.x) && Number.isFinite(point?.y)
+            && WallSystem.canMoveTo(point.x, point.y, this.groundRadius || 48);
     }
 
     _updateBurrowExit(previous, entities) {
@@ -407,6 +426,7 @@ export class CoreDrillWorm extends Enemy {
         this._attackAnimTimer = 0;
         this._grinderTarget = null;
         this._grinderSnapshot = null;
+        this._burrowTarget = null;
         this._burrowDestination = null;
         this._burrowSurfaceContext = null;
         this._animState = 'idle';
