@@ -359,6 +359,24 @@
       "cheese_delivery_cart": { "name": "轻便奶酪筐", "icon": "🧺", "effect": "cheeseMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "牛倌运输速度 +{pct}%" }
     }
   },
+  "corn_farm_economy": {
+    "moduleUpgrade": { "goldByLevel": [300, 450, 650, 900, 1200, 1550, 2000, 2550, 3200, 4000], "energy": 650, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "corn_seed_selection": { "name": "精选玉米种", "icon": "🌽", "effect": "cornFoodPerBatch", "mode": "add", "base": 180, "per": 9, "maxLevel": 10, "desc": "每批基础产出 {value} 食物" },
+      "corn_growth_cycle": { "name": "促熟耕作", "icon": "⏳", "effect": "cornProcessTimeMs", "mode": "add", "base": 20000, "per": -500, "maxLevel": 10, "desc": "每批生长周期 {seconds} 秒" },
+      "corn_field_expansion": { "name": "田垄扩展", "icon": "🌱", "effect": "cornFieldCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 2, "goldByLevel": [2200, 3800], "energyByLevel": [1500, 2600], "timeByLevel": [45000, 60000], "desc": "有效生产田垄 {value} 组；每组都提高单批总产出" },
+      "corn_harvest_cart": { "name": "轻便粮筐", "icon": "🧺", "effect": "cornMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "农夫运输速度 +{pct}%" }
+    }
+  },
+  "mushroom_farm_economy": {
+    "moduleUpgrade": { "goldByLevel": [300, 450, 650, 900, 1200, 1550, 2000, 2550, 3200, 4000], "energy": 650, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "mushroom_strain_selection": { "name": "优选菌种", "icon": "🍄", "iconImage": "assets/ui/building-upgrades/mushroom-strain-selection.png", "effect": "mushroomFoodPerBatch", "mode": "add", "base": 180, "per": 9, "maxLevel": 10, "desc": "6份基础菌床产能每批 {value} 食物（每级+9，满级270）；再乘菌床、岗位、日照及其他最终产出倍率" },
+      "mushroom_growth_cycle": { "name": "恒湿培育", "icon": "💧", "iconImage": "assets/ui/building-upgrades/mushroom-growth-cycle.png", "effect": "mushroomProcessTimeMs", "mode": "add", "base": 20000, "per": -500, "maxLevel": 10, "desc": "标准培养周期 {seconds} 秒（每级-0.5秒，满级15秒）；人口劳动与工坊另行影响培养速度，运输时间另计" },
+      "mushroom_bed_expansion": { "name": "分层菌床", "icon": "🌱", "iconImage": "assets/ui/building-upgrades/mushroom-bed-expansion.png", "effect": "mushroomBedCount", "mode": "add", "base": 6, "per": 3, "maxLevel": 2, "goldByLevel": [2200, 3800], "energyByLevel": [1500, 2600], "timeByLevel": [45000, 60000], "desc": "有效菌床产能 {value} 份（6→9→12，对应1→1.5→2倍批产）；提升现有六组菌床利用率，不改变外观、占地或岗位" },
+      "mushroom_harvest_cart": { "name": "轻便采收筐", "icon": "🧺", "iconImage": "assets/ui/building-upgrades/mushroom-harvest-cart.png", "effect": "mushroomMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "基础运输速度 +{pct}%（每级+5%，80→120px/s）；缩短道路往返，不额外增加批产或物流角色" }
+    }
+  },
   "steam_power_plant_economy": {
     "moduleUpgrade": { "goldByLevel": [300, 450, 650, 900, 1200, 1550, 2000, 2550, 3200, 4000], "energy": 700, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {
