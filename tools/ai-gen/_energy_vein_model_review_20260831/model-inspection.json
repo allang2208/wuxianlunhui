@@ -1,0 +1,529 @@
+{
+  "scope": "Requested model inspection only; no generation, model save, render or runtime test.",
+  "source": "tools/ai-gen/_energy_vein_directional_20260826/energy_vein_directional_master.blend",
+  "cameraType": "ORTHO",
+  "cameraElevationDegrees": 29.999998330347886,
+  "frameCount": 16,
+  "sourceRenderFrame": [
+    1024,
+    512
+  ],
+  "runtimeFrame": [
+    128,
+    64
+  ],
+  "representatives": [
+    {
+      "mask": 0,
+      "rootRotationDegrees": 44.79999965296277,
+      "energyCurves": [
+        {
+          "name": "energy_vein_mask_00_EnergyBranch_0",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.248,
+            0.252,
+            0.248,
+            0.244
+          ]
+        }
+      ],
+      "seamCaps": [],
+      "clippedRubble": [
+        {
+          "name": "energy_vein_mask_00_Rubble_4",
+          "normalizedProjectionBounds": [
+            0.87256,
+            0.64552,
+            1.03592,
+            1.01017
+          ]
+        },
+        {
+          "name": "energy_vein_mask_00_Rubble_11",
+          "normalizedProjectionBounds": [
+            0.28577,
+            0.91109,
+            0.40275,
+            1.1722
+          ]
+        },
+        {
+          "name": "energy_vein_mask_00_Rubble_13",
+          "normalizedProjectionBounds": [
+            0.52781,
+            0.76869,
+            0.70393,
+            1.00866
+          ]
+        },
+        {
+          "name": "energy_vein_mask_00_Rubble_14",
+          "normalizedProjectionBounds": [
+            0.13411,
+            0.85782,
+            0.25731,
+            1.06315
+          ]
+        },
+        {
+          "name": "energy_vein_mask_00_Rubble_17",
+          "normalizedProjectionBounds": [
+            -0.04021,
+            0.57741,
+            0.05824,
+            0.75245
+          ]
+        }
+      ]
+    },
+    {
+      "mask": 3,
+      "rootRotationDegrees": 44.79999965296277,
+      "energyCurves": [
+        {
+          "name": "energy_vein_mask_03_EnergyBranch_0",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_EnergyBranch_1",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        }
+      ],
+      "seamCaps": [
+        {
+          "name": "energy_vein_mask_03_SeamCap_0",
+          "localLocation": [
+            -0.28933000564575195,
+            -1.3209060430526733,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_SeamCap_1",
+          "localLocation": [
+            -0.2964920103549957,
+            0.7309799790382385,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "clippedRubble": [
+        {
+          "name": "energy_vein_mask_03_Rubble_16",
+          "normalizedProjectionBounds": [
+            0.9418,
+            0.133,
+            1.03774,
+            0.38539
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_Rubble_17",
+          "normalizedProjectionBounds": [
+            0.93364,
+            0.34006,
+            1.02837,
+            0.56063
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_Rubble_20",
+          "normalizedProjectionBounds": [
+            0.52249,
+            0.76245,
+            0.72556,
+            1.05115
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_Rubble_24",
+          "normalizedProjectionBounds": [
+            0.37176,
+            -0.17421,
+            0.52467,
+            0.0645
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_Rubble_26",
+          "normalizedProjectionBounds": [
+            0.31757,
+            0.78066,
+            0.50926,
+            1.04304
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_Rubble_31",
+          "normalizedProjectionBounds": [
+            0.316,
+            0.80287,
+            0.4639,
+            1.02847
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_Rubble_34",
+          "normalizedProjectionBounds": [
+            0.52154,
+            -0.04581,
+            0.64312,
+            0.2656
+          ]
+        },
+        {
+          "name": "energy_vein_mask_03_Rubble_35",
+          "normalizedProjectionBounds": [
+            0.32024,
+            0.86984,
+            0.46569,
+            1.13782
+          ]
+        }
+      ]
+    },
+    {
+      "mask": 5,
+      "rootRotationDegrees": 44.79999965296277,
+      "energyCurves": [
+        {
+          "name": "energy_vein_mask_05_EnergyBranch_0",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        },
+        {
+          "name": "energy_vein_mask_05_EnergyBranch_1",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        }
+      ],
+      "seamCaps": [
+        {
+          "name": "energy_vein_mask_05_SeamCap_0",
+          "localLocation": [
+            -0.28933000564575195,
+            -1.3209060430526733,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "energy_vein_mask_05_SeamCap_1",
+          "localLocation": [
+            -1.3188530206680298,
+            -0.2985439896583557,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "clippedRubble": [
+        {
+          "name": "energy_vein_mask_05_Rubble_0",
+          "normalizedProjectionBounds": [
+            0.8124,
+            0.47189,
+            1.01128,
+            0.76349
+          ]
+        },
+        {
+          "name": "energy_vein_mask_05_Rubble_6",
+          "normalizedProjectionBounds": [
+            0.35836,
+            -0.00324,
+            0.45144,
+            0.24316
+          ]
+        },
+        {
+          "name": "energy_vein_mask_05_Rubble_11",
+          "normalizedProjectionBounds": [
+            0.32614,
+            -0.0354,
+            0.45711,
+            0.17734
+          ]
+        },
+        {
+          "name": "energy_vein_mask_05_Rubble_17",
+          "normalizedProjectionBounds": [
+            0.65291,
+            -0.02063,
+            0.73478,
+            0.19164
+          ]
+        },
+        {
+          "name": "energy_vein_mask_05_Rubble_22",
+          "normalizedProjectionBounds": [
+            0.03748,
+            0.84068,
+            0.18287,
+            1.08544
+          ]
+        },
+        {
+          "name": "energy_vein_mask_05_Rubble_27",
+          "normalizedProjectionBounds": [
+            0.87152,
+            0.91456,
+            0.96173,
+            1.11793
+          ]
+        }
+      ]
+    },
+    {
+      "mask": 15,
+      "rootRotationDegrees": 44.79999965296277,
+      "energyCurves": [
+        {
+          "name": "energy_vein_mask_15_EnergyBranch_0",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_EnergyBranch_1",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_EnergyBranch_2",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_EnergyBranch_3",
+          "type": "CURVE",
+          "crossSectionRadius": 0.02800000086426735,
+          "pathLocalZ": [
+            0.252,
+            0.248,
+            0.244,
+            0.24
+          ]
+        }
+      ],
+      "seamCaps": [
+        {
+          "name": "energy_vein_mask_15_SeamCap_0",
+          "localLocation": [
+            -0.28933000564575195,
+            -1.3209060430526733,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_SeamCap_1",
+          "localLocation": [
+            -0.2964920103549957,
+            0.7309799790382385,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_SeamCap_2",
+          "localLocation": [
+            -1.3188530206680298,
+            -0.2985439896583557,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_SeamCap_3",
+          "localLocation": [
+            0.7330319881439209,
+            -0.2913820147514343,
+            0.1599999964237213
+          ],
+          "localScale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "clippedRubble": [
+        {
+          "name": "energy_vein_mask_15_Rubble_3",
+          "normalizedProjectionBounds": [
+            0.11028,
+            -0.0517,
+            0.26454,
+            0.18465
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_10",
+          "normalizedProjectionBounds": [
+            0.54012,
+            -0.02956,
+            0.72324,
+            0.24146
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_11",
+          "normalizedProjectionBounds": [
+            0.65937,
+            -0.06285,
+            0.87486,
+            0.1548
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_15",
+          "normalizedProjectionBounds": [
+            -0.09967,
+            0.71005,
+            0.02629,
+            0.93141
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_18",
+          "normalizedProjectionBounds": [
+            0.15802,
+            -0.0449,
+            0.22719,
+            0.14615
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_21",
+          "normalizedProjectionBounds": [
+            0.21465,
+            -0.07402,
+            0.30477,
+            0.05825
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_24",
+          "normalizedProjectionBounds": [
+            0.15255,
+            0.78262,
+            0.26846,
+            1.01494
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_25",
+          "normalizedProjectionBounds": [
+            0.22817,
+            0.93363,
+            0.39723,
+            1.13707
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_31",
+          "normalizedProjectionBounds": [
+            -0.0637,
+            0.12022,
+            0.09043,
+            0.33901
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_32",
+          "normalizedProjectionBounds": [
+            -0.02689,
+            0.64496,
+            0.10755,
+            0.83123
+          ]
+        },
+        {
+          "name": "energy_vein_mask_15_Rubble_36",
+          "normalizedProjectionBounds": [
+            0.29571,
+            -0.02074,
+            0.44158,
+            0.17371
+          ]
+        }
+      ]
+    }
+  ]
+}
