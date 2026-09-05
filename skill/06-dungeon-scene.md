@@ -388,6 +388,9 @@ collision-grid / regressions）、vite build ✓。
 新增条目：`{ name, nodeCount, battleRatio, level, reward, grade, series, seriesName, seriesIcon, seriesOrder, tier, tierOrder, unlockAfter? }`——`grade`（F~A）驱动事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）和出征钥匙门槛；`series*` 驱动祭坛下拉父标题，`tierOrder` 固定系列内初级→中级→高级顺序，`unlockAfter` 指向同系列前一级 type。出征界面选择器/说明栏自动读取配置；新增多级系列必须同时声明层级元数据，禁止在 UI 硬编码系列名单。
 
 - **同系列逐级解锁合同（2026-08-24）**：初级不写 `unlockAfter`，中级指向初级、高级指向中级；解锁状态只读取 `WorldProgressionSystem.hasCompletedDungeon()` 的成功通关记录。下拉选项禁用只是展示层，`ExpeditionSystem.depart()` 必须在钥匙检查与消耗之前再次校验，避免通过脚本或陈旧 DOM 绕过门槛并误扣钥匙。
+- **首次F级探索与大地图门槛（2026-09-05）**：新手钥匙仍由`ExpeditionSystem.depart()`在真实提交段消耗；打开祭坛、进入准备页、失败、放弃和安全撤离都不能冒充成功。只有`recordDungeonRun('abandonedMineBeginner','success')`才把首城推进为`awaiting_king`；首次成功前若背包和仓库均无F级钥匙，可由小鼠大王免费补领，避免失败后软锁。
+- **固定新手试炼路线（2026-09-05）**：`abandonedMineDungeonBeginner.tutorialRoute`固定为“入口→基础战斗→安全事件选择→首领战→奖励房”，允许沿原路返回入口但不生成支线。入口集中说明安全撤离保留背包、其他位置强制放弃或死亡清空背包；各房只补充本房目标。战斗操作进度必须读取已被玩家动作系统接受的攻击、闪避、奔跑蓄势和冲刺状态，不按原始按键伪完成。
+- **短本经验口径（2026-09-05）**：短教程本必须配置`expBudgetReference:'zombieBeginner'`，只借同档正式地牢的`weightedKills/combatNodeCount`作为经验预算分母；教程怪物、实际击杀、等级修正、通关、掉落和首城资格仍按真实本局结算，禁止硬编码等级或伪造普通地牢胜利。
 
 #### 2. 地牢配置块（同文件，如 `zombieDungeonMid`）
 - `nodeCount.min/max`：房间数

@@ -35,21 +35,21 @@ const NPCDialogue = {
             const founding = WorldProgressionSystem.getFoundingState();
             if (founding.skipAuthorized && ['awaiting_king', 'selecting'].includes(founding.status)) {
                 return founding.status === 'selecting'
-                    ? '首城授予已经批准。航图只保留正式位面候选，你可以继续完成选址。'
-                    : '既然你决定跳过试炼，我就直接替你开启首城授予。选定地块后，新手建设任务也不会再打扰你。';
+                    ? '你的首城资格已经批准。位面航图会显示当前可建立基地的位置，去确认你的第一座基地吧。'
+                    : '既然你决定跳过试炼，我可以直接批准你的首城资格。准备好后确认开启位面航图；后续建设指引也不会再打扰你。';
             }
-            if (stage === 'receive_key') return '欢迎正式加入。轮回者的第一课，是学会用时空锚点为自己开路。我先送你一枚 F 级钥匙。确认领取后，它会直接放进你的背包。';
+            if (stage === 'receive_key') return '站稳了吗？那就开始第一课。我先送你一枚 F 级钥匙，也就是时空锚点。确认领取后，它会直接放进你的背包。';
             if (stage === 'replace_key') return '第一次探索还没完成，而你身上已经没有 F 级钥匙了。别担心，我会免费补发一枚；只要首战尚未成功，就不会让你被困在这里。';
             if (stage === 'open_altar') return 'F 级钥匙已经在你手上。去我下方的中央祭坛，点击祭坛并选择“首次 F 级探索”。';
             if (stage === 'complete_dungeon') return '祭坛已经记住了你的轮回印记。选择“废弃矿洞·初级”并活着完成探索，主神才会向你开放位面航图。';
             if (stage === 'claim_founding') return WorldProgressionSystem.getFoundingState().status === 'selecting'
-                ? '首城授予已经批准。航图只保留当前真正符合条件的位面，你可以继续完成选址。'
-                : '你从废弃矿洞活着回来了。主神已经承认你的资格：大地图权限现已解封。接下来由你从合法位面中选择第一座城市。';
+                ? '你的首城资格已经批准。位面航图会显示当前可建立基地的位置，去确认你的第一座基地吧。'
+                : '你从废弃矿洞活着回来了。主神已经承认你建立据点的资格，大地图也已解封。接下来，打开航图确认你的第一座基地。';
         }
         if (npc.id === 'npc_altar') {
-            if (stage === 'receive_key') return '祭坛没有检测到可用的 F 级锚点。先去找小鼠大王领取新手钥匙。';
-            if (stage === 'replace_key') return '祭坛没有检测到可用的 F 级锚点。返回小鼠大王处免费补领，再来建立坐标。';
-            if (stage === 'open_altar' || stage === 'complete_dungeon') return '祭坛与 F 级锚点发生共鸣。选择“废弃矿洞·初级”，成功通关后才会解锁位面航图。';
+            if (stage === 'receive_key') return '祭坛没有检测到可用的 F 级钥匙。先去找小鼠大王领取一枚。';
+            if (stage === 'replace_key') return '祭坛没有检测到可用的 F 级钥匙。返回小鼠大王处免费补领，再来建立坐标。';
+            if (stage === 'open_altar' || stage === 'complete_dungeon') return '祭坛与 F 级钥匙发生共鸣。选择“废弃矿洞·初级”，成功通关后才会解锁位面航图。';
         }
         return null;
     },
@@ -145,7 +145,17 @@ const NPCDialogue = {
             `;
             closeText = '👋 退出';
         } else if (npcType === 'ruler' && npc.id === 'npc_mouse_king') {
-            typeButtons = `<button type="button" class="npc-option-btn" id="npcOptionMailbox" onclick="NPCDialogue.openMailbox()">查看信箱（待领 ${MailStore.pendingCount} 封）</button>`;
+            const founding = WorldProgressionSystem.getFoundingState();
+            const tutorialStage = FirstExpeditionTutorial.getStage();
+            const keyButton = ['receive_key', 'replace_key'].includes(tutorialStage)
+                ? `<button type="button" class="npc-option-btn npc-option-btn--primary" id="npcOptionStarterKey" onclick="NPCDialogue.claimStarterDungeonKey()">${tutorialStage === 'replace_key' ? '免费补领 F 级钥匙' : '领取 F 级钥匙'}</button>`
+                : '';
+            const foundingButton = ['awaiting_king', 'selecting'].includes(founding.status)
+                ? `<button type="button" class="npc-option-btn npc-option-btn--primary" id="npcOptionFounding" onclick="NPCDialogue.acceptFirstFounding()">${founding.status === 'selecting' ? '继续首城选址' : '开启首城选址'}</button>`
+                : founding.status === 'founded' && founding.sceneId
+                    ? '<button type="button" class="npc-option-btn" id="npcOptionFoundingTravel" onclick="NPCDialogue.enterFirstFoundingWorld()">前往首座位面</button>'
+                    : '';
+            typeButtons = `${keyButton}${foundingButton}<button type="button" class="npc-option-btn" id="npcOptionMailbox" onclick="NPCDialogue.openMailbox()">查看信箱（待领 ${MailStore.pendingCount} 封）</button>`;
         } else if (npcType === 'blacksmith') {
             typeButtons = `
                 <button class="npc-option-btn" id="npcOptionShop" onclick="NPCDialogue.openShop()">🏪 商店</button>
@@ -239,11 +249,11 @@ const NPCDialogue = {
         if (!result.ok) {
             this._currentText = result.reason;
         } else if (result.duplicate) {
-            this._currentText = '你已经持有可用的 F 级时空锚点，不会重复发放。现在去中央祭坛，选择“首次 F 级探索”。';
+            this._currentText = '你已经持有可用的 F 级钥匙，不会重复发放。现在去中央祭坛，选择“首次 F 级探索”。';
         } else {
             this._currentText = result.replacement
-                ? '新的 F 级时空锚点已经直接放进背包。继续从中央祭坛挑战废弃矿洞·初级；在首次成功之前，钥匙遗失或探索失败都可以再来补领。'
-                : '收好，F 级时空锚点已经直接放进背包。去我下方的中央祭坛，选择“首次 F 级探索”，目标是废弃矿洞·初级。成功通关后，大地图才会开启。';
+                ? '新的 F 级钥匙已经直接放进背包。继续从中央祭坛挑战废弃矿洞·初级；首次成功前，钥匙遗失或探索失败都可以再来补领。'
+                : '收好，F 级钥匙已经直接放进背包。去我下方的中央祭坛，选择“首次 F 级探索”，目标是废弃矿洞·初级。成功通关后，大地图才会开启。';
         }
         this._typewriter?.setText(this._currentText);
         this._updateDialogueButtons(npc);
@@ -255,7 +265,7 @@ const NPCDialogue = {
         if (!npc || npc.id !== 'npc_mouse_king' || !sceneManager || sceneManager.isLoading) return;
         const result = WorldProgressionSystem.beginFirstFoundingSelection();
         if (!result.ok) {
-            this._currentText = `小鼠大王：${result.reason}`;
+            this._currentText = result.reason;
             this._typewriter?.setText(this._currentText);
             this._updateDialogueButtons(npc);
             return;

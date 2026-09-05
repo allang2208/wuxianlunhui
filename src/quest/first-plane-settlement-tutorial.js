@@ -233,9 +233,9 @@ export const FirstPlaneSettlementTutorial = {
             build_house: `采矿达标，${FIRST_PLANE_CONSTRUCTION_SUBSIDY} 能源建设补给已结算。下一步，建造免费房屋。`,
             operate_windmill: '首批居民已落户。下一步，建造麦田风车并安排 1 名农夫。',
             build_research_institute: '粮食生产链已启动。下一步，建造研究所。',
-            start_research: '研究所已落成。下一步，将风车农夫调任为研究员，再选择研究目标。',
-            produce_research: '研究目标已确定。保持研究员在岗，产出首批真实科研进度。',
-            completed: '新手主线毕业：仓储、采矿、人口、粮食与科研已经形成闭环。接下来可扩建住房、继续采矿或规划下一项科技。',
+            start_research: '研究所已落成。下一步，安排至少 1 名研究员；没有空闲居民时，可以从风车调任农夫。',
+            produce_research: '研究目标已确定。保持研究员在岗，让研究进度开始增长。',
+            completed: '小鼠大王通讯：不错。仓库能够储存物资，风车能够养活居民，研究所也开始推动科技了——这座基地已经能够自行运转。接下来，就按你的想法扩建它吧。',
         };
         return announcements[stage] || '';
     },
@@ -258,7 +258,7 @@ export const FirstPlaneSettlementTutorial = {
                 FIRST_PLANE_SETTLEMENT_QUEST_ID,
                 OBJECTIVES.ORE
             ));
-            return `靠近金色标记的能源矿脉并攻击；只有实际进入仓库的矿石才计数。当前 ${current}/${FIRST_PLANE_ORE_TARGET} 能源，达标后发放 ${FIRST_PLANE_CONSTRUCTION_SUBSIDY} 能源建设补给。`;
+            return `靠近金色标记的能源矿脉并攻击；只有实际进入仓库的能源才计数。当前 ${current}/${FIRST_PLANE_ORE_TARGET} 能源，达标后发放 ${FIRST_PLANE_CONSTRUCTION_SUBSIDY} 能源建设补给。`;
         }
         if (stage === 'build_house') {
             return '按 B 建造“房屋”。首座房屋免费，并立即带来 1 名居民；没有居民，风车和研究所都不会运转。';
@@ -270,7 +270,7 @@ export const FirstPlaneSettlementTutorial = {
                 : '按 B 建造“麦田风车”（1500 能源）；建成后还要点击建筑并安排至少 1 名农夫。';
         }
         if (stage === 'build_research_institute') {
-            return '按 B 建造“研究所”（3000 能源）。按教学顺序获得的初始物资、300 矿与建设补给刚好覆盖风车和研究所；若已把能源用于其他建筑，则需继续采矿。';
+            return '按 B 建造“研究所”（3000 能源）。能源不足时，继续攻击金色标记的矿脉并等待能源实际入库。';
         }
         if (stage === 'start_research') {
             const institute = liveBuilding(BUILDING_IDS.RESEARCH_INSTITUTE);
@@ -287,8 +287,8 @@ export const FirstPlaneSettlementTutorial = {
             const node = TechnologySystem.getNode(activeId);
             const progress = node ? Math.floor(TechnologySystem.getProgress(node.id)) : 0;
             return node
-                ? `正在研究“${node.name}”：${progress}/${node.researchCost}。保持研究员在岗，产出首批科研进度后即可完成新手主线。`
-                : '保持研究所有研究员在岗；按 Y 重新选择任意可研究科技，产出首批科研进度后结束新手主线。';
+                ? `正在研究“${node.name}”：${progress}/${node.researchCost}。保持研究员在岗；研究进度开始增长后，即可完成新手引导。`
+                : '保持研究所有研究员在岗；按 Y 重新选择任意可研究科技，让研究进度开始增长。';
         }
         return '';
     },
@@ -321,27 +321,27 @@ export const FirstPlaneSettlementTutorial = {
         const models = {
             build_warehouse: {
                 step: 1, title: '建立物资仓库', targetId: liveBuilding(BUILDING_IDS.CITY_HALL)?.id,
-                targetLabel: '建筑菜单 · 仓库', domTargetSelector: '.build-panel.active .we-thumb[data-id="warehouse"]',
+                targetLabel: '按 B · 建筑菜单 · 仓库', domTargetSelector: '.build-panel.active .we-thumb[data-id="warehouse"]',
             },
             gather_ore: {
-                step: 2, title: '采集能源矿石', targetId: ore?.id,
+                step: 2, title: '采集 300 能源', targetId: ore?.id,
                 directionTargetId: ore?.id,
                 targetLabel: `能源矿脉 · ${FIRST_PLANE_ORE_TARGET} 能源`,
             },
             build_house: {
-                step: 3, title: '安置首批居民', targetId: liveBuilding(BUILDING_IDS.WAREHOUSE)?.id,
-                targetLabel: '建筑菜单 · 房屋', domTargetSelector: '.build-panel.active .we-thumb[data-id="house"]',
+                step: 3, title: '安置首批居民', targetId: null,
+                targetLabel: '按 B · 建筑菜单 · 房屋', domTargetSelector: '.build-panel.active .we-thumb[data-id="house"]',
             },
             operate_windmill: {
                 step: 4, title: windmill ? '安排风车农夫' : '建造麦田风车', targetId: windmill?.id,
-                targetLabel: windmill ? '麦田风车 · 岗位区' : '建筑菜单 · 麦田风车',
+                targetLabel: windmill ? '麦田风车 · 岗位区' : '按 B · 建筑菜单 · 麦田风车',
                 domTargetSelector: windmill
                     ? '#producerBuildingPanel [data-worker-delta="1"]'
                     : '.build-panel.active .we-thumb[data-id="wheat_windmill"]',
             },
             build_research_institute: {
-                step: 5, title: '建造研究所', targetId: windmill?.id,
-                targetLabel: '建筑菜单 · 研究所', domTargetSelector: '.build-panel.active .we-thumb[data-id="research_institute"]',
+                step: 5, title: '建造研究所', targetId: null,
+                targetLabel: '按 B · 建筑菜单 · 研究所', domTargetSelector: '.build-panel.active .we-thumb[data-id="research_institute"]',
             },
             start_research: {
                 step: 6,
@@ -357,7 +357,7 @@ export const FirstPlaneSettlementTutorial = {
                         : '#producerBuildingPanel [data-worker-delta="1"]'),
             },
             produce_research: {
-                step: 7, title: '产出首批科研进度', targetId: institute?.id,
+                step: 7, title: '启动科技研究', targetId: institute?.id,
                 targetLabel: TechnologySystem.getNode(TechnologySystem.state?.activeTechId)?.name || '科技树',
                 domTargetSelector: TechnologySystem.state?.activeTechId
                     ? `#technologyTreePanel [data-tech-id="${TechnologySystem.state.activeTechId}"], #technologyTreeBtn`

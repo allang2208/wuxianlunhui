@@ -2529,7 +2529,7 @@ export const DungeonMapSystem = {
             id: 'dungeonTutorialBriefing',
             eyebrow: '新手试炼 // 撤离规则',
             title: '先记住：只有入口能安全撤离',
-            description: '这是一条没有支线的教学路线：基础战斗 → 随机事件 → 首领战 → 奖励房。你现在位于入口；点击“安全撤离”时，背包中原有物品和本次已经取得的物品都会保留。离开入口后，也可以沿原路返回这里再安全撤离。',
+            description: '这是一条没有支线的教学路线：基础战斗 → 事件选择 → 首领战 → 奖励房。你现在位于入口；点击“安全撤离”时，背包中原有物品和本次已经取得的物品都会保留。离开入口后，也可以沿原路返回这里再安全撤离。',
             dangerText: `在其他位置“强制放弃”，或在地牢中死亡，都会清空背包。${this._getBackpackRiskSummary()} 已装备物品不属于背包，不会丢失。`,
             tone: 'danger',
             actions: [{
@@ -2548,29 +2548,29 @@ export const DungeonMapSystem = {
             combat: {
                 step: 1,
                 title: '基础战斗房',
-                description: '进入后先走进战斗区域，房门会关闭并刷新一小波基础敌人。屏幕任务栏会依次指导普通攻击、空格闪避、按住左 Shift 配合 A/D 横向奔跑，以及蓄势后的鼠标左键冲刺攻击；完成动作后提示会自动推进。消灭全部敌人后，出口会重新开启。',
-                dangerText: '清场后仍可沿原路返回入口安全撤离；在这里强制放弃会清空背包。',
+                description: '进入战斗区域后房门会关闭，并刷新一小波基础敌人。屏幕任务栏会逐步引导攻击、闪避、奔跑蓄势和冲刺攻击；消灭全部敌人后出口会重新开启。',
+                dangerText: '清场后可以继续前进，也可以原路返回入口安全撤离。',
                 enterLabel: '进入基础战斗',
             },
             event: {
                 step: 2,
                 title: '事件选择训练',
-                description: '本次教学会固定遇到一场安全事件。先读完描述和每个选项，再选择恢复、祝福或物资奖励；这一步只训练事件阅读与取舍，不会触发受伤或追加战斗。完成事件后才能继续。',
-                dangerText: '正式地牢的随机事件可能带来损失或战斗；本次教学事件不会惩罚你。',
+                description: '本次固定为安全的事件选择训练。先阅读描述与三个选项，再根据当前状态选择恢复、祝福或物资；正式地牢的事件可能带来损失或战斗。',
+                dangerText: '本次选择不会使你受伤，也不会追加战斗。',
                 enterLabel: '进入事件选择训练',
             },
             boss: {
                 step: 3,
-                title: '首领战斗房',
+                title: '首领战',
                 description: '这是路线中的最后一场战斗。首次进入时会自动补满生命、魔法与体力，让你专注学习首领机制；首领会在基础敌人之后出现。击败首领并从出口返回路线图，奖励房才会开放。',
                 dangerText: '补给每次新手试炼只触发一次；战斗开始后仍需注意走位和闪避。',
                 enterLabel: '准备好了，挑战首领',
             },
             reward: {
                 step: 4,
-                title: '奖励房间',
-                description: '这间房没有战斗。进入后领取并确认本次探索奖励，即视为成功通关；随后会解锁位面大地图，并引导你返回主神空间继续首城故事线。',
-                dangerText: '先完成奖励结算再离开；在这里强制放弃仍会按失败处理并清空背包。',
+                title: '奖励房',
+                description: '这间房没有战斗。领取并确认本次探索奖励后，即视为成功通关；随后会解锁位面大地图，并引导你返回主神空间继续首城故事线。',
+                dangerText: '领取并确认奖励后再离开，本次新手试炼才算完成。',
                 enterLabel: '进入奖励房并结算',
             },
         };
@@ -2720,7 +2720,11 @@ export const DungeonMapSystem = {
             text = `[首领] Boss ≈ +${bossEst} EXP`;
             if (streak >= 2) text += `（连战 x${streak + 1} ×${mul.toFixed(2)}）`;
         } else if (node.type === 'event') {
-            text = node.eventType === 'treasureChest' ? '[宝箱] 金币/材料' : '[事件] 随机事件';
+            text = node.eventType === 'treasureChest'
+                ? '[宝箱] 金币/材料'
+                : (this._tutorialRouteActive && node?.tutorialStep === 2
+                    ? '[事件] 选择训练'
+                    : '[事件] 随机事件');
             if (streak >= 3) text += '（选择将中断连战）';
         } else if (node.type === 'reward') {
             text = '[奖励] 战利品节点';

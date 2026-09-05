@@ -131,7 +131,7 @@ export const FirstExpeditionTutorial = {
         if (stage === 'receive_key') {
             return backpackFull()
                 ? '使用 WASD 移动到小鼠大王附近，再用鼠标左键点击他进行交互。背包已满，请先腾出至少 1 个格子。'
-                : '使用 WASD 移动到小鼠大王附近，再用鼠标左键点击他进行交互；确认领取后，F 级新手钥匙会直接放入背包。';
+                : '使用 WASD 移动到小鼠大王附近，再用鼠标左键点击他进行交互；确认领取后，F 级钥匙会直接放入背包。';
         }
         if (stage === 'replace_key') {
             return backpackFull()
@@ -145,7 +145,7 @@ export const FirstExpeditionTutorial = {
         }
         if (stage === 'complete_dungeon') {
             return dungeonRunActive()
-                ? '当前正在执行首次探索：按基础战斗→随机事件→首领战→奖励房的单线顺序完成新手试炼。'
+                ? '当前正在执行首次探索：按基础战斗→事件选择→首领战→奖励房的单线顺序完成新手试炼。'
                 : '在祭坛选择“废弃矿洞·初级”进入固定新手试炼；成功领取奖励后才会解锁大地图。';
         }
         if (stage === 'claim_founding') {
@@ -167,9 +167,10 @@ export const FirstExpeditionTutorial = {
             if (combatGuide) return combatGuide;
         }
         const foundingStatus = WorldProgressionSystem.getFoundingState()?.status;
+        const replacementStep = completed(OBJECTIVES.ALTAR) ? 3 : 2;
         const models = {
             receive_key: { step: 1, title: '学习移动与交互', targetId: 'npc_mouse_king', targetLabel: '小鼠大王 · 鼠标左键' },
-            replace_key: { step: 3, title: '补领 F 级钥匙', targetId: 'npc_mouse_king', targetLabel: '小鼠大王' },
+            replace_key: { step: replacementStep, title: '补领 F 级钥匙', targetId: 'npc_mouse_king', targetLabel: '小鼠大王' },
             open_altar: { step: 2, title: '前往中央祭坛', targetId: 'npc_altar', targetLabel: '中央祭坛' },
             complete_dungeon: { step: 3, title: '完成首次探索', targetId: dungeonRunActive() ? null : 'npc_altar', targetLabel: '废弃矿洞·初级' },
             claim_founding: foundingStatus === 'selecting'

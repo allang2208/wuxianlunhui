@@ -442,7 +442,6 @@ function cloneProducerRuntimeConfig(cfg) {
         abilities: Object.fromEntries(
             Object.entries(cfg.abilities || {}).map(([key, ability]) => [key, { ...ability }])
         ),
-        destinations: (cfg.destinations || []).map((destination) => ({ ...destination })),
     };
 }
 

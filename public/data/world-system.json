@@ -2,7 +2,7 @@
   "version": 5,
   "storyGeneration": {
     "initialInstance": {
-      "enabled": true,
+      "enabled": false,
       "strategicCellId": "story:initial-plane",
       "templateIds": ["desert", "snowfield", "forest", "ruins"]
     }
@@ -82,11 +82,12 @@
   "worlds": {
     "scene8": {
       "templateId": "desert",
-      "templatePreviewOnly": true,
+      "templatePreviewOnly": false,
       "name": "世界-122-沙漠",
       "icon": "🏜️",
       "description": "荒漠防线",
       "constructionEnabled": true,
+      "firstFoundingCandidate": true,
       "requirements": { "completedDungeons": ["abandonedMineBeginner"] },
       "portalSpawn": { "x": 4200, "y": 4096 },
       "featureBuilding": { "cfgKey": "desert_mansion", "offsetX": -330, "offsetY": 180 },

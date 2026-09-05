@@ -554,6 +554,17 @@ export const WorldProgressionSystem = {
     },
 
     /**
+     * 正式世界目录只展示玩家已经发现或真正建立过的位面。
+     * 配置模板与交互开发工具直连现场不能凭“存在配置”进入玩家航图。
+     */
+    isWorldPlayerVisible(worldId) {
+        const cfg = this.getWorldConfig(worldId);
+        if (!cfg || this.isDevWorldUnlocked(worldId)) return false;
+        const portal = portalState(worldId);
+        return portal.everConstructed || !!this.getWorldMapDiscovery(worldId);
+    },
+
+    /**
      * 当前战略地图模块尚未落地主调用点时，为新局/旧档提供一个可游玩的正式位面。
      * 后续战略格事件创建任意正式实例后，本入口自动停止补位。
      */
@@ -704,6 +715,7 @@ export const WorldProgressionSystem = {
         const skipAuthorized = state.founding.skipAuthorized === true;
         return this.getConstructableWorlds({ tutorialSkipQualification: skipAuthorized })
             .filter((entry) => entry.firstConstruction
+                && entry.firstFoundingCandidate === true
                 && !this.isDevWorldUnlocked(entry.sceneId)
                 && (requirementsMet(entry.sceneId)
                     || (skipAuthorized && requirementsMetForTutorialSkip(entry.sceneId))))
