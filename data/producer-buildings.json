@@ -1,5 +1,112 @@
 {
   "_comment": "产兵建筑配置表：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。普通出兵建筑不配置 unitCap，只受房屋容量派生的全局军事人口限制；带 featureWorldId 的位面特色出兵建筑同时保留建筑/兵种 unitCap。升级项目统一由 building-upgrades.json 维护，建筑通过 upgradeProject 关联；每栋出兵建筑常显一组升级卡，通用模块同步应用其全部 unitTypes，特殊模块用 unitKinds 限定；recruitmentTiers 描述三级兵种槽位与占位状态，只有整级单位全部落地且科技解锁后才替换招募；supplementalUnitUnlocks 允许已完成独立科技的单个兵种在整级换代前作为补充选项出现；出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
+  "expedition_camp": {
+    "id": "expedition_camp",
+    "name": "指挥所",
+    "cost": 800,
+    "currency": "energy",
+    "hp": 2300,
+    "radius": 256,
+    "footprintCells": 4,
+    "def": 55,
+    "mdef": 45,
+    "tex": "command_post",
+    "assetPath": "assets/terrain/command_post.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/command_post.png",
+    "displayW": 516.73526,
+    "displayH": 352.52459,
+    "footOffsetY": 173.864169,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.630102041,
+      "widthRatio": 0.990836197,
+      "depthRatio": 0.726190476,
+      "scaleMode": "strict"
+    },
+    "perimeterTile": "none",
+    "sellRefundRatio": 0.5,
+    "allowedSceneIds": [
+      "scene8",
+      "scene9",
+      "scene10",
+      "scene11",
+      "scene12"
+    ],
+    "buildLimit": 1,
+    "spawnEnabled": false,
+    "panelMode": "detail",
+    "strategicExpedition": true,
+    "unitTypes": [],
+    "modules": {},
+    "panelDescription": "选择当前位面的部队与队友，确认后打包为大地图亲征军团，未选单位留守。指挥所→司令部→国防部由全局科技升级；当前各级均维持一支亲征军团和原有编组容量，不直接招募单位。",
+    "assetCutoutHash": "63EF106252022B89C36ADE65A908A429B65FD9C6C269AA8B5A8926DC047E822E",
+    "buildingTiers": [
+      {
+        "id": "command_post_level_1",
+        "level": 1,
+        "name": "指挥所",
+        "baseline": true,
+        "visual": {
+          "tex": "command_post",
+          "assetPath": "assets/terrain/command_post.png",
+          "thumbnailPath": "assets/ui/building-thumbnails/command_post.png",
+          "displayW": 516.73526,
+          "displayH": 352.52459,
+          "footOffsetY": 173.864169,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.630102041,
+            "widthRatio": 0.990836197,
+            "depthRatio": 0.726190476,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "63EF106252022B89C36ADE65A908A429B65FD9C6C269AA8B5A8926DC047E822E"
+        }
+      },
+      {
+        "id": "command_post_level_2",
+        "level": 2,
+        "name": "司令部",
+        "visual": {
+          "tex": "military_headquarters",
+          "assetPath": "assets/terrain/military_headquarters.png",
+          "thumbnailPath": "assets/ui/building-thumbnails/military_headquarters.png",
+          "displayW": 517.905421,
+          "displayH": 412.542529,
+          "footOffsetY": 203.917241,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.684022825,
+            "widthRatio": 0.988597491,
+            "depthRatio": 0.620542083,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "02F666CE75DEA9278E7C0FA97E4EC0FD19A77B555A6920F67C1AA9865E7EE062"
+        }
+      },
+      {
+        "id": "command_post_level_3",
+        "level": 3,
+        "name": "国防部",
+        "visual": {
+          "tex": "defense_ministry",
+          "assetPath": "assets/terrain/defense_ministry.png",
+          "thumbnailPath": "assets/ui/building-thumbnails/defense_ministry.png",
+          "displayW": 516.724337,
+          "displayH": 438.857143,
+          "footOffsetY": 217.687075,
+          "visualFootprint": {
+            "centerXRatio": 0.5,
+            "centerYRatio": 0.704365079,
+            "widthRatio": 0.990857143,
+            "depthRatio": 0.583333333,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "C15B4F0D57C76D61B06F945512C45C644C23F7682AB5575912D92715F2642CE7"
+        }
+      }
+    ]
+  },
   "wall_tower": {
     "id": "wall_tower",
     "name": "沙砌城墙塔",
