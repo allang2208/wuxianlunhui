@@ -23,6 +23,13 @@ export function getFoodProductionWeatherEffect(sceneId = null, gameTimeMs = null
     const rainState = resolvedSceneId
         ? WorldWeatherSystem.getVisualState(resolvedSceneId, gameTimeMs ?? undefined)
         : { active: false, intensityId: null };
+    const droughtActive = !rainState?.active && !!resolvedSceneId
+        && World122DroughtSystem.isActive(resolvedSceneId, gameTimeMs);
+    return resolveFoodProductionWeatherEffect(resolvedSceneId, { rainState, droughtActive });
+}
+
+/** 纯解析入口，后台天气边界结算不通过查询反向推进天气排期。 */
+export function resolveFoodProductionWeatherEffect(sceneId, { rainState, droughtActive = false }) {
     if (rainState?.active) {
         const intensityId = rainState.intensityId;
         return {
@@ -36,11 +43,11 @@ export function getFoodProductionWeatherEffect(sceneId = null, gameTimeMs = null
             droughtActive: false,
         };
     }
-    const droughtActive = !!resolvedSceneId
-        && World122DroughtSystem.isActive(resolvedSceneId, gameTimeMs);
+    const configuredDroughtMultiplier = Number(GAME_CONFIG.scenes?.[sceneId]
+        ?.environmentEffects?.drought?.foodProductionMultiplier);
     return {
         multiplier: droughtActive
-            ? World122DroughtSystem.getFoodProductionMultiplier(resolvedSceneId, gameTimeMs)
+            ? (Number.isFinite(configuredDroughtMultiplier) ? Math.max(0, configuredDroughtMultiplier) : 0.5)
             : 1,
         label: droughtActive ? '干旱' : '正常天气',
         weatherId: droughtActive ? 'drought' : null,
