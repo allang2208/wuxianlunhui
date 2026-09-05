@@ -600,8 +600,13 @@ class Combatant extends DamageableEntity {
                 max: Number(rawDamage.max ?? rawDamage.min ?? 1) * overdriveShot.damageMultiplier,
             }
             : Number(rawDamage) * overdriveShot.damageMultiplier;
-        const speed = (attack.config.projectileSpeed || 1248) * overdriveShot.projectileSpeedMultiplier;
-        const range = attack.config.projectileRange || 800;
+        const baseProjectileSpeed = Number.isFinite(config.projectileSpeedOverride)
+            ? Math.max(1, Number(config.projectileSpeedOverride))
+            : (attack.config.projectileSpeed || 1248);
+        const speed = baseProjectileSpeed * overdriveShot.projectileSpeedMultiplier;
+        const range = Number.isFinite(config.maxRangeOverride)
+            ? Math.max(1, Number(config.maxRangeOverride))
+            : (attack.config.projectileRange || 800);
         const size = attack.config.projectileSize || 4;
 
         // 计算发射方向（敌人对移动目标使用预判瞄准；玩家仍按鼠标/输入瞄准）
@@ -656,17 +661,19 @@ class Combatant extends DamageableEntity {
             wallContext: config.wallContext || null,
             speed, maxRange: range, size,
             damage, piercing,
-            source: this, entities,
+            source: this, effectWeapon: config.effectWeapon || item, entities,
             image: projectileImage,
             isTracer: isEnemy,
-            isGold: isMachineGun(weaponType),
-            isDarkGold: weaponType === 'deagle',
+            isGold: config.isGold ?? isMachineGun(weaponType),
+            isDarkGold: config.isDarkGold === true || weaponType === 'deagle',
+            isGreen: config.isGreen === true,
             isPurple: config.isPurple === true,
             isCrimson: config.isCrimson === true || overdriveShot.overheated,
             isCyan: config.isCyan === true,
-            damageType: 'physical',
-            // 命中击退（attack.config.knockback 驱动，如时空特工 25px）
-            knockback: attack.config.knockback || 0,
+            damageType: config.damageType || 'physical',
+            // 默认由 attack.config.knockback 驱动；单次机制弹可显式覆盖。
+            knockback: config.knockbackOverride ?? attack.config.knockback ?? 0,
+            damageFalloff: config.damageFalloff || null,
             onFirstHit: config.onFirstHit || null,
             hitContext: (item.overdriveHeatParams || config.hitContext)
                 ? {
