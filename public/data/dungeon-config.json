@@ -1205,13 +1205,21 @@
     "glacierbackWarOx",
     "abyssCrystalRavager",
     "frostboundCenturion",
-    "polarNightHighPriest"
+    "polarNightHighPriest",
+    "snowSepulcherCarrier",
+    "auroraFateWeaver",
+    "whiteSilenceBellHart"
    ],
    "matchPoolRanks": true,
    "monsterComposition": {
     "elite": 1,
     "normal": 4
-   }
+   },
+   "waveComposition": [
+    { "normal": 5 },
+    { "elite": 1, "normal": 4 },
+    { "lord": 1, "normal": 4 }
+   ]
   },
   "nodeDisplay": {
    "unrevealedIcon": "?",

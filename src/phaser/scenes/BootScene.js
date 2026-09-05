@@ -813,6 +813,34 @@ export class BootScene extends Scene {
                 });
             }
         }
+
+        // 雪原终局三领主：每个动作保持独立帧宽、脚点与正式帧数，禁止按最大列数补空帧。
+        const frozenLordTextureRegistrations = [
+            ['snowSepulcherCarrier', 'snow_sepulcher_carrier', [
+                'advance', 'trample_body', 'plow_prepare', 'tower_drop_body',
+            ]],
+            ['auroraFateWeaver', 'aurora_fate_weaver', [
+                'seek_band', 'cut_body', 'triangle_weave_body', 'oldstep_body', 'tether_body', 'reweave_body',
+            ]],
+            ['whiteSilenceBellHart', 'white_silence_bell_hart', [
+                'stride', 'antler_body', 'double_toll_body', 'hoof_sequence_body', 'long_tone_body', 'rhythm_shift_body',
+            ]],
+        ];
+        for (const [configKey, texturePrefix, states] of frozenLordTextureRegistrations) {
+            const textures = enemyConfigData[configKey]?.textures || {};
+            const layouts = textures.frameLayouts || {};
+            for (const state of states) {
+                const layout = layouts[state] || {};
+                const path = textures[state];
+                if (!path) continue;
+                this.load.spritesheet(`enemy_${texturePrefix}_${state}`, path, {
+                    frameWidth: layout.frameWidth || 256,
+                    frameHeight: layout.frameHeight || 256,
+                    endFrame: layout.endFrame ?? Math.max(0, (layout.frameCount || 1) - 1),
+                });
+            }
+        }
+
         // 邪恶树精四动作母版：walking 同时承担逻辑 walk/run，死亡终帧为木材碎片堆。
         const evilTreantTextures = enemyConfigData.evilTreant?.textures || {};
         const evilTreantLayouts = evilTreantTextures.frameLayouts || {};
@@ -1920,6 +1948,38 @@ export class BootScene extends Scene {
                 this.anims.create(animation);
             }
         }
+
+        // 雪原终局三领主动画：实体以同一时钟手动取帧，Phaser 注册仍保留给资源审计与其他消费者。
+        const frozenLordAnimationRegistrations = [
+            ['snowSepulcherCarrier', 'snow_sepulcher_carrier', [
+                'advance', 'trample_body', 'plow_prepare', 'tower_drop_body',
+            ]],
+            ['auroraFateWeaver', 'aurora_fate_weaver', [
+                'seek_band', 'cut_body', 'triangle_weave_body', 'oldstep_body', 'tether_body', 'reweave_body',
+            ]],
+            ['whiteSilenceBellHart', 'white_silence_bell_hart', [
+                'stride', 'antler_body', 'double_toll_body', 'hoof_sequence_body', 'long_tone_body', 'rhythm_shift_body',
+            ]],
+        ];
+        for (const [configKey, texturePrefix, states] of frozenLordAnimationRegistrations) {
+            const layouts = enemyConfigData[configKey]?.textures?.frameLayouts || {};
+            for (const state of states) {
+                const layout = layouts[state] || {};
+                const frameCount = layout.frameCount || 1;
+                const animation = {
+                    key: `enemy_${texturePrefix}_${state}_v1`,
+                    frames: this.anims.generateFrameNumbers(`enemy_${texturePrefix}_${state}`, {
+                        start: 0,
+                        end: layout.endFrame ?? frameCount - 1,
+                    }),
+                    repeat: layout.repeat ?? -1,
+                };
+                if (layout.duration) animation.duration = layout.duration;
+                else animation.frameRate = layout.frameRate || 24;
+                this.anims.create(animation);
+            }
+        }
+
         // 狼人王动画：待机/奔跑循环，攻击、飞扑、嚎叫与死亡均播放一次。
         const werewolfKingLayouts = enemyConfigData.werewolfKing?.textures?.frameLayouts || {};
         for (const state of ['idle', 'running', 'attack', 'pounce', 'howl', 'dying']) {

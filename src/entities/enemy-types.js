@@ -72,6 +72,11 @@ export { CoreDrillLarva, OreShardling } from './enemy-types/mine-small-monsters.
 import { BrokenCableGaoler } from './enemy-types/broken-cable-gaoler.js';
 import { BlackLungLampKeeper } from './enemy-types/black-lung-lamp-keeper.js';
 import { SealedShaftRockWraith } from './enemy-types/sealed-shaft-rock-wraith.js';
+import {
+    SnowSepulcherCarrier,
+    AuroraFateWeaver,
+    WhiteSilenceBellHart,
+} from './enemy-types/snowfield-lords.js';
 export { CoffinWard } from './enemy-types/coffin-ward.js';
 export { ShroudThrall } from './enemy-types/shroud-thrall.js';
 export { OssuaryCaster } from './enemy-types/ossuary-caster.js';
@@ -6645,4 +6650,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, PolarNightCantorEnemy, IceCrownLynxEnemy, GlacierbackWarOxEnemy, AbyssCrystalRavagerEnemy, FrostboundCenturionEnemy, PolarNightHighPriestEnemy, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, SmallRotbogRhinocerosBeetleEnemy, createSmallRotbogRhinocerosBeetle, ReedShadowSickleMantisEnemy, createReedShadowSickleMantis, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, RotbogRhinocerosBeetleKingEnemy, createRotbogRhinocerosBeetleKing, RotTideToadAncestorEnemy, createRotTideToadAncestor, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, BrokenCableGaoler, BlackLungLampKeeper, SealedShaftRockWraith, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, PolarNightCantorEnemy, IceCrownLynxEnemy, GlacierbackWarOxEnemy, AbyssCrystalRavagerEnemy, FrostboundCenturionEnemy, PolarNightHighPriestEnemy, SnowSepulcherCarrier, AuroraFateWeaver, WhiteSilenceBellHart, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, SmallRotbogRhinocerosBeetleEnemy, createSmallRotbogRhinocerosBeetle, ReedShadowSickleMantisEnemy, createReedShadowSickleMantis, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, RotbogRhinocerosBeetleKingEnemy, createRotbogRhinocerosBeetleKing, RotTideToadAncestorEnemy, createRotTideToadAncestor, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, BrokenCableGaoler, BlackLungLampKeeper, SealedShaftRockWraith, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
