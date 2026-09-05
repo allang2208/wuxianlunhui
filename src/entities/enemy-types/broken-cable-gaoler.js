@@ -1,3 +1,6 @@
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { hasAttackLineOfSight } from '../../combat/melee-reach.js';
+import { canStartGroundSkill } from './_shared/attack-shapes.js';
 import { startCorpseTimeline, updateCorpseTimeline } from './_shared/corpse-timeline.js';
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
@@ -8,7 +11,6 @@ import { distanceToEntityShape } from '../../utils/collision-helpers.js';
 import { GroundDirectedRect, GroundEllipse, GroundSector } from '../../physics/skill-shapes.js';
 import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { WallSystem } from '../../world/wall-system.js';
 
 /**
  * 断索狱监（废弃矿洞专属领主）
@@ -38,6 +40,7 @@ export class BrokenCableGaoler extends Enemy {
         this._actionSnapshot = null;
         this._actionHitDone = false;
         this._actionReturnDone = false;
+        this._heldActionFrame = null;
         this._hookedTarget = null;
         this._lastEntities = null;
         this._cooldowns = {
@@ -50,6 +53,7 @@ export class BrokenCableGaoler extends Enemy {
         this._corpseTimer = 0;
         this._fadeTimer = 0;
         this._syncApproachProfile();
+        this._syncVisualMetrics();
     }
 
     _skill(key) {
@@ -70,7 +74,11 @@ export class BrokenCableGaoler extends Enemy {
     _syncApproachProfile() {
         const sweep = this._skill('chainSweep');
         const hook = this._skill('hookWinch');
-        const hookReady = (this._cooldowns?.hookWinch || 0) <= 0;
+        const distance = this.target
+            ? distanceToEntityShape(this.target, this.collider?.x ?? this.x, this.collider?.y ?? this.y)
+            : Infinity;
+        const hookReady = (this._cooldowns?.hookWinch || 0) <= 0
+            && distance >= (Number(hook.minTriggerRange) || 240);
         const reach = hookReady
             ? (Number(hook.triggerRange) || 850)
             : (Number(sweep.approachReach) || 280);
@@ -89,20 +97,8 @@ export class BrokenCableGaoler extends Enemy {
         attack.config.range = reach;
         attack.config.dynamicRange = reach;
         attack.range = reach;
-        attack.maxCooldown = Number(sweep.cooldown) || 5200;
+        attack.maxCooldown = Number(sweep.cooldown) || 3200;
         attack.baseMaxCooldown = attack.maxCooldown;
-    }
-
-    updateWhilePetrified(dt) {
-        if (this._action) this._finishAction();
-        if (this._pendingThrust?.active) this._pendingThrust.active = false;
-        this._clearAttackTelegraph?.();
-        super.updateWhilePetrified(dt);
-    }
-
-    _onCombatActionInterruptedByControl() {
-        if (this._action) this._finishAction();
-        super._onCombatActionInterruptedByControl();
     }
 
     update(dt, entities) {
@@ -112,7 +108,8 @@ export class BrokenCableGaoler extends Enemy {
         }
 
         super.update(dt, entities);
-        if (!this.active) return;
+        // 基类状态/DOT可能同步致死，不能再用待机覆盖刚开始的死亡动画。
+        if (!this.active || this._isDead) return;
         this._lastEntities = entities;
         const delta = Math.max(0, Number(dt) || 0);
         const cooldownDt = typeof this.getAttackIntervalDelta === 'function'
@@ -132,44 +129,40 @@ export class BrokenCableGaoler extends Enemy {
             return;
         }
 
+        if (this._heldActionFrame !== null) this._setVisualState('idle');
+
         this._frozenForCast = false;
         this._attackAnimTimer = 0;
         this._syncApproachProfile();
         const speed = Math.hypot(this.vx, this.vy);
         const next = speed > (this.maxSpeed || this.speed || 135) * 0.05 ? 'walking' : 'idle';
-        this._animStateTimer += delta;
+        if (!this.hasStatusEffect?.('frozen')) this._animStateTimer += delta;
         if (next !== this._animState && this._animStateTimer >= 80) {
-            this._animState = next;
-            this._animStateTimer = 0;
+            this._setVisualState(next);
         }
         if (speed > 0.1) this.rotation = Math.atan2(this.vy, this.vx);
+        // 行走逐帧腰胯锚点和贴图必须使用同一时钟，且早于场景的位置同步。
+        this._syncVisualMetrics();
+    }
+
+    _selectAttackAction(target) {
+        if (this._action || this.isCombatActionBlocked() || !this._isValidTarget(target)
+            || !canMeleeShareSurface(this, target)) return null;
+        const distance = distanceToEntityShape(target, this.collider?.x ?? this.x, this.collider?.y ?? this.y);
+        const cage = this._skill('cageSlam'), hook = this._skill('hookWinch'), sweep = this._skill('chainSweep');
+        if (this._cooldowns.cageSlam <= 0 && distance <= (cage.triggerRange || 190)
+            && canStartGroundSkill(this, target, { kind: 'ellipse', radiusX: cage.radiusX || 190, radiusY: cage.radiusY || 105, forwardOffset: cage.forwardOffset || 135 })) return 'cageSlam';
+        if (this._cooldowns.hookWinch <= 0 && distance >= (hook.minTriggerRange || 240)
+            && canStartGroundSkill(this, target, { range: Math.min(hook.triggerRange || 850, hook.range || 850), width: hook.width || 110 })) return 'hookWinch';
+        if (canStartGroundSkill(this, target, { kind: 'sector', range: Math.min(sweep.approachReach || 280, sweep.range || 280), arcDegrees: sweep.arcDegrees || 210 })) return 'chainSweep';
+        return null;
     }
 
     triggerWeaponAnim() {
-        if (this._action || !this.active) return false;
         const pending = this._pendingThrust?.active ? this._pendingThrust : null;
         const target = pending?.primaryTarget || this.target;
-        if (!this._isValidTarget(target)) return false;
-        // ThrustAttack 只借用起手/冷却调度；三种专属动作各自拥有唯一命中源。
+        const action = this._selectAttackAction(target);
         if (pending) pending.active = false;
-
-        const originX = this.collider?.x ?? this.x;
-        const originY = this.collider?.y ?? this.y;
-        const distance = distanceToEntityShape(target, originX, originY);
-        const cage = this._skill('cageSlam');
-        const hook = this._skill('hookWinch');
-        const sweep = this._skill('chainSweep');
-        let action = null;
-        if (this._cooldowns.cageSlam <= 0
-            && distance <= (Number(cage.triggerRange) || 190)) {
-            action = 'cageSlam';
-        } else if (this._cooldowns.hookWinch <= 0
-            && distance >= (Number(hook.minTriggerRange) || 240)
-            && distance <= (Number(hook.triggerRange) || 850)) {
-            action = 'hookWinch';
-        } else if (distance <= (Number(sweep.approachReach) || 280)) {
-            action = 'chainSweep';
-        }
         if (!action) return false;
         return this._startAction(action, target);
     }
@@ -184,7 +177,8 @@ export class BrokenCableGaoler extends Enemy {
         const dy = targetY - sourceY;
         const worldAngle = Math.atan2(dy, dx);
         const groundAngle = Math.atan2(dy / PERSPECTIVE_SCALE_Y, dx);
-        const duration = Math.max(1, Number(cfg.duration) || 4583);
+        const duration = Math.max(1, Number(cfg.duration ?? this.config?.textures?.frameLayouts?.[action]?.duration)
+            || enemyConfigData.brokenCableGaoler.attackSkills[action].duration);
 
         this._action = action;
         this._actionCfg = cfg;
@@ -195,8 +189,7 @@ export class BrokenCableGaoler extends Enemy {
         this._actionHitDone = false;
         this._actionReturnDone = false;
         this._hookedTarget = null;
-        this._animState = action;
-        this._animStateTimer = 0;
+        this._setVisualState(action);
         this._frozenForCast = true;
         this._attackAnimTimer = duration;
         this.rotation = worldAngle;
@@ -213,6 +206,7 @@ export class BrokenCableGaoler extends Enemy {
     }
 
     _updateAction(dt) {
+        const action = this._action;
         const previous = this._actionTimer;
         this._actionTimer = Math.max(0, previous - dt);
         this._attackAnimTimer = this._actionTimer;
@@ -221,10 +215,11 @@ export class BrokenCableGaoler extends Enemy {
         this.vy = 0;
         this.isMoving = false;
         if (this._actionSnapshot) this.rotation = this._actionSnapshot.worldAngle;
+        this._syncVisualMetrics();
 
         const elapsedBefore = this._actionDuration - previous;
         const elapsedAfter = this._actionDuration - this._actionTimer;
-        const frameCount = Math.max(1, Number(this._actionCfg?.frames) || 55);
+        const frameCount = Math.max(1, Number(this._layout(action).frameCount) || Number(this._actionCfg?.frames) || 55);
         const frameMs = this._actionDuration / frameCount;
         const hitFrame = Number(
             this._actionCfg?.contactFrame
@@ -236,6 +231,7 @@ export class BrokenCableGaoler extends Enemy {
         if (!this._actionHitDone && elapsedBefore < hitMs && elapsedAfter >= hitMs) {
             this._actionHitDone = true;
             this._resolveActionHit();
+            if (!this.active || this._action !== action) return;
         }
 
         if (this._action === 'hookWinch') {
@@ -290,8 +286,8 @@ export class BrokenCableGaoler extends Enemy {
             isMelee: true,
             confirmedHitContext: { skillId: 'brokenCableHookWinch' },
         });
-        const parried = target.shieldSystem && target.shieldSystem._lastParried;
-        if (!result.hit || parried) return;
+        const parried = result.parried;
+        if (!result.hit || parried || !this.active || this._action !== 'hookWinch') return;
         this._hookedTarget = target;
         if (Number(cfg.bindMs) > 0 && typeof target.addStatusEffect === 'function') {
             target.addStatusEffect('bind', Number(cfg.bindMs));
@@ -301,7 +297,7 @@ export class BrokenCableGaoler extends Enemy {
     _resolveHookReturn() {
         const target = this._hookedTarget;
         const cfg = this._actionCfg || {};
-        if (!this._isValidTarget(target)) return;
+        if (this.isCombatActionBlocked() || !this._isValidTarget(target) || !canMeleeShareSurface(this, target)) return;
         const tx = target.collider?.x ?? target.x;
         const ty = target.collider?.y ?? target.y;
         const sourceX = this.collider?.x ?? this.x;
@@ -337,7 +333,11 @@ export class BrokenCableGaoler extends Enemy {
     }
 
     _damageTargetsInShape(shape, cfg, skillId, originX, originY, afterHit = null) {
+        const action = this._action;
+        const actionSnapshot = this._actionSnapshot;
         for (const target of this._collectTargets()) {
+            if (this.isCombatActionBlocked() || this._actionSnapshot !== actionSnapshot) break;
+            if (!this.active || this._action !== action) return;
             if (!this._isValidTarget(target) || !shape.intersectsEntity(target)) continue;
             if (this._isWallBlocked(target, originX, originY)) continue;
             const tx = target.collider?.x ?? target.x;
@@ -351,8 +351,10 @@ export class BrokenCableGaoler extends Enemy {
                 isMelee: true,
                 confirmedHitContext: { skillId },
             });
-            if (!result.hit) continue;
-            const parried = target.shieldSystem && target.shieldSystem._lastParried;
+            if (this.isCombatActionBlocked() || this._actionSnapshot !== actionSnapshot) break;
+            if (!result.hit || !target.active || target._isDead) continue;
+            if (!this.active || this._action !== action) return;
+            const parried = result.parried;
             if (afterHit) afterHit(target, parried);
         }
     }
@@ -381,16 +383,13 @@ export class BrokenCableGaoler extends Enemy {
     }
 
     _isWallBlocked(target, originX, originY) {
-        const tx = target.collider?.x ?? target.x;
-        const ty = target.collider?.y ?? target.y;
-        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
-        if (!WallSystem?.blocked?.(originX, originY, tx, ty, ignore)) return false;
-        return !(target._isDefenseStructure
-            && distanceToEntityShape(target, originX, originY)
-                <= Math.max(1, Number(this._actionCfg?.range) || 280));
+        const snap = this._actionSnapshot;
+        return !hasAttackLineOfSight(this, target, originX, originY)
+            || (snap && !hasAttackLineOfSight(this, target, snap.sourceX, snap.sourceY));
     }
 
-    _finishAction() {
+    _finishAction(preservePose = false) {
+        const heldFrame = preservePose ? this._getActionFrame() : null;
         this._action = null;
         this._actionCfg = null;
         this._actionDuration = 0;
@@ -400,10 +399,25 @@ export class BrokenCableGaoler extends Enemy {
         this._hookedTarget = null;
         this._attackAnimTimer = 0;
         this._frozenForCast = false;
-        this._animState = 'idle';
-        this._animStateTimer = 0;
+        if (preservePose) {
+            this._heldActionFrame = heldFrame;
+            this._syncVisualMetrics();
+        } else {
+            this._setVisualState('idle');
+        }
         this.aiTimer = 0;
         this._syncApproachProfile();
+    }
+
+    _onCombatActionInterruptedByControl() {
+        if (this._action) this._finishAction(!!this.hasStatusEffect?.('petrified'));
+        super._onCombatActionInterruptedByControl();
+    }
+
+    updateWhilePetrified(dt) {
+        // 石化走专用主循环，仍须作废动作；保留当前姿态供黑白定格，解控不补打。
+        if (this._action) this._finishAction(true);
+        super.updateWhilePetrified(dt);
     }
 
     onDeath(source) {
@@ -412,7 +426,7 @@ export class BrokenCableGaoler extends Enemy {
         this.active = false;
         const death = this.config?.death || {};
         startCorpseTimeline(this, { animMs: 3417, holdMs: 1400, fadeMs: 300, ...death });
-        this._animState = 'dying';
+        this._setVisualState('dying');
         if (typeof super.onDeath === 'function') super.onDeath(source);
     }
 
@@ -424,7 +438,38 @@ export class BrokenCableGaoler extends Enemy {
         return `enemy_broken_cable_gaoler_${this._animState}`;
     }
 
-    _getPhaserOptions() {
+    _setVisualState(state) {
+        this._animState = state;
+        this._animStateTimer = 0;
+        this._heldActionFrame = null;
+        // 场景先同步位置再选帧；切动作时立即换脚线，避免读取上一动作的Y偏移。
+        this._syncVisualMetrics();
+    }
+
+    _getActionFrame() {
+        if (!['chainSweep', 'hookWinch', 'cageSlam'].includes(this._animState)) return undefined;
+        if (this._heldActionFrame !== null) return this._heldActionFrame;
+        const count = Math.max(1, Number(this._layout().frameCount) || 1);
+        const duration = Math.max(1, this._actionDuration);
+        const elapsed = Math.max(0, duration - this._actionTimer);
+        return Math.min(count - 1, Math.floor(elapsed / duration * count));
+    }
+
+    _getVisualFrame() {
+        const actionFrame = this._getActionFrame();
+        if (actionFrame !== undefined) return actionFrame;
+        const layout = this._layout();
+        const count = Math.max(1, Number(layout.frameCount) || 1);
+        if (this._animState === 'dying') {
+            const duration = Math.max(1, Number(this.config?.death?.animMs) || 3417);
+            const elapsed = Math.max(0, duration - this._deathAnimTimer);
+            return Math.min(count - 1, Math.floor(elapsed / duration * count));
+        }
+        const frameRate = Math.max(1, Number(layout.frameRate) || 24);
+        return Math.floor(this._animStateTimer * frameRate / 1000) % count;
+    }
+
+    _syncVisualMetrics(frame = this._getVisualFrame()) {
         const render = this.config?.render || {};
         const layout = this._layout();
         const targetBodyHeight = Math.max(1, Number(render.bodyDisplayHeight) || 260);
@@ -432,28 +477,46 @@ export class BrokenCableGaoler extends Enemy {
         const pixelScale = targetBodyHeight / authoredBodyHeight;
         const frameWidth = Math.max(1, Number(layout.frameWidth) || 640);
         const frameHeight = Math.max(1, Number(layout.frameHeight) || 448);
-        const spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
-        const footY = Number.isFinite(Number(layout.footY)) ? Number(layout.footY) : frameHeight;
+        this._visualSpriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
+        this._visualAnchorX = layout.anchorXByFrame?.[frame] ?? layout.anchorX ?? frameWidth / 2;
+        const footY = layout.footYByFrame?.[frame] ?? layout.footY ?? frameHeight;
         this.footOffsetY = (footY - frameHeight / 2) * pixelScale;
+    }
 
+    _syncPetrifiedBodyAnchor(sprite) {
+        // 石化跳过选帧，但场景仍重置显示位置；按真正冻结的帧保留主体锚点。
+        const state = sprite.texture?.key?.replace('enemy_broken_cable_gaoler_', '');
+        const layout = this.config?.textures?.frameLayouts?.[state];
+        const frame = Number(sprite.frame?.name);
+        if (!layout || !Number.isFinite(frame)) return;
+        const scale = Math.abs(sprite.scaleX);
+        const anchorX = layout.anchorXByFrame?.[frame] ?? layout.frameWidth / 2;
+        const footY = layout.footYByFrame?.[frame] ?? layout.footY;
+        sprite.x += (layout.frameWidth / 2 - anchorX) * scale * (sprite.flipX ? -1 : 1);
+        sprite.y += this.footOffsetY - (footY - layout.frameHeight / 2) * scale;
+    }
+
+    _getPhaserOptions() {
+        const render = this.config?.render || {};
+        const frame = this._getVisualFrame();
+        this._syncVisualMetrics(frame);
         let flipX = false;
         if (this._actionSnapshot) flipX = Math.cos(this._actionSnapshot.worldAngle) < 0;
         else if (this.isMoving && Math.abs(this.vx) > 0.1) flipX = this.vx < 0;
         else flipX = Math.cos(this.rotation || 0) < 0;
 
-        const oneShot = this._animState === 'chainSweep'
-            || this._animState === 'hookWinch'
-            || this._animState === 'cageSlam';
-        const animState = this._animState === 'dying'
-            ? 'death'
-            : (oneShot ? 'attack' : (this._animState === 'walking' ? 'walk' : 'idle'));
         return {
-            spriteSize,
+            spriteSize: this._visualSpriteSize,
+            frameAnchorX: this._visualAnchorX,
+            frame,
+            manualFrame: true,
             collisionWidth: Number(render.collisionWidth) || 118,
             collisionHeight: Number(render.collisionHeight) || 230,
             textOffsetY: -(Number(render.collisionHeight) || 230) - 18,
             flipX,
-            animState,
+            // 六动作共用实体时钟：逐帧主体锚点不会与 Phaser 自动播放错开一帧；
+            // 尸体重新入镜时直接恢复死亡末帧，不再重播站立姿态。
+            animState: undefined,
             animKey: `enemy_broken_cable_gaoler_${this._animState}`,
             dynamicSpriteSize: true,
         };
