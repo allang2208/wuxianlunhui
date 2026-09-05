@@ -636,7 +636,8 @@ const TOWER_FIRE_SOUNDS = {
     weapon39: 'assets/sounds/weapons/s686_fire.mp3',
     weapon40: 'assets/sounds/weapons/m870_fire.wav',
     weapon41: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
-    weapon42: 'assets/sounds/weapons/spas12_fire.wav',
+    // Sonniss candidate remains local-only; the public build keeps the existing generic blast.
+    weapon42: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
     weapon43: 'assets/sounds/weapons/gunshot_600ms_open.wav',
     weapon44: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
     weapon45: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
