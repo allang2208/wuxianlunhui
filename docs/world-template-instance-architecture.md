@@ -26,7 +26,7 @@ if (created.ok) {
 
 需要指定模板时改用`createStoryWorldInstance({ templateId, strategicCellId, seed })`。正式API会建立传送门生命周期、首世代生成上下文和基础快照，并随主存档恢复。
 
-`strategicCellId`是剧情提交的幂等键：相同战略格重复调用会返回原实例并标记`reused:true`，不会重复抽取模板或重置已有快照。战略地图模块接入前，新游戏和没有实例的旧存档由`world-system.json.storyGeneration.initialInstance`补建一个随机正式位面；一旦已有任意正式实例，该补位入口自动停止。
+`strategicCellId`是剧情提交的幂等键：相同战略格重复调用会返回原实例并标记`reused:true`，不会重复抽取模板或重置已有快照。首城授予阶段由玩家点击的战略格确定`strategicCellId`与地貌模板，确认后才创建第一个正式实例；`world-system.json.storyGeneration.initialInstance`保持关闭，不再提前补建随机位面。
 
 开发预览由开发工具调用`WorldInstanceSystem.createDevPreviewInstance({ templateId, seed })`后进入。预览实例不序列化，不进入世界面板、后台经济或入侵候选；离开后清理。测试位面中禁止保存，读档会先安全返回主神空间再恢复正式注册表，避免玩家落点、兵线或当前实例ID泄漏进存档。
 
@@ -40,10 +40,10 @@ if (created.ok) {
 | 雪原 | `scene9` | 是 | 是 |
 | 林地 | `scene10` | 是 | 是 |
 | 地牢遗迹 | `scene11` | 是 | 是 |
-| 矿洞 | `scene12` | 否 | 否 |
+| 矿洞 | `scene12` | 是 | 是 |
 
-矿洞已登记模板身份，但当前主线尚无`scene12`加载器；合入对应运行场景后才允许把`storyEnabled`改为`true`。
+五种地貌都只把固定`scene8~scene12`作为加载器和模板预览；正式首城及后续剧情位面使用独立实例ID。
 
 ## 后续接线边界
 
-战略剧情事件应在业务提交成功后创建正式实例并保存返回的`worldId`，UI只消费该ID，不能自行抽取模板。当前初始随机位面只是战略模块落地前的可游玩补位，不替代未来的剧情格事件。沙尘暴、干旱和死寂雾潮目前仍按模板共享时间线，后续应改为持久实例分槽；该项与`scene12`启用记录在`TODO.md`。
+战略剧情事件应在业务提交成功后创建正式实例并保存返回的`worldId`，UI只消费该ID，不能自行抽取模板。首城选址是同一协议的首个正式入口，唯一一次免费授予只旁路建造资格，不伪造地牢与科技进度。沙尘暴、干旱和死寂雾潮目前仍按模板共享时间线，后续应改为持久实例分槽。

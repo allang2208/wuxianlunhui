@@ -667,11 +667,11 @@ export const WorldInvasionSystem = {
             Number(EnvironmentLightingSystem.serializeTime().elapsedMs) || 0);
         const candidates = this._getInvasionCandidates(nowGameTimeMs);
         const candidateIds = new Set(candidates.map((world) => world.sceneId));
-        const worlds = [
+        const worlds = [...new Set([
             ...WorldProgressionSystem.getWorldIds().filter((sceneId) =>
                 !WorldProgressionSystem.getWorldConfig(sceneId)?.templatePreviewOnly),
             ...WorldProgressionSystem.getWorldInstanceIds(),
-        ].map((sceneId) => {
+        ])].map((sceneId) => {
             const worldCfg = WorldProgressionSystem.getWorldConfig(sceneId) || {};
             const portal = WorldProgressionSystem.getPortalState(sceneId);
             const protection = WorldProgressionSystem.getPortalProtection(sceneId, nowGameTimeMs);

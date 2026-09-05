@@ -2,7 +2,7 @@
   "version": 5,
   "storyGeneration": {
     "initialInstance": {
-      "enabled": true,
+      "enabled": false,
       "strategicCellId": "story:initial-plane",
       "templateIds": ["desert", "snowfield", "forest", "ruins"]
     }
@@ -83,6 +83,7 @@
     "scene8": {
       "templateId": "desert",
       "templatePreviewOnly": true,
+      "firstFoundingCandidate": true,
       "name": "世界-122-沙漠",
       "icon": "🏜️",
       "description": "荒漠防线",
@@ -103,6 +104,7 @@
     "scene9": {
       "templateId": "snowfield",
       "templatePreviewOnly": true,
+      "firstFoundingCandidate": true,
       "name": "世界-123·雪原",
       "icon": "❄️",
       "description": "雪原位面",
@@ -124,6 +126,7 @@
     "scene10": {
       "templateId": "forest",
       "templatePreviewOnly": true,
+      "firstFoundingCandidate": true,
       "name": "世界-124·林地",
       "icon": "🌲",
       "description": "林地位面",
@@ -144,6 +147,7 @@
     "scene11": {
       "templateId": "ruins",
       "templatePreviewOnly": true,
+      "firstFoundingCandidate": true,
       "name": "世界-125·地牢遗迹",
       "icon": "🕯️",
       "description": "僵尸地牢位面",
@@ -164,6 +168,7 @@
     "scene12": {
       "templateId": "mine",
       "templatePreviewOnly": true,
+      "firstFoundingCandidate": true,
       "name": "世界-126·废弃矿洞",
       "icon": "⛏️",
       "description": "废弃矿洞位面",

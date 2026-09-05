@@ -257,12 +257,13 @@ function _initialFeatureStructure(spawn, feature) {
 
 function _isGeneratedWorldFeatureStructure(structure, sceneId) {
     const featureCfg = producerBuildingsConfig[structure?.cfgKey];
-    if (!structure || featureCfg?.featureWorldId !== sceneId) return false;
+    const runtimeSceneId = WorldInstanceSystem.resolveRuntimeSceneId(sceneId);
+    if (!structure || featureCfg?.featureWorldId !== runtimeSceneId) return false;
     // 所有首次赠送的位面特色建筑都以 0 成本写入基础快照；玩家后来建造的同类建筑保留原配置。
     if (structure.buildCost != null && Number(structure.buildCost) === 0) return true;
 
     // 兼容未记录造价的旧基础快照：仍可由当前位面配置及确定性出生坐标识别。
-    const worldConfig = worldSystemConfig.worlds?.[sceneId];
+    const worldConfig = _resolveSnapshotWorldConfig(sceneId);
     const feature = worldConfig?.featureBuilding;
     if (!structure || !feature?.cfgKey || structure.cfgKey !== feature.cfgKey) return false;
     const spawn = worldConfig.portalSpawn || { x: 0, y: 0 };
@@ -1107,7 +1108,7 @@ export function getWorldSnapshot(sceneId) {
 
 /** 只登记本世代赠送资格，不改变传送门核心、资源或已有建筑。 */
 export function markWorldPlayerBaseEstablished(sceneId) {
-    if (!worldSystemConfig.worlds?.[sceneId] || (canPersistWorld && !canPersistWorld(sceneId))) return false;
+    if (!_resolveSnapshotWorldConfig(sceneId) || (canPersistWorld && !canPersistWorld(sceneId))) return false;
     const snapshot = getWorldSnapshot(sceneId) || ensureWorldBaseSnapshot(sceneId, {
         worldEpoch: getWorldEpoch?.(sceneId),
     });
@@ -1118,7 +1119,7 @@ export function markWorldPlayerBaseEstablished(sceneId) {
 
 export function canCreateWorldPlayerBaseSnapshot(sceneId) {
     const baseCfg = worldSystemConfig.playerBase || {};
-    return !!worldSystemConfig.worlds?.[sceneId]
+    return !!_resolveSnapshotWorldConfig(sceneId)
         && !!producerBuildingsConfig[baseCfg.cfgKey || 'city_hall'];
 }
 
@@ -1130,7 +1131,7 @@ export function ensureWorldPlayerBaseSnapshot(sceneId, { x = null, y = null } = 
     if (!canCreateWorldPlayerBaseSnapshot(sceneId)) return null;
     const snapshot = getWorldSnapshot(sceneId);
     if (!snapshot) return null;
-    const worldCfg = worldSystemConfig.worlds[sceneId];
+    const worldCfg = _resolveSnapshotWorldConfig(sceneId);
     const baseCfg = worldSystemConfig.playerBase || {};
     const producerCfg = producerBuildingsConfig[baseCfg.cfgKey || 'city_hall'];
     const cfgKey = producerCfg.id || baseCfg.cfgKey || 'city_hall';

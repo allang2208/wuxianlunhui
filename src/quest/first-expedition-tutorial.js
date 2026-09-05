@@ -150,7 +150,7 @@ export const FirstExpeditionTutorial = {
         }
         if (stage === 'claim_founding') {
             return foundingStatus === 'selecting'
-                ? '首城授予已批准：在位面航图中从当前合法候选里确认首城位置。'
+                ? '首城授予已批准：在位面航图中点击一个合法地格，确认首城位置。'
                 : '首次探索已完成，大地图已解锁。返回主神空间与小鼠大王交谈，开启首城选址。';
         }
         return '';

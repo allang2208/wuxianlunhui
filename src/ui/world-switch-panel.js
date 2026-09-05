@@ -2,7 +2,7 @@
 // 世界切换面板（2026-08-18，多世界并行 M1 配套）
 // - 侧边菜单注入「🌐 世界」按钮，随时打开；列出各世界与状态，一键传送。
 // - 世界-122 行显示快照概况 + 离线预估战报（previewWorld122Report，纯预览无副作用）。
-// - 传送 = SceneManager.switchScene（离场捕获/入场恢复由快照系统自动完成）。
+// - 传送 = SceneManager.switchWorld（离场捕获/入场恢复由快照系统自动完成）。
 // ============================================================
 import { BasePanel } from './panels/base-panel.js';
 import { SceneManager } from '../world/scene-manager.js';
@@ -49,9 +49,19 @@ const visibleWorlds = ({ includeFirstFoundingCandidates = false } = {}) => {
     const foundingCandidates = includeFirstFoundingCandidates
         ? new Set(WorldProgressionSystem.getFirstFoundingCandidates().map((entry) => entry.sceneId))
         : new Set();
-    return WORLDS.filter((world) => world.id === 'main'
+    const templateWorlds = WORLDS.filter((world) => world.id === 'main'
         || foundingCandidates.has(world.id)
         || WorldProgressionSystem.isWorldPlayerVisible(world.id));
+    const instanceWorlds = includeFirstFoundingCandidates ? []
+        : WorldInstanceSystem.listInstances({ persistentOnly: true }).map((instance) => {
+            const template = WorldInstanceSystem.getTemplate(instance.templateId);
+            return {
+                id: instance.instanceId,
+                icon: template?.icon || '🌀',
+                desc: template?.description || `${template?.name || instance.templateId}实例`,
+            };
+        }).filter((world) => WorldProgressionSystem.isWorldPlayerVisible(world.id));
+    return [...templateWorlds, ...instanceWorlds];
 };
 
 export const WorldSwitchPanel = {
@@ -246,6 +256,7 @@ export const WorldSwitchPanel = {
         }
         this._firstFoundingSelection = true;
         this._foundingCelebration = null;
+        this._selectedCellId = null;
         return this.open(candidates[0].sceneId);
     },
     openAtEvent(id) {
@@ -266,6 +277,49 @@ export const WorldSwitchPanel = {
     close() { this._getPanel().close(); },
     get isOpen() { return this._getPanel().isOpen; },
 
+    _openingFocus(requestedWorldId) {
+        const worlds = visibleWorlds({ includeFirstFoundingCandidates: this._firstFoundingSelection });
+        const visibleIds = new Set(worlds.map((world) => world.id));
+        const focusForWorld = (worldId) => ({
+            sceneId: worldId,
+            cellId: WorldProgressionSystem.getWorldMapDiscovery(worldId)?.cellId || null,
+        });
+        if (visibleIds.has(requestedWorldId)) return focusForWorld(requestedWorldId);
+        const inDungeon = SceneManager.isDungeonRunActive();
+        const armyCell = !inDungeon && (Strategy.inMap || Strategy.inBattle)
+            ? strategicCell(Strategy.state.army?.cellId) : null;
+        if (armyCell) {
+            const armyWorld = worlds.find((world) =>
+                WorldProgressionSystem.getWorldMapDiscovery(world.id)?.cellId === armyCell.id)
+                || (this._firstFoundingSelection && world.id === armyCell.planeSceneId);
+            if (armyWorld) return { sceneId: armyWorld.id, cellId: armyCell.id };
+        }
+        const home = Game._observerMode ? Game._observerHomeScene : SceneManager.getCurrentWorldId();
+        if (!inDungeon && visibleIds.has(home)) return focusForWorld(home);
+
+        const ranked = worlds.filter((world) => world.id !== 'main'
+            && WorldProgressionSystem.isPortalConstructed(world.id)
+            && !WorldProgressionSystem.getPortalState(world.id).destroyed).map((world) => {
+            const snapshot = isWorldLive(world.id) ? captureWorld(world.id) : getWorldSnapshot(world.id);
+            const buildings = (snapshot?.structures || []).filter((building) => building.hp > 0
+                && ['producer', 'hut'].includes(building.kind));
+            return {
+                id: world.id,
+                development: buildings.reduce((total, building) => total
+                    + Math.max(1, Number(building.economyLevel) || 1), 0),
+                population: Math.max(0, Number(snapshot?.populationEconomy?.total) || 0),
+                count: buildings.length,
+            };
+        });
+        ranked.sort((a, b) => b.development - a.development || b.population - a.population
+            || b.count - a.count);
+        const fallback = ranked[0]?.id
+            || worlds.find((world) => WorldProgressionSystem.getWorldMapDiscovery(world.id))?.id
+            || worlds.find((world) => world.id !== 'main')?.id
+            || 'main';
+        return focusForWorld(fallback);
+    },
+
     /** 前往世界（2026-08-19 口径：仅相机跳转，玩家不瞬移）：
      *  目标 ≠ 本体所在世界 → 观察模式（该世界不生成玩家）+ 自动进入指挥模式；
      *  目标 = 本体所在世界 → 返回本体（正常生成玩家 + 世界坐标记忆原位恢复）。 */
@@ -278,8 +332,9 @@ export const WorldSwitchPanel = {
      *  目标 ≠ 本体所在世界 → 观察模式（该世界不生成玩家）+ 自动进入指挥模式；
      *  目标 = 本体所在世界 → 返回本体（正常生成玩家 + 世界坐标记忆原位恢复）。 */
     async _travel(target) {
-        if (!target || target === SceneManager.currentScene) return true;
-        if (!SceneManager.scenes?.[target]) {
+        if (!target || target === SceneManager.getCurrentWorldId()) return true;
+        const runtimeSceneId = WorldProgressionSystem.getRuntimeSceneId(target);
+        if (!SceneManager.scenes?.[runtimeSceneId]) {
             SceneManager.showTopNotification('目标世界不存在，无法切换', { tone: 'danger' });
             return false;
         }
@@ -293,11 +348,11 @@ export const WorldSwitchPanel = {
             return false;
         }
         this.close();
-        const home = Game._observerMode ? Game._observerHomeScene : SceneManager.currentScene;
+        const home = Game._observerMode ? Game._observerHomeScene : SceneManager.getCurrentWorldId();
         const observer = target !== home;
         try {
-            const switched = await SceneManager.switchScene(target, Game.player, undefined, { observer });
-            if (!switched || SceneManager.currentScene !== target) {
+            const switched = await SceneManager.switchWorld(target, Game.player, undefined, { observer });
+            if (!switched || SceneManager.getCurrentWorldId() !== target) {
                 SceneManager.showTopNotification('世界切换未完成，请重试', { tone: 'danger' });
                 return false;
             }
@@ -324,13 +379,13 @@ export const WorldSwitchPanel = {
             return result.ok;
         }
         const target = active?.targetWorld;
-        if (!target || target === SceneManager.currentScene) return false;
+        if (!target || target === SceneManager.getCurrentWorldId()) return false;
         if (!WorldProgressionSystem.isPortalConstructed(target)) return false;
         if (SceneManager.isLoading) return false;
         this.close();
         try {
-            const switched = await SceneManager.switchScene(target, Game.player, undefined, { observer: false });
-            if (!switched || SceneManager.currentScene !== target) return false;
+            const switched = await SceneManager.switchWorld(target, Game.player, undefined, { observer: false });
+            if (!switched || SceneManager.getCurrentWorldId() !== target) return false;
             RTSCommand.setEnabled(false);
             return true;
         } catch (_err) {
@@ -498,7 +553,7 @@ export const WorldSwitchPanel = {
                 this._render(); return;
             }
             if (button.dataset.armyCell) { this._selectCell(strategicCell(button.dataset.armyCell), true, 'campaign'); return; }
-            if (button.dataset.firstFoundingWorld) this._claimFirstFoundingWorld(button.dataset.firstFoundingWorld);
+            if (button.dataset.firstFoundingCell) this._claimFirstFoundingCell(button.dataset.firstFoundingCell);
             else if (button.dataset.enterFirstFounding) this._enterFirstFoundingWorld(button.dataset.enterFirstFounding);
             else if (button.dataset.selectWorld) this._selectWorld(button.dataset.selectWorld, true);
             else if (button.dataset.world) this._travel(button.dataset.world);
@@ -582,10 +637,16 @@ export const WorldSwitchPanel = {
     _selectWorld(id, focus = false) {
         this._selectedId = id;
         this._selectedArmyId = null; // Inspecting a base never changes the controlled expedition.
-        this._selectedCellId = WorldProgressionSystem.getWorldMapDiscovery(id)?.cellId || null;
+        const foundingCell = this._firstFoundingSelection ? strategicCell(this._selectedCellId) : null;
+        const discoveryCellId = WorldProgressionSystem.getWorldMapDiscovery(id)?.cellId || null;
+        this._selectedCellId = foundingCell?.planeSceneId === WorldProgressionSystem.getRuntimeSceneId(id)
+            ? foundingCell.id : discoveryCellId;
         this._setSidebarTab('worlds');
         this._render();
-        if (focus) this._map?.focusPlane(id);
+        if (focus) {
+            if (this._selectedCellId) this._map?.focusCell(this._selectedCellId);
+            else this._map?.focusPlane(WorldProgressionSystem.getRuntimeSceneId(id));
+        }
     },
 
     _commandMap(cell, enemyId = null, { append = false } = {}) {
@@ -726,6 +787,7 @@ export const WorldSwitchPanel = {
         if (!cell) return;
         this._selectedCellId = cell.id;
         this._selectedArmyId = null;
+        if (this._firstFoundingSelection) this._selectedId = cell.planeSceneId;
         this._setSidebarTab(tab);
         this._render();
         if (focus) this._map?.focusCell(cell.id);
@@ -787,7 +849,9 @@ export const WorldSwitchPanel = {
         if (id === 'scene7' && window.DungeonMapSystem?.active) {
             return window.DungeonMapSystem.dungeonName || SceneManager.scenes?.scene7?.name || id;
         }
-        return WorldInstanceSystem.getDisplayName(id)
+        const progressionName = WorldProgressionSystem.getWorldDisplayName?.(id);
+        return (progressionName && progressionName !== id ? progressionName : '')
+            || WorldInstanceSystem.getDisplayName(id)
             || SceneManager.scenes?.[WorldProgressionSystem.getRuntimeSceneId(id)]?.name
             || id;
     },
@@ -807,7 +871,7 @@ export const WorldSwitchPanel = {
         const buildings = structures.length;
         const lost = structures.filter((s) => !(s.hp > 0)).length;
         const energy = structures.reduce((sum, s) => sum + (s.storedEnergy || 0), 0);
-        const invasion = window.WorldInvasionSystem?.getState?.().active;
+        const invasion = window.WorldInvasionSystem?.getBattleForWorld?.(sceneId);
         const invasionText = invasion?.targetWorld === sceneId
             ? `<b style="color:#ff775f">入侵第 ${invasion.waveIndex}/${invasion.waveCount} 波</b> · `
             : '';
@@ -838,7 +902,15 @@ export const WorldSwitchPanel = {
         return html;
     },
 
-
+    _discoverWorld(sceneId) {
+        if (SceneManager.isLoading) return;
+        const result = WorldProgressionSystem.discoverWorld(sceneId);
+        if (!result.ok) {
+            SceneManager.showTopNotification(result.reason, { tone: 'danger' });
+            return;
+        }
+        this._selectWorld(sceneId, true);
+    },
 
     _prepareWorldExpedition(sceneId) {
         WorldProgressionSystem.discoverWorld(sceneId);
@@ -850,7 +922,31 @@ export const WorldSwitchPanel = {
         this._render();
     },
 
-
+    _constructionBlockReason(sceneId) {
+        const founding = WorldProgressionSystem.getFoundingState();
+        if (['awaiting_king', 'selecting'].includes(founding.status) && !founding.giftConsumed) {
+            return founding.status === 'awaiting_king'
+                ? '请先返回小鼠大王处开启首城选址'
+                : '请在大地图点击合法地格，再用“确认在所选地格建立首城”完成免费授予';
+        }
+        if (Strategy.active) {
+            if (Strategy.state.army.defeated) return '亲征已失败，请先撤回主神空间';
+            const entry = WorldProgressionSystem.getWorldMapDiscovery(sceneId);
+            return Strategy.inMap && !Strategy._busy && !SceneManager.isLoading
+                && Strategy.state.army.cellId === entry?.cellId
+                ? '' : '请率军抵达此信标格，结束战斗后接通';
+        }
+        if (SceneManager.isLoading) return '场景正在加载，请稍候';
+        if (SceneManager.isDungeonRunActive()) return '请先完成当前地牢结算，再接通位面';
+        if (Game._observerMode || SceneManager.isQuestInstance()) return '请先返回本体的主神空间或已接通位面';
+        if (!Game.player || Game.player.data?.hp <= 0) return '角色当前无法操作传送网络';
+        if (!TechnologySystem.isUnlocked('building', 'portal')) return '需要先完成科技：位面门工程';
+        const current = SceneManager.getCurrentWorldId();
+        if (current !== 'main' && (!WorldProgressionSystem.getWorldConfig(current)
+            || !WorldProgressionSystem.isPortalConstructed(current))) return '请返回主神空间或已接通位面操作';
+        if (!WorldProgressionSystem.getTravelWorlds().length) return '所有位面均已断线，请先应急重建旧传送门';
+        return '';
+    },
 
     _connectWorld(sceneId) {
         const blocked = this._constructionBlockReason(sceneId);
@@ -870,14 +966,15 @@ export const WorldSwitchPanel = {
         this._selectWorld(sceneId, true);
     },
 
-    _claimFirstFoundingWorld(sceneId) {
+    _claimFirstFoundingCell(cellId) {
         if (!this._firstFoundingSelection || SceneManager.isLoading) return;
-        const result = WorldProgressionSystem.claimFirstFoundingAt(sceneId);
+        const result = WorldProgressionSystem.claimFirstFoundingAtCell(cellId);
         if (!result.ok) {
             SceneManager.showTopNotification(result.reason || '首城选址失败', { tone: 'warning' });
             this._render();
             return;
         }
+        const sceneId = result.sceneId;
         const name = WorldProgressionSystem.getWorldDisplayName(sceneId);
         const terrain = WorldProgressionSystem.getWorldTerrainLabel(sceneId);
         this._firstFoundingSelection = false;
@@ -895,8 +992,8 @@ export const WorldSwitchPanel = {
         if (!sceneId || SceneManager.isLoading || !WorldProgressionSystem.isPortalConstructed(sceneId)) return;
         this.close();
         try {
-            const entered = await SceneManager.switchScene(sceneId, Game.player, undefined, { observer: false });
-            if (!entered || SceneManager.currentScene !== sceneId) {
+            const entered = await SceneManager.switchWorld(sceneId, Game.player, undefined, { observer: false });
+            if (!entered || SceneManager.getCurrentWorldId() !== sceneId) {
                 SceneManager.showTopNotification('首城已建立，但本次传送未完成；可从主神空间传送门重试', { tone: 'warning' });
             }
         } catch (error) {
@@ -908,7 +1005,7 @@ export const WorldSwitchPanel = {
     _emergencyRebuild(sceneId) {
         // Recheck the original emergency boundary at click time, including observer state.
         if (SceneManager.isLoading || SceneManager.isDungeonRunActive() || Game._observerMode
-            || SceneManager.currentScene !== 'main' || WorldProgressionSystem.getTravelWorlds().length
+            || SceneManager.getCurrentWorldId() !== 'main' || WorldProgressionSystem.getTravelWorlds().length
             || !WorldProgressionSystem.getConstructableWorlds().some((entry) => entry.sceneId === sceneId && entry.rebuild)) return;
         const result = WorldProgressionSystem.constructPortal(sceneId);
         if (!result.ok) {
@@ -933,7 +1030,7 @@ export const WorldSwitchPanel = {
         if (SceneManager.isLoading || SceneManager.isDungeonRunActive() || Game._observerMode) return;
         const result = WorldProgressionSystem.requestPlayerBaseRebuild(sceneId);
         SceneManager.showTopNotification(result.ok
-            ? (SceneManager.currentScene === sceneId ? '市政厅已重建' : '市政厅重建已登记，进入该位面时自动落成')
+            ? (SceneManager.getCurrentWorldId() === sceneId ? '市政厅已重建' : '市政厅重建已登记，进入该位面时自动落成')
             : result.reason || '市政厅重建失败', { tone: result.ok ? 'success' : 'danger' });
         this._render();
     },
@@ -965,16 +1062,23 @@ export const WorldSwitchPanel = {
         }
         if (this._firstFoundingSelection) {
             const cfg = WorldProgressionSystem.getWorldConfig(world.id);
+            const site = WorldProgressionSystem.inspectFirstFoundingCell(this._selectedCellId);
+            const selectedHere = site.runtimeSceneId === world.id;
+            const canConfirm = selectedHere && site.ok;
+            const siteText = !selectedHere ? '请在地图中点击一个地格作为首城位置。'
+                : canConfirm ? `已选择 (${site.cell.q}, ${site.cell.r}) · ${site.terrainLabel || '当前地貌'}，满足建城条件。`
+                    : `当前地格不可建城：${site.reason}`;
             return `
                 <ol class="wm-progress" aria-label="首城授予内容">
                     <li class="is-complete">首次探索资格 · 已完成</li>
-                    <li class="is-current" aria-current="step">选择首城位面</li>
+                    <li class="is-current" aria-current="step">在大地图点击首城地格</li>
                     <li>免费建立市政厅与首座传送门</li>
                 </ol>
-                <p class="wm-hint">${escapeHtml(cfg?.description || world.desc || '')}。这里只显示当前真正满足地牢前置与城址条件的候选；确认后本次授予不可更改。</p>
+                <p class="wm-hint">${escapeHtml(cfg?.description || world.desc || '')}作为该地貌的生成模板；正式城市坐标以你在大地图点击的地格为准。</p>
+                <p class="wm-result">${escapeHtml(siteText)}</p>
                 <ul class="wm-benefits"><li>本次首城建造费用为 0。</li><li>确认后可立即进入首城，也可稍后从主神空间传送门前往。</li></ul>
                 <div class="wm-actions">
-                    <button type="button" class="ws-go is-primary" data-first-founding-world="${world.id}">确认以此位面建立首城</button>
+                    <button type="button" class="ws-go is-primary" data-first-founding-cell="${selectedHere ? escapeHtml(site.cellId) : ''}" ${canConfirm ? '' : 'disabled'}>确认在所选地格建立首城</button>
                 </div>`;
         }
         const worldConfig = WorldProgressionSystem.getWorldConfig(world.id);
@@ -1218,7 +1322,7 @@ export const WorldSwitchPanel = {
             : selected?.foundedBy === 'settler' ? `移民新城：${selected.population} 名居民已定居，城防参与战略围城；人口暂作为定居人数保存。独立基地场景、城内建设和人口生产尚未接通。`
             : '战略据点：破门或拆侧墙进入；清除驻军与关键设施后摧毁，无需拆光城墙。撤退保留驻军、设施和城防损伤；拆掉兵营后停止补兵。敌方据点不提供占领；新城需由移民队建立。';
         return `<strong>各城战事 · ${wars.length}</strong>
-            ${wars.length ? wars.map((war) => `<article class="wm-war"><button type="button" class="wm-destination" data-army-cell="${war.cellId || ''}"><span>${escapeHtml(war.name)}</span><small class="wm-tone-warning">${war.suspended ? '我军正在解围' : '遭到围攻'}</small></button><p class="wm-hint">${war.source === 'world' ? `第${war.waveIndex}/${war.waveCount}波 · 城镇核心 ${Math.ceil(WorldProgressionSystem.getPortalState(war.targetWorld).hp)}` : '据点设施持续受损'} · 其他城市独立结算</p><div class="wm-actions">${action('relieve', '军团行军解围', war.id)}${!Strategy.active && war.source === 'world' ? `<button type="button" class="ws-support" data-support-world="${war.targetWorld}" ${SceneManager.isLoading || SceneManager.isDungeonRunActive() || SceneManager.currentScene === war.targetWorld ? 'disabled' : ''}>本体支援此城</button>` : ''}</div></article>`).join('') : '<p class="wm-hint">当前没有围城战。敌方城镇会补充军团，敌军会选择我方城镇行军攻城。</p>'}
+            ${wars.length ? wars.map((war) => `<article class="wm-war"><button type="button" class="wm-destination" data-army-cell="${war.cellId || ''}"><span>${escapeHtml(war.name)}</span><small class="wm-tone-warning">${war.suspended ? '我军正在解围' : '遭到围攻'}</small></button><p class="wm-hint">${war.source === 'world' ? `第${war.waveIndex}/${war.waveCount}波 · 城镇核心 ${Math.ceil(WorldProgressionSystem.getPortalState(war.targetWorld).hp)}` : '据点设施持续受损'} · 其他城市独立结算</p><div class="wm-actions">${action('relieve', '军团行军解围', war.id)}${!Strategy.active && war.source === 'world' ? `<button type="button" class="ws-support" data-support-world="${war.targetWorld}" ${SceneManager.isLoading || SceneManager.isDungeonRunActive() || SceneManager.getCurrentWorldId() === war.targetWorld ? 'disabled' : ''}>本体支援此城</button>` : ''}</div></article>`).join('') : '<p class="wm-hint">当前没有围城战。敌方城镇会补充军团，敌军会选择我方城镇行军攻城。</p>'}
             ${selected ? `<article class="wm-site-detail"><strong>${escapeHtml(selected.name)} · ${owner(selected)}</strong><p class="wm-hint">${siteDescription}</p>${selected.structures ? `<ul>${selected.structures.map((record) => `<li>${escapeHtml(record.name)}：${Math.ceil(record.hp)} / ${record.maxHp}</li>`).join('')}</ul><p class="wm-hint">驻军 ${selected.roster.length} 名</p>` : ''}<div class="wm-actions">${selected.owner === 'enemy' && selected.status !== 'destroyed' ? action('destroy', '行军摧毁', selected.id) : ''}${repair ? action('repair', `修复 +${Math.round(Strategy.config.campaign.repairRatio * 100)}% · ${repairCost}`, selected.id, repairBlocked) : ''}</div>${repair ? `<p class="wm-hint">${escapeHtml(repair.reason || repairHint)}</p>` : ''}</article>` : '<p class="wm-hint">点击地图上的城镇或据点查看设施详情。</p>'}
             ${entry ? `<div class="wm-actions">${action('enter', Strategy.mapOrder(entry.cellId)?.action === 'enter' ? Strategy.mapOrder(entry.cellId).label : '行军并入营（须先解围）', entry.sceneId, disabled || !!Strategy.baseEntryBlockReason(entry))}</div><p class="wm-hint">入营后兵旗收起，幸存部队在基地落点附近恢复为单位；不会自动塞回兵营生产队列。</p>` : ''}
             <div class="wm-loot"><strong>待领取战利品 · ${Strategy.state.pendingLoot.length}</strong><p class="wm-hint">领取时优先进入背包和仓库；装不下的物品会独立转入小鼠大王奖励信箱。</p>${action('loot', '领取战利品', '', Strategy._busy || Strategy.inBattle || SceneManager.isLoading || !Strategy.state.pendingLoot.length)}</div>`;
@@ -1227,7 +1331,7 @@ export const WorldSwitchPanel = {
     _render() {
         const el = this._panel?.el;
         if (!el) return;
-        const current = SceneManager.currentScene;
+        const current = SceneManager.getCurrentWorldId();
         Strategy.ensureCampaign();
         const mapIntel = Strategy.refreshMapIntel();
         const army = Strategy.state.army, enemies = Strategy.getMapVisibleEnemies(), wars = Strategy.getMapWars();
@@ -1247,7 +1351,7 @@ export const WorldSwitchPanel = {
         if (Strategy.state.army && !this._selectedCellId) this._selectedCellId = Strategy.state.army.cellId;
         this._setSidebarTab(this._sidebarTab || 'worlds');
         this._setSectionHtml('wmBrief', this._firstFoundingSelection
-            ? '<strong>首城授予</strong><span>选择一处合法位面，免费建立市政厅与首座传送门</span><div class="wm-brief-stats"><span><b>0</b><small>本次费用</small></span><span><b>1</b><small>可选首城</small></span><span><b>永久</b><small>确认结果</small></span></div>'
+            ? '<strong>首城授予</strong><span>点击大地图合法地格，免费建立市政厅与首座传送门</span><div class="wm-brief-stats"><span><b>0</b><small>本次费用</small></span><span><b>1</b><small>授予城市</small></span><span><b>永久</b><small>确认结果</small></span></div>'
             : `<strong>战略总览</strong><span>${Strategy.inBattle ? '位面接战中' : army ? '军团已出征' : '等待编组出征'}</span><div class="wm-brief-stats"><span><b>${Strategy.playerArmies().length}</b><small>我方军团</small></span><span><b>${enemies.length}</b><small>敌方军团</small></span><span><b>${wars.length}</b><small>进行中战事</small></span></div>`);
         el.querySelector('[data-tab-count="army"]').textContent = Strategy.playerArmies().length + Strategy.state.settlers.length + enemies.length;
         el.querySelector('[data-tab-count="campaign"]').textContent = wars.length;
@@ -1290,19 +1394,26 @@ export const WorldSwitchPanel = {
             const allowed = new Set(WorldProgressionSystem.getFirstFoundingCandidates().map((entry) => entry.sceneId));
             candidates = playerWorlds.filter((world) => allowed.has(world.id));
         }
+        const selectedFoundingCell = this._firstFoundingSelection ? strategicCell(this._selectedCellId) : null;
+        const selectedFoundingSite = this._firstFoundingSelection
+            ? WorldProgressionSystem.inspectFirstFoundingCell(this._selectedCellId) : null;
         const states = candidates.map((world) => {
             const persistent = !!WorldProgressionSystem.getWorldConfig(world.id);
             const portal = persistent ? WorldProgressionSystem.getPortalState(world.id) : null;
             const connected = !persistent || WorldProgressionSystem.isPortalConstructed(world.id);
             const discovery = persistent ? WorldProgressionSystem.getWorldMapDiscovery(world.id) : null;
-            const entryCell = discovery?.cell || null;
+            const entryCell = discovery?.cell
+                || (selectedFoundingCell?.planeSceneId === WorldProgressionSystem.getRuntimeSceneId(world.id)
+                    ? selectedFoundingCell : null);
             const eligible = persistent && WorldProgressionSystem.isWorldEligible(world.id);
             const specialEvent = persistent && connected
                 ? WorldProgressionSystem.getSpecialBuildingEvent?.(world.id) : null;
             const hallAlive = persistent && SceneManager._hasLiveWorldAnchor?.(world.id, 'city_hall');
             const isCurrent = current === world.id;
             const isHome = Game._observerMode && home === world.id;
-            const badge = this._firstFoundingSelection ? '首城候选'
+            const badge = this._firstFoundingSelection
+                ? selectedFoundingCell?.planeSceneId === WorldProgressionSystem.getRuntimeSceneId(world.id)
+                    ? (selectedFoundingSite.ok ? '已选城址' : '选址无效') : '可选地貌'
                 : specialEvent && specialEvent.status !== 'completed'
                     ? `？ ${specialEvent.status === 'active' ? '夺取事件进行中' : '夺取特色建筑'}`
                 : isCurrent ? '当前视野' : isHome ? '本体所在'
@@ -1329,23 +1440,31 @@ export const WorldSwitchPanel = {
             <p>${escapeHtml(celebration.terrain || '新位面')}已完成登记：市政厅、首座传送门和大地图权限均已启用。</p>
             <button type="button" class="ws-go is-primary" data-enter-first-founding="${celebration.sceneId}">进入首座位面</button>`
             : this._firstFoundingSelection
-                ? `<strong>小鼠大王的首城授予</strong><p>从 ${states.length} 个当前合法候选中选择一处。确认后免费建立市政厅与首座传送门。</p>`
+                ? `<strong>小鼠大王的首城授予</strong><p>可在 ${states.length} 种地貌中自由查看，并直接点击一个合法地格作为首城位置。确认后免费建立市政厅与首座传送门。</p>`
                 : awaitingFirstFounding
                     ? '<strong>大地图已解锁</strong><p>返回主神空间与小鼠大王交谈，开启首城选址；批准前可查看航图，但不能提前定位、远征或建造。</p>'
                     : this._objectiveHtml(tracked || selected));
         const map = worldMapInfo();
         el.querySelector('#wmContext').textContent = this._firstFoundingSelection
-            ? `首城选址：仅显示 ${states.length} 个合法候选 · 确认后不可更改`
+            ? `首城选址：点击任意合法地格 · ${states.length} 种地貌模板 · 确认后不可更改`
             : `${Game._observerMode ? '观察视野' : '当前所在'}：${this._worldName(current)} · 已接通 ${connectedPlaneCount}${registeredPlaneCount > connectedPlaneCount ? ` · 已登记 ${registeredPlaneCount}` : ''} · ${map.cellCount}格`;
         el.querySelector('#wmContext').title = `${map.kind === 'generated' ? '随机大陆' : '旧版大陆'} · 地图种子 ${map.seed}`;
         this._setSectionHtml('wmDestinations', states.map((world) => `
             <button type="button" class="wm-destination${world.isCurrent ? ' is-current' : ''}${world.connected ? '' : ' is-offline'}"
                 data-select-world="${world.id}" aria-pressed="${selected.id === world.id}">
-                <span class="wm-destination-name">${world.icon} ${escapeHtml(this._worldName(world.id))}</span>
+                <span class="wm-destination-name">${world.icon} ${escapeHtml(this._firstFoundingSelection
+                    ? `${WorldProgressionSystem.getWorldTerrainLabel(world.id)}模板` : this._worldName(world.id))}</span>
                 <small class="wm-destination-state">${escapeHtml(world.badge)}</small>
             </button>`).join(''));
         let status;
-        if (!selected.connected && !selected.isCurrent) {
+        if (this._firstFoundingSelection) {
+            status = !selectedFoundingCell
+                || selectedFoundingCell.planeSceneId !== WorldProgressionSystem.getRuntimeSceneId(selected.id)
+                ? '请在中央大地图点击一个平地；点击其他地貌会自动切换对应生成模板。'
+                : selectedFoundingSite.ok
+                    ? `首城将建立在 (${selectedFoundingCell.q}, ${selectedFoundingCell.r})，使用${selectedFoundingSite.terrainLabel || '当前地貌'}模板生成。`
+                    : selectedFoundingSite.reason;
+        } else if (!selected.connected && !selected.isCurrent) {
             status = selected.destroyed && selected.hallAlive ? (selected.endpointExists
                 ? '传送门已毁，市政厅仍维持位面；修复旧门后恢复观察与通行。'
                 : '移民已恢复市政厅；研究位面门工程并建造新门后恢复通行。')
@@ -1365,8 +1484,10 @@ export const WorldSwitchPanel = {
             : (WorldProgressionSystem.config.portal?.constructionCost || {});
         const hallRebuild = WorldProgressionSystem.config.playerBase?.rebuildCost || {};
         this._setSectionHtml('wmDetails', `
-            <h2 class="wm-detail-title">${escapeHtml(this._worldName(selected.id))}</h2>
-            ${selected.entryCell ? `<p class="wm-hint">${selected.destroyed ? '旧入口地块' : selected.connected ? '接通地块' : '目标地块'}：${selected.entryCell.q}, ${selected.entryCell.r}</p>` : ''}
+            <h2 class="wm-detail-title">${escapeHtml(this._firstFoundingSelection
+                ? `${WorldProgressionSystem.getWorldTerrainLabel(selected.id)}建城模板` : this._worldName(selected.id))}</h2>
+            ${selected.entryCell ? `<p class="wm-hint">${this._firstFoundingSelection ? '玩家所选地格'
+                : selected.destroyed ? '旧入口地块' : selected.connected ? '接通地块' : '目标地块'}：${selected.entryCell.q}, ${selected.entryCell.r}</p>` : ''}
             <div class="ws-status">${status}</div>
             ${selected.specialEvent && selected.specialEvent.status !== 'completed' ? `
                 <div class="ws-status is-warning"><strong>❓ 随机事件 · ${escapeHtml(selected.specialEvent.name)}</strong><br>

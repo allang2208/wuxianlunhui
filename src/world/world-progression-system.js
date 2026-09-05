@@ -4,7 +4,7 @@ import strategyConfig from '../../data/world-strategy.json';
 import dungeonConfigData from '../../data/dungeon-config.json';
 import {
     WORLD_MAP_LAYOUT_VERSION, WORLD_MAP_PLANES, getWorldMapCell,
-    pickWorldMapEntryCell, worldMapPlaneCells, strategicCell, strategicDistance,
+    pickWorldMapEntryCell, worldMapInfo, worldMapPlaneCells, strategicCell, strategicDistance,
 } from './world-map-cells.js';
 import { WorldInstanceSystem } from './world-instance-system.js';
 import { payBuildingUpgradeCost, refundBuildingUpgradePayment } from './building-upgrade-payment.js';
@@ -38,6 +38,19 @@ export const DUNGEON_GRADE_ORDER = Object.freeze(['F', 'E', 'D', 'C', 'B', 'A'])
 const FIRST_DUNGEON_ID = 'abandonedMineBeginner';
 let strategicSiteCells = new Set(); // Restored from strategy sites; never another saved authority.
 let strategicSettlerSites = []; // References only; current destruction state stays with strategy sites.
+let strategicSites = []; // Read-only references used to validate player-selected founding cells.
+
+function runtimeMapSceneId(worldId) {
+    return WorldInstanceSystem.resolveRuntimeSceneId(worldId);
+}
+
+function getWorldStrategicCell(worldId, cellId) {
+    return getWorldMapCell(runtimeMapSceneId(worldId), cellId);
+}
+
+function worldStrategicCells(worldId) {
+    return worldMapPlaneCells(runtimeMapSceneId(worldId));
+}
 
 function mapEntryEpoch(portal) {
     return portal.everConstructed ? portal.worldEpoch : Math.max(1, portal.worldEpoch + 1);
@@ -49,7 +62,7 @@ function createMapDiscovery(sceneId, portal, excludedCells = strategicSiteCells)
     // Old live/destroyed entries keep their saved generation seed and exact old draw.
     const seed = portal.everConstructed && portal.generationVersion > 0
         ? portal.generationSeed : generation.seed;
-    const cell = pickWorldMapEntryCell(sceneId,
+    const cell = pickWorldMapEntryCell(runtimeMapSceneId(sceneId),
         createSeededRandom(seed, `world-map-entry:v1:${worldEpoch}`), excludedCells);
     return cell ? { cellId: cell.id, worldEpoch, layoutVersion: WORLD_MAP_LAYOUT_VERSION } : null;
 }
@@ -64,13 +77,14 @@ function createMapReservation(sceneId, portal) {
     // may pick an alternative; never move an existing city to repair an old save.
     if (!entry || fits(strategicCell(entry.cellId))) return entry;
     const excluded = new Set(strategicSiteCells);
-    for (const cell of worldMapPlaneCells(sceneId)) if (!fits(cell)) excluded.add(cell.id);
+    for (const cell of worldStrategicCells(sceneId)) if (!fits(cell)) excluded.add(cell.id);
     return createMapDiscovery(sceneId, portal, excluded);
 }
 
 function initialWorldMap(portals) {
     const discoveries = {}, reservations = {};
     for (const [sceneId, portal] of Object.entries(portals)) {
+        if (resolveWorldConfig(sceneId)?.templatePreviewOnly) continue;
         if (portal.everConstructed) discoveries[sceneId] = createMapDiscovery(sceneId, portal);
         else reservations[sceneId] = createMapReservation(sceneId, portal);
     }
@@ -229,6 +243,69 @@ function initialState() {
     };
 }
 
+function inspectFirstFoundingCell(cellId) {
+    const cell = strategicCell(cellId);
+    const runtimeSceneId = cell?.planeSceneId || null;
+    const cfg = runtimeSceneId ? worldSystemConfig.worlds?.[runtimeSceneId] : null;
+    const template = cfg?.templateId ? WorldInstanceSystem.getTemplate(cfg.templateId) : null;
+    const minDistance = Math.max(0, Number(strategyConfig.settlers?.minCityDistance) || 0);
+    let reason = !cell ? '请先在位面航图中选择一个地格' : '';
+    if (!reason && state.founding.status !== 'selecting') {
+        reason = state.founding.status === 'founded' ? '首座城市已经建立'
+            : state.founding.status === 'awaiting_king' ? '请先与小鼠大王交谈并开启首城选址'
+                : '请先成功通关废弃矿洞初级';
+    }
+    if (!reason && (!cfg || cfg.firstFoundingCandidate !== true || !template
+        || template.storyEnabled === false)) reason = '该地貌模板暂未开放首城建设';
+    if (!reason && WorldInstanceSystem.findStoryInstanceByStrategicCellId(cell.id)) {
+        reason = '该地格已经登记了正式位面，不能重复建设';
+    }
+    if (!reason && (!worldMapPlaneCells(runtimeSceneId).some((entry) => entry.id === cell.id)
+        || cell.mountain || cell.pass)) reason = '山脉或山口不能建设城市';
+    if (!reason && strategicSiteCells.has(cell.id)) reason = '该格已有城市、营地或废墟，不能重叠建设';
+
+    const centers = strategicSites
+        .filter((site) => site.status !== 'destroyed' && ['town', 'world'].includes(site.kind))
+        .map((site) => strategicCell(site.cellId)).filter(Boolean);
+    for (const [otherWorldId, otherPortal] of Object.entries(state.portals || {})) {
+        if (!otherPortal.everConstructed) continue;
+        const center = strategicCell(state.worldMap.discoveries?.[otherWorldId]?.cellId);
+        if (center && center.id !== cell?.id && !centers.some((entry) => entry.id === center.id)) {
+            centers.push(center);
+        }
+    }
+    const nearest = cell && centers.length
+        ? centers.reduce((distance, center) => Math.min(distance, strategicDistance(cell, center)), Infinity)
+        : Infinity;
+    if (!reason && nearest < minDistance) reason = `距现有城市仅 ${nearest} 格，至少需要 ${minDistance} 格`;
+    return {
+        ok: !reason,
+        reason,
+        sceneId: runtimeSceneId,
+        runtimeSceneId,
+        templateId: cfg?.templateId || null,
+        cellId: cell?.id || null,
+        cell: cell ? { ...cell } : null,
+        minDistance,
+        nearest,
+        name: template?.name || cfg?.name || runtimeSceneId || '',
+        terrainLabel: runtimeSceneId
+            ? (WORLD_MAP_PLANES.find((entry) => entry.sceneId === runtimeSceneId)?.label
+                || template?.name || cfg?.description || '') : '',
+    };
+}
+
+function createLocatedWorldGenerationContext(sceneId, worldEpoch, cellId) {
+    const generation = createWorldGenerationContext(sceneId, worldEpoch);
+    const cell = strategicCell(cellId);
+    if (!cell || cell.planeSceneId !== runtimeMapSceneId(sceneId)) return generation;
+    return {
+        ...generation,
+        seed: deriveWorldSeed(generation.seed, `world-map:${worldMapInfo().seed}|cell:${cell.id}`),
+        seedStrategy: `${generation.seedStrategy}_map_cell`,
+    };
+}
+
 function gradeIndex(grade) {
     const index = DUNGEON_GRADE_ORDER.indexOf(String(grade || '').toUpperCase());
     return index < 0 ? 0 : index;
@@ -296,10 +373,10 @@ function reconcileMapDiscovery(sceneId) {
     const portal = portalState(sceneId);
     const entry = state.worldMap.discoveries[sceneId];
     if (!entry && !portal.everConstructed) return;
-    const valid = entry && getWorldMapCell(sceneId, entry.cellId);
+    const valid = entry && getWorldStrategicCell(sceneId, entry.cellId);
     const reserved = state.worldMap.reservations[sceneId];
     const location = valid ? entry
-        : reserved && getWorldMapCell(sceneId, reserved.cellId) ? reserved : createMapDiscovery(sceneId, portal);
+        : reserved && getWorldStrategicCell(sceneId, reserved.cellId) ? reserved : createMapDiscovery(sceneId, portal);
     // Rebuilding changes the plane instance/epoch, not the city's strategic location.
     state.worldMap.discoveries[sceneId] = location && { ...location, worldEpoch: mapEntryEpoch(portal) };
     delete state.worldMap.reservations[sceneId];
@@ -378,6 +455,15 @@ export const WorldProgressionSystem = {
     config: worldSystemConfig,
 
     reset() {
+        strategicSiteCells = new Set();
+        strategicSettlerSites = [];
+        strategicSites = [];
+        for (const sceneId of debugPortalOriginals.keys()) {
+            if (typeof window !== 'undefined' && window.Game?._worldPlayerPos) {
+                delete window.Game._worldPlayerPos[sceneId];
+            }
+        }
+        debugPortalOriginals.clear();
         WorldInstanceSystem.reset();
         debugSpecialBuildingEvents.clear();
         state = initialState();
@@ -395,7 +481,20 @@ export const WorldProgressionSystem = {
                 || (WorldInstanceSystem.isInstanceId(worldId)
                     && !WorldInstanceSystem.isPersistentInstance(worldId))) {
                 delete serialized.portals[worldId];
+                delete serialized.worldMap.discoveries[worldId];
+                delete serialized.worldMap.reservations[worldId];
+                delete serialized.worldMap.securedSignals[worldId];
+                if (serialized.worldMap.trackedWorldId === worldId) serialized.worldMap.trackedWorldId = null;
+                if (serialized.worldMap.lastExpedition?.sceneId === worldId) serialized.worldMap.lastExpedition = null;
             }
+        }
+        for (const [worldId, original] of debugPortalOriginals) {
+            serialized.portals[worldId] = clone(original);
+            delete serialized.worldMap.discoveries[worldId];
+            delete serialized.worldMap.reservations[worldId];
+            delete serialized.worldMap.securedSignals[worldId];
+            if (serialized.worldMap.trackedWorldId === worldId) serialized.worldMap.trackedWorldId = null;
+            if (serialized.worldMap.lastExpedition?.sceneId === worldId) serialized.worldMap.lastExpedition = null;
         }
         return serialized;
     },
@@ -412,12 +511,36 @@ export const WorldProgressionSystem = {
         if (data && typeof data === 'object') {
             next.completedDungeons = { ...(data.completedDungeons || {}) };
             next.dungeonRuns = clone(data.dungeonRuns || {});
+            const migratedGrade = deriveUnlockedDungeonGrade(next.completedDungeons);
+            next.highestUnlockedDungeonGrade = DUNGEON_GRADE_ORDER[
+                Math.max(gradeIndex(data.highestUnlockedDungeonGrade), gradeIndex(migratedGrade))
+            ];
             for (const instance of WorldInstanceSystem.listInstances({ persistentOnly: true })) {
                 const cfg = resolveWorldConfig(instance.instanceId);
                 if (cfg) next.portals[instance.instanceId] = initialPortalState(
                     instance.instanceId, cfg, next.completedDungeons
                 );
             }
+            const persistentInstances = WorldInstanceSystem.listInstances({ persistentOnly: true });
+            const legacyFounded = persistentInstances.length > 0
+                || Object.entries(data.portals || {}).some(([worldId, portal]) =>
+                    portal?.everConstructed && !resolveWorldConfig(worldId)?.templatePreviewOnly);
+            const incomingFoundingStatus = data.founding?.status;
+            const firstLegacyWorldId = data.founding?.sceneId
+                || persistentInstances.find((instance) => data.portals?.[instance.instanceId]?.everConstructed)?.instanceId
+                || persistentInstances[0]?.instanceId
+                || null;
+            const recoveredFoundingStatus = legacyFounded && incomingFoundingStatus === 'locked'
+                ? 'founded' : incomingFoundingStatus;
+            next.founding = {
+                status: FOUNDING_STATUSES.has(recoveredFoundingStatus) ? recoveredFoundingStatus
+                    : (legacyFounded ? 'founded'
+                        : ((next.completedDungeons[FIRST_DUNGEON_ID] || 0) > 0 ? 'awaiting_king' : 'locked')),
+                sceneId: firstLegacyWorldId,
+                cellId: data.founding?.cellId || null,
+                giftConsumed: data.founding?.giftConsumed === true || legacyFounded,
+                skipAuthorized: data.founding?.skipAuthorized === true,
+            };
             for (const sceneId of Object.keys(next.portals)) {
                 if (resolveWorldConfig(sceneId)?.templatePreviewOnly) continue;
                 const incoming = data.portals?.[sceneId];
@@ -445,9 +568,59 @@ export const WorldProgressionSystem = {
             setPortalStatus(anchor, WORLD_LIFECYCLE_STATUS.DESTROYED);
         }
         state = next;
-        for (const sceneId of Object.keys(state.portals)) refreshAvailability(sceneId);
+        state.worldNames = clone(data?.worldNames || {});
+        const incomingMap = data?.worldMap;
+        state.worldMap = initialWorldMap(state.portals);
+        for (const worldId of Object.keys(state.portals)) {
+            if (resolveWorldConfig(worldId)?.templatePreviewOnly) continue;
+            const secured = incomingMap?.securedSignals?.[worldId];
+            if (secured && getWorldStrategicCell(worldId, secured.cellId)) {
+                state.worldMap.securedSignals[worldId] = clone(secured);
+            }
+            const entry = incomingMap?.discoveries?.[worldId];
+            if (entry && getWorldStrategicCell(worldId, entry.cellId)) {
+                state.worldMap.discoveries[worldId] = {
+                    cellId: entry.cellId,
+                    worldEpoch: Math.max(1, Math.floor(Number(entry.worldEpoch) || 1)),
+                    layoutVersion: Number(entry.layoutVersion) || WORLD_MAP_LAYOUT_VERSION,
+                };
+            }
+            const reserved = incomingMap?.reservations?.[worldId];
+            if (reserved && getWorldStrategicCell(worldId, reserved.cellId)) {
+                state.worldMap.reservations[worldId] = {
+                    cellId: reserved.cellId,
+                    worldEpoch: mapEntryEpoch(state.portals[worldId]),
+                    layoutVersion: Number(reserved.layoutVersion) || WORLD_MAP_LAYOUT_VERSION,
+                };
+            }
+            reconcileMapDiscovery(worldId);
+            refreshAvailability(worldId);
+        }
+        if (state.worldMap.discoveries[incomingMap?.trackedWorldId]) {
+            state.worldMap.trackedWorldId = incomingMap.trackedWorldId;
+        }
+        if (state.founding.status === 'founded' && state.founding.sceneId
+            && !state.founding.cellId) {
+            state.founding.cellId = state.worldMap.discoveries[state.founding.sceneId]?.cellId || null;
+        }
+        const last = incomingMap?.lastExpedition;
+        if (last && resolveWorldConfig(last.sceneId) && dungeonConfigData.dungeonList[last.dungeonType]
+            && getWorldStrategicCell(last.sceneId, last.cellId)
+            && Number.isSafeInteger(last.runId) && last.runId > 0) {
+            state.worldMap.lastExpedition = {
+                runId: last.runId, sceneId: last.sceneId, dungeonType: last.dungeonType,
+                cellId: last.cellId, worldEpoch: Math.max(1, Math.floor(Number(last.worldEpoch) || 1)),
+                purpose: last.purpose === 'connect' ? 'connect' : 'explore',
+                outcome: RUN_OUTCOMES.has(last.outcome) ? last.outcome : null,
+            };
+        }
+        state.worldMap.nextRunId = Math.max(1,
+            Number.isSafeInteger(incomingMap?.nextRunId) ? incomingMap.nextRunId : 1,
+            (state.worldMap.lastExpedition?.runId || 0) + 1);
         const initialInstance = this.ensureInitialStoryWorldInstance();
         this.ensureConstructedWorldSnapshots();
+        try { EventBus.emit('world:first-founding-sync', this.getFoundingState()); }
+        catch (error) { console.warn('[WorldProgression] 首城任务同步事件发送失败:', error); }
         return initialInstance;
     },
 
@@ -515,7 +688,7 @@ export const WorldProgressionSystem = {
     getWorldTerrainLabel(sceneId) {
         const cfg = this.getWorldConfig(sceneId);
         if (!cfg) return '';
-        const plane = WORLD_MAP_PLANES.find((entry) => entry.sceneId === sceneId);
+        const plane = WORLD_MAP_PLANES.find((entry) => entry.sceneId === this.getRuntimeSceneId(sceneId));
         return plane?.label || cfg.description || '';
     },
 
@@ -587,7 +760,12 @@ export const WorldProgressionSystem = {
     },
 
     getWorldIds() {
-        return Object.keys(worldSystemConfig.worlds || {});
+        return [
+            ...Object.entries(worldSystemConfig.worlds || {})
+                .filter(([worldId, cfg]) => cfg.templatePreviewOnly !== true || this.isDevWorldUnlocked(worldId))
+                .map(([worldId]) => worldId),
+            ...this.getWorldInstanceIds(),
+        ];
     },
 
     getWorldInstanceIds({ persistentOnly = false } = {}) {
@@ -724,6 +902,15 @@ export const WorldProgressionSystem = {
         const worldId = result.instance.instanceId;
         const portal = portalState(worldId);
         if (!result.reused) setPortalProtection(portal, worldId);
+        const strategicCellId = result.instance.strategicCellId;
+        if (strategicCellId && getWorldStrategicCell(worldId, strategicCellId)) {
+            state.worldMap.discoveries[worldId] = {
+                cellId: strategicCellId,
+                worldEpoch: mapEntryEpoch(portal),
+                layoutVersion: WORLD_MAP_LAYOUT_VERSION,
+            };
+            delete state.worldMap.reservations[worldId];
+        }
         const specialEvent = normalizeSpecialBuildingEvent(worldId);
         if (specialEvent && !state.specialBuildingEvents[worldId]) {
             state.specialBuildingEvents[worldId] = specialEvent;
@@ -766,8 +953,116 @@ export const WorldProgressionSystem = {
         resetWorldSnapshot(worldId);
         delete state.portals[worldId];
         delete state.specialBuildingEvents[worldId];
+        delete state.worldMap.discoveries[worldId];
+        delete state.worldMap.reservations[worldId];
+        delete state.worldMap.securedSignals[worldId];
+        if (state.worldMap.trackedWorldId === worldId) state.worldMap.trackedWorldId = null;
+        if (state.worldMap.lastExpedition?.sceneId === worldId) state.worldMap.lastExpedition = null;
         debugSpecialBuildingEvents.delete(worldId);
         return WorldInstanceSystem.removeInstance(worldId);
+    },
+
+    setStrategicSiteCells(sites = []) {
+        strategicSiteCells = new Set(sites.map((site) => site.cellId).filter(Boolean));
+        strategicSites = sites;
+        strategicSettlerSites = sites.filter((site) => site.foundedBy === 'settler');
+    },
+
+    getReservedWorldMapCell(sceneId) {
+        if (!this.getWorldConfig(sceneId) || this.isDevWorldUnlocked(sceneId)) return null;
+        const discovered = this.getWorldMapDiscovery(sceneId);
+        if (discovered) return discovered;
+        let reserved = state.worldMap.reservations[sceneId];
+        if (!reserved || !getWorldStrategicCell(sceneId, reserved.cellId)) {
+            reserved = state.worldMap.reservations[sceneId] = createMapReservation(sceneId, portalState(sceneId));
+        }
+        return reserved ? { ...reserved } : null;
+    },
+
+    /** Discovery reserves the future epoch's cell; it grants no construction or travel rights. */
+    discoverWorld(sceneId) {
+        const cfg = this.getWorldConfig(sceneId);
+        if (!cfg) return { ok: false, reason: '未知世界位面' };
+        if (cfg.templatePreviewOnly || this.isDevWorldUnlocked(sceneId)
+            || WorldInstanceSystem.isDevPreview(sceneId)) {
+            return { ok: false, reason: '开发测试位面不进入正式航图，也不能登记为基地候选' };
+        }
+        if (!state.worldMap.discoveries[sceneId]) {
+            const entry = this.getReservedWorldMapCell(sceneId);
+            if (!entry) return { ok: false, reason: '该位面暂无符合城距要求的预留城址' };
+            state.worldMap.discoveries[sceneId] = entry;
+        }
+        reconcileMapDiscovery(sceneId);
+        state.worldMap.trackedWorldId = sceneId;
+        return { ok: true, discovery: this.getWorldMapDiscovery(sceneId) };
+    },
+
+    getWorldMapDiscovery(sceneId) {
+        if (this.isDevWorldUnlocked(sceneId) || WorldInstanceSystem.isDevPreview(sceneId)) return null;
+        const entry = state.worldMap.discoveries[sceneId];
+        const cell = entry && getWorldStrategicCell(sceneId, entry.cellId);
+        return cell ? { ...entry, cell } : null;
+    },
+
+    isWorldPlayerVisible(sceneId) {
+        const cfg = this.getWorldConfig(sceneId);
+        if (!cfg || cfg.templatePreviewOnly || this.isDevWorldUnlocked(sceneId)
+            || WorldInstanceSystem.isDevPreview(sceneId)) return false;
+        const portal = portalState(sceneId);
+        return portal.everConstructed || !!this.getWorldMapDiscovery(sceneId);
+    },
+
+    getTrackedWorldId() { return state.worldMap.trackedWorldId; },
+
+    getLastWorldExpedition(sceneId = null) {
+        const last = state.worldMap.lastExpedition;
+        return last && (!sceneId || last.sceneId === sceneId) ? { ...last } : null;
+    },
+
+    getWorldExpeditionDungeons(sceneId) {
+        const required = this.getWorldConfig(sceneId)?.requirements?.completedDungeons || [];
+        const list = dungeonConfigData.dungeonList;
+        if (!required.length) return [];
+        if (!requirementsMet(sceneId)) return required.filter((id) => list[id] && !this.hasCompletedDungeon(id));
+        const series = new Set(required.map((id) => list[id]?.series).filter(Boolean));
+        return Object.keys(list).filter((id) => required.includes(id) || series.has(list[id].series))
+            .sort((a, b) => (list[a].tierOrder || 0) - (list[b].tierOrder || 0));
+    },
+
+    getWorldExpeditionTarget(sceneId, dungeonType = this.getWorldExpeditionDungeons(sceneId)[0]) {
+        const discovery = this.getWorldMapDiscovery(sceneId);
+        if (!discovery) return { ok: false, reason: '请先在世界地图定位该位面的信标' };
+        if (!this.getWorldExpeditionDungeons(sceneId).includes(dungeonType)) {
+            return { ok: false, reason: '所选地牢不属于当前位面目标' };
+        }
+        const unlock = this.getDungeonUnlockStatus(dungeonType);
+        if (!unlock.ok) return { ok: false, reason: unlock.reason };
+        return { ok: true, target: {
+            sceneId, dungeonType, cellId: discovery.cellId, worldEpoch: discovery.worldEpoch,
+            purpose: !requirementsMet(sceneId) ? 'connect' : 'explore',
+        } };
+    },
+
+    beginWorldExpedition(target) {
+        const current = this.getWorldExpeditionTarget(target?.sceneId, target?.dungeonType);
+        if (!current.ok) return current;
+        if (current.target.cellId !== target.cellId || current.target.worldEpoch !== target.worldEpoch) {
+            return { ok: false, reason: '目标位面已进入新世代，请返回地图重新选择' };
+        }
+        const run = { ...current.target, runId: state.worldMap.nextRunId++, outcome: null };
+        state.worldMap.lastExpedition = run;
+        state.worldMap.trackedWorldId = run.sceneId;
+        return { ok: true, target: { ...run } };
+    },
+
+    finishWorldExpedition(target, outcome) {
+        const last = state.worldMap.lastExpedition;
+        if (!target || !RUN_OUTCOMES.has(outcome) || !last || last.outcome
+            || last.runId !== target.runId || last.sceneId !== target.sceneId
+            || last.dungeonType !== target.dungeonType || last.cellId !== target.cellId
+            || last.worldEpoch !== target.worldEpoch) return null;
+        last.outcome = outcome;
+        return { ...last };
     },
 
     recordDungeonRun(dungeonType, outcome) {
@@ -848,17 +1143,25 @@ export const WorldProgressionSystem = {
     },
 
     getFirstFoundingCandidates() {
-        const skipAuthorized = state.founding.skipAuthorized === true;
-        return this.getConstructableWorlds({ tutorialSkipQualification: skipAuthorized })
-            .filter((entry) => entry.firstConstruction
-                && !this.isDevWorldUnlocked(entry.sceneId)
-                && (requirementsMet(entry.sceneId)
-                    || (skipAuthorized && requirementsMetForTutorialSkip(entry.sceneId))))
-            .map((entry) => ({
-                ...entry,
-                reservation: this.getReservedWorldMapCell(entry.sceneId),
-            }))
-            .filter((entry) => entry.reservation?.cellId);
+        if (!['awaiting_king', 'selecting'].includes(state.founding.status)
+            || state.founding.giftConsumed) return [];
+        return Object.entries(worldSystemConfig.worlds || {})
+            .filter(([, cfg]) => cfg.firstFoundingCandidate === true
+                && cfg.templateId
+                && WorldInstanceSystem.getTemplate(cfg.templateId)?.storyEnabled !== false)
+            .map(([sceneId, cfg]) => ({
+                sceneId,
+                ...cfg,
+                firstConstruction: true,
+                cost: { gold: 0, energy: 0 },
+                name: WorldInstanceSystem.getTemplate(cfg.templateId)?.name || cfg.name,
+                terrainLabel: this.getWorldTerrainLabel(sceneId),
+            }));
+    },
+
+    /** 首城资格只决定“可免费建一座”；具体模板和坐标由玩家点击的合法地格决定。 */
+    inspectFirstFoundingCell(cellId) {
+        return inspectFirstFoundingCell(cellId);
     },
 
     /**
@@ -905,42 +1208,84 @@ export const WorldProgressionSystem = {
         if (!state.founding.sceneId || !state.founding.cellId) {
             return { ok: false, reason: '请先在位面航图中选择首城位置' };
         }
-        const candidate = this.getFirstFoundingCandidates().find((entry) =>
-            entry.sceneId === state.founding.sceneId && entry.reservation?.cellId === state.founding.cellId);
-        if (!candidate) {
+        const site = inspectFirstFoundingCell(state.founding.cellId);
+        if (!site.ok || site.runtimeSceneId !== state.founding.sceneId) {
             state.founding.sceneId = null;
             state.founding.cellId = null;
-            return { ok: false, reason: '该位面已不满足首城条件，请重新选择' };
+            return { ok: false, reason: site.reason || '该地格已不满足首城条件，请重新选择' };
         }
-        const result = this.constructPortal(state.founding.sceneId, { foundingGift: true });
-        if (!result.ok) return result;
+        if (!canCreateWorldPlayerBaseSnapshot(site.runtimeSceneId)) {
+            return { ok: false, reason: '首城市政厅配置缺失，暂不能完成授予' };
+        }
+        const locatedGeneration = createLocatedWorldGenerationContext(
+            site.runtimeSceneId, 1, site.cellId
+        );
+        const created = this.createStoryWorldInstance({
+            templateId: site.templateId,
+            strategicCellId: site.cellId,
+            seed: locatedGeneration.seed,
+            source: 'first_founding',
+        });
+        if (!created.ok) return created;
+        const sceneId = created.worldId;
+        if (!ensureWorldPlayerBaseSnapshot(sceneId)) {
+            if (!created.reused) this.disposeWorldInstance(sceneId);
+            state.founding.sceneId = null;
+            state.founding.cellId = null;
+            return { ok: false, reason: '首城市政厅快照登记失败，暂不能完成授予' };
+        }
+        state.worldMap.discoveries[sceneId] = {
+            cellId: site.cellId,
+            worldEpoch: this.getWorldEpoch(sceneId),
+            layoutVersion: WORLD_MAP_LAYOUT_VERSION,
+        };
         state.founding.status = 'founded';
+        state.founding.sceneId = sceneId;
         state.founding.giftConsumed = true;
-        state.founding.cellId = result.discovery?.cellId || state.founding.cellId;
-        state.worldMap.trackedWorldId = state.founding.sceneId;
+        state.founding.cellId = site.cellId;
+        state.worldMap.trackedWorldId = sceneId;
+        const result = {
+            ok: true,
+            sceneId,
+            runtimeSceneId: site.runtimeSceneId,
+            templateId: site.templateId,
+            firstConstruction: true,
+            worldEpoch: this.getWorldEpoch(sceneId),
+            generation: this.getWorldGenerationContext(sceneId),
+            cost: { gold: 0, energy: 0 },
+            foundingGift: true,
+            discovery: this.getWorldMapDiscovery(sceneId),
+        };
+        try { EventBus.emit('world:portal-completed', result); }
+        catch (error) { console.warn('[WorldProgression] 传送门完成报告发送失败:', error); }
         const completed = { ...result, founding: this.getFoundingState() };
         try { EventBus.emit('world:first-founding-completed', completed); }
         catch (error) { console.warn('[WorldProgression] 首城落成事件发送失败:', error); }
         return completed;
     },
 
-    /** 小鼠大王批准选址后，从位面面板的合法候选中确认首城。 */
-    claimFirstFoundingAt(sceneId) {
+    /** 小鼠大王批准选址后，以玩家点击的地格决定正式坐标和地貌模板。 */
+    claimFirstFoundingAtCell(cellId) {
         if (state.founding.status !== 'selecting') {
             return { ok: false, reason: state.founding.status === 'founded'
                 ? '首座城市已经建立' : state.founding.status === 'awaiting_king'
                     ? '请先返回小鼠大王处开启首城选址' : '请先成功通关废弃矿洞初级' };
         }
-        const candidate = this.getFirstFoundingCandidates().find((entry) => entry.sceneId === sceneId);
-        if (!candidate) return { ok: false, reason: '该位面当前不在合法首城候选中' };
-        if (state.founding.sceneId && state.founding.sceneId !== sceneId) {
-            return { ok: false, reason: '首城城址已定向到其他位面，请先接受该授予' };
-        }
-        const reservation = candidate.reservation;
-        if (!reservation) return { ok: false, reason: '该位面暂无符合城距要求的首城落点' };
-        state.founding.sceneId = sceneId;
-        state.founding.cellId = reservation.cellId;
+        const site = inspectFirstFoundingCell(cellId);
+        if (!site.ok) return site;
+        state.founding.sceneId = site.runtimeSceneId;
+        state.founding.cellId = site.cellId;
         return this.claimFirstFounding();
+    },
+
+    /** 兼容旧调用：仍可按模板确认，但新界面必须传入玩家实际选择的地格。 */
+    claimFirstFoundingAt(sceneId) {
+        const candidate = this.getFirstFoundingCandidates().find((entry) => entry.sceneId === sceneId);
+        if (!candidate) return { ok: false, reason: '该地貌当前不在合法首城候选中' };
+        const reservation = this.getReservedWorldMapCell(sceneId);
+        return reservation?.cellId
+            ? this.claimFirstFoundingAtCell(reservation.cellId)
+            : { ok: false, reason: '该地貌暂无合法首城落点' };
     },
 
     isWorldEligible(sceneId) {
@@ -1198,7 +1543,8 @@ export const WorldProgressionSystem = {
         }
         if (firstConstruction) {
             portal.worldEpoch = Math.max(0, portal.worldEpoch || 0) + 1;
-            setPortalGeneration(portal, createWorldGenerationContext(sceneId, portal.worldEpoch));
+            setPortalGeneration(portal, createLocatedWorldGenerationContext(sceneId, portal.worldEpoch,
+                state.worldMap.discoveries[sceneId]?.cellId));
         }
         setPortalStatus(portal, WORLD_LIFECYCLE_STATUS.REBUILDING);
         portal.everConstructed = true;
@@ -1363,7 +1709,7 @@ export const WorldProgressionSystem = {
             return { ok: false, reason: '该位面当前不需要移民恢复' };
         }
         portal.worldEpoch = Math.max(0, portal.worldEpoch || 0) + 1;
-        setPortalGeneration(portal, createWorldGenerationContext(sceneId, portal.worldEpoch));
+        setPortalGeneration(portal, createLocatedWorldGenerationContext(sceneId, portal.worldEpoch, entry.cellId));
         portal.everConstructed = true;
         portal.endpointExists = false;
         portal.hp = 0;

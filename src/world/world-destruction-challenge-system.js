@@ -376,11 +376,11 @@ export const WorldDestructionChallengeSystem = {
     },
 
     getDebugModel() {
-        const worldIds = [
+        const worldIds = [...new Set([
             ...WorldProgressionSystem.getWorldIds().filter((sceneId) =>
                 !WorldProgressionSystem.getWorldConfig(sceneId)?.templatePreviewOnly),
             ...WorldProgressionSystem.getWorldInstanceIds(),
-        ];
+        ])];
         return {
             version: VERSION,
             worlds: worldIds.map((sceneId) => this.getWorldModel(sceneId)),
@@ -409,11 +409,11 @@ export const WorldDestructionChallengeSystem = {
         this.reset();
         if (!data || typeof data !== 'object' || !data.worlds || typeof data.worlds !== 'object') return;
         const now = currentGameTimeMs();
-        const worldIds = [
+        const worldIds = [...new Set([
             ...WorldProgressionSystem.getWorldIds().filter((sceneId) =>
                 !WorldProgressionSystem.getWorldConfig(sceneId)?.templatePreviewOnly),
             ...WorldProgressionSystem.getWorldInstanceIds(),
-        ];
+        ])];
         for (const sceneId of worldIds) {
             const incoming = data.worlds[sceneId];
             if (!incoming?.active) continue;
