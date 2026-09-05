@@ -201,7 +201,7 @@
         { "slot": "spearman", "role": "反装甲", "fromUnitName": "仓鼠长戟", "unitKey": "anti_tank_rifleman", "unitName": "仓鼠反坦克步枪兵", "profile": "波波沙冲锋枪短点射，并在近距离周期投掷反坦克手榴弹" },
         { "slot": "scout", "role": "斥候", "fromUnitName": "仓鼠游侠", "unitKey": "industrial_recon_rifleman", "unitName": "仓鼠近代侦察步枪兵", "profile": "栓动步枪远距离单发，具备高视野与不覆盖强效果的弱化标记" }
       ] },
-      { "id": "thatch_hut_level_3", "level": 4, "name": "特战基地", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "thatch_hut_lv3", "assetPath": "assets/terrain/thatch_hut_lv3.png", "displayW": 256, "displayH": 179, "footOffsetY": 88 }, "lines": [
+      { "id": "thatch_hut_level_3", "level": 4, "name": "特战基地", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "thatch_hut_lv3", "assetPath": "assets/terrain/thatch_hut_lv3.png", "displayW": 256, "displayH": 250, "footOffsetY": 124, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.74, "widthRatio": 1, "depthRatio": 0.512, "scaleMode": "strict" } }, "lines": [
         { "slot": "spearman", "role": "长枪兵", "fromUnitName": "仓鼠长戟", "unitKey": "anti_vehicle", "unitName": "仓鼠反载", "profile": "沙色迷彩突击队员；冲锋枪常规射击，周期性取出一次性火箭筒爆破载具" },
         { "slot": "scout", "role": "斥候", "fromUnitName": "仓鼠游侠", "unitKey": "sniper", "unitName": "仓鼠狙击手", "profile": "吉利服特战狙击手；低射速、高单发、超长射程、高视野并保留标记命中" }
       ] }
@@ -2077,5 +2077,5 @@
     "upgradeProject": "tavern_economy",
     "panelDescription": "酒保沿连续道路从仓库取粮，返店后开启全位面宴饮增效；只提高资源与科研的最终产出，不影响市场、输入成本或处理速度。",
     "buildWarning": "每个位面限定一座，必须通过连续道路连接至少一座仓库；建筑固定提供 1 个酒保岗位。"
-  },
+  }
 }

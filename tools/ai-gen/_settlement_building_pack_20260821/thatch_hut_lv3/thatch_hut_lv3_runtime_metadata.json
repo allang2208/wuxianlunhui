@@ -1,17 +1,18 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\thatch_hut_lv3\\thatch_hut_lv3_auto_cutout_v02.png",
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\thatch_hut_lv3\\rework_tier_materials_20260828\\candidates_dev_s12\\thatch_hut_lv3\\thatch_hut_lv3_structure_v03_keyed.png",
   "output": "assets\\terrain\\thatch_hut_lv3.png",
   "sourceMode": "RGBA",
   "background": null,
   "matteColor": null,
   "matteEdgeWidth": null,
   "matteTolerance": null,
-  "nearestOpaqueEdgeRgb": false,
-  "nearestOpaqueAlpha": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
   "defringeInnerPixels": 0,
-  "minComponentPixels": 0,
-  "removedComponents": 0,
-  "removedComponentPixels": 0,
+  "minComponentPixels": 2,
+  "removedComponents": 5,
+  "removedComponentPixels": 5,
+  "preserveAlphaExact": true,
   "maskImage": null,
   "maskDilate": null,
   "fillAlphaHoles": false,
@@ -21,29 +22,32 @@
   "maskAddRects": [],
   "restoreAlphaRects": [],
   "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
   "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
   "greenHueRange": null,
   "greenSaturationMin": null,
   "greenValueMin": null,
   "cropBox": [
-    44,
-    230,
-    1214,
-    1046
+    77,
+    74,
+    944,
+    921
   ],
   "fileSize": [
-    1170,
-    816
+    867,
+    847
   ],
   "alphaBBox": [
     4,
     4,
-    1166,
-    812
+    863,
+    843
   ],
   "displayW": 256,
-  "displayH": 179,
-  "footOffsetY": 88,
-  "scaleX": 0.2188034188034188,
-  "scaleY": 0.2193627450980392
+  "displayH": 250,
+  "footOffsetY": 124,
+  "scaleX": 0.2952710495963091,
+  "scaleY": 0.29515938606847697
 }

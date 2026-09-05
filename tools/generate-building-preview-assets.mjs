@@ -3,6 +3,7 @@
  *
  * Usage:
  *   node tools/generate-building-preview-assets.mjs
+ *   node tools/generate-building-preview-assets.mjs --only tower
  *
  * Source PNGs and gameplay configuration remain authoritative. Generated files:
  *   assets/ui/building-thumbnails/<build-item-id>.png
@@ -26,6 +27,9 @@ const THUMBNAIL_PADDING = 3;
 const NOMINAL_WIDTH = 256;
 const NOMINAL_HEIGHT = 128;
 const ALGORITHM_VERSION = STRUCTURE_GROUND_FIT_ALGORITHM_VERSION;
+const ONLY_INDEX = process.argv.indexOf('--only');
+const ONLY_ID = ONLY_INDEX >= 0 ? String(process.argv[ONLY_INDEX + 1] || '').trim() : '';
+if (ONLY_INDEX >= 0 && !ONLY_ID) throw new Error('--only requires a target id');
 
 const readJson = (relativePath) => JSON.parse(
     fs.readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -372,8 +376,12 @@ function writeIfChanged(filePath, buffer) {
     return true;
 }
 
-const manifestEntries = [];
-for (const target of groundFitTargets()) {
+const allGroundFitTargets = groundFitTargets();
+const selectedGroundFitTargets = ONLY_ID
+    ? allGroundFitTargets.filter((target) => target.id === ONLY_ID)
+    : allGroundFitTargets;
+const generatedManifestEntries = [];
+for (const target of selectedGroundFitTargets) {
     const source = existingSource(target.sourcePath, target.id);
     const png = PNG.sync.read(fs.readFileSync(source.absolute));
     const alphaAt = (x, y) => png.data[(y * png.width + x) * 4 + 3];
@@ -399,7 +407,7 @@ for (const target of groundFitTargets()) {
             options
         );
     if (!fit) throw new Error(`${target.id}: alpha ground fit unavailable`);
-    manifestEntries.push({
+    generatedManifestEntries.push({
         algorithmVersion: ALGORITHM_VERSION,
         id: target.id,
         textureKey: target.textureKey,
@@ -420,6 +428,18 @@ for (const target of groundFitTargets()) {
     });
 }
 
+let manifestEntries = generatedManifestEntries;
+if (ONLY_ID) {
+    const previous = readJson('data/structure-ground-fits.json');
+    const replacedIds = new Set(generatedManifestEntries.map((entry) => entry.id));
+    manifestEntries = [
+        ...(Array.isArray(previous.entries)
+            ? previous.entries.filter((entry) => !replacedIds.has(entry.id))
+            : []),
+        ...generatedManifestEntries,
+    ];
+}
+
 manifestEntries.sort((a, b) => (
     a.textureKey.localeCompare(b.textureKey)
     || a.displayWidth - b.displayWidth
@@ -434,7 +454,14 @@ const manifestChanged = writeIfChanged(manifestPath, manifest);
 
 let changedThumbnails = 0;
 const thumbnailDirectory = path.join(ROOT, 'assets/ui/building-thumbnails');
-for (const target of thumbnailTargets()) {
+const allThumbnailTargets = thumbnailTargets();
+const selectedThumbnailTargets = ONLY_ID
+    ? allThumbnailTargets.filter((target) => target.id === ONLY_ID)
+    : allThumbnailTargets;
+if (ONLY_ID && selectedGroundFitTargets.length === 0 && selectedThumbnailTargets.length === 0) {
+    throw new Error(`unknown --only target: ${ONLY_ID}`);
+}
+for (const target of selectedThumbnailTargets) {
     const source = existingSource(target.sourcePath, target.id);
     const png = PNG.sync.read(fs.readFileSync(source.absolute));
     const thumbnail = createThumbnail(png);
