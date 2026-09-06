@@ -197,6 +197,7 @@ export class HamsterMusketeerAI {
             beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
             m._animState = 'attack';
             m._attackSwing = true;
+            m._attackActionSeq = (m._attackActionSeq || 0) + 1;
         }
     }
 

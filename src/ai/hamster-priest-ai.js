@@ -280,6 +280,7 @@ export class HamsterPriestAI {
         m.target = target;
         m._tacticalTarget = null;
         m._prayerCast = true;
+        m._prayerActionSeq = (m._prayerActionSeq || 0) + 1;
         m._animState = 'spell';
         m._castState = 'casting';
         const faceTarget = target || player || m;

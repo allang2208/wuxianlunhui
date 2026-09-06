@@ -206,6 +206,7 @@ export class JunglePriestAI {
         m._animState = 'spell';
         m._castState = 'casting';
         m._prayerCast = true;
+        m._prayerActionSeq = (m._prayerActionSeq || 0) + 1;
         m.rotation = Math.atan2(target.y - m.y, target.x - m.x);
         m._lastFaceRight = target.x >= m.x;
     }

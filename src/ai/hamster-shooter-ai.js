@@ -185,6 +185,7 @@ export class HamsterShooterAI {
                     beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
                     m._animState = 'attack';
                     m._attackSwing = true; // 渲染层播攻击动画
+                    m._attackActionSeq = (m._attackActionSeq || 0) + 1;
                 } else {
                     m._animState = 'idle'; // 间隔期待机（速度不清零，交给 MovementSystem 渐近减速）
                 }
@@ -272,6 +273,7 @@ export class HamsterShooterAI {
                     beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
                     m._animState = 'attack';
                     m._attackSwing = true;
+                    m._attackActionSeq = (m._attackActionSeq || 0) + 1;
                 } else {
                     m._animState = 'idle'; // 间隔期待机（速度不清零，渐近减速）
                 }
