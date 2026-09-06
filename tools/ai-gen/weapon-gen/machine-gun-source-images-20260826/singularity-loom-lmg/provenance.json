@@ -1,0 +1,13 @@
+{
+  "asset": "奇点织机 / Singularity Loom",
+  "weaponId": "weapon36",
+  "provider": "OpenAI imagegen built-in generation",
+  "generatedAt": "2026-08-26",
+  "source": "singularity-loom-lmg-final.png",
+  "formalAssets": [
+    "assets/weapons/singularity-loom-lmg-equip.png",
+    "assets/icons/singularity-loom-lmg-equip.png"
+  ],
+  "processing": "add-weapon.py process-image --cutout-tool none --no-orient --no-auto-level; 2048 square, content width 0.915, center (0.500, 0.543)",
+  "prompt": "Create a production-ready original 2D game weapon asset: a MYTHIC LIGHT MACHINE GUN named Singularity Loom. Strict orthographic right-facing side profile, the entire weapon visible from stock to muzzle, perfectly horizontal receiver and barrel axis. The muzzle points to the RIGHT. Absolutely no front-face or bore-hole perspective: the muzzle brake must read only as a flat side silhouette with no visible circular opening. Original non-infringing industrial science-fiction design, not based on or resembling any existing game weapon. Long heavy light-machine-gun silhouette with a reinforced shoulder stock, dark rectangular belt box magazine under the receiver, substantial rear receiver, long shrouded barrel, and a compact mechanically-connected cyan-white gravitational containment ring assembly integrated around the mid-barrel. Matte obsidian black metal, cold silver structural ribs, restrained ivory ceramic panels, cyan-white luminous energy seams, subtle mythic craftsmanship, no foregrip, no bipod, no scope, no logos, no lettering, no symbols, no detached floating pieces. Crisp hard-surface details, realistic material separation, clear readable silhouette at small size, high contrast but not over-glowing. Transparent background with clean alpha edges, no floor, no shadow, no particles, no effects around the gun, no border, no text. Centered with generous even padding, square 2048x2048 composition, weapon occupies about 88-91% of canvas width."
+}

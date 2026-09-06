@@ -1,0 +1,90 @@
+{
+  "archive": "machine-gun-source-images-20260826",
+  "archivedAt": "2026-09-06",
+  "sourceLocation": "tools/ai-gen/_weapon_candidates",
+  "verification": {
+    "rawToPrepared": {
+      "rpd": "byte-identical with cleanup-enclosed-background.py default settings",
+      "m249": "byte-identical with cleanup-enclosed-background.py default settings",
+      "ultimax100": "byte-identical with cleanup-enclosed-background.py default settings",
+      "mg42": "byte-identical with cleanup-enclosed-background.py default settings",
+      "fusion-core-lmg": "byte-identical with --min-enclosed-area 2000"
+    },
+    "preparedToFormalWeaponTexture": {
+      "rpd": "pixel-identical",
+      "m249": "pixel-identical",
+      "ultimax100": "pixel-identical",
+      "mg42": "pixel-identical",
+      "singularity-loom-lmg": "pixel-identical",
+      "fusion-core-lmg": "source-chain preservation only; not pixel-identical to the current formal texture"
+    },
+    "normalization": "tools/ai-gen/add-weapon.py process-image --cutout-tool none --no-orient --no-auto-level"
+  },
+  "files": [
+    {
+      "path": "machine-guns/cleanup-enclosed-background.py",
+      "bytes": 2375,
+      "sha256": "f58cd0170870cda1f04e35677a019792c77453902ae9a1f2b92a70bc2bd1cea1"
+    },
+    {
+      "path": "machine-guns/fusion-core-lmg-cutout-v2.png",
+      "bytes": 484659,
+      "sha256": "125b5adb30deef4149a04f0f334c02838371b85a23214e7ecb1bd6fabb8f1d36"
+    },
+    {
+      "path": "machine-guns/fusion-core-lmg-raw-v1.png",
+      "bytes": 1077820,
+      "sha256": "ad7d6d63bdce6779465a8727993284fa3dc0fae76eb0da431551546aa0ab3110"
+    },
+    {
+      "path": "machine-guns/m249-clean.png",
+      "bytes": 503972,
+      "sha256": "25d9cc933d9e2a48762c7f344fab6844c3b02cdde053598fd630b198770bbc3a"
+    },
+    {
+      "path": "machine-guns/m249-raw.png",
+      "bytes": 1050849,
+      "sha256": "f903c08a5de2f878d0d764debdc93e954fdda3b671df28027435e817c2720f46"
+    },
+    {
+      "path": "machine-guns/mg42-clean.png",
+      "bytes": 615834,
+      "sha256": "67089ca85b8be2133fd4020c673bbf7cd589ee6373535e63ae64e0af6f10d0e3"
+    },
+    {
+      "path": "machine-guns/mg42-raw.png",
+      "bytes": 1157903,
+      "sha256": "68d1aa0472071dd8bcac6741c874d4358fe00ddb4746334701e480fe924de1f1"
+    },
+    {
+      "path": "machine-guns/rpd-clean.png",
+      "bytes": 596573,
+      "sha256": "cbd68070028e8a982e4a36e57806fbed9330a65c5e72899dcf8b279cf75c3e3a"
+    },
+    {
+      "path": "machine-guns/rpd-raw.png",
+      "bytes": 1117846,
+      "sha256": "59e117bece6591ab9668ef85be172489c52e79459084e2dcae702898cefbfa8a"
+    },
+    {
+      "path": "machine-guns/ultimax100-clean.png",
+      "bytes": 473490,
+      "sha256": "98447528076349863c57608534c07c11c985930dc0343eb5e32758d13166d3ef"
+    },
+    {
+      "path": "machine-guns/ultimax100-raw.png",
+      "bytes": 1035479,
+      "sha256": "56c4663eea9fc6ae93007c115b0aee89bc0f71287c4018a027f362c0e174bd9c"
+    },
+    {
+      "path": "singularity-loom-lmg/provenance.json",
+      "bytes": 1965,
+      "sha256": "5cbb77f630e31cd4028c51e0fe80081929de17871c5815fe71787f5ab26ed16c"
+    },
+    {
+      "path": "singularity-loom-lmg/singularity-loom-lmg-final.png",
+      "bytes": 476376,
+      "sha256": "3204a1f282b88892cfa71b54c84e8e746109e126b9934c66dd244ababf31216c"
+    }
+  ]
+}
