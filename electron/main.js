@@ -27,6 +27,12 @@ function loadMainPage(targetWindow, mode = isDevelopmentMode() ? 'vite' : 'dist'
         : targetWindow.loadFile(DIST_INDEX_PATH);
 }
 
+function sendBackgroundState() {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    const background = !mainWindow.isFocused() || mainWindow.isMinimized() || !mainWindow.isVisible();
+    mainWindow.webContents.send('background-changed', background);
+}
+
 function createWindow() {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
@@ -50,6 +56,8 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
+            // 与前端默认开启一致；页面初始化后应用其已保存的后台运行选项。
+            backgroundThrottling: false,
             preload: path.join(__dirname, 'preload.js'),
             zoomFactor: 1.0
         },
@@ -80,6 +88,11 @@ function createWindow() {
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
+
+    // 关闭节流会改变 Page Visibility API；单独转发真实窗口状态。
+    for (const event of ['focus', 'blur', 'minimize', 'restore', 'show', 'hide']) {
+        mainWindow.on(event, sendBackgroundState);
+    }
 
     // 只转发本窗口的 ESC，不占用系统全局按键，也不与渲染层 keydown 重复处理。
     mainWindow.webContents.on('before-input-event', (event, input) => {
@@ -157,6 +170,7 @@ function createWindow() {
         loadFailureDialogShown = false;
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('fullscreen-changed', mainWindow.isFullScreen());
+            sendBackgroundState();
         }
     });
 
@@ -310,6 +324,18 @@ ipcMain.on('toggle-fullscreen', () => {
 
 ipcMain.handle('get-fullscreen', () => {
     return mainWindow ? mainWindow.isFullScreen() : false;
+});
+
+ipcMain.handle('set-background-running', (event, enabled) => {
+    if (!mainWindow || mainWindow.isDestroyed()
+        || event.sender !== mainWindow.webContents
+        || event.senderFrame !== mainWindow.webContents.mainFrame
+        || typeof enabled !== 'boolean') {
+        throw new Error('Invalid background-running request');
+    }
+    mainWindow.webContents.setBackgroundThrottling(!enabled);
+    sendBackgroundState();
+    return enabled;
 });
 
 ipcMain.on('exit-app', () => {

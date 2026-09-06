@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // 全屏控制
     toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
     getFullscreen: () => ipcRenderer.invoke('get-fullscreen'),
+    setBackgroundRunning: (enabled) => ipcRenderer.invoke('set-background-running', enabled),
     exitApp: () => ipcRenderer.send('exit-app'),
     
     // 平台信息
@@ -40,4 +41,8 @@ ipcRenderer.on('esc-pressed', () => {
 // 监听窗口全屏状态变化
 ipcRenderer.on('fullscreen-changed', (event, isFullscreen) => {
     window.dispatchEvent(new CustomEvent('electron-fullscreen-change', { detail: isFullscreen }));
+});
+
+ipcRenderer.on('background-changed', (_event, background) => {
+    window.dispatchEvent(new CustomEvent('electron-background-change', { detail: background }));
 });
