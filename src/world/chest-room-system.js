@@ -22,6 +22,7 @@ import { MagicDustItem } from '../config/enchant-config.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites, finishGateSprites, prepareGateSprites } from './gate-visual-state.js';
+import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 
 const COUNTDOWN_SEC = 60;
 const OPEN_RANGE = 120; // 与放大一倍的宝箱贴图匹配（原 60）
@@ -258,6 +259,7 @@ export const ChestRoomSystem = {
         this._shadowGfx.setOrigin(0, 0);
         this._shadowGfx.setAlpha(0.55);
         this._shadowGfx.setDepth(bounds.cy - 998);
+        this.syncShadowVisibility();
 
         // 3. 刷怪排除区：宝箱房菱形外接（+ 余量），整片房内不刷怪
         const exRx = (maxX - minX) / 2 + 60, exRy = (maxY - minY) / 2 + 60;
@@ -631,6 +633,11 @@ export const ChestRoomSystem = {
     _destroyTimer() {
         if (this._timerText) { this._timerText.destroy(); this._timerText = null; }
         if (this._timerFrame) { this._timerFrame.destroy(); this._timerFrame = null; }
+    },
+
+    /** 宝箱房墙脚影不走太阳共享层，但必须服从同一个“启用阴影”主开关。 */
+    syncShadowVisibility(enabled = EnvironmentLightingSystem.isShadowEnabled()) {
+        if (this._shadowGfx?.active) this._shadowGfx.setVisible(enabled !== false);
     },
 
     /** 清理（CombatRoomSystem.cleanupGate 调用）：销毁精灵/碰撞/计时，直墙件随场景恢复自动还原 */
