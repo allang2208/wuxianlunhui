@@ -18,6 +18,7 @@ import {
     routeProducedGold,
 } from './economy-gold-routing.js';
 import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
+import { TopNotificationQueue } from '../ui/top-notification-queue.js';
 import {
     getWorldSnapshots, isWorldLive, isWorldSnapshotCurrent,
 } from './world122-snapshot.js';
@@ -29,6 +30,7 @@ import { routeBakeryPlantTributes } from './bakery-tribute-routing.js';
 import { routeArmoryEnhancementStones } from './armory-reward-routing.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
 import { WorldInstanceSystem } from './world-instance-system.js';
+import { WorldStrategySystem } from './world-strategy-system.js';
 import {
     ensureWorldBackgroundLedger,
     invalidateWorldBackgroundLedger,
@@ -40,6 +42,10 @@ const TICK_MS = 1000;
 
 function worldName(sceneId) {
     return globalThis.window?.WorldProgressionSystem?.getWorldConfig?.(sceneId)?.name || sceneId;
+}
+
+function totalItemCount(items) {
+    return (items || []).reduce((sum, item) => sum + Math.max(1, Math.floor(Number(item?.stack) || 1)), 0);
 }
 
 export const WorldSimDriver = {
@@ -142,7 +148,7 @@ export const WorldSimDriver = {
     },
 
     _grantReward(reward) {
-        if (reward.gold) return routeProducedGold(reward.gold);
+        if (reward.gold) return routeProducedGold(reward.gold, { accounting: { ignore: true } });
         if (reward.tributeItemIds?.length) {
             const routed = routeBakeryPlantTributes(reward.tributeItemIds);
             return { acceptedTributes: routed.accepted };
@@ -195,26 +201,33 @@ export const WorldSimDriver = {
             invalidateWorldBackgroundLedger(snap, 'settlement-error');
             return null;
         }
+        const expeditionDelivery = { runs: 0, itemCount: 0, gold: 0, mailed: 0 };
         for (const reward of report.explorerRewards || []) {
             const structure = (snap.structures || []).find((entry) =>
                 entry.id === reward.structureId || (entry.x === reward.x && entry.y === reward.y));
             const gold = Math.max(0, Math.floor(Number(reward.gold) || 0));
             const items = (reward.items || []).map((item) => JSON.parse(JSON.stringify(item)));
             if (gold) items.push(createGoldItem(gold));
+            expeditionDelivery.runs++;
+            expeditionDelivery.itemCount += totalItemCount(reward.items);
+            expeditionDelivery.gold += gold;
             try {
                 const sourceId = `world-explorer:${sceneId}:${snap.worldEpoch || 0}:${reward.structureId || 'camp'}:${reward.sequence ?? 'legacy'}`;
-                PlayerRewardDelivery.deliver(items, {
+                const delivery = PlayerRewardDelivery.deliver(items, {
                     sourceId,
                     title: `${worldName(sceneId)} · 探险战利品`,
                     deferDuringRun: false,
                 });
+                expeditionDelivery.mailed += delivery.mailed || 0;
             } catch (error) {
-                // 信箱层失败不能吞掉已经结算的战利品；退回原营地暂存合同。
+                // 报告层或信箱层失败不能吞掉已经结算的战利品；退回原营地暂存合同。
                 console.warn(`[WorldSimDriver] ${sceneId} 探险奖励投递失败，改为营地暂存:`, error);
                 const pending = structure ? (structure.pendingExplorerDrops ||= []) : null;
-                if (pending) pending.push(...items);
+                if (!pending) continue;
+                pending.push(...items);
             }
         }
+        this._recordOperationalReports(sceneId, report, expeditionDelivery, { notify });
         TroopLineSystem.onBackgroundProduction(sceneId, snap, productionBaseline);
         refreshWorldBackgroundLedger(snap, nowGame, getWorld122ResearchSummary(snap), reason);
         if (notify) this._notify(sceneId, report);
@@ -256,6 +269,43 @@ export const WorldSimDriver = {
         }
     },
 
+    _publishReport(event, text, { tone = 'success', notify = true } = {}) {
+        if (!event) return;
+        if (!notify) {
+            WorldStrategySystem.announceEvent(event.id, { silent: true });
+            return;
+        }
+        const revision = event.revision;
+        TopNotificationQueue.show(text, {
+            tone,
+            onComplete: () => {
+                const current = WorldStrategySystem.state.events.find((entry) => entry.id === event.id);
+                if (current?.revision === revision) WorldStrategySystem.announceEvent(event.id);
+            },
+        });
+    },
+
+    _recordOperationalReports(sceneId, report, expeditionDelivery, { notify = true } = {}) {
+        const name = worldName(sceneId);
+        const engineering = {
+            buildingUpgrades: report.buildingUpgradesCompleted || [],
+            continuousStages: report.continuousUpgradeStages || [],
+            recruits: Math.max(0, Number(report.unitsProduced) || 0),
+        };
+        if (engineering.buildingUpgrades.length || engineering.continuousStages.length || engineering.recruits) {
+            const event = WorldStrategySystem.recordEngineeringReport({
+                sceneId, worldName: name, report: engineering,
+            }, { announce: false });
+            this._publishReport(event, `${name}后台工程完成：${event?.detail || '工程记录已归档'}`, { notify });
+        }
+        if (expeditionDelivery.runs) {
+            const event = WorldStrategySystem.recordExpeditionReport({
+                sceneId, worldName: name, report: expeditionDelivery,
+            }, { announce: false });
+            this._publishReport(event, `${name}探险归来：${event?.detail || `${expeditionDelivery.runs} 次`}`, { notify });
+        }
+    },
+
     getDebugModel() {
         const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         return this._backgroundEntries().map(([sceneId, snapshot]) => {
@@ -281,7 +331,6 @@ export const WorldSimDriver = {
         if (report.defeated) {
             lines.push([`⚠ ${sceneId} 后台结算异常失守`, '#ff5555']);
         } else {
-            if (report.unitsProduced > 0) lines.push([`${sceneId} 新兵 +${report.unitsProduced}`, '#8ad0ff']);
             if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
             if (report.deepDrillEnergyMined > 0) {
                 lines.push([`${sceneId} 深钻采掘 +${Math.round(report.deepDrillEnergyMined)} 能源`, '#72d8d0']);
@@ -297,9 +346,6 @@ export const WorldSimDriver = {
             if (report.enhancementStonesProduced > 0) {
                 lines.push([`${sceneId} 军械整理 +${report.enhancementStonesProduced} 强化石`, '#d8ad62']);
             }
-            const explorerCount = (report.explorerRewards || []).length;
-            if (explorerCount > 0) lines.push([`${sceneId} 探险完成 ${explorerCount} 次`, '#c9a0ff']);
-            if (report.modulesCompleted?.length > 0) lines.push([`${sceneId} 兵种升级完成 ${report.modulesCompleted.length} 项`, '#8ad0ff']);
         }
         if (!lines.length || !player) return;
         lines.forEach(([text, color], i) => {
