@@ -13,6 +13,8 @@
   },
   "resourceResidency": {
     "maxParallelDownloads": 3,
+    "loadTimeoutMs": 30000,
+    "loadBatchMiB": 64,
     "hotCacheTtlMs": 30000,
     "negativeCacheTtlMs": 5000,
     "softGpuBudgetMiB": 640,

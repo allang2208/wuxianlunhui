@@ -1,6 +1,7 @@
 import producerBuildings from '../../../data/producer-buildings.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 import { buildingArtUrl } from '../../config/building-art-revision.js';
+import { isTextureReady, loadedTextureBytes, animationUsesCurrentTextures, removeAnimationSafely } from './asset-texture-state.js';
 
 const DEFAULT_IMAGE_BYTES = 4 * 1024 * 1024;
 const CORE_TEXTURE_KEYS = new Set([
@@ -62,20 +63,25 @@ function addSheet(configId, animation, { core = false } = {}) {
 for (const config of configById.values()) {
     const core = config.id === 'portal' || config.id === 'plane_altar';
     addImage(config.id, config.tex, config.assetPath || `assets/terrain/${config.tex}.png`, { core });
-    if (config.panelTex) {
-        addImage(config.id, config.panelTex,
-            config.panelAssetPath || `assets/terrain/${config.panelTex}.png`, { core });
-    }
     addSheet(config.id, config.animation, { core });
     addImage(config.id, config.groundContact?.textureKey,
         config.groundContact?.assetPath, { core });
     addImage(config.id, config.foregroundOverlay?.textureKey,
         config.foregroundOverlay?.assetPath, { core });
-    for (const tier of config.recruitmentTiers || []) {
+    const visualTiers = [
+        ...(config.recruitmentTiers || []),
+        ...(config.buildingTiers || []),
+    ];
+    for (const tier of visualTiers) {
         const visual = tier?.visual;
         if (!visual?.tex) continue;
         addImage(config.id, visual.tex,
             visual.assetPath || `assets/terrain/${visual.tex}.png`, { core });
+        addSheet(config.id, visual.animation, { core });
+        addImage(config.id, visual.groundContact?.textureKey,
+            visual.groundContact?.assetPath, { core });
+        addImage(config.id, visual.foregroundOverlay?.textureKey,
+            visual.foregroundOverlay?.assetPath, { core });
     }
 }
 
@@ -119,13 +125,35 @@ export function getBuildingVisualKeysForConfig(configId, bodyKey = null) {
     const keys = new Set();
     if (bodyKey && manifest.has(bodyKey)) keys.add(bodyKey);
     else if (config.tex && manifest.has(config.tex)) keys.add(config.tex);
+    const visualTiers = [
+        ...(config.recruitmentTiers || []),
+        ...(config.buildingTiers || []),
+    ];
+    const activeTierVisual = visualTiers
+        .map((tier) => tier?.visual)
+        .find((visual) => visual?.tex === bodyKey);
+    if (activeTierVisual?.animation?.textureKey
+        && manifest.has(activeTierVisual.animation.textureKey)) {
+        keys.add(activeTierVisual.animation.textureKey);
+    }
+    if (activeTierVisual?.groundContact?.textureKey
+        && manifest.has(activeTierVisual.groundContact.textureKey)) {
+        keys.add(activeTierVisual.groundContact.textureKey);
+    }
+    if (activeTierVisual?.foregroundOverlay?.textureKey
+        && manifest.has(activeTierVisual.foregroundOverlay.textureKey)) {
+        keys.add(activeTierVisual.foregroundOverlay.textureKey);
+    }
     for (const key of configKeys.get(configId) || []) {
         const entry = manifest.get(key);
         if (!entry) continue;
         // 同一建筑的旧等级主体不能跟随新主体一起加载；仅保留共享复合层。
-        if (key === config.animation?.textureKey
-            || key === config.groundContact?.textureKey
-            || key === config.foregroundOverlay?.textureKey) {
+        if ((key === config.animation?.textureKey
+                && !activeTierVisual?.animation?.textureKey)
+            || (key === config.groundContact?.textureKey
+                && !activeTierVisual?.groundContact?.textureKey)
+            || (key === config.foregroundOverlay?.textureKey
+                && !activeTierVisual?.foregroundOverlay?.textureKey)) {
             keys.add(key);
         }
     }
@@ -155,7 +183,7 @@ export function queueBuildingAssets(scene, keys) {
     const queued = [];
     for (const key of new Set(keys || [])) {
         const entry = manifest.get(key);
-        if (!entry || scene.textures.exists(key)) continue;
+        if (!entry || isTextureReady(scene, key)) continue;
         if (entry.type === 'spritesheet') {
             scene.load.spritesheet(key, entry.url, {
                 frameWidth: entry.frameWidth,
@@ -174,7 +202,11 @@ export function registerBuildingAnimations(scene, keys) {
     const requested = new Set(keys || []);
     for (const entry of manifest.values()) {
         if (entry.type !== 'spritesheet' || !requested.has(entry.key)) continue;
-        if (!scene.textures.exists(entry.key) || scene.anims.exists(entry.key)) continue;
+        if (!isTextureReady(scene, entry.key)) continue;
+        if (scene.anims.exists(entry.key)) {
+            if (animationUsesCurrentTextures(scene, scene.anims.get(entry.key))) continue;
+            removeAnimationSafely(scene, entry.key);
+        }
         scene.anims.create({
             key: entry.key,
             frames: scene.anims.generateFrameNumbers(entry.key, { start: 0, end: entry.endFrame }),
@@ -190,10 +222,5 @@ export function unloadBuildingAsset(scene, key) {
 }
 
 export function estimateLoadedBuildingBytes(scene, key) {
-    const entry = manifest.get(key);
-    const texture = scene.textures.get(key);
-    const source = texture?.source?.[0]?.image;
-    const width = Number(source?.naturalWidth || source?.width) || 0;
-    const height = Number(source?.naturalHeight || source?.height) || 0;
-    return width > 0 && height > 0 ? width * height * 4 : (entry?.estimatedBytes || 0);
+    return loadedTextureBytes(scene, key);
 }
