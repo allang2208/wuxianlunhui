@@ -1,0 +1,15 @@
+{
+  "items": [
+    { "weaponId": "weapon6", "name": "PKM", "path": "assets/icons/machine-guns/pkm.png" },
+    { "weaponId": "weapon11", "name": "QJB-201", "path": "assets/icons/machine-guns/qjb-201.png" },
+    { "weaponId": "weapon31", "name": "RPD", "path": "assets/icons/machine-guns/rpd.png" },
+    { "weaponId": "weapon32", "name": "M249 SAW", "path": "assets/icons/machine-guns/m249-saw.png" },
+    { "weaponId": "weapon33", "name": "Ultimax 100 Mk8", "path": "assets/icons/machine-guns/ultimax-100-mk8.png" },
+    { "weaponId": "weapon34", "name": "MG42", "path": "assets/icons/machine-guns/mg42.png" },
+    { "weaponId": "weapon35", "name": "熔核轻机枪", "path": "assets/icons/machine-guns/fusion-core-lmg.png" },
+    { "weaponId": "weapon36", "name": "奇点织机", "path": "assets/icons/machine-guns/singularity-loom-lmg.png" },
+    { "weaponId": "weapon37", "name": "天穹测绘者", "path": "assets/icons/machine-guns/celestial-cartographer-lmg.png" },
+    { "weaponId": "weapon38", "name": "冥约颂炮", "path": "assets/icons/machine-guns/grave-covenant-cantor-lmg.png" },
+    { "weaponId": "weapon15", "name": "能量轻机枪", "path": "assets/icons/machine-guns/energy-lmg.png" }
+  ]
+}
