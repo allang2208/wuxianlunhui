@@ -108,8 +108,8 @@ export class HamsterPriest extends Companion {
             this._startDying();
             return;
         }
-        if (this.hasStatusEffect('petrified')) {
-            this.vx = 0; this.vy = 0; this.isMoving = false;
+        if (this.isCombatActionBlocked()) {
+            this._updateBlockedCombat(dt, entities);
             return;
         }
         const game = typeof window !== 'undefined' ? window.Game : null;

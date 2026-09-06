@@ -262,6 +262,16 @@ export class Companion {
         return true;
     }
 
+    _updateBlockedCombat(dt, entities) {
+        this._interruptPendingCombatActionForControl();
+        // 已出膛弹体拥有独立生命周期，硬控只作废未完成的起手。
+        this._ai?.updateProjectilesWhileControlled?.(dt, entities);
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.maxSpeed = 0;
+    }
+
     addStatusEffect(type, duration, options = {}) {
         if (type !== 'statusImmune' && this.hasStatusEffect('statusImmune')) return null;
         const existing = this.statusEffects.find((effect) => effect.type === type);
