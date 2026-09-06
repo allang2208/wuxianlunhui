@@ -167,6 +167,7 @@ export class HamsterPriestAI {
                 this._releaseDone = true;
                 if (this._castKind === 'holyLight'
                     && this._pendingTarget?.active
+                    && this._canCastAt(this._pendingTarget)
                     && this._holyLight.triggerOn(this._pendingTarget)) {
                     // HolyLightSystem 已按技能与装备修正写入基础 CD；教堂的施法加速再乘一次。
                     m._holyLightCooldown *= this._holyLightCooldownMult;
@@ -325,6 +326,7 @@ export class HamsterPriestAI {
         let affected = 0;
         for (const friend of friends) {
             if (!friend || friend.active === false || typeof friend.applyInspire !== 'function') continue;
+            if (friend._dying || !((friend.data?.hp ?? friend.hp) > 0)) continue;
             if (friend._faction !== 'player' && friend._faction !== 'companion') continue;
             const dx = friend.x - m.x;
             const dy = friend.y - m.y;
