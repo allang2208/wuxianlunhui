@@ -1,0 +1,7 @@
+One original game character matching the supplied identity reference remains fully visible in a locked side-view camera on a uniform key-color background.
+
+0.0-1.0 seconds: describe the readable opening pose and anticipation using visible body mechanics.
+1.0-3.8 seconds: describe one primary action, its direction, amplitude, contact or peak pose, and the parts that drive it.
+3.8-5.17 seconds: describe either a natural recovery, a clean irreversible final pose, or continuous cyclic motion according to the selected action mode.
+
+Keep the subject at a stable screen scale and preserve every rigid identity component throughout. State only the few highest-risk topology failures that are not already controlled by the reference image. Do not repeat camera, background, identity, or exclusion requirements with synonyms.
