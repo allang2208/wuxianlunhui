@@ -5,6 +5,7 @@ import { TechnologySystem } from '../../world/technology-system.js';
 import { GoldManager } from '../../systems/gold-manager.js';
 import { EnergyManager } from '../../systems/energy-manager.js';
 import { PerformanceMonitor } from '../../systems/performance-monitor.js';
+import { createNavigationDebug } from './navigation-debug.js';
 import { isDungeonKeyCostIgnored } from '../../config/dev-cheats.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
@@ -89,6 +90,16 @@ export function createDevToolPanel() {
     });
     tabPerformance.textContent = '性能';
     tabs.appendChild(tabPerformance);
+
+    const tabNavigation = document.createElement('div');
+    tabNavigation.className = 'dev-tool-tab';
+    tabNavigation.dataset.tab = 'navigation';
+    tabNavigation.textContent = '导航';
+    tabNavigation.addEventListener('click', () => {
+        DevTool.switchTab('navigation');
+        navigationDebug.refresh(true);
+    });
+    tabs.appendChild(tabNavigation);
 
     root.appendChild(tabs);
 
@@ -1522,13 +1533,23 @@ export function createDevToolPanel() {
             if (status?.isConnected) status.textContent = '';
         }, 1800);
     });
+    const navigationDebug = createNavigationDebug({
+        copyText: copyPerformanceReport,
+        showPerformance: () => {
+            DevTool.switchTab('performance');
+            renderPerformanceDebug();
+        },
+    });
+    root.appendChild(navigationDebug.content);
     root._performanceRefreshTimer = window.setInterval(() => {
         if (!root.isConnected) {
             window.clearInterval(root._performanceRefreshTimer);
             root._performanceRefreshTimer = null;
             return;
         }
+        if (!DevTool._active) return;
         if (DevTool._currentTab === 'performance') renderPerformanceDebug();
+        else if (DevTool._currentTab === 'navigation') navigationDebug.refresh();
     }, 500);
 
     // ===== 技能等级调试逻辑 =====

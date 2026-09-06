@@ -70,6 +70,11 @@ class PerformanceMonitorImpl {
         this._counters[name] = current + (Number(amount) || 0);
     }
 
+    // 调试页读取即时计数，无需为每次刷新计算整段帧历史的分位数。
+    getCounters() {
+        return { ...this._counters };
+    }
+
     endFrame() {
         if (!this._current) return;
         // Phaser 与逻辑层各有自己的 rAF。外部 section 不在当前逻辑回调的墙钟区间内，
