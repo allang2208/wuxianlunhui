@@ -1,19 +1,16 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
-import { launchFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
+import { launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 import { MovementSystem } from '../systems/movement-system.js';
 import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
-import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, getRtsAcquireRange } from './rts-command-utils.js';
 import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
-    canUseWallTopModelException,
     projectileMuzzleOrigin,
     projectileTargetZ,
     projectileWallContext,
-    wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { tryApplyMarkArrow } from '../combat/mark-arrow-effect.js';
@@ -277,51 +274,19 @@ export class HamsterMusketeerAI {
         const m = this.m;
         const b = m._basic;
         if (!b?.active) return;
-        const step = this._projectileSpeed * dt / 1000;
-        const prevX = b.x;
-        const prevY = b.y;
-        const prevZ = Number(b.z) || 0;
-        b.x += Math.cos(b.angle) * step;
-        b.y += Math.sin(b.angle) * step;
-        b.z = prevZ + (Number(b.vz) || 0) * dt / 1000;
-        b.dist += step;
-        const wallHit = WallSystem.projectileWallHit?.(
-            prevX,
-            prevY,
-            prevZ,
-            b.x,
-            b.y,
-            b.z,
-            b.wallContext || projectileWallContext(m)
-        );
-        let hit = null;
-        for (const e of queryNearbyEntities(entities, b, HIT_RADIUS + 64)) {
-            if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
-            const bottom = e.collider?.bottomZ ?? (Number(e.z) || 0);
-            const top = e.collider?.topZ ?? (bottom + (e.bodyHeight || e.size || 80));
-            if (Math.hypot(e.x - b.x, e.y - b.y) < HIT_RADIUS
-                && b.z >= bottom - HIT_RADIUS
-                && b.z <= top + HIT_RADIUS) {
-                hit = e;
-                break;
+        const { events } = sweepFriendlyProjectile(m, b, dt, this._projectileSpeed, entities, HIT_RADIUS);
+        for (const { entity: hit, wall } of events) {
+            if (wall) {
+                applyProjectileWallImpact(m, wall, this._attackDamage, 'physical');
+            } else {
+                hit.takeDamage?.(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);
+                if (hit.hp > 0 && m._isHamsterBountyHunter) tryApplyMarkArrow(hit);
             }
-        }
-        const modelHitThroughSupport = wallHit
-            && canUseWallTopModelException(m)
-            && hit
-            && wallHitSupportsTarget(wallHit, hit);
-        if (wallHit && !modelHitThroughSupport) {
-            applyProjectileWallImpact(m, wallHit, this._attackDamage, 'physical');
+            b.active = false;
             m._basic = null;
             return;
         }
-        if (hit) {
-            hit.takeDamage?.(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);
-            if (m._isHamsterBountyHunter) tryApplyMarkArrow(hit);
-            m._basic = null;
-        } else if (b.dist >= b.maxDist) {
-            m._basic = null;
-        }
+        if (b.dist >= b.maxDist) { b.active = false; m._basic = null; }
     }
 
     _checkStuck(dt) {

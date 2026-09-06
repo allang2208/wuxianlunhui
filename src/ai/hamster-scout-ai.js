@@ -1,5 +1,5 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
-import { launchFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
+import { launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 // ============================================================
 // HamsterScoutAI — 仓鼠斥候 AI（2026-08-17）
 // 玩家友方远程单位：在世界-122 自动寻找最近敌人射击。
@@ -11,21 +11,16 @@ import { launchFriendlyProjectile, updateFriendlyProjectiles } from '../combat/f
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
-import { WallSystem } from '../world/wall-system.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, getRtsAcquireRange } from './rts-command-utils.js';
 import { AimHelper } from '../utils/aim-helper.js';
-import { EffectManager } from '../effects/effect-manager.js';
-import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { tryApplyMarkArrow } from '../combat/mark-arrow-effect.js';
 import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
-    canUseWallTopModelException,
     projectileMuzzleOrigin,
     projectileTargetZ,
     projectileWallContext,
-    wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
@@ -380,81 +375,30 @@ export class HamsterScoutAI {
     }
 
     /** 投射物飞行推进 + 命中结算（25 物理伤害；目标中心命中判定） */
-    _updateProjectile(dt) {
+    _updateProjectile(dt, entities) {
         const m = this.m;
         const b = m._basic;
-        if (!b || !b.active) return;
-        const dtSec = dt / 1000;
-        const step = this._projectileSpeed * dtSec;
-        const prevX = b.x, prevY = b.y, prevZ = Number(b.z) || 0;
-        b.x += Math.cos(b.angle) * step;
-        b.y += Math.sin(b.angle) * step;
-        b.z = prevZ + (Number(b.vz) || 0) * dtSec;
-        b.dist += step;
-        const wallHit = WallSystem.projectileWallHit?.(
-            prevX,
-            prevY,
-            prevZ,
-            b.x,
-            b.y,
-            b.z,
-            b.wallContext || projectileWallContext(m)
-        );
-        let hit = null;
-        if (!(b.hitIds instanceof Set)) b.hitIds = new Set();
-        const hitKey = (entity) => entity?.id ?? entity;
-        const alreadyHit = (entity) => !!entity && b.hitIds.has(hitKey(entity));
-        const hits = (entity) => {
-            const collider = entity?.collider;
-            const bottom = collider?.bottomZ ?? (Number(entity?.z) || 0);
-            const top = collider?.topZ ?? (bottom + (entity?.bodyHeight || 80));
-            return Math.hypot(entity.x - b.x, entity.y - b.y) < PROJECTILE_HIT_RADIUS
-                && b.z >= bottom - PROJECTILE_HIT_RADIUS
-                && b.z <= top + PROJECTILE_HIT_RADIUS;
-        };
-        const t = b.target;
-        if (t && t.active && t.hp > 0 && !alreadyHit(t) && hits(t)) {
-            hit = t;
-        } else {
-            // 路径上经过的其他敌人也判定（与射手同思路）
-            const game = (typeof window !== 'undefined' && window.Game) || null;
-            for (const e of queryNearbyEntities(game?.entities, b, PROJECTILE_HIT_RADIUS + 64)) {
-                if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || alreadyHit(e)) continue;
-                if (e._isEnergyNode) continue;
-                if (hits(e)) {
-                    hit = e;
-                    break;
-                }
+        if (!b?.active) return;
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        const { events } = sweepFriendlyProjectile(m, b, dt, this._projectileSpeed,
+            entities || game?.entities, PROJECTILE_HIT_RADIUS);
+        for (const { entity: hit, wall } of events) {
+            if (wall) {
+                applyProjectileWallImpact(m, wall, this._attackDamage, 'physical');
+                b.active = false;
+                break;
             }
+            const completedHits = b.hitIds.size;
+            const multiplier = Math.max(0, Math.min(1,
+                Number(this.cfg.projectilePierceDamageMultiplier ?? 1)));
+            const damage = this._attackDamage * Math.pow(multiplier, completedHits);
+            b.hitIds.add(hit.id ?? hit);
+            b.remainingHits--;
+            hit.takeDamage?.(m.getPhysicalAttackDamage(damage, hit), m, 'physical', false);
+            if (hit.hp > 0 && m.aiConfig?.appliesMarkArrow !== false) tryApplyMarkArrow(hit);
+            if (b.remainingHits <= 0) { b.active = false; break; }
         }
-        const modelHitThroughSupport = wallHit
-            && canUseWallTopModelException(m)
-            && hit
-            && wallHitSupportsTarget(wallHit, hit);
-        if (wallHit && !modelHitThroughSupport) {
-            applyProjectileWallImpact(m, wallHit, this._attackDamage, 'physical');
-            b.active = false;
-            return;
-        }
-        if (hit) {
-            const maxHits = Math.max(1, Math.floor(Number(this.cfg.projectileMaxHits) || 1));
-            const completedHits = Math.max(0, maxHits - Math.max(1, Number(b.remainingHits) || 1));
-            const pierceMultiplier = Math.max(0, Math.min(1,
-                Number(this.cfg.projectilePierceDamageMultiplier) || 1));
-            const hitDamage = this._attackDamage * Math.pow(pierceMultiplier, completedHits);
-            if (typeof hit.takeDamage === 'function') {
-                hit.takeDamage(m.getPhysicalAttackDamage(hitDamage, hit), m, 'physical', false);
-            }
-            if (m.aiConfig?.appliesMarkArrow !== false) tryApplyMarkArrow(hit);
-            if (EffectManager) {
-                EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${Math.round(hitDamage)}`, '#ffd27a'));
-            }
-            b.hitIds.add(hitKey(hit));
-            b.remainingHits = Math.max(0, (Number(b.remainingHits) || 1) - 1);
-            if (b.remainingHits <= 0) m._basic = null;
-        } else if (b.dist >= b.maxDist) {
-            m._basic = null; // 超出射程静默消失
-        }
+        if (!b.active || b.dist >= b.maxDist) { b.active = false; m._basic = null; }
     }
 
     /** 卡死看门狗：只清理旧路径，坐标位移统一交给 MovementSystem/WallSystem。 */
