@@ -13,8 +13,6 @@ import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js
 import { HamsterMilitiaAI } from '../ai/hamster-militia-ai.js';
 import hamsterMilitiaConfig from '../../data/hamster-militia-config.json';
 
-const MIN_DYING_DURATION_MS = 1167;
-
 export class HamsterMilitia extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -51,10 +49,6 @@ export class HamsterMilitia extends Companion {
         };
         this._dying = false;
         this._deathTimer = 0;
-        const dyingAnim = archive.animations?.dying || {};
-        const dyingFrameCount = Math.max(1, Number(dyingAnim.frameCount) || 1);
-        const dyingFrameRate = Math.max(1, Number(dyingAnim.frameRate) || 12);
-        this._dyingDurationMs = Math.max(MIN_DYING_DURATION_MS, dyingFrameCount / dyingFrameRate * 1000 + 60);
         this._ai = new HamsterMilitiaAI(this);
         this._animState = 'idle';
         this.configureCollisionFromArchive(archive);
@@ -77,15 +71,7 @@ export class HamsterMilitia extends Companion {
     }
 
     _startDying() {
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = this._dyingDurationMs;
+        this._beginDyingAnimation();
     }
 
     /** 仓鼠兵营/产兵建筑升级同步（2026-08-16）：攻击间隔/伤害/移速/生命实时生效 */

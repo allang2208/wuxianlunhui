@@ -8,8 +8,6 @@ import { Companion } from './companion.js';
 import { HamsterNinjaAI } from '../ai/hamster-ninja-ai.js';
 import hamsterNinjaConfig from '../../data/hamster-ninja-config.json';
 
-const DYING_DURATION_MS = 1360;
-
 export class HamsterNinja extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -107,15 +105,7 @@ export class HamsterNinja extends Companion {
     _startDying() {
         this._applyStealthState(false);
         this._stealthCastActive = false;
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._beginDyingAnimation();
     }
 
     applyBarracksUpgrades(upgrades = {}) {

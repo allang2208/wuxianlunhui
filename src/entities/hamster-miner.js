@@ -14,8 +14,6 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import hamsterMinerConfig from '../../data/hamster-miner-config.json';
 
-const DYING_DURATION_MS = 1000; // dying 11 帧 @12fps ≈ 917ms，留余量
-
 export class HamsterMiner extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -86,15 +84,7 @@ export class HamsterMiner extends Companion {
     }
 
     _startDying() {
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._beginDyingAnimation();
         // 被击杀：携带能量全部丢失（不返还、不掉落）
         if (this._energyCarried > 0 && EffectManager) {
             EffectManager.add(new FloatingTextEffect(this.x, this.y - 46, `丢失 ${this._energyCarried} 能量`, '#ff8855'));

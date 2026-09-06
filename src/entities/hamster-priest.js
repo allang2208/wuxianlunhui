@@ -7,8 +7,6 @@ import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js
 import { HamsterPriestAI } from '../ai/hamster-priest-ai.js';
 import configData from '../../data/hamster-priest-config.json';
 
-const DYING_DURATION_MS = 1334; // dying 16 帧 @12fps
-
 export class HamsterPriest extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -61,16 +59,7 @@ export class HamsterPriest extends Companion {
     }
 
     _startDying() {
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this._prayerCast = false;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._beginDyingAnimation();
     }
 
     /** 教堂升级实时同步：施法冷却、施法距离、圣光等级与什一税均立即更新。 */

@@ -7,8 +7,6 @@ import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js
 import { HamsterKnightAI } from '../ai/hamster-knight-ai.js';
 import configData from '../../data/hamster-knight-config.json';
 
-const DYING_DURATION_MS = 1167; // dying 14 帧 @12fps
-
 export class HamsterKnight extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -54,16 +52,7 @@ export class HamsterKnight extends Companion {
     }
 
     _startDying() {
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this._chargeStart = false;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._beginDyingAnimation();
     }
 
     /** 产兵建筑的通用模块升级：普攻与冲锋强化分别由独立属性驱动。 */

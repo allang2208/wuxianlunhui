@@ -12,8 +12,6 @@ import { Companion } from './companion.js';
 import { HamsterWarriorAI } from '../ai/hamster-warrior-ai.js';
 import hamsterWarriorConfig from '../../data/hamster-warrior-config.json';
 
-const DYING_DURATION_MS = 1000; // dying 12 帧 @12fps = 1000ms
-
 export class HamsterWarrior extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -71,15 +69,7 @@ export class HamsterWarrior extends Companion {
     }
 
     _startDying() {
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._beginDyingAnimation();
     }
 
     /** 仓鼠兵营升级同步（2026-08-16）：攻击间隔/伤害/移速/生命实时生效 */

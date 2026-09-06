@@ -5,8 +5,6 @@ import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import configData from '../../data/hamster-musketeer-config.json';
 
-const DYING_DURATION_MS = 1350;
-
 export class HamsterMusketeer extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -73,16 +71,7 @@ export class HamsterMusketeer extends Companion {
     }
 
     _startDying() {
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this._basic = null;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._beginDyingAnimation();
     }
 
     applyBarracksUpgrades(u = {}) {

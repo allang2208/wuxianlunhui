@@ -262,6 +262,34 @@ export class Companion {
         return true;
     }
 
+    /** 按单位自身动画配置播放死亡，并统一释放战斗和路径临时态。 */
+    _beginDyingAnimation(fallbackMs = 1000) {
+        if (this._dying) return;
+        if (this._ai?.cancelForDeath) this._ai.cancelForDeath();
+        else this._interruptPendingCombatActionForControl();
+        this.removeStatusEffect('petrified');
+        this.removeStatusEffect('frozen');
+        this._dying = true;
+        this._animState = 'dying';
+        this._castState = 'idle';
+        this.target = null;
+        this._tacticalTarget = null;
+        this._basic = null;
+        this._inFlightBasics = [];
+        this._attackSwing = false;
+        this._prayerCast = false;
+        this._chargeStart = false;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.maxSpeed = 0;
+        this._pathManager?._clearPath?.();
+        const dying = this.animations?.dying;
+        const configuredMs = Number(dying?.durationMs)
+            || (Number(dying?.frameCount) / Number(dying?.frameRate) * 1000);
+        this._deathTimer = (Number.isFinite(configuredMs) && configuredMs > 0 ? configuredMs : fallbackMs) + 60;
+    }
+
     _updateBlockedCombat(dt, entities) {
         this._interruptPendingCombatActionForControl();
         // 已出膛弹体拥有独立生命周期，硬控只作废未完成的起手。

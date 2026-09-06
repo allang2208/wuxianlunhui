@@ -6,8 +6,6 @@ import { Companion } from './companion.js';
 import { HamsterLightCavalryAI } from '../ai/hamster-light-cavalry-ai.js';
 import configData from '../../data/hamster-light-cavalry-config.json';
 
-const DYING_DURATION_MS = 917; // dying 11 帧 @12fps
-
 export class HamsterLightCavalry extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
@@ -50,15 +48,7 @@ export class HamsterLightCavalry extends Companion {
     }
 
     _startDying() {
-        this._dying = true;
-        this._animState = 'dying';
-        this.target = null;
-        this._tacticalTarget = null;
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = false;
-        this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._beginDyingAnimation();
     }
 
     /** 骑兵学校的通用模块升级：攻击间隔、伤害、移速和生命实时同步。 */
