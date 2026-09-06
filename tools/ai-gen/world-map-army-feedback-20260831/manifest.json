@@ -1,0 +1,18 @@
+{
+  "purpose": "Offline design preview, not a runtime capture",
+  "sources": [
+    "assets/ui/world-map/army-flags.png",
+    "data/world-map-army-visuals.json",
+    "assets/ui/world-map/command-badges/attack.png",
+    "assets/ui/world-map/command-badges/enter.png",
+    "assets/ui/world-map/command-badges/blocked.png"
+  ],
+  "motion": "src/ui/world-map-army-motion.js",
+  "settings": "data/world-map-command-feedback.json",
+  "width": 960,
+  "height": 490,
+  "frameCount": 64,
+  "delayMs": 50,
+  "durationMs": 3200,
+  "note": "Existing accepted flag art and previously generated badges are unchanged. Receipt numbers are examples only."
+}
