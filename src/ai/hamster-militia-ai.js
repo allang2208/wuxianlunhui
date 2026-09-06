@@ -1,5 +1,6 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '../combat/friendly-melee.js';
+import { isFriendlyAttackTarget } from '../combat/friendly-projectile-sweep.js';
 // ============================================================
 // HamsterMilitiaAI — 仓鼠民兵 AI（2026-08-17）
 // 玩家友方近战单位：在世界-122 自动寻找最近敌人攻击。
@@ -230,7 +231,7 @@ export class HamsterMilitiaAI {
         }
         if (cmd.mode === 'attack') {
             const t = cmd.target;
-            if (!t || !t.active || t.hp <= 0) {
+            if (!isFriendlyAttackTarget(t)) {
                 finishRtsCommandAtHold(m);
                 m.target = null;
                 m._animState = 'idle';
@@ -276,7 +277,7 @@ export class HamsterMilitiaAI {
         let bestD = Infinity;
         const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
-            if (!e || !e.active || e.hp <= 0) continue;
+            if (!isFriendlyAttackTarget(e)) continue;
             if (e._faction !== 'enemy') continue;
             if (e._isEnergyNode) continue; // 不攻击矿点（用户口径）
             const d = Math.hypot(e.x - m.x, e.y - m.y);

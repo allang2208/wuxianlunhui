@@ -1,5 +1,6 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '../combat/friendly-melee.js';
+import { isFriendlyAttackTarget } from '../combat/friendly-projectile-sweep.js';
 // ============================================================
 // HamsterWarriorAI — 仓鼠战士 AI（2026-08-16）
 // 玩家友方近战单位：在世界-122 自动寻找最近敌人攻击。
@@ -16,7 +17,7 @@ import { MathUtils } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
-import { canFinishSurfaceFollow, canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { canMeleeReachTarget } from '../combat/melee-reach.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
@@ -179,7 +180,7 @@ export class HamsterWarriorAI {
         }
         if (cmd.mode === 'attack') {
             const t = cmd.target;
-            if (!t || !t.active || t.hp <= 0) {
+            if (!isFriendlyAttackTarget(t)) {
                 finishRtsCommandAtHold(m);
                 m.target = null;
                 m._animState = 'idle';
@@ -212,7 +213,7 @@ export class HamsterWarriorAI {
         let bestD = Infinity;
         const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
-            if (!e || !e.active || e.hp <= 0) continue;
+            if (!isFriendlyAttackTarget(e)) continue;
             if (e._faction !== 'enemy') continue;
             if (e._isEnergyNode) continue; // 不攻击矿点（用户口径）
             const d = Math.hypot(e.x - m.x, e.y - m.y);
@@ -299,10 +300,10 @@ export class HamsterWarriorAI {
                 const game = (typeof window !== 'undefined' && window.Game) || null;
                 for (const ent of ((game && game.entities) ? game.entities.values() : [])) {
                     // 主目标已经在上方承受一次完整普攻，必须排除，避免主伤害与 AOE 叠加。
-                    if (!ent || ent === e || !ent.active || ent.hp <= 0 || ent._faction !== 'enemy') continue;
+                    if (ent === e || !isFriendlyAttackTarget(ent)) continue;
                     if (ent._isEnergyNode) continue;
                     if (!MathUtils.pointInSector(ent.x, ent.y, m.x, m.y, m.rotation, aoeRange, arc)) continue;
-                    if (!canMeleeReachElevation(m, ent)) continue;
+                    if (!canMeleeReachTarget(m, ent)) continue;
                     if (typeof ent.takeDamage === 'function') {
                         ent.takeDamage(m.getPhysicalAttackDamage(aoeDmg, ent), m, 'physical', true);
                         if (EffectManager) {
