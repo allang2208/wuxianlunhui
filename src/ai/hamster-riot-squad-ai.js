@@ -1,5 +1,7 @@
 import { beginFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { isFriendlyAttackTarget } from '../combat/friendly-projectile-sweep.js';
 import { HamsterMusketeerAI } from './hamster-musketeer-ai.js';
+import { projectileMuzzleOrigin } from '../combat/elevated-ranged.js';
 import { queryNearbyEntities } from './friendly-spatial-query.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { GroundSector } from '../physics/skill-shapes.js';
@@ -78,8 +80,11 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
             beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
             m._animState = 'attack';
             m._attackSwing = true;
+            m._attackActionSeq = (m._attackActionSeq || 0) + 1;
             // GroundSector 在地面坐标中判定；锁定逆透视后的起手方向。
             this._shotAngle = Math.atan2(projectedDy, dx);
+        } else {
+            m._animState = 'idle';
         }
     }
 
@@ -111,8 +116,7 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
 
         const targets = [];
         for (const entity of queryNearbyEntities(this._entities, m, range + 96)) {
-            if (!entity || entity === m || !entity.active || entity.hp <= 0
-                || entity._faction !== 'enemy' || entity._isEnergyNode) continue;
+            if (!isFriendlyAttackTarget(entity)) continue;
             if (!sector.intersectsEntity(entity)) continue;
             // 无弹道不等于穿墙；扇区内每个目标仍单独执行现有远程 LOS 门禁。
             if (!hasRangedLineOfSight(m, entity)) continue;
@@ -176,10 +180,15 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
 
     _spawnShotEffect(angle, range, arcDegrees) {
         const m = this.m;
-        const faceSign = Math.cos(angle) >= 0 ? 1 : -1;
-        const muzzleX = m.x + faceSign * (Number(this.cfg.muzzleOffsetX) || 18);
-        const muzzleY = m.y + (Number(this.cfg.muzzleOffsetY) || 0)
-            - Math.max(0, Number(this.cfg.muzzleHeight) || 55);
+        const origin = projectileMuzzleOrigin(m, {
+            x: m.x + Math.cos(angle),
+        }, {
+            offsetX: Number(this.cfg.muzzleOffsetX) || 18,
+            offsetY: this.cfg.muzzleOffsetY,
+            height: Number(this.cfg.muzzleHeight) || 55,
+        });
+        const muzzleX = origin.x;
+        const muzzleY = origin.y - origin.z;
         // 地面方向投影到屏幕空间；只改变视觉火花方向，不改逻辑扇区。
         const visualAngle = Math.atan2(
             Math.sin(angle) * PERSPECTIVE_SCALE_Y,

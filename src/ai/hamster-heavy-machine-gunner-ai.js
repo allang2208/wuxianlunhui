@@ -1,17 +1,15 @@
+import { isFriendlyAttackTarget, sweepFriendlyProjectile } from '../combat/friendly-projectile-sweep.js';
 import { HamsterMusketeerAI } from './hamster-musketeer-ai.js';
-import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
     canUseWallTopModelException,
-    projectileSourceZ,
+    projectileMuzzleOrigin,
     projectileTargetZ,
     projectileWallContext,
-    wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
-import { queryNearbyEntities } from './friendly-spatial-query.js';
 
 const HIT_RADIUS = 28;
 
@@ -39,7 +37,7 @@ export class HamsterHeavyMachineGunnerAI extends HamsterMusketeerAI {
 
     _fireProjectile() {
         const target = this.m.target;
-        if (!target?.active || target.hp <= 0 || !this._canShootTarget(target)) return;
+        if (!isFriendlyAttackTarget(target) || !this._canAttackFromHere(target)) return;
         this._burstSchedule = {
             elapsedMs: 0,
             rate: this.m._friendlyAttackClock?.rate || 1,
@@ -85,13 +83,12 @@ export class HamsterHeavyMachineGunnerAI extends HamsterMusketeerAI {
         const target = schedule.target;
         // 一轮点射锁定起手方向，避免目标横穿时角色朝向与后续弹道相互翻转。
         const snapshot = schedule.snapshot;
-        const faceSign = snapshot.x >= m.x ? 1 : -1;
-        const startX = m.x + faceSign * (Number(this.cfg.muzzleOffsetX) || 0);
-        const startY = m.y + (Number(this.cfg.muzzleOffsetY) || 0);
-        const configuredMuzzleHeight = Number(this.cfg.muzzleHeight);
-        const startZ = Number.isFinite(configuredMuzzleHeight)
-            ? (Number(m.z) || 0) + configuredMuzzleHeight
-            : projectileSourceZ(m);
+        const origin = projectileMuzzleOrigin(m, snapshot, {
+            offsetX: this.cfg.muzzleOffsetX,
+            offsetY: this.cfg.muzzleOffsetY,
+            height: this.cfg.muzzleHeight,
+        });
+        const { x: startX, y: startY, z: startZ } = origin;
         const lead = AimHelper.lead(
             startX, startY, snapshot.x, snapshot.y,
             snapshot.vx, snapshot.vy, this._projectileSpeed
@@ -117,7 +114,8 @@ export class HamsterHeavyMachineGunnerAI extends HamsterMusketeerAI {
                 + spreadOffset,
             dist: 0,
             maxDist: applyElevatedRangedRange(m, this._attackRange + 180),
-            wallContext: projectileWallContext(m, null, { x: startX, y: startY, z: startZ }),
+            wallContext: projectileWallContext(m, null, origin),
+            allowWallTopModelHit: canUseWallTopModelException(m),
             target,
             remainingHits: Math.max(1, Math.floor(Number(this.cfg.projectileMaxHits) || 1)),
             hitIds: new Set(),
@@ -133,54 +131,21 @@ export class HamsterHeavyMachineGunnerAI extends HamsterMusketeerAI {
     _advanceBullet(bullet, dt, entities) {
         if (!bullet?.active) return;
         const m = this.m;
-        const step = this._projectileSpeed * dt / 1000;
-        const prevX = bullet.x;
-        const prevY = bullet.y;
-        const prevZ = Number(bullet.z) || 0;
-        bullet.x += Math.cos(bullet.angle) * step;
-        bullet.y += Math.sin(bullet.angle) * step;
-        bullet.z = prevZ + (Number(bullet.vz) || 0) * dt / 1000;
-        bullet.dist += step;
-
-        const wallHit = WallSystem.projectileWallHit?.(
-            prevX, prevY, prevZ, bullet.x, bullet.y, bullet.z,
-            bullet.wallContext || projectileWallContext(m)
-        );
-        let hit = null;
-        const hitKey = (entity) => entity?.id ?? entity;
-        for (const entity of queryNearbyEntities(entities, bullet, HIT_RADIUS + 64)) {
-            if (!entity || !entity.active || entity.hp <= 0 || entity._faction !== 'enemy'
-                || entity._isEnergyNode || bullet.hitIds.has(hitKey(entity))) continue;
-            const bottom = entity.collider?.bottomZ ?? (Number(entity.z) || 0);
-            const top = entity.collider?.topZ ?? (bottom + (entity.bodyHeight || entity.size || 80));
-            if (Math.hypot(entity.x - bullet.x, entity.y - bullet.y) < HIT_RADIUS
-                && bullet.z >= bottom - HIT_RADIUS && bullet.z <= top + HIT_RADIUS) {
-                hit = entity;
+        const { events } = sweepFriendlyProjectile(m, bullet, dt, this._projectileSpeed, entities, HIT_RADIUS);
+        for (const { entity: hit, wall } of events) {
+            if (wall) {
+                applyProjectileWallImpact(m, wall, this._attackDamage, 'physical');
+                bullet.active = false;
                 break;
             }
-        }
-
-        const modelHitThroughSupport = wallHit
-            && canUseWallTopModelException(m)
-            && hit
-            && wallHitSupportsTarget(wallHit, hit);
-        if (wallHit && !modelHitThroughSupport) {
-            applyProjectileWallImpact(m, wallHit, this._attackDamage, 'physical');
-            bullet.active = false;
-            return;
-        }
-        if (hit) {
-            const maxHits = Math.max(1, Math.floor(Number(this.cfg.projectileMaxHits) || 1));
-            const completedHits = Math.max(0, maxHits - Math.max(1, Number(bullet.remainingHits) || 1));
             const pierceMultiplier = Math.max(0, Math.min(1,
-                Number(this.cfg.projectilePierceDamageMultiplier) || 1));
-            const damage = this._attackDamage * Math.pow(pierceMultiplier, completedHits);
+                Number(this.cfg.projectilePierceDamageMultiplier ?? 1)));
+            const damage = this._attackDamage * Math.pow(pierceMultiplier, bullet.hitIds.size);
+            bullet.hitIds.add(hit.id ?? hit);
+            bullet.remainingHits--;
             hit.takeDamage?.(m.getPhysicalAttackDamage(damage, hit), m, 'physical', false);
-            bullet.hitIds.add(hitKey(hit));
-            bullet.remainingHits = Math.max(0, (Number(bullet.remainingHits) || 1) - 1);
-            if (bullet.remainingHits <= 0) bullet.active = false;
-        } else if (bullet.dist >= bullet.maxDist) {
-            bullet.active = false;
+            if (bullet.remainingHits <= 0) { bullet.active = false; break; }
         }
+        if (bullet.dist >= bullet.maxDist) bullet.active = false;
     }
 }
