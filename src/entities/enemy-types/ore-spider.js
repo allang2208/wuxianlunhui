@@ -359,12 +359,20 @@ export class OreSpider extends Enemy {
                 break;
             }
         }
-        // 冲击扩散圈（共享件：扩散到最大判定圈，400ms 纯描边淡出，地面特效层）
+        // 冲击扩散圈：以 Collider 脚点为视觉锚，双层同轨描边形成一枚清晰的紫晶光环。
+        // 仅改变视觉反馈；伤害形状仍沿用上方 this.x / this.y 的既有判定合同。
         const maxR = zones[zones.length - 1].radius;
+        const fxX = this.collider?.x ?? this.x;
+        const fxY = this.collider?.y ?? this.y;
         fireGroundShockwave({
-            x: this.x, y: this.y, maxRadius: maxR,
-            strokeColor: 0xc8b8d8, lineWidth: 4, strokeAlpha: 0.85,
-            duration: 400, flicker: false, groundLayer: true,
+            x: fxX, y: fxY, maxRadius: maxR,
+            strokeColor: 0x6f3f96, lineWidth: 14, strokeAlpha: 0.26,
+            duration: 520, flicker: false, groundLayer: true,
+        });
+        fireGroundShockwave({
+            x: fxX, y: fxY, maxRadius: maxR,
+            strokeColor: 0xeadcff, lineWidth: 5, strokeAlpha: 0.96,
+            duration: 520, flicker: false, groundLayer: true,
         });
     }
 
