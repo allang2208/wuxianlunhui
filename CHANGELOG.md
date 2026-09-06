@@ -1,5 +1,9 @@
 # 变更日志
 
+### 修复/街景：登记索引静态断言入口（2026-09-06）
+
+- 将已发布的 `scripts/test-roadside-visual-index.mjs` 登记到现有 `npm test` 主链，避免街景视口索引实现存在而回归入口漏接；保留 `test:world126` 和其他既有脚本，不带入共享根目录的脚本排序或删除差异。本批仅解析 `package.json`、核对脚本路径与真实 diff，未运行测试。
+
 ### 修复/Electron：补齐后台运行桌面接口（2026-09-06）
 
 - 补齐前端 `GameRuntime` 已调用的受限布尔 IPC：preload 暴露后台运行开关，主进程仅接受当前游戏窗口主 frame 的请求并动态切换 `backgroundThrottling`；窗口失焦、最小化、隐藏与恢复状态通过独立事件回传，不依赖关闭节流后可能变化的 Page Visibility。
