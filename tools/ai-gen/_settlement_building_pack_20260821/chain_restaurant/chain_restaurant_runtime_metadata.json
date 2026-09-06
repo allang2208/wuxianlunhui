@@ -1,5 +1,5 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\chain_restaurant\\refine_48step_seed123380\\chain_restaurant\\chain_restaurant_refine_v03_body.png",
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\chain_restaurant\\recut_20260902\\chain_restaurant_key_t128.png",
   "output": "assets\\terrain\\chain_restaurant.png",
   "sourceMode": "RGBA",
   "background": null,
@@ -12,6 +12,7 @@
   "minComponentPixels": 0,
   "removedComponents": 0,
   "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
   "maskImage": null,
   "maskDilate": null,
   "fillAlphaHoles": false,
@@ -21,25 +22,32 @@
   "maskAddRects": [],
   "restoreAlphaRects": [],
   "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
   "cropBox": [
-    86,
-    19,
-    934,
-    922
+    79,
+    50,
+    951,
+    983
   ],
   "fileSize": [
-    848,
-    903
+    872,
+    933
   ],
   "alphaBBox": [
     4,
     4,
-    844,
-    899
+    868,
+    929
   ],
   "displayW": 300,
-  "displayH": 319,
-  "footOffsetY": 158,
-  "scaleX": 0.35377358490566035,
-  "scaleY": 0.3532668881506091
+  "displayH": 321,
+  "footOffsetY": 159,
+  "scaleX": 0.3440366972477064,
+  "scaleY": 0.3440514469453376
 }

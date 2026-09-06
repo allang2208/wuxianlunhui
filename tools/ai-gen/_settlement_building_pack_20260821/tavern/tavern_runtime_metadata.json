@@ -1,5 +1,5 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\tavern\\refine_48step_v02_seed122281\\tavern\\tavern_refine_v02_body.png",
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_03\\model_plus_original_36\\tavern\\tavern_refine_v01_body.png",
   "output": "assets\\terrain\\tavern.png",
   "sourceMode": "RGBA",
   "background": null,
@@ -9,6 +9,10 @@
   "nearestOpaqueEdgeRgb": true,
   "nearestOpaqueAlpha": 0.98,
   "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
   "maskImage": null,
   "maskDilate": null,
   "fillAlphaHoles": false,
@@ -18,25 +22,32 @@
   "maskAddRects": [],
   "restoreAlphaRects": [],
   "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
   "cropBox": [
-    174,
-    107,
-    857,
-    866
+    187,
+    163,
+    862,
+    922
   ],
   "fileSize": [
-    683,
+    675,
     759
   ],
   "alphaBBox": [
     4,
     4,
-    679,
+    671,
     755
   ],
   "displayW": 300,
-  "displayH": 333,
-  "footOffsetY": 165,
-  "scaleX": 0.43923865300146414,
-  "scaleY": 0.43873517786561267
+  "displayH": 337,
+  "footOffsetY": 167,
+  "scaleX": 0.4444444444444444,
+  "scaleY": 0.4440052700922266
 }

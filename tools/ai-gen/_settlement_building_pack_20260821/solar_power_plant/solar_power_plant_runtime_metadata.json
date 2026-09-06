@@ -1,21 +1,18 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\solar_power_plant\\refine_48step_from_v04_seed123410\\solar_power_plant\\solar_power_plant_refine_v02_keyed.png",
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_03\\model_plus_original_36\\solar_power_plant\\solar_power_plant_refine_v01_clean_body.png",
   "output": "assets\\terrain\\solar_power_plant.png",
   "sourceMode": "RGBA",
   "background": null,
-  "matteColor": [
-    79,
-    223,
-    65
-  ],
-  "matteEdgeWidth": 0.0,
-  "matteTolerance": 105.0,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
   "nearestOpaqueEdgeRgb": true,
   "nearestOpaqueAlpha": 0.98,
-  "defringeInnerPixels": 1,
-  "minComponentPixels": 6,
-  "removedComponents": 19,
-  "removedComponentPixels": 25,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
   "maskImage": null,
   "maskDilate": null,
   "fillAlphaHoles": false,
@@ -24,43 +21,33 @@
   "enclosedMatteChromaDistance": null,
   "maskAddRects": [],
   "restoreAlphaRects": [],
-  "removeMatteRects": [
-    "90,525,350,930",
-    "745,525,945,930",
-    "90,650,945,930",
-    "738,510,775,610"
-  ],
-  "clearGreenRects": [
-    "90,525,350,930",
-    "745,525,945,930",
-    "90,650,945,930",
-    "738,510,775,610"
-  ],
-  "greenHueRange": [
-    35.0,
-    90.0
-  ],
-  "greenSaturationMin": 80,
-  "greenValueMin": 20,
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
   "cropBox": [
-    149,
-    268,
-    910,
-    877
+    138,
+    326,
+    898,
+    936
   ],
   "fileSize": [
-    761,
-    609
+    760,
+    610
   ],
   "alphaBBox": [
     4,
     4,
-    757,
-    605
+    756,
+    606
   ],
   "displayW": 512,
-  "displayH": 410,
-  "footOffsetY": 202,
-  "scaleX": 0.6727989487516426,
-  "scaleY": 0.6732348111658456
+  "displayH": 411,
+  "footOffsetY": 203,
+  "scaleX": 0.6736842105263158,
+  "scaleY": 0.6737704918032786
 }

@@ -1,5 +1,5 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\deep_drill\\structure_12step_seed122451\\deep_drill\\deep_drill_refine_v03.png",
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_03\\model_plus_original_36\\deep_drill\\deep_drill_refine_v01_body.png",
   "output": "assets\\terrain\\deep_drill.png",
   "sourceMode": "RGBA",
   "background": null,
@@ -8,10 +8,11 @@
   "matteTolerance": null,
   "nearestOpaqueEdgeRgb": true,
   "nearestOpaqueAlpha": 0.98,
-  "defringeInnerPixels": 2,
+  "defringeInnerPixels": 0,
   "minComponentPixels": 8,
   "removedComponents": 1,
-  "removedComponentPixels": 1,
+  "removedComponentPixels": 2,
+  "preserveAlphaExact": true,
   "maskImage": null,
   "maskDilate": null,
   "fillAlphaHoles": false,
@@ -21,25 +22,32 @@
   "maskAddRects": [],
   "restoreAlphaRects": [],
   "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
   "cropBox": [
-    151,
-    104,
-    886,
-    921
+    138,
+    147,
+    874,
+    922
   ],
   "fileSize": [
-    735,
-    817
+    736,
+    775
   ],
   "alphaBBox": [
     4,
     4,
-    731,
-    813
+    732,
+    771
   ],
   "displayW": 300,
-  "displayH": 333,
-  "footOffsetY": 165,
-  "scaleX": 0.40816326530612246,
-  "scaleY": 0.40758873929008566
+  "displayH": 316,
+  "footOffsetY": 156,
+  "scaleX": 0.4076086956521739,
+  "scaleY": 0.40774193548387094
 }

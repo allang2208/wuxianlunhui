@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "assetId": "cheese_farm",
   "composition": "base -> structure_occluder -> foreground_occluder -> cow_visuals",
-  "sourceSize": [898, 514],
-  "runtimeDisplaySize": [512, 293],
+  "sourceSize": [899, 513],
+  "runtimeDisplaySize": [512, 292],
   "runtimeFootOffsetY": 144,
   "layers": [
     {
@@ -34,19 +34,19 @@
       {
         "id": "right_main",
         "role": "primary_grazing",
-        "polygon": [[686, 159], [782, 203], [817, 231], [810, 258], [753, 287], [690, 314], [646, 297], [628, 274], [644, 247], [667, 219]]
+        "polygon": [[687, 159], [783, 203], [818, 231], [811, 257], [754, 286], [691, 313], [647, 296], [629, 273], [645, 247], [668, 219]]
       },
       {
         "id": "front_pasture",
         "role": "secondary_grazing_idle_and_walking",
-        "polygon": [[326, 376], [391, 363], [456, 344], [521, 333], [563, 351], [548, 375], [496, 398], [425, 425], [361, 414], [315, 395]]
+        "polygon": [[326, 375], [391, 362], [457, 343], [522, 332], [564, 350], [549, 374], [497, 397], [425, 424], [361, 413], [315, 394]]
       }
     ],
     "corridors": [
       {
         "from": "front_pasture",
         "to": "right_main",
-        "waypoints": [[535, 356], [570, 331], [607, 307], [646, 287], [685, 271]],
+        "waypoints": [[536, 355], [571, 330], [608, 306], [647, 286], [686, 270]],
         "requiresFinalBodyClearance": true
       }
     ],

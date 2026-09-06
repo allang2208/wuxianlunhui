@@ -1,17 +1,18 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\grand_mall\\grand_mall_refine_v02_notext_body.png",
+  "source": "tools\\ai-gen\\_building_visual_refresh_20260827\\grand_mall_sign_only_candidate_v03.png",
   "output": "assets\\terrain\\grand_mall.png",
   "sourceMode": "RGBA",
   "background": null,
   "matteColor": null,
   "matteEdgeWidth": null,
   "matteTolerance": null,
-  "nearestOpaqueEdgeRgb": true,
-  "nearestOpaqueAlpha": 0.98,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
   "defringeInnerPixels": 0,
-  "minComponentPixels": 8,
-  "removedComponents": 3,
-  "removedComponentPixels": 9,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
   "maskImage": null,
   "maskDilate": null,
   "fillAlphaHoles": false,
@@ -21,25 +22,32 @@
   "maskAddRects": [],
   "restoreAlphaRects": [],
   "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
   "cropBox": [
-    211,
-    98,
-    827,
-    876
+    0,
+    0,
+    617,
+    793
   ],
   "fileSize": [
-    616,
-    778
+    617,
+    793
   ],
   "alphaBBox": [
     4,
     4,
-    612,
-    774
+    613,
+    789
   ],
   "displayW": 300,
-  "displayH": 379,
-  "footOffsetY": 188,
-  "scaleX": 0.487012987012987,
-  "scaleY": 0.487146529562982
+  "displayH": 386,
+  "footOffsetY": 191,
+  "scaleX": 0.4862236628849271,
+  "scaleY": 0.48675914249684743
 }
