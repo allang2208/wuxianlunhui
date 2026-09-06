@@ -37,6 +37,11 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
             }
             return;
         }
+        if (this._hasSettlementModal()) {
+            this.keys.delete(e.code);
+            e.preventDefault();
+            return;
+        }
         if (e.target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
             && e.code !== CONFIG.KEYS.MENU) {
             this.keys.delete(e.code);
@@ -180,6 +185,9 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                 if (player?.droneSystem?.controlling) player.droneSystem._exitControl?.();
                 if (player?.shieldSystem?.defending) player.shieldSystem.exitDefense?.();
             },
+    _hasSettlementModal() {
+                return !!(window.RewardSystem?._isOpen || document.getElementById('dungeonVictoryOverlay'));
+            },
     _closeOtherRightSidebarPanels(except) {
                 if (except !== 'system' && SystemUI.isOpen) SystemUI.close();
                 if (except !== 'quest' && UIState.isOpen('quest')) QuestSystem.close();
@@ -226,6 +234,8 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                     if (code === CONFIG.KEYS.MENU) window.MailboxPanel?.reset();
                     return;
                 }
+                // Electron 转发的 Esc 也走这里；奖励结算期间不得打开下层暂停菜单。
+                if (this._hasSettlementModal()) return;
                 if (this._playerControlLocked && this._isPlayerActionCode(code)) return;
                 // Electron ESC 可能直接调用 handleKey；保证科技树开启期间仍只有 ESC 能关闭，
                 // 其他全局快捷键一律不穿透到背包、任务、队伍或世界栏目。
