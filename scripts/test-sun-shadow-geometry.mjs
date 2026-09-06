@@ -375,7 +375,31 @@ check('透明度：深夜静态/动态分别保留基础强度的 40%',
 check('透明度：地牢固定为基础强度的 55%，不受午夜时间二次衰减',
     Math.abs(staticDungeon - 0.1925 * 0.55) < 1e-9
     && Math.abs(dynamicDungeon - 0.30078125 * 0.55) < 1e-9);
-EnvironmentLightingSystem.configure({ animateSun: true, startPhase: 0.25 });
+
+const configEvents = [];
+const unsubscribeConfig = EnvironmentLightingSystem.subscribeConfig((config, changedKeys) => {
+    configEvents.push({ config, changedKeys });
+});
+EnvironmentLightingSystem.configure({ enabled: false });
+check('主开关关闭：动态接触影与静态投影同时返回 null',
+    !EnvironmentLightingSystem.isShadowEnabled()
+    && EnvironmentLightingSystem.getDynamicShadow({}, 10) === null
+    && EnvironmentLightingSystem.getStaticShadow({}) === null);
+check('主开关关闭：设置监听器收到 enabled 变更',
+    configEvents.length === 1
+    && configEvents[0].config.enabled === false
+    && configEvents[0].changedKeys.includes('enabled'));
+EnvironmentLightingSystem.configure({ enabled: true, staticEnabled: false });
+check('仅关闭静态投影：单位接触影保留、建筑树木投影关闭',
+    EnvironmentLightingSystem.getDynamicShadow({}, 10) !== null
+    && EnvironmentLightingSystem.getStaticShadow({}) === null);
+unsubscribeConfig();
+EnvironmentLightingSystem.configure({
+    enabled: true,
+    staticEnabled: true,
+    animateSun: true,
+    startPhase: 0.25,
+});
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
