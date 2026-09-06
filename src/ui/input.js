@@ -49,6 +49,17 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
             e.stopImmediatePropagation();
             return;
         }
+        if (e.repeat && e.code === CONFIG.KEYS.WORLD) return;
+        if (UIState.isOpen('strategicExpedition') || UIState.isOpen('cityHallPolicies')) {
+            this.keys.delete(e.code);
+            if (e.code === CONFIG.KEYS.MENU) closeBasePanels('rightSidebar');
+            return;
+        }
+        if (UIState.isOpen('worldSwitch')) {
+            this.keys.delete(e.code);
+            this.handleKey(e.code, e.altKey);
+            return;
+        }
         // 全屏科技树是独占栏目：ESC 由面板的捕获监听关闭，其余按键不得进入
         // 游戏按键集合或打开其他栏目。
         if (TechnologyTreePanel.isOpen) {
@@ -236,6 +247,15 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                 }
                 // Electron 转发的 Esc 也走这里；奖励结算期间不得打开下层暂停菜单。
                 if (this._hasSettlementModal()) return;
+                if (UIState.isOpen('strategicExpedition') || UIState.isOpen('cityHallPolicies')) {
+                    if (code === CONFIG.KEYS.MENU) closeBasePanels('rightSidebar');
+                    return;
+                }
+                // Includes Electron's forwarded Escape; map owns all other hotkeys.
+                if (UIState.isOpen('worldSwitch')) {
+                    if (code === CONFIG.KEYS.MENU || code === CONFIG.KEYS.WORLD) window.WorldSwitchPanel?.close();
+                    return;
+                }
                 if (this._playerControlLocked && this._isPlayerActionCode(code)) return;
                 // Electron ESC 可能直接调用 handleKey；保证科技树开启期间仍只有 ESC 能关闭，
                 // 其他全局快捷键一律不穿透到背包、任务、队伍或世界栏目。
