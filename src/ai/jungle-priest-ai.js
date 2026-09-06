@@ -47,6 +47,18 @@ export class JunglePriestAI {
         m._pathManager?._clearPath?.();
         return true;
     }
+    cancelForDeath() {
+        this._castActive = false;
+        this._releaseDone = true;
+        this._pendingTarget = null;
+        this._pendingSpell = -1;
+        this._cachedTarget = null;
+        this.cancelForCommand();
+    }
+    updateProjectilesWhileControlled(dt, entities) {
+        this._iceSpike.update(dt, entities);
+        this._fireball.update(dt, entities);
+    }
     applyUpgrades(patch = {}) {
         if (patch.attackDamage) this.cfg.attackDamage = patch.attackDamage;
         if (Number.isFinite(patch.attackDamageMult)) this.cfg.attackDamageMult = patch.attackDamageMult;

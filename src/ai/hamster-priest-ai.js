@@ -85,6 +85,12 @@ export class HamsterPriestAI {
         return true;
     }
 
+    cancelForDeath() {
+        this._castActive = false;
+        this.cancelForCommand();
+        this.clear?.();
+    }
+
     _castRange() {
         return (this.cfg.castRange ?? 600) * getMagicRangeMultiplier(this.m);
     }
