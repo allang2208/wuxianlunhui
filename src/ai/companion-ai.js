@@ -15,7 +15,7 @@ import {
     resolveRtsMoveDestination,
     RTS_DEFAULT_ACQUIRE_RANGE,
 } from './rts-command-utils.js';
-import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { canFinishSurfaceFollow, canMeleeReachElevation } from './elevated-navigation-controller.js';
 import { GroundCircle } from '../physics/skill-shapes.js';
 import { surfaceEffectFromEntity } from '../physics/elevation.js';
 import { SceneManager } from '../world/scene-manager.js';
@@ -277,9 +277,14 @@ export class CompanionAI {
         sys.lightning.update(dt);
         sys.holyLight.update(dt);
 
+        // 已发起的施法/近战照常推进；空闲时先离梯，期间不发起新的站定动作。
+        const actionBusy = c._castState !== 'idle' || c._frozenForCast
+            || this._castRecoverTimer > 0 || this._pendingRelease
+            || this._meleeAtkTimer > 0 || this._defendPhase || this._whirlwindHitSet;
+        const leavingStairs = !actionBusy && MovementSystem.continueStairTransit(c, dt, entities);
         // 决策 tick（节流）
         this._decisionTimer -= dt;
-        if (this._decisionTimer <= 0) {
+        if (!leavingStairs && this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs || 120;
             this._tick(entities, player);
         }
@@ -290,7 +295,7 @@ export class CompanionAI {
         }
 
         // 移动（MovementSystem：寻路跟随/撤退/站位，施法锁定自动停步）
-        MovementSystem.update(c, dt, entities);
+        if (!leavingStairs) MovementSystem.update(c, dt, entities);
 
         // 队友防卡死只清理旧路径并重新规划；实际位移继续统一交给 MovementSystem.resolve。
         // 指挥指令（巡逻/采集/主动攻击）由各自命令层负责重新寻路。
@@ -491,7 +496,10 @@ export class CompanionAI {
 
         // 状态机：follow 距离以"到跟随点"为准（到玩家距离恒为偏移量，会导致永远走不到而停不下来）
         const followPoint = hasEnemy ? null : this._followPoint(player);
-        const followDist = followPoint ? Math.hypot(followPoint.x - c.x, followPoint.y - c.y) : null;
+        const followDist = followPoint
+            ? (canFinishSurfaceFollow(c, player)
+                ? Math.hypot(followPoint.x - c.x, followPoint.y - c.y) : Infinity)
+            : null;
         const action = decideCompanionAction({
             casting: c._castState !== 'idle' || c._frozenForCast,
             hasEnemy,
@@ -582,7 +590,7 @@ export class CompanionAI {
             case 'follow': {
                 const fp = this._followPoint(player);
                 const dist = Math.hypot(fp.x - c.x, fp.y - c.y);
-                if (dist > (this.cfg.followArriveDist || 55)) {
+                if (dist > (this.cfg.followArriveDist || 55) || !canFinishSurfaceFollow(c, player)) {
                     c._tacticalTarget = fp;
                     // 跟随：离玩家/跟随点远 → run 快速归队；小范围调整 → walk
                     this._setMoveState(this._shouldRun(dist, 'follow') ? 'run' : 'walk');
@@ -833,7 +841,7 @@ export class CompanionAI {
         const c = this.c;
         const fp = this._followPoint(player);
         const d = Math.hypot(fp.x - c.x, fp.y - c.y);
-        if (d > (this.cfg.followArriveDist || 55)) {
+        if (d > (this.cfg.followArriveDist || 55) || !canFinishSurfaceFollow(c, player)) {
             c._tacticalTarget = fp;
             this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
         } else {
@@ -856,6 +864,12 @@ export class CompanionAI {
         c._gatherPhase = 'work';
         this._patrolTarget = null;
         const move = resolveRtsMoveDestination(c, cmd, 40);
+        if (move.failed) {
+            c._tacticalTarget = null;
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            this._setMoveState('idle');
+            return;
+        }
         const dest = move.hasRoute ? move.destination : this._nearestWalkable(move.destination);
         if (!move.arrived) {
             c._tacticalTarget = dest;
@@ -1057,7 +1071,7 @@ export class CompanionAI {
         // 无敌人/超出交战半径：跟随玩家
         const fp = this._followPoint(player);
         const fd = Math.hypot(fp.x - c.x, fp.y - c.y);
-        if (fd > (cfg.followArriveDist || 55)) {
+        if (fd > (cfg.followArriveDist || 55) || !canFinishSurfaceFollow(c, player)) {
             c._tacticalTarget = fp;
             this._setMoveState(this._shouldRun(fd, 'follow') ? 'run' : 'walk');
             this._lastAction = 'follow';

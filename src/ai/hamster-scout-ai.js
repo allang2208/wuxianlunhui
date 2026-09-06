@@ -10,6 +10,7 @@ import { launchFriendlyProjectile, updateFriendlyProjectiles } from '../combat/f
 // - 移动复用 MovementSystem（寻路/墙碰撞/避障），射击中站定。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
+import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { WallSystem } from '../world/wall-system.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, getRtsAcquireRange } from './rts-command-utils.js';
 import { AimHelper } from '../utils/aim-helper.js';
@@ -102,6 +103,7 @@ export class HamsterScoutAI {
         // 飞行中投射物推进（优先于一切状态）
         updateFriendlyProjectiles(this, dt, entities);
 
+        if (!this._shotActive && MovementSystem.continueStairTransit(m, dt, entities)) return;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -202,7 +204,7 @@ export class HamsterScoutAI {
             const fx = player.x - this._followOffset;
             const fy = player.y;
             const dist = Math.hypot(fx - m.x, fy - m.y);
-            if (dist <= this._followArriveDist) {
+            if (dist <= this._followArriveDist && canFinishSurfaceFollow(m, player)) {
                 m._tacticalTarget = null;
                 m._animState = 'idle';
                 // 不再瞬时清零速度：由 MovementSystem 摩擦衰减完成缓停

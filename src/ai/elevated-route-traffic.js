@@ -66,6 +66,30 @@ export class ElevatedRouteTraffic {
         this._lastPruneAt = 0;
     }
 
+    directionFor(entity) {
+        const state = this._entityState.get(entity);
+        const record = state && this._records.get(state.staircaseId);
+        return record?.holders.get(entity)?.direction
+            || record?.queue.find((entry) => entry.entity === entity)?.direction || null;
+    }
+
+    /** 调试只读：不 prune/touch/request，打开面板不能改变FIFO或许可寿命。 */
+    debugEntity(entity, now = Date.now()) {
+        const state = this._entityState.get(entity);
+        const record = state && this._records.get(state.staircaseId);
+        if (!record) return null;
+        const queueIndex = record.queue.findIndex((entry) => entry.entity === entity);
+        const entry = record.holders.get(entity) || record.queue[queueIndex];
+        return {
+            staircaseId: state.staircaseId, role: state.role,
+            direction: entry?.direction || null, holderDirection: record.direction || null,
+            queuePosition: queueIndex >= 0 ? queueIndex + 1 : 0,
+            queueLength: record.queue.length, holders: record.holders.size,
+            waitingMs: entry?.enqueuedAt ? Math.max(0, now - entry.enqueuedAt) : 0,
+            leaseRemainingMs: entry ? Math.max(0, entry.expiresAt - now) : 0,
+        };
+    }
+
     touch(entity, now = Date.now()) {
         now = Number(now) || Date.now();
         const state = this._entityState.get(entity);
@@ -103,20 +127,42 @@ export class ElevatedRouteTraffic {
     }
 
     /** 楼梯组拓扑变化后，把实际驻梯单位的占用权迁移到新的组键。 */
-    occupy(entity, staircaseId, now = Date.now()) {
+    occupy(entity, staircaseId, now = Date.now(), fallbackDirection = 'up') {
         const sid = this._normalizeStaircaseId(staircaseId);
-        if (!_validEntity(entity) || !sid) return false;
+        if (!sid || !this._physicallyOccupies(entity, sid)) return false;
         const previous = this._entityState.get(entity);
-        let direction = 'up';
+        let direction = _normalizeDirection(fallbackDirection);
         if (previous) {
             const previousRecord = this._records.get(previous.staircaseId);
             direction = previousRecord?.holders.get(entity)?.direction
                 || previousRecord?.queue.find((entry) => entry.entity === entity)?.direction
                 || direction;
-            if (previous.staircaseId === sid) return this.touch(entity, now);
-            this.release(entity);
+            if (previous.staircaseId === sid && previous.role === 'holder'
+                && this.touch(entity, now)) return true;
+            if (previous.staircaseId !== sid) this.release(entity);
         }
-        return !!this.request(entity, sid, direction, now).granted;
+        const record = this._getRecord(sid, true);
+        this._removeQueuedEntity(record, entity, now);
+        this._timedOutEntities.delete(entity);
+        // 实际驻梯是既成占用，不能再调用入口 request 把它排到梯外预约者后面。
+        // 宽梯缩窄/组键变化时先撤回尚未入梯的许可，保留其原先领先的排队顺序。
+        this._requeueEntrants(record, sid, now);
+        this._grant(record, sid, entity, direction, now);
+        return true;
+    }
+
+    /** 上方出口失效时，实际驻梯者改为向地面退避；不得释放占用后重新排队。 */
+    retreatToGround(entity, staircaseId, now = Date.now()) {
+        const sid = this._normalizeStaircaseId(staircaseId);
+        if (!this.occupy(entity, sid, now, 'down')) return false;
+        const record = this._records.get(sid);
+        const holder = record?.holders.get(entity);
+        if (!holder) return false;
+        if (holder.direction === 'down') return true;
+        this._requeueEntrants(record, sid, now);
+        holder.direction = 'down';
+        this._refreshDirection(record);
+        return true;
     }
 
     request(entity, staircaseId, direction, now = Date.now()) {
@@ -156,8 +202,15 @@ export class ElevatedRouteTraffic {
                 record.direction = dir;
                 return this._result(record, true, entity);
             }
+            // 多人同向通行时，梯中反向者仍是实际占用者，不能移到入口队列。
+            // 路线控制器会先按原方向离梯；此处只拒绝反向许可，坡内手动位移及
+            // 梯底撤离仍由物理层处理，不能把实际占用者移到队列后丢失出梯能力。
+            if (entity._surfaceKind === 'stairs') {
+                return { ...this._result(record, false, entity), mustExitFirst: true };
+            }
             record.holders.delete(entity);
             this._entityState.delete(entity);
+            this._refreshDirection(record);
             if (record.holders.size === 0) {
                 record.direction = null;
                 this._grant(record, sid, entity, dir, now);
@@ -255,7 +308,9 @@ export class ElevatedRouteTraffic {
         this.prune(Date.now());
         const record = this._records.get(sid);
         if (!record) return 0;
-        const opposite = record.direction && record.direction !== _normalizeDirection(direction);
+        const requestedDirection = _normalizeDirection(direction);
+        const opposite = [...record.holders.values()].some((holder) =>
+            holder.direction !== requestedDirection);
         return record.queue.length + (opposite ? 1 : 0);
     }
 
@@ -285,11 +340,11 @@ export class ElevatedRouteTraffic {
     }
 
     _physicallyOccupies(entity, staircaseId) {
-        const entityGroupId = entity?._surfaceStairGroupId
-            || entity?._surfaceStaircase?._wallStairGroupId
-            || entity?._surfaceRef?._wallStairGroupId;
+        const carrier = entity?._surfaceStaircase || entity?._surfaceRef;
+        const entityGroupId = carrier?._wallStairGroupId || entity?._surfaceStairGroupId;
         return _validEntity(entity)
             && entity._surfaceKind === 'stairs'
+            && carrier?.active !== false && !carrier?._sinking
             && (entityGroupId === staircaseId
                 || entity._surfaceStaircase?.id === staircaseId
                 || entity._surfaceRef?.id === staircaseId);
@@ -321,19 +376,53 @@ export class ElevatedRouteTraffic {
         return this._records.get(staircaseId);
     }
 
+    _requeueEntrants(record, staircaseId, now) {
+        const displaced = [];
+        for (const [waitingEntity, holder] of record.holders) {
+            if (this._physicallyOccupies(waitingEntity, staircaseId)) continue;
+            record.holders.delete(waitingEntity);
+            if (!_validEntity(waitingEntity)) {
+                this._entityState.delete(waitingEntity);
+                continue;
+            }
+            displaced.push({
+                entity: waitingEntity,
+                direction: holder.direction,
+                enqueuedAt: now,
+                expiresAt: now + this._queueWaitTimeoutMs,
+            });
+            this._entityState.set(waitingEntity, { staircaseId, role: 'queued' });
+        }
+        record.queue.unshift(...displaced);
+    }
+
     _grant(record, staircaseId, entity, direction, now) {
-        record.direction = direction;
         record.holders.set(entity, {
             entity,
             direction,
             expiresAt: now + this._reservationTtlMs,
         });
+        this._refreshDirection(record);
         this._entityState.set(entity, { staircaseId, role: 'holder' });
+    }
+
+    /** 拆建迁移可能暂时同时存在上下行占用；混合方向不发布单向摘要。 */
+    _refreshDirection(record) {
+        let direction = null;
+        for (const holder of record.holders.values()) {
+            if (direction && direction !== holder.direction) {
+                record.direction = null;
+                return;
+            }
+            direction = holder.direction;
+        }
+        record.direction = direction;
     }
 
     _removeHolder(record, staircaseId, entity, now = Date.now()) {
         const removed = record.holders.delete(entity);
         this._entityState.delete(entity);
+        this._refreshDirection(record);
         if (record.holders.size === 0) {
             record.direction = null;
             this._promoteNext(record, staircaseId, now);
@@ -416,6 +505,7 @@ export class ElevatedRouteTraffic {
         if (firstAdvancedIndex >= 0) {
             this._markQueueProgress(record, now, firstAdvancedIndex);
         }
+        this._refreshDirection(record);
         if (record.holders.size === 0) {
             record.direction = null;
             this._promoteNext(record, staircaseId, now);

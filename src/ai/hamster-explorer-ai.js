@@ -83,8 +83,10 @@ export class HamsterExplorerAI {
         if (this._phase !== 'digging') {
             this._remainingMs = Math.max(0, this._remainingMs - dt);
             this._syncProgressFields();
-            if (this._remainingMs <= 0) this._startDigging();
         }
+        // 保留探险总时长与奖励状态，只把观望/挖掘的停步延后到安全出口。
+        if (MovementSystem.continueStairTransit(m, dt, entities)) return;
+        if (this._phase !== 'digging' && this._remainingMs <= 0) this._startDigging();
 
         if (this._phase === 'digging') {
             this._dampToStop(dt);
@@ -106,6 +108,7 @@ export class HamsterExplorerAI {
 
     _updateUtilityCommand(dt, entities) {
         const m = this.m;
+        if (MovementSystem.continueStairTransit(m, dt, entities)) return;
         const command = m._command;
         if (command?.mode === 'move' && command.point) {
             const move = resolveRtsMoveDestination(m, command);

@@ -7,6 +7,7 @@ import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/
 // - praying 动画第 8 帧实际结算圣光，移动复用 MovementSystem。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
+import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { HolyLightSystem } from '../entities/components/holy-light-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
@@ -106,6 +107,7 @@ export class HamsterPriestAI {
             return;
         }
 
+        if (MovementSystem.continueStairTransit(m, dt, entities)) return;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -398,7 +400,7 @@ export class HamsterPriestAI {
             _surfaceTarget: player,
         };
         const dist = Math.hypot(target.x - m.x, target.y - m.y);
-        if (dist <= (this.cfg.followArriveDist ?? 40)) {
+        if (dist <= (this.cfg.followArriveDist ?? 40) && canFinishSurfaceFollow(m, player)) {
             this._stop();
             return;
         }

@@ -12,6 +12,7 @@ import {
     resolveRtsMoveDestination,
     RTS_DEFAULT_ACQUIRE_RANGE,
 } from './rts-command-utils.js';
+import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterNinjaAI {
@@ -106,6 +107,7 @@ export class HamsterNinjaAI {
             return;
         }
 
+        if (MovementSystem.continueStairTransit(m, dt, entities)) return;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -319,7 +321,7 @@ export class HamsterNinjaAI {
         }
         const target = { x: player.x - this._followOffset, y: player.y, _surfaceTarget: player };
         const distance = Math.hypot(target.x - this.m.x, target.y - this.m.y);
-        if (distance <= this._followArriveDist) {
+        if (distance <= this._followArriveDist && canFinishSurfaceFollow(this.m, player)) {
             this._stopAtTarget();
             return;
         }

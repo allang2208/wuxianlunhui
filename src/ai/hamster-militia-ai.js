@@ -12,6 +12,7 @@ import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '.
 import { MovementSystem } from '../systems/movement-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
+import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterMilitiaAI {
@@ -80,6 +81,7 @@ export class HamsterMilitiaAI {
 
         const actionWasActive = this._swingActive;
         this._attackTimer = Math.max(0, this._attackTimer - dt);
+        if (!this._swingActive && MovementSystem.continueStairTransit(m, dt, entities)) return;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -181,7 +183,7 @@ export class HamsterMilitiaAI {
             const fx = player.x - this._followOffset;
             const fy = player.y;
             const dist = Math.hypot(fx - m.x, fy - m.y);
-            if (dist <= this._followArriveDist) {
+            if (dist <= this._followArriveDist && canFinishSurfaceFollow(m, player)) {
                 m._tacticalTarget = null;
                 m._animState = 'idle';
                 // 不再瞬时清零速度：由 MovementSystem 摩擦衰减完成缓停

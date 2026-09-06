@@ -129,6 +129,7 @@ export class HamsterMinerAI {
 
         // 矿工不进入玩家选择体系；清理旧存档/旧指挥模式可能遗留的命令。
         if (m._command?.mode && m._command.mode !== 'follow') m._command = { mode: 'follow' };
+        if (MovementSystem.continueStairTransit(m, dt, entities)) return;
 
         // 仓库暂时放不下：停在营地，容量恢复后继续提交；岗位撤销则提交完离岗。
         if (this._phase === 'storage_wait') {

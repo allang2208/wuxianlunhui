@@ -112,9 +112,9 @@ export const RTSCommand = {
         const g = _game();
         const observer = !!(g && g._observerMode);
         // 指挥模式可用于所有持久世界，以及观察模式下的世界。
-        const commandable = (PERSISTENT_WORLDS.has(sceneId) || observer)
+        const commandable = (PERSISTENT_WORLDS.has(sceneId) || sceneId === 'strategy_battle' || observer)
             && TechnologySystem.isUnlocked('mechanic', 'rts_command');
-        const leavingWorld = PERSISTENT_WORLDS.has(this._scene) && this._scene !== sceneId;
+        const leavingWorld = (PERSISTENT_WORLDS.has(this._scene) || this._scene === 'strategy_battle') && this._scene !== sceneId;
         const sceneChanged = this._scene !== null && this._scene !== sceneId;
         this._scene = sceneId;
         const commandButtonWasVisible = !!(this._btn && this._btn.style.display !== 'none');
@@ -123,6 +123,8 @@ export const RTSCommand = {
         if (this._troopLinePanel) this._troopLinePanel.style.display = (commandable && this.enabled) ? '' : 'none';
         if (sceneChanged) {
             this._orderQueues.clear();
+            this._navigationCommands?.clear();
+            this._navigationNotice = null;
             this._pendingRightClick = null;
             this.cancelPendingCommand();
             if (leavingWorld && !observer) this._resetPartyCommandsForSceneExit();
@@ -240,7 +242,7 @@ export const RTSCommand = {
             type: 'mechanic',
             id: 'rts_command',
             preserveLayout: false,
-            when: () => PERSISTENT_WORLDS.has(this._scene) || !!(_game()?._observerMode),
+            when: () => PERSISTENT_WORLDS.has(this._scene) || this._scene === 'strategy_battle' || !!(_game()?._observerMode),
         });
         this._placeButton();
         // 组队栏或窗口尺寸变化时重新定位。
@@ -479,7 +481,7 @@ export const RTSCommand = {
     _onCommandBarClick(event) {
         const button = event.target.closest?.('button[data-order]');
         if (!button || button.disabled || _game()?._paused || TechnologyTreePanel.isOpen
-            || UIState.isOpen('worldSwitch') || UIState.isOpen('strategicExpedition')) return;
+            || UIState.isOpen('worldSwitch') || UIState.isOpen('strategicExpedition') || UIState.isOpen('cityHallPolicies')) return;
         if (event.detail > 0) button.blur();
         const mode = button.dataset.order;
         if (RTS_ORDER_UI[mode]?.target) {
@@ -675,23 +677,6 @@ export const RTSCommand = {
         this._syncCommandBarVisibility();
     },
 
-
-
-
-
-    /** 友军选中同步至组队栏高亮与场景选中光圈。 */
-
-
-
-
-
-
-    // ==================== 命中 / 框选 ====================
-
-    /** 全部可指挥友军：本体世界玩家 + PartySystem 侍从 + 仓鼠等场上友军；
-     * 观察世界不注入异世界玩家本体。 */
-
-
     _clearSelection() {
         if (!this._selection.length) return;
         this._selection = [];
@@ -865,32 +850,6 @@ export const RTSCommand = {
         this._hoverBuilding = next;
         this._applyCanvasCursor();
     },
-
-    /** 只在普通移动语义下提示“可登高”；攻击移动、巡逻、集结和拖框各自保留原指令状态。 */
-
-
-
-
-    /** GameScene 是唯一鼠标图形绘制方；这里仅公开已完成的 RTS 语义判定。 */
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * GameScene 的唯一游标仲裁输入。这里只返回指令语义，不直接写 canvas/body cursor。
-     * 返回值与正式提交共用同一套目标解析和门禁，避免显示、点击两套判断漂移。
-     */
-
-
-
 
     /** 只在普通移动语义下提示“可登高”；攻击移动、巡逻、集结和拖框各自保留原指令状态。 */
     _syncElevatedHover(sx, sy) {
@@ -1319,12 +1278,13 @@ export const RTSCommand = {
                 }
             } else {
                 if (e.shiftKey || e.ctrlKey || e.metaKey) { this._clearDrag(); return; }
-                const producer = this._hitTroopProducerAt(e.clientX, e.clientY);
+                const building = this._hitBuildingAt(e.clientX, e.clientY);
+                const producer = this._hitTroopProducerAt(e.clientX, e.clientY, building);
                 if (producer) {
                     this._lastClick = null;
                     this._setSelection([producer], { preserveBuildingUI: true });
-                    this._tryBuildingClick(e.clientX, e.clientY);
-                } else if (this._tryBuildingClick(e.clientX, e.clientY)) {
+                    this._tryBuildingClick(e.clientX, e.clientY, building);
+                } else if (this._tryBuildingClick(e.clientX, e.clientY, building)) {
                     // 打开非产兵建筑界面时关闭单位/复数面板，保留选择。
                     this._hidePanel();
                 } else {
@@ -1506,6 +1466,35 @@ export const RTSCommand = {
         }
     },
 
+    _groupNotify(digit, n, verb) {
+        EffectManager.add(new FloatingTextEffect(Camera.x, Camera.y - 120, `${verb}编队 ${digit}（${n} 单位）`, '#8ad0ff'));
+    },
+
+    _resolveGroupUnits(entries) {
+        const allies = new Map(this._collectAllies()
+            .filter((unit) => unit?.active && this._commandUnitId(unit))
+            .map((unit) => [this._commandUnitId(unit), unit]));
+        return entries.map((entry) => allies.get(typeof entry === 'string' ? entry : entry?.id))
+            .filter(Boolean);
+    },
+
+    /** 双击同类复选：选中屏幕上所有同类型友军。 */
+    _selectSameTypeOnScreen(ref) {
+        const key = this._unitTypeKey(ref);
+        if (!key) { this._setSelection([{ kind: 'ally', ref }]); return; }
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const list = [];
+        for (const u of this._collectAllies()) {
+            if (this._unitTypeKey(u) !== key) continue;
+            const r = this._unitScreenRect(u);
+            if (!r) continue;
+            if (r.x1 < 0 || r.y1 < 0 || r.x0 > vw || r.y0 > vh) continue;
+            list.push({ kind: 'ally', ref: u });
+        }
+        if (!list.some((s) => s.ref === ref)) list.push({ kind: 'ally', ref });
+        this._setSelection(list);
+    },
+
     /** 单位类型键：仓鼠兵种用全局登记表，队员回退档案 id */
     _unitTypeKey(u) {
         if (this._isPlayerUnit(u)) return '__player__';
@@ -1587,6 +1576,7 @@ export const RTSCommand = {
                     surfaceKind: destination.surfaceKind || 'ground',
                     wallId: destination.wallId, staircaseId: destination.staircaseId,
                     stairGroupId: destination.stairGroupId, formationSlot: destination.formationSlot,
+                    routeAnchor: destination.routeAnchor,
                 } : null;
                 entry.orders.push({ mode, point: semantic, target, formationReservations: reservations });
                 this._orderQueues.set(unit, entry);
@@ -1612,6 +1602,14 @@ export const RTSCommand = {
     _dispatchUnitCommand(unit, mode, point, target, reservations = null) {
         const reservationStart = reservations?.length || 0;
         const accepted = this._applyUnitCommand(unit, mode, point, target, reservations);
+        if (accepted) {
+            this._navigationCommands ||= new Map();
+            if (mode === 'move' || mode === 'attack' || RtsTacticalOrderSystem.isOrderMode(mode)) {
+                this._navigationCommands.set(unit, { token: this._orderToken(unit), scene: this._scene });
+                unit._navigationStatus = 'pending';
+                unit._navigationFailure = null;
+            } else this._navigationCommands.delete(unit);
+        }
         if (reservations && reservations.length > reservationStart) {
             if (!accepted) reservations.splice(reservationStart);
             else {
@@ -1663,6 +1661,12 @@ export const RTSCommand = {
             accepted = true;
         }
         if (!accepted) return false;
+        unit._navigationStatus = mode === 'move' || tactical ? 'pending' : null;
+        unit._navigationFailure = null;
+        this._navigationCommands ||= new Map();
+        if (mode === 'move' || tactical) this._navigationCommands.set(unit,
+            { token: this._orderToken(unit), scene: this._scene });
+        else this._navigationCommands.delete(unit);
         delete unit._troopLineTransit;
         delete unit._troopLineRally;
         if (mode === 'stop') unit._command._rtsStop = true;
@@ -1696,8 +1700,7 @@ export const RTSCommand = {
                 const completed = unit._rtsCompletedCommand;
                 if (completed?.command === entry.current) {
                     if (completed.failed) {
-                        EffectManager.add(new FloatingTextEffect(unit.x, unit.y - (unit.z || 0) - 48,
-                            `跳过队列指令：${completed.reason || '目标不可达'}`, '#ff8855'));
+                        this._queueNavigationFailure(unit, completed.reason, completed);
                     }
                     delete unit._rtsCompletedCommand;
                     entry.idleCommand = this._orderToken(unit);
@@ -1714,12 +1717,36 @@ export const RTSCommand = {
                 entry.current = this._orderToken(unit);
                 delete unit._rtsCompletedCommand;
             } else {
-                EffectManager.add(new FloatingTextEffect(unit.x, unit.y - (unit.z || 0) - 48,
-                    `跳过队列指令：${this._lastCommandRejectReason || '目标不可达'}`, '#ff8855'));
+                this._queueNavigationFailure(unit, this._lastCommandRejectReason);
             }
             if (!entry.orders.length) this._orderQueues.delete(unit);
             this._commandBarSig = '';
         }
+        for (const [unit, observed] of this._navigationCommands || []) {
+            const completed = unit._rtsCompletedCommand;
+            if (completed?.command === observed.token && completed.failed) {
+                this._queueNavigationFailure(unit, completed.reason, completed);
+            }
+            if (observed.scene !== this._scene || !unit.active || unit._dying
+                || completed?.command === observed.token || this._orderToken(unit) !== observed.token) {
+                this._navigationCommands.delete(unit);
+            }
+        }
+        const notice = this._navigationNotice;
+        if (notice && Date.now() >= notice.at + 600) {
+            this._navigationNotice = null;
+            EffectManager.add(new FloatingTextEffect(notice.x, notice.y,
+                `${notice.count}条移动未完成：${notice.reason}${notice.mixed ? '等原因' : ''}`, '#ff8855'));
+        }
+    },
+
+    _queueNavigationFailure(unit, reason = '目标不可达', record = null) {
+        if (record?._navigationReported) return;
+        if (record) record._navigationReported = true;
+        const existing = this._navigationNotice;
+        if (existing) { existing.count++; existing.mixed ||= existing.reason !== reason; return; }
+        this._navigationNotice = { count: 1, reason: reason || '目标不可达', at: Date.now(),
+            x: unit.x, y: unit.y - (unit.z || 0) - 48, mixed: false };
     },
 
     /** 只在下一条群体移动开始时回收预约，兼容同批单位跨帧执行，不增加逐帧队形调整。 */
@@ -1905,7 +1932,6 @@ export const RTSCommand = {
     _issueCommandToAllies(mode, point, target, options = {}) {
         return this._dispatchCommands(this._commandCursorAllies(), mode, point, target, options);
     },
-
     _movePointForUnit(unit, point, groundReservations = null) {
         if (!point) return point;
         let resolvedPoint = point;
@@ -2056,18 +2082,6 @@ export const RTSCommand = {
         }
         return result;
     },
-
-
-
-    /** 同时校验高架路线和建筑出口到路线入口的地面连通性。 */
-
-
-    /** 右键攻击指令反馈：目标贴图短暂红白交替闪现。 */
-
-
-    // ==================== 渲染（拖框 + 选中光圈） ====================
-
-
 
     _selectedTroopProducer() {
         if (this._selection.length !== 1 || this._selection[0].kind !== 'producer') return null;

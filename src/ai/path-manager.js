@@ -1,15 +1,12 @@
 
 import { PATH_DEFERRED } from './pathfinder.js';
 import { WallSystem } from '../world/wall-system.js';
+import { splitCommandTransitPath } from './command-transit-graph.js';
 
-// A* 使用实体的实际地面碰撞圆心；对外路径仍保持实体脚点坐标。
+// A*消费实际地面圆心；对外路径仍是实体脚点，不能改变RTS/高架入口的语义坐标。
 function toEntityPath(path, offset) {
     if (!Array.isArray(path) || !(offset.x || offset.y)) return path;
-    return path.map((point) => ({
-        ...point,
-        x: point.x - offset.x,
-        y: point.y - offset.y
-    }));
+    return path.map((point) => ({ ...point, x: point.x - offset.x, y: point.y - offset.y }));
 }
 
 let nextPathRequestId = 1;
@@ -61,7 +58,7 @@ class PathManager {
         const sharedCrowdPath = unit._defenseMonster === true;
         const target = unit.target;
         this._pathOptionState.friendlyGateAccess = friendly;
-        // 玩家 RTS 点击要求同步反馈；AI/侍从通过 PathWorkScheduler 跨帧续算。
+        // 旧接口保留原调用约定；玩家RTS走下方独立的分帧指挥路径，不经过此分支。
         this._pathOptionState.incremental = unit._faction !== 'player';
         this._pathOptionState.sharedCrowdPath = sharedCrowdPath;
         this._pathOptionState.sharedTargetKey = sharedCrowdPath && target
@@ -78,12 +75,8 @@ class PathManager {
     _findPath(pathPlanner, targetX, targetY, radius, options) {
         const offset = WallSystem.getEntityMoveOffset(this.enemy);
         return toEntityPath(pathPlanner.findPath(
-            this.enemy.x + offset.x,
-            this.enemy.y + offset.y,
-            targetX + offset.x,
-            targetY + offset.y,
-            radius,
-            options
+            this.enemy.x + offset.x, this.enemy.y + offset.y,
+            targetX + offset.x, targetY + offset.y, radius, options
         ), offset);
     }
 
@@ -121,12 +114,196 @@ class PathManager {
      * 清除路径
      */
     _clearPath() {
+        if (this._commandRoute) this._commandRoute.cancelled = true;
+        this._commandRoute = null;
+        this.lastPlanResult = null;
         this.path = null;
         this.pathIdx = 0;
         this.isValid = false;
         this.stuckCount = 0;
         this.topologyVersion = -1;
         this.friendlyGateAccessVersion = -1;
+    }
+
+    /** 显式士兵指令独立持有目标/命令代次；旧排队结果不能写回新命令。 */
+    prepareCommandRoute(owner, target, planner) {
+        const previous = this._commandRoute;
+        const version = planner.getTopologyVersion();
+        const radius = planner._bucketRadius(this.enemy.groundRadius || 20);
+        const offset = WallSystem.getEntityMoveOffset(this.enemy);
+        const nearbyChase = owner?.mode === 'attack' && !owner.point?.route?.length
+            && !target.staircaseId && !this.enemy._surfaceNavCommand?.point?.route?.length
+            && previous && Math.hypot(previous.x - target.x, previous.y - target.y) <= 32;
+        if (previous && previous.owner === owner && (nearbyChase || (previous.x === target.x && previous.y === target.y))
+            && previous.radius === radius && previous.offsetX === offset.x && previous.offsetY === offset.y
+            && (previous.version === version || planner.commandRoutes.isProofCurrent(previous.proof))
+            && (this.hasValidPath() || previous.surfaceRoute || previous.status !== 'complete')) {
+            previous.version = version;
+            return previous;
+        }
+        const retries = previous?.owner === owner ? previous.retries : 0;
+        this._clearPath();
+        this._isExitPath = false;
+        this._commandRoute = { owner, x: target.x, y: target.y, version, radius,
+            offsetX: offset.x, offsetY: offset.y, status: 'pending',
+            seed: target.navigationVersion === version ? target.navigationPath : null,
+            anchor: !owner?.point?.route?.length ? owner?.point?.routeAnchor : null,
+            retries, progressAt: Date.now(), progressX: this.enemy.x, progressY: this.enemy.y };
+        this._commandRoute.allowTransit = !target.staircaseId && !owner?.point?.route?.length
+            && !this.enemy._surfaceNavCommand?.point?.route?.length && !this.enemy._surfaceExitCommand;
+        this._commandRoute.projectAttackGoal = this._commandRoute.allowTransit && owner?.mode === 'attack'
+            && owner.target && Math.hypot(owner.target.x - target.x, owner.target.y - target.y) <= 1;
+        const request = this._commandRoute;
+        request.isCurrent = () => !request.cancelled && this._commandRoute === request && this.commandOwnerMatches(request);
+        this.enemy._navigationStatus = 'pending';
+        this.lastPlanResult = { status: 'pending', pending: true, at: Date.now() };
+        return this._commandRoute;
+    }
+
+    commandOwnerMatches(route = this._commandRoute) {
+        const unit = this.enemy;
+        return !!route && unit?.active !== false && !unit?._dying
+            && (unit._command === route.owner || unit._rtsController?.command === route.owner || unit._surfaceNavCommand === route.owner
+                || unit._garrisonMoveCommand === route.owner || unit._surfaceExitCommand === route.owner);
+    }
+
+    _attackApproachGoals(planner, request, x, y, radius, options) {
+        if (request.attackGoals) return request.attackGoals;
+        if (!planner.advanceNavigationWithinFrameBudget() || !planner._budgetAvailable()) return PATH_DEFERRED;
+        const started = performance.now();
+        const deadline = started + Math.min(0.4, Math.max(0, planner.frameBudgetMs - planner._frameUsedMs));
+        try {
+            const state = request.attackApproach ||= { checked: false, direction: 0,
+                distance: 0, step: Math.max(planner.gridSize, planner._bucketRadius(radius)), goals: [] };
+            if (!state.checked) {
+                state.checked = true;
+                if (!planner.commandRoutes.pointBlocked(x, y, planner._bucketRadius(radius), options)) {
+                    return request.attackGoals = [{ id: 'target', x, y }];
+                }
+            }
+            // 建筑/锁门的中心不能作为脚点。每个方向只保留第一个开放点，再按完整路线
+            // 成本选择可达侧；最多12×9次采样，沿用旧攻击目标360px投影范围并分帧记账。
+            while (state.direction < 12) {
+                if (performance.now() >= deadline) return PATH_DEFERRED;
+                state.distance += state.step;
+                if (state.distance > 360) { state.direction++; state.distance = 0; continue; }
+                const angle = state.direction / 12 * Math.PI * 2;
+                const px = x + Math.cos(angle) * state.distance, py = y + Math.sin(angle) * state.distance;
+                if (planner.commandRoutes.pointBlocked(px, py, planner._bucketRadius(radius), options)) continue;
+                state.goals.push({ id: `approach:${state.direction}`, x: px, y: py });
+                state.direction++; state.distance = 0;
+            }
+            return request.attackGoals = state.goals;
+        } finally { planner._chargeBudget(started); }
+    }
+
+    _recalculateCommand(planner) {
+        const request = this._commandRoute;
+        if (!this.commandOwnerMatches(request)) { this._clearPath(); return false; }
+        const offset = WallSystem.getEntityMoveOffset(this.enemy);
+        const options = { friendlyGateAccess: true, fastDirect: true, request };
+        const x = this.enemy.x + offset.x, y = this.enemy.y + offset.y;
+        const tx = request.x + offset.x, ty = request.y + offset.y;
+        const radius = this.enemy.groundRadius || 20;
+        if (request.seed) {
+            if (!planner.advanceNavigationWithinFrameBudget() || !planner._budgetAvailable()) return PATH_DEFERRED;
+            const started = performance.now(), seed = request.seed;
+            request.seed = null;
+            const first = seed[0];
+            const canJoin = first && Math.hypot(first.x - this.enemy.x, first.y - this.enemy.y) <= 48
+                && !planner.commandRoutes.segmentBlocked(x, y, first.x + offset.x, first.y + offset.y, radius, options);
+            if (canJoin) {
+                this.setPath([{ x: this.enemy.x, y: this.enemy.y }, ...seed], planner);
+                request.status = 'complete';
+                request.proof = planner.commandRoutes.proofForPath(seed.map(point => ({ x: point.x + offset.x,
+                    y: point.y + offset.y })), radius);
+                this.enemy._navigationStatus = 'complete';
+                this.lastPlanResult = { status: 'complete', reachable: true, x: request.x, y: request.y, at: Date.now() };
+            }
+            planner._chargeBudget(started);
+            if (canJoin) return true;
+        }
+        // 同队终点共享公共路线，只在公共终点到各自槽位确实直通时接入。
+        if (request.useAnchor === undefined) {
+            if (!planner.advanceNavigationWithinFrameBudget() || !planner._budgetAvailable()) return PATH_DEFERRED;
+            const started = performance.now(), anchor = request.anchor;
+            request.useAnchor = !!anchor && Math.hypot(anchor.x - request.x, anchor.y - request.y) <= 160
+                && !planner.commandRoutes.segmentBlocked(anchor.x + offset.x, anchor.y + offset.y,
+                    tx, ty, radius, options);
+            planner._chargeBudget(started);
+        }
+        const end = request.useAnchor ? { x: request.anchor.x + offset.x, y: request.anchor.y + offset.y }
+            : { x: tx, y: ty };
+        const goals = request.projectAttackGoal
+            ? this._attackApproachGoals(planner, request, tx, ty, radius, options)
+            : [{ id: 'target', ...end }];
+        if (goals === PATH_DEFERRED) return PATH_DEFERRED;
+        if (!goals.length) {
+            request.status = 'search_limited';
+            request.reason = '未找到目标周围的可达接近点';
+            this.enemy._navigationStatus = request.status;
+            this.lastPlanResult = { status: request.status, reason: request.reason, reachable: false, at: Date.now() };
+            return false;
+        }
+        let result = null;
+        if (request.allowTransit && goals.length === 1 && Math.hypot(goals[0].x - x, goals[0].y - y) <= 240) {
+            result = planner.commandRoutes.query(x, y, goals, radius,
+                { ...options, directOnly: true });
+            if (result?.status === 'pending') return PATH_DEFERRED;
+        }
+        if (!result && request.allowTransit) {
+            const graph = globalThis.window?.Game?.DefenseSystem?.commandTransitGraphForUnit?.(this.enemy);
+            if (graph?.pending) return PATH_DEFERRED;
+            options.transitGraph = graph;
+        }
+        result ||= planner.commandRoutes.query(x, y, goals, radius, options);
+        if (result.status === 'pending') {
+            this.lastPlanResult = { status: 'pending', pending: true, at: Date.now() };
+            return PATH_DEFERRED;
+        }
+        if (result.status === 'complete') {
+            const finalizedAt = performance.now();
+            const path = request.useAnchor ? [...result.path, { x: tx, y: ty }] : result.path;
+            const entityPath = toEntityPath(path, offset);
+            request.surfaceRoute = splitCommandTransitPath(entityPath, planner.getTopologyVersion());
+            // 高架结果由共享表面控制器接管，绝不能当成普通地面折线直接跟随。
+            if (!request.surfaceRoute) this.setPath(entityPath, planner);
+            request.proof = planner.commandRoutes.proofForPath(path, radius);
+            request.status = 'complete';
+            request.progressAt = Date.now();
+            request.progressX = this.enemy.x; request.progressY = this.enemy.y;
+            planner._chargeBudget(finalizedAt);
+        } else {
+            request.status = result.status;
+            request.reason = result.reason;
+            this.path = null; this.isValid = false;
+        }
+        this.lastPlanResult = { ...result, path: undefined, x: request.x, y: request.y,
+            reachable: result.status === 'complete', at: Date.now() };
+        this.enemy._navigationStatus = result.status;
+        return result.status === 'complete';
+    }
+
+    /** 拥挤可以等待；持续没有沿路径取得进展时只允许有限次重算，禁止随机穿墙脱困。 */
+    watchCommandProgress() {
+        const request = this._commandRoute;
+        if (!request || request.status !== 'complete' || !this.hasValidPath()) return;
+        const node = this.getCurrentWaypoint();
+        const distance = Math.hypot(node.x - this.enemy.x, node.y - this.enemy.y);
+        const moved = Math.hypot(this.enemy.x - request.progressX, this.enemy.y - request.progressY) > 1;
+        if (request.index !== this.pathIdx || (moved && distance + 2 < (request.distance ?? Infinity))) {
+            // 只在实体确实前进时恢复额度，单纯重建路径或跳过起点不算脱困。
+            if (moved && distance + 2 < (request.distance ?? Infinity)) request.retries = 0;
+            request.index = this.pathIdx; request.distance = distance; request.progressAt = Date.now();
+            request.progressX = this.enemy.x; request.progressY = this.enemy.y;
+            return;
+        }
+        if (Date.now() - request.progressAt < 2400) return;
+        this.path = null; this.isValid = false;
+        request.retries++;
+        request.status = request.retries <= 2 ? 'pending' : 'search_limited';
+        request.reason = '通道持续拥堵或无法通过，请调整目的地后重试';
+        this.enemy._navigationStatus = request.status;
     }
 
     // ==================== 每帧更新：有效性检查 ====================
@@ -137,6 +314,7 @@ class PathManager {
      * @param {PathFinder} pathPlanner - 路径规划器实例
      */
     update(dt, pathPlanner, scheduler = null, priority = 0) {
+        if (this._commandRoute) return; // 指令路线用相关几何版本失效、有限进度重算和原逐帧物理碰撞。
         if (!this.path || !this.isValid) return;
         const friendlyGatePolicyChanged = this._pathOptions()?.friendlyGateAccess === true
             && pathPlanner?.getFriendlyGateAccessVersion
@@ -196,20 +374,19 @@ class PathManager {
         if (!pathPlanner || !pathPlanner.isPointBlocked) return false;
         if (this.enemy._spawnEgress) return false;
         const radius = this.enemy.groundRadius;
-        const offset = WallSystem.getEntityMoveOffset(this.enemy);
         // 每次只预读前方最多 8 段走廊，控制多单位检查成本；拓扑版本变化时立即执行。
         // 出兵离场阶段起点可能仍在来源建筑 footprint 内，先让既有 egress 契约把单位带出。
         const endIdx = Math.min(this.path.length - 1, this.pathIdx + 8);
-        let prev = { x: this.enemy.x + offset.x, y: this.enemy.y + offset.y };
+        const offset = WallSystem.getEntityMoveOffset(this.enemy);
+        let prev = { x: this.enemy.x, y: this.enemy.y };
         for (let i = this.pathIdx; i <= endIdx; i++) {
             const node = this.path[i];
-            const nodeX = node.x + offset.x;
-            const nodeY = node.y + offset.y;
-            const corridorBlocked = pathPlanner.isSegmentBlocked?.(prev.x, prev.y, nodeX, nodeY, radius);
-            if (pathPlanner.isPointBlocked(nodeX, nodeY, radius) || corridorBlocked) {
+            const corridorBlocked = pathPlanner.isSegmentBlocked?.(
+                prev.x + offset.x, prev.y + offset.y, node.x + offset.x, node.y + offset.y, radius);
+            if (pathPlanner.isPointBlocked(node.x + offset.x, node.y + offset.y, radius) || corridorBlocked) {
                 return this._repairPath(i, pathPlanner);
             }
-            prev = { x: nodeX, y: nodeY };
+            prev = node;
         }
         return true;
     }
@@ -338,6 +515,7 @@ class PathManager {
     // 卡住时 bypassLimit = true 强制绕过限制
     // [NEW] 当目标不可达时，自动寻找最近出口路径（RimWorld RegionIndex 机制）
     forceRecalc(pathPlanner, targetX, targetY, bypassLimit = false) {
+        if (this._commandRoute) return this._recalculateCommand(pathPlanner);
         const minRecalcInterval = 500; // 500ms 最小重算间隔
         if (!bypassLimit && Date.now() - this.lastRecalcTime < minRecalcInterval) {
             return false; // 间隔不足，跳过
@@ -353,9 +531,13 @@ class PathManager {
             this._warn('[PathManager] forceRecalc failed: ' + e.message);
         }
         // 帧预算不足：保留旧路径，下一帧 MovementSystem 的 shouldRecalc 会再次尝试
-        if (path === PATH_DEFERRED) return PATH_DEFERRED;
+        if (path === PATH_DEFERRED) {
+            this.lastPlanResult = { x: targetX, y: targetY, at: Date.now(), pending: true };
+            return PATH_DEFERRED;
+        }
         if (path) {
             this.setPath(path, pathPlanner);
+            this.lastPlanResult = { x: targetX, y: targetY, at: Date.now(), reachable: true };
             this._isExitPath = false;
             return true;
         }
@@ -364,16 +546,16 @@ class PathManager {
         // 只在封闭空间（如地牢战斗房间）使用，开放地图不适用
         const offset = WallSystem.getEntityMoveOffset(this.enemy);
         const exitResult = pathPlanner.findPathToExit(
-            this.enemy.x + offset.x,
-            this.enemy.y + offset.y,
-            targetX + offset.x,
-            targetY + offset.y,
-            radius,
-            pathOptions
+            this.enemy.x + offset.x, this.enemy.y + offset.y,
+            targetX + offset.x, targetY + offset.y, radius, pathOptions
         );
-        if (exitResult === PATH_DEFERRED) return PATH_DEFERRED;
+        if (exitResult === PATH_DEFERRED) {
+            this.lastPlanResult = { x: targetX, y: targetY, at: Date.now(), pending: true };
+            return PATH_DEFERRED;
+        }
         if (exitResult && exitResult.path) {
             this.setPath(toEntityPath(exitResult.path, offset), pathPlanner);
+            this.lastPlanResult = { x: targetX, y: targetY, at: Date.now(), reachable: true };
             this._isExitPath = true;
             this._exitTargetX = targetX;
             this._exitTargetY = targetY;
@@ -383,6 +565,7 @@ class PathManager {
         // 完全无法移动
         this._clearPath();
         this._isExitPath = false;
+        this.lastPlanResult = { x: targetX, y: targetY, at: Date.now(), reachable: false };
         return false;
     }
 

@@ -16,7 +16,7 @@ import { MathUtils } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
-import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { canFinishSurfaceFollow, canMeleeReachElevation } from './elevated-navigation-controller.js';
 import { canMeleeReachTarget } from '../combat/melee-reach.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
@@ -67,6 +67,7 @@ export class HamsterWarriorAI {
             this._updateAttackSwing(dt);
             return;
         }
+        if (!this._swing && MovementSystem.continueStairTransit(m, dt, entities)) return;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -131,7 +132,7 @@ export class HamsterWarriorAI {
             const fx = player.x - this._followOffset;
             const fy = player.y;
             const dist = Math.hypot(fx - m.x, fy - m.y);
-            if (dist <= this._followArriveDist) {
+            if (dist <= this._followArriveDist && canFinishSurfaceFollow(m, player)) {
                 // 到达：清战术目标，速度不清零（由 MovementSystem 摩擦衰减完成缓停）
                 m._tacticalTarget = null;
                 m._animState = 'idle';

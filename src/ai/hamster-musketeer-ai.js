@@ -1,6 +1,7 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { launchFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 import { MovementSystem } from '../systems/movement-system.js';
+import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
@@ -78,6 +79,7 @@ export class HamsterMusketeerAI {
         const actionWasActive = this._shotActive;
         this._attackTimer = Math.max(0, this._attackTimer - dt);
         updateFriendlyProjectiles(this, dt, entities);
+        if (!this._shotActive && MovementSystem.continueStairTransit(m, dt, entities)) return;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -158,7 +160,7 @@ export class HamsterMusketeerAI {
         if (!player) return;
         const dest = { x: player.x - this._followOffset, y: player.y, _surfaceTarget: player };
         const d = Math.hypot(dest.x - m.x, dest.y - m.y);
-        if (d > 40) {
+        if (d > 40 || !canFinishSurfaceFollow(m, player)) {
             m._tacticalTarget = dest;
             m._animState = 'walk';
             // 接近站位点缓出减速（120px 内速度随距离线性衰减，ease-out 到达）

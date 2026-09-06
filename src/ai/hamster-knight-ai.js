@@ -12,7 +12,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, getRtsAcquireRange, resolveRtsMoveDestination } from './rts-command-utils.js';
-import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { canFinishSurfaceFollow, canMeleeReachElevation } from './elevated-navigation-controller.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterKnightAI {
@@ -90,6 +90,7 @@ export class HamsterKnightAI {
             return;
         }
 
+        if (MovementSystem.continueStairTransit(m, dt, entities)) return;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -201,7 +202,7 @@ export class HamsterKnightAI {
         }
         const target = { x: player.x - this._followOffset, y: player.y, _surfaceTarget: player };
         const dist = Math.hypot(target.x - m.x, target.y - m.y);
-        if (dist <= this._followArriveDist) {
+        if (dist <= this._followArriveDist && canFinishSurfaceFollow(m, player)) {
             this._stopAtTarget();
             return;
         }

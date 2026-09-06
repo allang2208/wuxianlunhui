@@ -3,6 +3,7 @@ import { regionIndex } from './region-index.js';
 import { dynamicObstacleMap } from './dynamic-obstacle-map.js';
 import { circleIntersectsIsoFootprint, isoFootprintVertices } from '../physics/iso-footprint.js';
 import performanceConfig from '../../data/performance-config.json';
+import { CommandRoutePlanner } from './command-route-planner.js';
 
 /** 寻路帧预算耗尽时的哨兵返回值：调用方应保留旧路径、下一帧重试，而非当作"不可达" */
 export const PATH_DEFERRED = Symbol('PATH_DEFERRED');
@@ -348,6 +349,7 @@ class SpatialHash {
 
     // 检查点是否在障碍物内（只检查相关 cell）
     isBlocked(x, y, radius) {
+        if (!WallSystem.isInsideWalkableArea(x, y, radius)) return true;
         // 快速 AABB 检查：先检查中心点所在的 cell，再扩展 radius 范围
         const [baseCX, baseCY] = this._getCell(x, y);
         const range = Math.ceil(radius / this.cellSize) + 1;
@@ -416,6 +418,7 @@ class PathFinder {
         this._cellMemo = new Map();
         this._memoRadii = new Set(); // memo 中出现过的桶半径（invalidateRegion 按格清除时枚举用）
         this._geometryVersion = 0;   // 几何版本：invalidateCache() 自增，几何变化时清 memo
+        this.commandRoutes = new CommandRoutePlanner(this);
         this._friendlyGateAccessVersion = 0; // 自动门模式变化：通知玩家/侍从丢弃旧成本路径
         // [PERF-2026-08-03] 每帧寻路预算：主线程 A* 同步执行，超预算请求返回 PATH_DEFERRED，
         // 由调用方保留旧路径、下一帧重试（MovementSystem.beginFrame 每帧重置）
@@ -502,6 +505,7 @@ class PathFinder {
 
     // 墙壁变化时调用（如动态生成墙壁后）
     invalidateCache() {
+        this.commandRoutes.invalidate();
         this._hashValid = false;
         this.spatialHash.cancelRebuild();
         this._maxTreeRadius = 0;
@@ -526,6 +530,7 @@ class PathFinder {
        * @param {Array<{x:number,y:number,radius:number}>} obstacles
        */
       setEntityCircleObstacles(obstacles) {
+          this.commandRoutes.invalidate();
           this._entityCircleObstacles = Array.isArray(obstacles)
               ? obstacles.map(o => ({ x: o.x, y: o.y, radius: o.radius || o.groundRadius || 20 }))
               : [];
@@ -544,17 +549,23 @@ class PathFinder {
       }
 
       /** 点是否落在任一寻路专用实体圆障碍内 */
-      _isEntityObstacleBlocked(x, y, radius) {
+      _isEntityObstacleBlocked(x, y, radius, blocker = null) {
           if (!this._hasEntityObstacles) return false;
           for (const o of this._entityCircleObstacles) {
               const rr = o.radius + radius;
               const dx = x - o.x, dy = y - o.y;
-              if (dx * dx + dy * dy < rr * rr) return true;
+              if (dx * dx + dy * dy < rr * rr) {
+                  if (blocker) { blocker.kind = 'navigation_circle'; blocker.obstacle = o; }
+                  return true;
+              }
           }
           for (const o of this._queryEntityFootprints(x, y, radius)) {
               if (x + radius < o.minX || x - radius > o.maxX
                   || y + radius < o.minY || y - radius > o.maxY) continue;
-              if (circleIntersectsIsoFootprint(x, y, radius, o.entity)) return true;
+              if (circleIntersectsIsoFootprint(x, y, radius, o.entity)) {
+                  if (blocker) { blocker.kind = 'building_footprint'; blocker.obstacle = o.entity; }
+                  return true;
+              }
           }
           return false;
       }
@@ -610,8 +621,9 @@ class PathFinder {
        * 墙、门、高架楼梯继续由 WallSystem/高架导航拥有；普通建筑与防御塔统一按真实占地阻挡。
        * 方法由 MovementSystem 高频调用，内部 250ms 节流且仅在签名变化时失效缓存。
        */
-      syncEntityFootprintObstacles(entities, now = Date.now()) {
-          if (now - this._lastEntityFootprintSyncAt < 250) return false;
+      syncEntityFootprintObstacles(entities, now = Date.now(), force = false) {
+          // 塔楼坍塌必须在单位落地前撤下旧footprint，不能等常规250ms轮询。
+          if (!force && now - this._lastEntityFootprintSyncAt < 250) return false;
           const startedAt = performance.now();
           const finish = (result) => {
               this._lastFootprintSyncMs = Math.max(0, performance.now() - startedAt);
@@ -655,6 +667,7 @@ class PathFinder {
           const signature = signatureParts.join('|');
           if (signature === this._entityFootprintSignature) return finish(false);
           this._entityFootprintSignature = signature;
+          this.commandRoutes.invalidate();
           this._entityFootprintObstacles = next;
           this._rebuildEntityFootprintIndex();
           this._hasEntityObstacles = this._entityCircleObstacles.length > 0 || next.length > 0;
@@ -689,8 +702,16 @@ class PathFinder {
           this.invalidateRegion(minX, minY, maxX, maxY);
       }
 
-      isPointBlocked(x, y, radius = 20) {
-          return this._isBlocked(x, y, this._bucketRadius(radius));
+      isPointBlocked(x, y, radius = 20, blocker = null) {
+          const bucket = this._bucketRadius(radius);
+          if (!blocker) return this._isBlocked(x, y, bucket);
+          this._ensureHash();
+          if (this.spatialHash.isBlocked(x, y, bucket)) {
+              blocker.kind = 'navigation_clearance';
+              blocker.radius = bucket;
+              return true;
+          }
+          return this._isEntityObstacleBlocked(x, y, bucket, blocker);
       }
 
       isSegmentBlocked(x1, y1, x2, y2, radius = 20) {
@@ -740,6 +761,7 @@ class PathFinder {
      *  4. SpatialHash / RegionIndex：无增量结构，仍标脏惰性全量重建（下次查询触发一次）
      */
     invalidateRegion(minX, minY, maxX, maxY) {
+        this.commandRoutes.invalidate(minX, minY, maxX, maxY);
         const R = this.maxSearchRange;
         const x0 = minX - R, x1 = maxX + R;
         const y0 = minY - R, y1 = maxY + R;
@@ -857,6 +879,7 @@ class PathFinder {
         const flowStats = this._getSharedFlowBuildStats();
         return {
             frameBudgetMs: this.frameBudgetMs,
+            commandRoutes: this.commandRoutes.getStats(),
             frameUsedMs: this._frameUsedMs,
             budgetRemainingMs: Math.max(0, this.frameBudgetMs - this._frameUsedMs),
             pathCacheEntries: this._pathCache?.size || 0,
@@ -956,6 +979,9 @@ class PathFinder {
         // 契约：仅允许格子中心坐标调用（k×40+20）——memo 按格子复用，
         // 同格子内的不同采样点共享同一结果，只有中心采样才保证一致性
         const r = this._bucketRadius(entityRadius);
+        // Check before memo lookup: an exterior point is never an empty cell,
+        // including RTS endpoint projection and restored scene geometry.
+        if (!WallSystem.isInsideWalkableArea(x, y, r)) return { blocked: true, cost: 1 };
         const gx = Math.floor(x / this.gridSize);
         const gy = Math.floor(y / this.gridSize);
         const friendlyGateAccess = options?.friendlyGateAccess === true;

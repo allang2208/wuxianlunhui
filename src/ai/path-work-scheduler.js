@@ -42,7 +42,7 @@ class PathWorkSchedulerImpl {
         if (!manager || !planner) return false;
         this._validations.delete(manager);
         const existing = this._recalculations.get(manager);
-        if (existing) {
+        if (existing && existing.commandRoute === manager._commandRoute) {
             existing.targetX = targetX;
             existing.targetY = targetY;
             existing.bypassLimit ||= !!bypassLimit;
@@ -59,6 +59,8 @@ class PathWorkSchedulerImpl {
             sequence: this._sequence++,
             kind: 'recalculation',
             deferredStreak: 0,
+            commandRoute: manager._commandRoute,
+            enqueuedAt: nowMs(),
         });
         this._trimQueue();
         return true;
@@ -78,9 +80,14 @@ class PathWorkSchedulerImpl {
             priority: Number(priority) || 0,
             sequence: this._sequence++,
             kind: 'validation',
+            enqueuedAt: nowMs(),
         });
         this._trimQueue();
         return true;
+    }
+
+    hasPendingRecalculation(manager) {
+        return !!manager && this._recalculations.has(manager);
     }
 
     cancel(manager) {
@@ -113,11 +120,18 @@ class PathWorkSchedulerImpl {
     }
 
     _drainMap(queue, limit, startedAt, execute, completedKey, elapsedKey, attemptsKey) {
-        const jobs = [...queue.values()].sort((a, b) => b.priority - a.priority || a.sequence - b.sequence);
+        const now = nowMs();
+        const score = job => job.priority + Math.floor((now - job.enqueuedAt) / 100);
+        const jobs = [...queue.values()].sort((a, b) => score(b) - score(a) || a.sequence - b.sequence);
         let processed = 0;
         for (const job of jobs) {
             if (processed >= limit || nowMs() - startedAt >= DRAIN_BUDGET_MS) break;
             queue.delete(job.manager);
+            if (job.kind === 'recalculation' && (job.commandRoute !== job.manager._commandRoute
+                || (job.commandRoute && !job.manager.commandOwnerMatches(job.commandRoute)))) {
+                this._frameStats.droppedJobs++;
+                continue;
+            }
             if (job.manager.enemy && !job.manager.enemy.active) {
                 job.planner?.cancelIncrementalRequest?.(job.manager.getPathRequestId?.());
                 this._frameStats.droppedJobs++;
@@ -141,6 +155,7 @@ class PathWorkSchedulerImpl {
                 job.deferredStreak = (job.deferredStreak || 0) + 1;
                 if (!RESUME_DEFERRED_FIRST || job.deferredStreak >= MAX_DEFERRED_STREAK) {
                     job.sequence = this._sequence++;
+                    job.enqueuedAt = nowMs();
                     job.deferredStreak = 0;
                 }
                 queue.set(job.manager, job);

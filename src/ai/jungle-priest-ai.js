@@ -1,5 +1,6 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { MovementSystem } from '../systems/movement-system.js';
+import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { LightningBoltEffect } from '../effects/lightning-bolt.js';
@@ -68,6 +69,7 @@ export class JunglePriestAI {
             this._updateCast(dt);
             return;
         }
+        if (MovementSystem.continueStairTransit(m, dt, entities)) return;
         const command = m._command;
         if (command?.mode && command.mode !== 'follow') {
             this._applyCommand(command, dt, entities);
@@ -89,15 +91,15 @@ export class JunglePriestAI {
             if (this._cooldown <= 0 && this._canCastAt(target)) {
                 this._startCast(target, dt); return;
             }
-            m._tacticalTarget = { x: target.x, y: target.y };
+            m._tacticalTarget = { x: target.x, y: target.y, _surfaceTarget: target };
             m.maxSpeed = this.cfg.walkSpeed || 125;
             m._animState = 'walk';
             MovementSystem.update(m, dt, entities); return;
         }
         if (player) {
             const distance = Math.hypot(player.x - m.x, player.y - m.y);
-            if (distance > (this.cfg.followOffset || 155)) {
-                m._tacticalTarget = { x: player.x, y: player.y };
+            if (distance > (this.cfg.followOffset || 155) || !canFinishSurfaceFollow(m, player)) {
+                m._tacticalTarget = { x: player.x, y: player.y, _surfaceTarget: player };
                 // 接近站位点缓出减速（120px 内速度随距离线性衰减，ease-out 到达）
                 const walkSpeed = this.cfg.walkSpeed || 125;
                 const slow = Math.min(1, distance / 120);

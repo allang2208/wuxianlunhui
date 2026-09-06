@@ -1,11 +1,14 @@
 import { ElevatedNavigationController } from './elevated-navigation-controller.js';
+import { ElevatedGarrison } from './elevated-garrison.js';
 import { GAME_CONFIG } from '../config/game-config.js';
+import { PathWorkScheduler } from './path-work-scheduler.js';
 
 export const RTS_ROUTE_NODE_DISTANCE = 12;
 export const RTS_ROUTE_Z_TOLERANCE = 12;
 export const RTS_FORMATION_ARRIVE_DISTANCE = 4;
 // 相邻单位各自提前到位时，仍为两个到达容差保留空间。
 export const RTS_FORMATION_SLOT_CLEARANCE = RTS_FORMATION_ARRIVE_DISTANCE * 2;
+const RTS_GROUND_REACH_DISTANCE = 8;
 export const RTS_DEFAULT_ACQUIRE_RANGE = Math.max(
     0,
     Number(GAME_CONFIG.rtsCommand?.defaultAcquireRange) || 900
@@ -112,8 +115,89 @@ export function resolveRtsMoveDestination(
     arriveDistance = 40,
     zTolerance = RTS_ROUTE_Z_TOLERANCE
 ) {
+    const originalCommand = command;
+    // 新命令可以替换最终目标，但不能在旧出口尚未走完时抢走当前通行目的地。
+    const pendingExit = entity?._surfaceExitCommand;
+    if (pendingExit && command !== pendingExit && !command?._surfaceExitRoute) {
+        const exitMove = resolveRtsMoveDestination(entity, pendingExit, arriveDistance, zTolerance);
+        // 玩家控制器等调用方持有自己的命令，不一定挂在 entity._command 上。
+        if (exitMove.arrived && command?.point?.route?.length) {
+            command.point = { ...command.point, routeRevision: -1 };
+        }
+        return { ...exitMove, arrived: false, recovering: true };
+    }
+    const garrison = ElevatedGarrison.prepareMove(entity, command);
+    if (garrison?.failed) {
+        if (entity._surfaceKind === 'stairs') {
+            const exit = ElevatedNavigationController.prepareExitCommand(entity);
+            if (exit) return { ...resolveRtsMoveDestination(entity, exit, arriveDistance, zTolerance),
+                arrived: false, recovering: true };
+        }
+        if (entity._command === originalCommand && entity._surfaceKind !== 'stairs') {
+            failRtsMoveCommand(entity, garrison.reason, garrison.status);
+        }
+        return { destination: { x: entity.x, y: entity.y, z: entity.z || 0 }, distance: 0,
+            verticalDistance: 0, arrived: false, failed: true, reason: garrison.reason, hasRoute: false };
+    }
+    if (garrison?.waiting) {
+        // 不先把全队送往同一个墙心。已在梯中的单位仍须走完出口，不能占梯等空位。
+        if (entity._surfaceKind === 'stairs') {
+            const exit = ElevatedNavigationController.prepareExitCommand(entity);
+            if (exit) return { ...resolveRtsMoveDestination(entity, exit, arriveDistance, zTolerance),
+                arrived: false, recovering: true };
+        }
+        ElevatedNavigationController.complete(entity);
+        entity._navigationStatus = null;
+        entity.vx = 0;
+        entity.vy = 0;
+        entity.isMoving = false;
+        return { destination: { x: entity.x, y: entity.y, z: entity.z || 0 },
+            distance: 0, verticalDistance: 0, arrived: false, hasRoute: false,
+            waitingForGarrison: true, routeStage: 'garrison_wait' };
+    }
+    if (garrison?.command) command = garrison.command;
     command = ElevatedNavigationController.prepareExplicitRoute(entity, command) || command;
     const point = command?.point || { x: entity.x, y: entity.y, z: entity.z || 0 };
+    if (point.navigationPending) {
+        // 查询期间不持有入口预约；已在梯中者优先沿现有许可安全离梯。
+        if (!command._surfaceExitRoute && entity._surfaceKind === 'stairs') {
+            const exit = ElevatedNavigationController.prepareExitCommand(entity);
+            if (exit) return { ...resolveRtsMoveDestination(entity, exit, arriveDistance, zTolerance),
+                arrived: false, recovering: true };
+        }
+        entity._navigationStatus = 'pending';
+        entity._surfaceRouteActive = false;
+        entity._surfaceNavDestination = null;
+        entity.vx = 0; entity.vy = 0; entity.isMoving = false;
+        return { destination: { x: entity.x, y: entity.y, z: entity.z || 0 },
+            distance: 0, verticalDistance: 0, arrived: false, hasRoute: false,
+            navigationPending: true, routeStage: 'planning' };
+    }
+    if (point.unreachable) {
+        if (!command?._surfaceExitRoute
+            && (entity._surfaceKind === 'stairs' || entity._surfaceExitCommand)) {
+            const exitCommand = ElevatedNavigationController.prepareExitCommand(entity);
+            if (exitCommand) {
+                const exitMove = resolveRtsMoveDestination(entity, exitCommand, arriveDistance, zTolerance);
+                if (exitMove.arrived) entity._surfaceExitCommand = null;
+                // 安全离梯不是原命令到达；保留原始终点等待重试。
+                return { ...exitMove, arrived: false, recovering: true };
+            }
+        }
+        const destination = { x: entity.x, y: entity.y, z: Number(entity.z) || 0 };
+        entity._surfaceNavWaiting = false;
+        entity._surfaceRouteActive = false;
+        entity._surfaceRouteStage = 'route_failed';
+        entity.vx = 0;
+        entity.vy = 0;
+        ElevatedNavigationController.afterRouteResolution(entity, command, destination, false);
+        if (entity._command === originalCommand && !command._surfaceExitRoute
+            && !command._surfaceAutonomous && entity._surfaceKind !== 'stairs') {
+            failRtsMoveCommand(entity, point.reason || '目标不可达', point.navigationStatus || 'unreachable');
+        }
+        return { destination, distance: 0, verticalDistance: 0, arrived: false,
+            hasRoute: false, failed: true, reason: point.reason, routeStage: 'route_failed' };
+    }
     const route = Array.isArray(point.route) ? point.route : [];
     const effectiveArriveDistance = route.length
         ? Math.min(arriveDistance, RTS_ROUTE_NODE_DISTANCE)
@@ -128,7 +212,8 @@ export function resolveRtsMoveDestination(
         ? Math.max(0, Math.min(route.length - 1, command.routeIndex))
         : 0;
     // 已在楼梯/墙顶上的单位从离自己最近的高架节点开始；地面单位仍从路线入口开始。
-    if (route.length && !explicitRouteIndex && entity?._surfaceKind && entity._surfaceKind !== 'ground') {
+    if (route.length && !route[0]?.fromCurrentSurface && !explicitRouteIndex
+        && entity?._surfaceKind && entity._surfaceKind !== 'ground') {
         let nearestScore = Number.POSITIVE_INFINITY;
         for (let index = 0; index < route.length; index++) {
             const candidate = route[index];
@@ -212,10 +297,13 @@ export function resolveRtsMoveDestination(
     }
 
     if (route.length) command.routeIndex = routeIndex;
-    const finalArriveDistance = getRtsFormationGroundPoint(entity, command)
+    // 本轮可能刚从楼梯出口推进到最终地面槽，必须用更新后的routeIndex重新判定精度。
+    const finalArriveDistance = command?.point?.garrisonSlot && routeIndex >= route.length - 1
+        ? ElevatedGarrison.config.arriveDistance
+        : getRtsFormationGroundPoint(entity, command)
         ? Math.min(effectiveArriveDistance, RTS_FORMATION_ARRIVE_DISTANCE)
         : effectiveArriveDistance;
-    const arrived = waypointAccepted(
+    let arrived = waypointAccepted(
         entity,
         destination,
         distance,
@@ -223,6 +311,14 @@ export function resolveRtsMoveDestination(
         finalArriveDistance,
         effectiveZTolerance
     );
+    if (arrived && !route.length && distance > RTS_GROUND_REACH_DISTANCE
+        && (entity._faction === 'companion' || entity._faction === 'player')) {
+        const manager = entity._surfaceGroundPathManager || entity._pathManager, request = manager?._commandRoute;
+        // 近距离隔墙也不能仅凭欧氏到达圈结束命令；必须已经走到有效路线末段。
+        arrived = request?.owner === (entity._rtsController?.command || entity._command) && request.status === 'complete'
+            && request.x === destination.x && request.y === destination.y
+            && manager.hasValidPath() && manager.pathIdx >= manager.path.length - 2;
+    }
     // 路线的第一个节点通常是楼梯在地面的入口。单位尚在地面时必须继续使用普通 A* 靠近
     // 该入口；若仅因为 route 非空就提前关闭 A*，单位会直线撞向城墙，而且高架防卡死逻辑
     // 也会同时屏蔽地面脱困。只有目标节点或单位本身已经属于高架表面时，才切换到表面路线。
@@ -246,11 +342,22 @@ export function resolveRtsMoveDestination(
         routeStage: entity._surfaceRouteStage,
     };
     ElevatedNavigationController.afterRouteResolution(entity, command, destination, arrived);
+    if (arrived && command?._garrisonEvacuation) {
+        ElevatedGarrison.finishInternal(entity);
+        return { ...result, arrived: false, waitingForGarrison: true };
+    }
+    if (arrived && command?._surfaceExitRoute) entity._surfaceExitCommand = null;
     return result;
 }
 
 export function clearRtsSurfaceRoute(entity) {
-    ElevatedNavigationController.complete(entity);
+    const request = entity?._pathManager?._commandRoute;
+    // 兵种每次攻击决策都会清理旧高架状态。该清理不拥有同一攻击命令的地面搜索；
+    // 真正结束/换令、进入高架或站定攻击仍由各自执行器清理PathManager。
+    const preserveGroundPath = request?.owner === entity?._command && entity?._command?.mode === 'attack'
+        && !entity._surfaceNavCommand && !entity._surfaceExitCommand && !entity._surfaceRouteActive
+        && entity._surfaceKind !== 'stairs' && entity._surfaceKind !== 'wall_walk';
+    ElevatedNavigationController.complete(entity, { preserveGroundPath });
 }
 
 /** 显式移动或攻击完成后的统一终态：停在当前位置，等待下一条指令。 */
@@ -264,11 +371,25 @@ export function finishRtsCommandAtHold(entity) {
     entity.target = null;
     entity._tacticalTarget = null;
     clearRtsSurfaceRoute(entity);
+    PathWorkScheduler.cancel(entity._pathManager);
     entity._pathManager?._clearPath?.();
+    entity._navigationStatus = null;
     delete entity._rtsFormationSettle;
     entity.vx = 0;
     entity.vy = 0;
     entity.isMoving = false;
     entity.maxSpeed = 0;
     entity._animState = 'idle';
+}
+
+/** 失败绑定原始高层命令，让Shift队列跳过失败项；绝不报告为成功抵达。 */
+export function failRtsMoveCommand(entity, reason, status = 'unreachable') {
+    if (!entity || !['move', 'attack'].includes(entity._command?.mode)) return;
+    const order = entity._rtsTacticalOrder;
+    const command = order && entity._command._tacticalOrderId === order.id ? order : entity._command;
+    finishRtsCommandAtHold(entity);
+    if (command === order) delete entity._rtsTacticalOrder;
+    entity._rtsCompletedCommand = { command, result: entity._command, failed: true, reason };
+    entity._navigationStatus = status;
+    entity._navigationFailure = reason;
 }

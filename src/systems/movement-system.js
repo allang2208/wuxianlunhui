@@ -26,10 +26,12 @@ import {
     verticalRangesOverlap,
 } from '../physics/elevation.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
+import { ElevatedGarrison } from '../ai/elevated-garrison.js';
 import {
-    resolveRtsMoveDestination,
     finishRtsCommandAtHold,
+    failRtsMoveCommand,
     getRtsFormationGroundPoint,
+    resolveRtsMoveDestination,
     RTS_FORMATION_ARRIVE_DISTANCE,
     RTS_FORMATION_SLOT_CLEARANCE,
 } from '../ai/rts-command-utils.js';
@@ -77,9 +79,13 @@ const MovementSystem = {
         dynamicObstacleMap?.beginFrame?.();
         PathWorkScheduler.beginFrame();
         HierarchicalRoutePlanner.beginFrame();
+        ElevatedGarrison.beginFrame();
     },
 
     endFrame() {
+        for (const [key, value] of Object.entries(ElevatedGarrison.stats)) {
+            PerformanceMonitor.setCounter(`garrison.${key}`, value);
+        }
         const queueStats = PathWorkScheduler.drain();
         PerformanceMonitor.setCounter('path.queueTotal', queueStats.queuedTotal);
         PerformanceMonitor.setCounter('path.queuedRecalculations', queueStats.queuedRecalculations);
@@ -146,8 +152,43 @@ const MovementSystem = {
     _pathPriority(enemy, urgent = false) {
         if (urgent) return 100;
         if (enemy?._gatePursuit) return 80;
+        if (enemy?._pathManager?._commandRoute) return 70;
         if (enemy?._defenseMonster) return 50;
         return 20;
+    },
+
+    /** AI在新决策前调用：先离梯，空闲停步时完成驻守分配；不改命令/战斗目标。 */
+    continueStairTransit(entity, dt, entities) {
+        if (entity?._surfaceKind !== 'stairs' && entity?._surfaceKind !== 'wall_walk'
+            && !entity?._surfaceExitCommand && !entity?._garrisonStatus) return false;
+        if (!entity?.active || entity.hp <= 0 || entity._dying
+            || entity._dashStunned || entity._frozenForCast || entity._attackAnimTimer > 0
+            || entity.knockbackX || entity.knockbackY
+            || ['stun', 'frozen', 'petrified', 'bind', 'fear'].some((type) => entity.hasStatusEffect?.(type))) {
+            return false;
+        }
+        if (entity._surfaceKind !== 'stairs' && !entity._surfaceExitCommand) {
+            const stop = ElevatedGarrison.prepareStop(entity);
+            if (!stop) return false;
+            if (stop.waiting) {
+                ElevatedNavigationController.complete(entity);
+                entity.vx = 0;
+                entity.vy = 0;
+                entity.isMoving = false;
+                entity._animState = 'idle';
+                // 安全落地后的待位不占用AI决策；原跟随点的位移在决策后单独拦截。
+                return !stop.allowDecision;
+            }
+            entity._garrisonMoveCommand = stop.command;
+            entity._animState = 'walk';
+            this.update(entity, dt, entities);
+            return true;
+        }
+        if (entity._command?.mode === 'move' && !entity._surfaceExitCommand) return false;
+        if (!ElevatedNavigationController.prepareExitCommand(entity)) return false;
+        entity._animState = 'walk';
+        this.update(entity, dt, entities);
+        return true;
     },
 
     _requestPathRecalc(enemy, targetX, targetY, bypassLimit = false, urgent = false) {
@@ -268,6 +309,13 @@ const MovementSystem = {
             return;
         }
 
+        // Siege archers keep their wall position; control effects and knockback above retain priority.
+        if (enemy._strategicGarrison?.holdPosition && enemy._surfaceKind === 'wall_walk'
+            && enemy._surfaceWall?.active && !enemy._surfaceWall._sinking) {
+            enemy.vx = 0; enemy.vy = 0; enemy.isMoving = false;
+            return;
+        }
+
         // 坚守攻击不产生追击/撤步路径；离梯和有限驻守槽位调整仍交给原表面流程。
         if (enemy._command?._guardFromHold
             && !enemy._garrisonMoveCommand && !enemy._surfaceExitCommand
@@ -316,21 +364,71 @@ const MovementSystem = {
         }
 
         const semanticMoveGoal = this._resolveSemanticMoveGoal(enemy);
-        const surfaceCommand = enemy._spawnEgress
+        if (ElevatedGarrison.holdGroundWait(enemy, semanticMoveGoal)
+            || ElevatedGarrison.holdFollowPosition(enemy, semanticMoveGoal)) {
+            ElevatedNavigationController.complete(enemy);
+            enemy.vx = 0;
+            enemy.vy = 0;
+            enemy.maxSpeed = 0;
+            enemy.isMoving = false;
+            enemy._animState = 'idle';
+            return;
+        }
+        const explicitGarrisonMove = enemy._command?.mode === 'move'
+            && enemy._command.point?.surfaceKind === 'wall_walk' ? enemy._command : null;
+        const explicitMove = !enemy._spawnEgress && enemy._command?.mode === 'move' ? enemy._command : null;
+        const explicitAttack = !enemy._spawnEgress && enemy._command?.mode === 'attack'
+            && !enemy._command._guardFromHold ? enemy._command : null;
+        const surfaceCommand = enemy._garrisonMoveCommand || explicitMove || (enemy._spawnEgress
             ? null
             : ElevatedNavigationController.prepareAutonomousCommand(
                 enemy,
                 semanticMoveGoal,
                 dt
-            );
+            ));
         if (surfaceCommand) {
             const surfaceMove = resolveRtsMoveDestination(enemy, surfaceCommand);
+            if (surfaceMove.failed || surfaceMove.waitingForGarrison || surfaceMove.navigationPending) {
+                if (surfaceMove.failed && (surfaceCommand._garrisonInternal || explicitGarrisonMove)) {
+                    ElevatedGarrison.routeFailed(enemy);
+                }
+                if (surfaceMove.failed && (explicitMove || explicitAttack) && enemy._surfaceKind !== 'stairs') {
+                    failRtsMoveCommand(enemy, surfaceMove.reason || '目标不可达',
+                        surfaceCommand.point?.navigationStatus || 'unreachable');
+                }
+                enemy.vx = 0;
+                enemy.vy = 0;
+                enemy.isMoving = false;
+                if (surfaceMove.waitingForGarrison || surfaceCommand._garrisonInternal || explicitGarrisonMove) {
+                    enemy._animState = 'idle';
+                }
+                return;
+            }
             if (surfaceMove.arrived) {
                 ElevatedNavigationController.complete(enemy);
+                if (surfaceCommand._garrisonInternal || explicitMove) {
+                    if (explicitMove) finishRtsCommandAtHold(enemy);
+                    else ElevatedGarrison.finishInternal(enemy);
+                    enemy.vx = 0;
+                    enemy.vy = 0;
+                    enemy.isMoving = false;
+                    enemy._animState = 'idle';
+                    return;
+                }
+                if (surfaceCommand._surfaceExitRoute) {
+                    enemy._surfaceExitCommand = null;
+                    enemy.vx = 0;
+                    enemy.vy = 0;
+                    enemy.isMoving = false;
+                    return;
+                }
             } else {
                 enemy._surfaceNavDestination = surfaceMove.destination;
             }
         }
+
+        // 自管施法者可在射程内等冷却；控制、恐惧、击退和承载面导航仍由前面的分支优先处理。
+        if (enemy.shouldHoldCombatPosition?.()) return;
 
         const moveData = this._computeMoveDirection(enemy, entities);
         if (!moveData) {
@@ -383,7 +481,40 @@ const MovementSystem = {
             this._updateMovementAnim(enemy, dt);
             return;
         }
-        if (groundPathAllowed && enemy._pathManager && moveGoal) {
+        const strictCommand = groundPathAllowed && !enemy._spawnEgress && moveGoal
+            && !enemy._rtsController && (explicitMove || explicitAttack || surfaceCommand)
+            && (enemy._faction === 'companion' || enemy._faction === 'player');
+        if (explicitAttack && groundPathAllowed && !surfaceCommand && (enemy.maxSpeed ?? enemy.speed ?? 0) <= 0) {
+            // 原战斗AI已决定停步攻击/施法，不把该停步当成拥堵，也不另发追击意图。
+            PathWorkScheduler.cancel(enemy._pathManager);
+            enemy._pathManager?._clearPath?.();
+            enemy.vx = 0; enemy.vy = 0; enemy.isMoving = false;
+            return;
+        }
+        if (strictCommand) {
+            const manager = enemy._pathManager;
+            const route = manager.prepareCommandRoute(enemy._command || surfaceCommand, moveGoal, pathFinder);
+            if (route.surfaceRoute) {
+                ElevatedNavigationController.adoptGroundTransit(enemy, route.owner, moveGoal, route.surfaceRoute);
+                enemy.vx = 0; enemy.vy = 0; enemy.isMoving = false;
+                return;
+            }
+            manager.watchCommandProgress();
+            if (route.status === 'pending') {
+                this._requestPathRecalc(enemy, moveGoal.x, moveGoal.y, true);
+            } else if (route.status === 'unreachable' || route.status === 'search_limited') {
+                if (explicitMove || explicitAttack) failRtsMoveCommand(enemy, route.reason, route.status);
+            }
+            if (!manager.hasValidPath()) {
+                enemy.vx = 0; enemy.vy = 0;
+                enemy.isMoving = false; enemy._animState = 'idle';
+                return;
+            }
+        } else if (groundPathAllowed && enemy._pathManager && moveGoal) {
+            if (enemy._pathManager._commandRoute) {
+                PathWorkScheduler.cancel(enemy._pathManager);
+                enemy._pathManager._clearPath();
+            }
             const targetX = moveGoal.x;
             const targetY = moveGoal.y;
             const distToTarget = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
@@ -429,7 +560,7 @@ const MovementSystem = {
         }
 
         // 卡住检测与寻路触发（保留原有逻辑，作为 fallback）
-this._updateStuckDetection(enemy, dt, dx, dy, dist);
+        if (!strictCommand) this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 路径跟随（使用 PathManager）
         if (groundPathAllowed && enemy._pathManager && enemy._pathManager.hasValidPath()) {
@@ -442,12 +573,13 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         // [ENHANCE] 攻击范围内渐进减速：冲到更近位置再停车，避免前排一进入范围就堵死
         if (enemy.target && enemy.target.active
             && !enemy._surfaceNavCommand
+            && !enemy._surfaceExitCommand
             && !enemy._surfaceRouteActive) {
             this._applyAttackRangeFriction(enemy, dist, meleeProximity);
         }
 
         // [UNSTUCK] 卡死恢复：长时间未移动时尝试小幅瞬移到合法方向
-        this._tryUnstuck(enemy);
+        if (!strictCommand) this._tryUnstuck(enemy);
 
         // 更新移动动画状态
         this._updateMovementAnim(enemy, dt);
@@ -461,7 +593,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (enemy._spawnEgress && !chargeStraight) return enemy._spawnEgress;
         if (enemy._specialTacticalTarget && !chargeStraight) return enemy._specialTacticalTarget;
         if (enemy._tacticalTarget && !chargeStraight) return enemy._tacticalTarget;
-        if (Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster) {
+        if (Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster && !enemy._strategicGarrison) {
             const point = Game._battleCommander.getTarget(enemy.id);
             if (point) return { x: point.targetX, y: point.targetY };
         }
@@ -518,8 +650,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             ty = enemy._tacticalTarget.y;
             hasTarget = true;
         }
-        // 3. 战斗指挥官目标（防守怪不走指挥官——战术点围绕玩家，与防守目标冲突）
-        else if (!hasTarget && Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster) {
+        // 3. 战斗指挥官目标（防守怪与位面正式测试怪均不走指挥官——
+        // 战术点围绕玩家，会覆盖仓鼠/建筑防守目标）
+        else if (!hasTarget && Game && Game._battleCommander && !chargeStraight
+            && !enemy._defenseMonster
+            && !enemy._strategicGarrison
+            && !(enemy._collisionEditorTest && enemy._preferDefenseTargets)) {
             const tp = Game._battleCommander.getTarget(enemy.id);
             if (tp) {
                 tx = tp.targetX;
@@ -588,8 +724,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const target = enemy.target;
         const wantsRanged = !!enemy._isHumanoid || !!enemy.attacks?.ranged;
         if (enemy._faction !== 'enemy' || !approachesTarget || wantsRanged || enemy._circleRadius
-            || !target?.active || target.hittable === false
-            || (target.hp !== undefined && target.hp <= 0)) {
+            || !target?.active || target.hittable === false || (target.hp !== undefined && target.hp <= 0)) {
             this._meleeApproachHolds.delete(enemy);
             return null;
         }
@@ -868,7 +1003,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * 寒冷为乘法减速，与恐惧/直行加速等独立叠加。
      */
     _getEnemyBaseSpeed(enemy) {
-        const base = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const base = enemy._surfaceExitCommand || enemy._garrisonMoveCommand
+            ? (Number(enemy.aiConfig?.walkSpeed) || Number(enemy.speed) || 120)
+            : (enemy.maxSpeed ?? enemy.speed ?? 100);
         const chillMul = (typeof enemy.getChillSpeedMul === 'function') ? enemy.getChillSpeedMul() : 1;
         const slowEffect = enemy.statusEffects?.find((effect) => (
             effect?.type === 'slow' && effect.remaining > 0
@@ -901,9 +1038,14 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const speed = this._getEnemyBaseSpeed(enemy)
             * BuildingRoadSystem.movementMultiplierAt(enemy.x, enemy.y)
             * World125FogTideSystem.getZombieMoveSpeedMultiplier(enemy);
-        const point = formationApproach ? getRtsFormationGroundPoint(enemy) : null;
-        // 只限制地面编队末段，不写回兵种属性或影响技能位移。
-        return point ? Math.min(speed, Math.hypot(point.x - enemy.x, point.y - enemy.y) * 8) : speed;
+        const seat = enemy._garrisonFinalPoint;
+        const destination = enemy._surfaceNavDestination;
+        const atFinalLeg = seat && destination && Math.hypot(seat.x - destination.x, seat.y - destination.y) < 0.01;
+        const point = formationApproach ? (atFinalLeg ? seat : getRtsFormationGroundPoint(enemy)) : null;
+        // 只限制编队末段的实际移动速度，不写回兵种属性，也不影响恐惧、击退或技能位移。
+        return point
+            ? Math.min(speed, Math.hypot(point.x - enemy.x, point.y - enemy.y) * 8)
+            : speed;
     },
 
     _applyKnockback(enemy, dt) {
@@ -1035,18 +1177,16 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     },
 
     /**
-     * 编队终点被友军碰撞体占住时采用“软到位”语义：单位已进入自己的小范围
-     * 槽位、静态路线畅通且连续短暂无进展，就在当前位置站定。墙体或其它阵营
-     * 造成的阻挡仍交给寻路，不能借此把不可达命令误报为完成。
+     * 编队终点被友军碰撞体占住时采用 RTS 常见的“软到位”语义：
+     * 单位已经进入自己的小范围槽位、静态路线畅通且连续短暂无进展，就在当前位置站定。
+     * 墙体或其它阵营造成的阻挡仍交给寻路，不能借此把不可达命令误报为完成。
      */
     _shouldSoftSettleFormation(enemy, point, distance, dt, entities) {
         const radius = Math.max(8, Number(enemy.groundRadius || enemy.collisionRadius) || 20);
-        const settleRadius = Math.min(28, Math.max(12,
-            radius * 0.5 + RTS_FORMATION_SLOT_CLEARANCE));
+        const settleRadius = Math.min(28, Math.max(12, radius * 0.5 + RTS_FORMATION_SLOT_CLEARANCE));
         const command = enemy._command;
         if (distance > settleRadius
-            || WallSystem.blocked(enemy.x, enemy.y, point.x, point.y,
-                WallSystem.ignoreForEntity(enemy))) {
+            || WallSystem.blocked(enemy.x, enemy.y, point.x, point.y, WallSystem.ignoreForEntity(enemy))) {
             delete enemy._rtsFormationSettle;
             return false;
         }
@@ -1059,8 +1199,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         let blockedByFriendly = false;
         for (const other of iter) {
             if (!other || other === enemy || !other.active || !sameSide(other)) continue;
-            const otherRadius = Math.max(6,
-                Number(other.groundRadius || other.collisionRadius) || 16);
+            const otherRadius = Math.max(6, Number(other.groundRadius || other.collisionRadius) || 16);
             const centerDistance = Math.hypot(other.x - enemy.x, other.y - enemy.y);
             if (centerDistance <= radius + otherRadius + RTS_FORMATION_SLOT_CLEARANCE) {
                 blockedByFriendly = true;
@@ -1074,11 +1213,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         let settle = enemy._rtsFormationSettle;
         if (!settle || settle.command !== command) {
-            settle = enemy._rtsFormationSettle = {
-                command,
-                lastDistance: distance,
-                stalledMs: 0,
-            };
+            settle = enemy._rtsFormationSettle = { command, lastDistance: distance, stalledMs: 0 };
             return false;
         }
         if (distance < settle.lastDistance - 0.75) settle.stalledMs = 0;
@@ -1223,8 +1358,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _retargetBlockingCover(enemy) {
         if (!WallSystem || !WallSystem.isoSegments) return;
-        // 当前目标只有在真实攻击距离内且确实可直达时才保留；结构中心距离额外放宽
-        // 会让隔墙玩家提前占住目标，怪物随后只能在墙脚踏步。
+        // 只有当前目标既在真实攻击距离内、又确实没有被另一堵墙隔开时才保留。
+        // 旧逻辑用中心距离 + 结构额外 120px，玩家隔墙时也会提前返回，导致怪在墙脚踏步。
         if (enemy.target && enemy.target.active) {
             const wantsRanged = !!enemy._isHumanoid || !!enemy.attacks?.ranged;
             const usesDirectedBasicMelee = !wantsRanged
@@ -1601,6 +1736,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             }
 
             let maxSpd = this._getEnemyMoveSpeed(enemy, true);
+            if (enemy._pathManager._commandRoute) {
+                // 稠密网格航点不能高速越过后反复折返；保留物理碰撞与分离。
+                maxSpd = Math.min(maxSpd, wdist / Math.max(0.001, dt / 1000));
+            }
             if (chargeStraight) maxSpd *= this._chargeStraightSpeedMultiplier(
                 enemy, meleeProximity, true, maxSpd
             );
@@ -1679,6 +1818,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * - dist > effectiveRange * 0.9：不额外摩擦，继续冲锋到更近位置
      */
     _applyAttackRangeFriction(enemy, dist, meleeProximity = null) {
+        // 地面绕到入口和出口收尾也属于通行，不能被异层目标的二维攻击距离刹停。
+        if (enemy._surfaceNavCommand || enemy._surfaceExitCommand || enemy._surfaceRouteActive) return;
         const customApproachConfig = !meleeProximity
             && typeof enemy.getBasicMeleeApproachConfig === 'function'
             ? enemy.getBasicMeleeApproachConfig()
@@ -1792,7 +1933,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         let moveY = dy / Math.max(dist, 1);
 
         // [SPITTER] 绕圈逻辑：当敌人有 _circleRadius 时，在目标周围保持一定距离绕圈移动，不贴身
-        if (enemy._circleRadius && enemy.target && enemy.target.active && dist > 0) {
+        if (enemy._circleRadius && enemy.target && enemy.target.active && dist > 0
+            && !enemy._surfaceRouteActive && !enemy._surfaceExitCommand) {
             const targetDist = enemy._circleRadius;
             const angleToTarget = Math.atan2(dy, dx);
             const noApproach = !!enemy._circleNoApproach;
