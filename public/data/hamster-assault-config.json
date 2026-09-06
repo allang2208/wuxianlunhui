@@ -56,7 +56,11 @@
     "footOffsetY": 55.736279,
     "hudOffsetY": 119,
     "collisionWidth": 40,
-    "collisionHeight": 100
+    "collisionHeight": 100,
+    "projectileMuzzle": { "x": 0.643, "y": 0.525 },
+    "projectileLength": 68,
+    "projectileWidth": 4,
+    "projectileTailAtMuzzle": true
   },
   "animations": {
     "idle": {
