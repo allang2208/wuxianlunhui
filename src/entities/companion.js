@@ -234,6 +234,34 @@ export class Companion {
         return ward ? Math.floor(value * Math.max(0.05, Math.min(1, Number(ward.value) || 0.75))) : value;
     }
 
+    isCombatActionBlocked() {
+        return this.hasStatusEffect('stun') || this.hasStatusEffect('frozen')
+            || this.hasStatusEffect('petrified');
+    }
+
+    _interruptPendingCombatActionForControl() {
+        // AI 回收冲锋、连射等临时态；派生实体可清理自身动作状态。
+        if (this._ai?.cancelForCrowdControl) this._ai.cancelForCrowdControl();
+        else this._ai?.cancelForCommand?.();
+        this._onCombatActionInterruptedByControl?.();
+    }
+
+    _cancelActionsForStun() {
+        this._interruptPendingCombatActionForControl();
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.maxSpeed = 0;
+    }
+
+    applyStun(duration) {
+        if (this._dying || this.data.hp <= 0 || !(duration > 0)) return false;
+        const effect = this.addStatusEffect('stun', duration, { name: '眩晕', icon: '💫' });
+        if (!effect) return false;
+        this._cancelActionsForStun();
+        return true;
+    }
+
     addStatusEffect(type, duration, options = {}) {
         if (type !== 'statusImmune' && this.hasStatusEffect('statusImmune')) return null;
         const existing = this.statusEffects.find((effect) => effect.type === type);
@@ -268,6 +296,7 @@ export class Companion {
             value: Math.max(1, Number(magicDamageTakenMultiplier) || 1.5),
         });
         if (!effect) return false;
+        this._interruptPendingCombatActionForControl();
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
