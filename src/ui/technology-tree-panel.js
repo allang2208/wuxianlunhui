@@ -212,6 +212,15 @@ export const TechnologyTreePanel = {
         });
     },
 
+    openAt(id) {
+        const node = TechnologySystem.getNode(id);
+        if (!node || !BRANCHES.includes(node.branch) || !Game?.isRunning) return false;
+        if (!this.isOpen) this.open();
+        if (!this.isOpen) return false;
+        this._locateNode(id);
+        return true;
+    },
+
     toggle() {
         if (this.isOpen) this.close();
         else this.open();
@@ -425,6 +434,24 @@ export const TechnologyTreePanel = {
             || null;
         this._selectedId = preferred?.id || null;
         this.render();
+    },
+
+    _locateNode(id) {
+        const node = TechnologySystem.getNode(id);
+        if (!node || !BRANCHES.includes(node.branch)) return;
+        // 只切换查看位置，不调用研究目标或完成科技入口。
+        this._selectedBranch = node.branch;
+        this._selectedId = node.id;
+        this.render();
+        const viewport = this._el?.querySelector('.technology-tree-viewport');
+        const pos = positionOf(node);
+        if (viewport) {
+            viewport.scrollLeft = Math.max(0, pos.x + CARD_W / 2 - viewport.clientWidth / 2);
+            viewport.scrollTop = Math.max(0, pos.y + CARD_H / 2 - viewport.clientHeight / 2);
+        }
+        const detail = this._el?.querySelector('[data-role="detail"]');
+        if (detail) detail.scrollTop = 0;
+        this._el?.querySelector(`[data-tech-id="${CSS.escape(node.id)}"]`)?.focus({ preventScroll: true });
     },
 
     _renderBranchTabs() {

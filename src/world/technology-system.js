@@ -217,6 +217,7 @@ function emptyState() {
         targetTechId: null,
         researchQueue: [],
         progressById: {},
+        unreadReportIds: [],
     };
 }
 
@@ -501,6 +502,23 @@ export const TechnologySystem = {
         return nodes;
     },
 
+    getUnreadReportIds() {
+        return [...this.state.unreadReportIds];
+    },
+
+    getUnreadReports() {
+        return this.state.unreadReportIds
+            .map((id) => this.getNode(id))
+            .filter(Boolean);
+    },
+
+    markReportRead(id) {
+        if (!this.state.unreadReportIds.includes(id)) return false;
+        this.state.unreadReportIds = this.state.unreadReportIds.filter((entry) => entry !== id);
+        this._emitChanged('report-read');
+        return true;
+    },
+
     getTreeNodes() {
         return treeNodes;
     },
@@ -777,6 +795,7 @@ export const TechnologySystem = {
             this.state.activeSource = null;
         }
 
+        if (!this.state.unreadReportIds.includes(node.id)) this.state.unreadReportIds.push(node.id);
         this._emitChanged('completed', node);
         this._refreshConsumers();
         const sceneManager = typeof window !== 'undefined' ? window.SceneManager : null;
@@ -786,7 +805,10 @@ export const TechnologySystem = {
             .join('、');
         sceneManager?.showTopNotification?.(
             `科技研发完成：${node.name}${unlockSummary ? `｜解锁 ${unlockSummary}` : ''}`,
-            { color: '#8ee6ff' }
+            {
+                tone: 'success',
+                onComplete: () => EventBus.emit('technology:report-ready', { technologyId: node.id }),
+            }
         );
     },
 
@@ -837,6 +859,7 @@ export const TechnologySystem = {
             targetTechId: this.state.targetTechId,
             researchQueue: [...this.state.researchQueue],
             progressById: { ...this.state.progressById },
+            unreadReportIds: [...this.state.unreadReportIds],
         };
     },
 
@@ -1029,10 +1052,14 @@ export const TechnologySystem = {
                 );
             }
         }
+        const unreadReportIds = Array.isArray(saved.unreadReportIds)
+            ? [...new Set(saved.unreadReportIds.filter((id) => completed.includes(id) && nodesById.has(id)))]
+            : [];
         this.state = {
             ...emptyState(),
             completed,
             progressById,
+            unreadReportIds,
         };
 
         const migratedSavedTargetId = savedVersion < 42
