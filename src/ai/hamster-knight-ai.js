@@ -1,11 +1,13 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '../combat/friendly-melee.js';
+import { canMeleeReachTarget } from '../combat/melee-reach.js';
+import { isFriendlyAttackTarget } from '../combat/friendly-projectile-sweep.js';
 // ============================================================
 // HamsterKnightAI — 仓鼠骑士（世界-122）
 // - 最近敌人近战；不攻击能源矿点。
 // - 普攻 31 帧 / 1.5 秒，第 16 帧结算 100 物理伤害，间隔 2 秒。
 // - 持盾冲锋复用铠甲骑士：线性加速、追踪、不可穿墙、击退/眩晕/弹反语义；
-//   仅第 15~22 帧是一次性伤害窗口，冷却 15 秒。
+//   伤害窗口、动画总时长与冷却均由具体兵种配置。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
@@ -74,6 +76,11 @@ export class HamsterKnightAI {
         return this.cancelForCommand();
     }
 
+    onSurfaceSupportLost() {
+        // 仅中止位移动作并恢复碰撞/弹反属性；已起手挥击仍由原流程收尾。
+        if (this._chargeActive) this._endCharge();
+    }
+
     update(dt, entities, player) {
         const m = this.m;
         if (m._dying || m.data.hp <= 0) return;
@@ -120,7 +127,7 @@ export class HamsterKnightAI {
             m.target = enemy;
             const distance = Math.hypot(enemy.x - m.x, enemy.y - m.y);
             const charge = this._chargeConfig();
-            if (this._chargeCooldown <= 0
+            if (this._chargeCooldown <= 0 && !m.hasStatusEffect('bind')
                 && canMeleeReachElevation(m, enemy)
                 && distance > (charge.minTriggerRange ?? 0)
                 && distance <= (charge.triggerRange ?? 550) + (enemy.groundRadius || 24)) {
@@ -164,7 +171,7 @@ export class HamsterKnightAI {
         }
         if (command.mode === 'attack') {
             const target = command.target;
-            if (!target || !target.active || target.hp <= 0 || target._isEnergyNode) {
+            if (!this._validEnemy(target)) {
                 finishRtsCommandAtHold(m);
                 m.target = null;
                 this._stopAtTarget();
@@ -173,7 +180,7 @@ export class HamsterKnightAI {
             m.target = target;
             const distance = Math.hypot(target.x - m.x, target.y - m.y);
             const charge = this._chargeConfig();
-            if (!command._guardFromHold && this._chargeCooldown <= 0
+            if (!command._guardFromHold && this._chargeCooldown <= 0 && !m.hasStatusEffect('bind')
                 && canMeleeReachElevation(m, target)
                 && distance > (charge.minTriggerRange ?? 0)
                 && distance <= (charge.triggerRange ?? 550) + (target.groundRadius || 24)) {
@@ -235,6 +242,7 @@ export class HamsterKnightAI {
         lockFriendlyMelee(this, target);
         m.target = target;
         m._attackSwing = true;
+        m._attackActionSeq = (m._attackActionSeq || 0) + 1;
         m._animState = 'attack';
         m.rotation = Math.atan2(target.y - m.y, target.x - m.x);
         m._lastFaceRight = target.x >= m.x;
@@ -277,6 +285,7 @@ export class HamsterKnightAI {
 
     _startCharge(target) {
         const m = this.m;
+        if (m.isCombatActionBlocked() || m.hasStatusEffect('bind')) return;
         const cfg = this._chargeConfig();
         this._chargeCooldown = cfg.cooldown ?? 15000;
         this._chargeActive = true;
@@ -291,6 +300,7 @@ export class HamsterKnightAI {
         m.noCollision = true;
         m._parryImmune = true;
         m._chargeStart = true;
+        m._chargeActionSeq = (m._chargeActionSeq || 0) + 1;
         m._animState = 'charge';
         this._playSound('chargeStart');
         m._attackAnimTimer = cfg.maxDuration ?? 4500;
@@ -304,15 +314,25 @@ export class HamsterKnightAI {
     _updateCharge(dt, entities) {
         const m = this.m;
         const cfg = this._chargeConfig();
+        m._surfaceInputIntent = null;
+        if (m.hasStatusEffect('bind')) {
+            this._endCharge();
+            return;
+        }
         if (this._chargeRecovering) {
             this._stopMotionOnly();
             this._chargeRecoverLeft -= dt;
             if (this._chargeRecoverLeft <= 0) this._endCharge();
             return;
         }
-        const target = this._chargeTarget && this._chargeTarget.active
+        const target = this._validEnemy(this._chargeTarget)
             ? this._chargeTarget
             : null;
+        if (!target || !canMeleeReachElevation(m, target)) {
+            // 目标下楼/坍塌后已换层：交还正常导航，不直冲旧平面的投影位置。
+            this._endCharge();
+            return;
+        }
         const previousElapsed = this._chargeElapsed;
         this._chargeElapsed += dt;
         const accelProgress = Math.min(1, this._chargeElapsed / Math.max(1, cfg.accelDuration ?? 1500));
@@ -398,7 +418,7 @@ export class HamsterKnightAI {
     _dealChargeHit(target, entities) {
         const cfg = this._chargeConfig();
         const upgradeMult = Math.max(0, Number(this.cfg.chargeDamageMult) || 1);
-        target.takeDamage(
+        const result = target.takeDamage(
             this.m.getPhysicalAttackDamage(
                 this._attackDamage * (cfg.damageMul ?? 2) * upgradeMult,
                 target
@@ -407,9 +427,9 @@ export class HamsterKnightAI {
             'physical',
             true,
         );
-        const parried = !!target.shieldSystem?._lastParried;
+        const parried = result?.parried === true;
         const angle = Math.atan2(target.y - this.m.y, target.x - this.m.x);
-        if (typeof target.applyKnockback === 'function') target.applyKnockback(angle, cfg.knockback ?? 200);
+        if (!parried && typeof target.applyKnockback === 'function') target.applyKnockback(angle, cfg.knockback ?? 200);
         if (!parried && typeof target.applyStun === 'function') {
             const lordMultiplier = target.rank === 'lord'
                 ? Math.max(0, Number(cfg.lordStunDurationMultiplier) || 0.25)
@@ -441,6 +461,7 @@ export class HamsterKnightAI {
         m.noCollision = this._prevNoCollision;
         m._chargeStart = false;
         m._attackAnimTimer = 0;
+        m._surfaceInputIntent = null;
         m._animState = 'idle';
         this._stopMotionOnly();
     }
@@ -465,14 +486,13 @@ export class HamsterKnightAI {
     }
 
     _validEnemy(entity) {
-        return !!(entity && entity.active && entity.hp > 0
-            && entity._faction === 'enemy' && !entity._isEnergyNode);
+        return isFriendlyAttackTarget(entity);
     }
 
     _inRange(target, range) {
         if (!target) return false;
         const targetRadius = target.groundRadius || target.collisionRadius || target.size * 0.6 || 0;
-        return canMeleeReachElevation(this.m, target)
+        return canMeleeReachTarget(this.m, target)
             && Math.hypot(target.x - this.m.x, target.y - this.m.y) <= range + targetRadius;
     }
 
