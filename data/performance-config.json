@@ -11,6 +11,22 @@
     "reuseVisibilityWithinFrame": true,
     "skipStableVisibleWrites": true
   },
+  "roadsideDecor": {
+    "chunkSizeCells": 8,
+    "viewportPaddingPx": 320,
+    "maxPooledSprites": 96,
+    "maxVisibleFootSprites": 96,
+    "maxVisibleGroundSprites": 240,
+    "chunkLayerLimits": {
+      "prop": 6,
+      "fixture": 2,
+      "surface": 12,
+      "rain": 8,
+      "edge": 12,
+      "siteMargin": 4
+    },
+    "groundBatchMode": "sprites"
+  },
   "resourceResidency": {
     "maxParallelDownloads": 3,
     "loadTimeoutMs": 30000,
