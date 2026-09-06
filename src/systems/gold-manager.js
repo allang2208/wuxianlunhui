@@ -4,6 +4,7 @@ import {
     isGoldItem,
     syncGoldStackPresentation,
 } from '../items/item-stack-rules.js';
+import { EconomyFlowSystem } from '../world/economy-flow-system.js';
 
 /**
  * GoldManager — 集中管理所有金币逻辑
@@ -121,7 +122,7 @@ class GoldManagerImpl {
      * 尽可能把金币存入背包，返回实际入包数量。
      * 银行被动产出用这个接口计算后续仓库/地面溢出，不弹“背包已满”提示。
      */
-    depositGold(amount, { notifyFull = false } = {}) {
+    depositGold(amount, { notifyFull = false, accounting } = {}) {
         let remaining = Math.max(0, Math.floor(Number(amount) || 0));
         if (remaining <= 0) return 0;
         const requested = Math.min(UNLIMITED_ITEM_STACK, remaining);
@@ -156,6 +157,7 @@ class GoldManagerImpl {
         this._syncGoldStats(goldItem);
 
         const deposited = requested - remaining;
+        EconomyFlowSystem.record('gold', deposited, accounting);
         if (deposited > 0) this._notifyUpdate();
         if (remaining > 0 && notifyFull) this._notifyFull();
         return deposited;
@@ -166,10 +168,10 @@ class GoldManagerImpl {
      * @param {number} amount — 增加数量
      * @returns {boolean} — 是否成功
      */
-    addGold(amount) {
+    addGold(amount, options = {}) {
         const requested = Math.max(0, Math.floor(Number(amount) || 0));
         if (requested <= 0) return false;
-        return this.depositGold(requested, { notifyFull: true }) === requested;
+        return this.depositGold(requested, { ...options, notifyFull: true }) === requested;
     }
 
     /**
@@ -177,7 +179,7 @@ class GoldManagerImpl {
      * @param {number} amount — 扣除数量
      * @returns {boolean} — 成功返回 true，不足返回 false
      */
-    deductGold(amount) {
+    deductGold(amount, { accounting } = {}) {
         if (amount <= 0) return true;
 
         const bp = this._getBackpack();
@@ -194,6 +196,7 @@ class GoldManagerImpl {
             else this._syncGoldStats(item);
         }
 
+        EconomyFlowSystem.record('gold', -(amount - remain), accounting);
         this._notifyUpdate();
         return remain <= 0;
     }

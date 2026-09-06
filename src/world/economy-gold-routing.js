@@ -1,5 +1,6 @@
 import { GoldManager } from '../systems/gold-manager.js';
 import { WarehouseSystem } from '../ui/warehouse-system.js';
+import { EconomyFlowSystem } from './economy-flow-system.js';
 
 export function createGoldItem(amount) {
     const stack = Math.max(0, Math.floor(Number(amount) || 0));
@@ -35,38 +36,51 @@ export function getPlayerTotalGold() {
     return backpack + warehouse;
 }
 
-/** 统一扣除玩家背包与主神空间仓库中的金币，供持续经济建筑结算。 */
-export function deductPlayerGold(amount) {
+/**
+ * 从玩家可支配金币总额扣款：先扣背包，再扣主神空间仓库。
+ * 经营建筑只能通过该入口消费金币，避免只读到仓库金币却无法实际结算。
+ */
+export function deductPlayerGold(amount, options = {}) {
     const requested = Math.max(0, Math.floor(Number(amount) || 0));
     if (requested <= 0) return true;
     if (getPlayerTotalGold() < requested) return false;
 
-    const backpackAvailable = Math.max(0, Math.floor(Number(GoldManager?.getGold?.()) || 0));
-    const backpackCost = Math.min(requested, backpackAvailable);
-    if (backpackCost > 0 && !GoldManager?.deductGold?.(backpackCost)) return false;
+    const backpack = Math.min(requested,
+        Math.max(0, Math.floor(Number(GoldManager?.getGold?.()) || 0)));
+    if (backpack > 0 && !GoldManager?.deductGold?.(backpack, {
+        accounting: { ignore: true },
+    })) return false;
 
-    const warehouseCost = requested - backpackCost;
-    if (warehouseCost <= 0) return true;
-    const consumed = WarehouseSystem?.consumeMaterial?.(
-        (item) => item?.category === 'gold' || item?.name === '金币',
-        warehouseCost
-    ) || 0;
-    if (consumed === warehouseCost) return true;
+    const remaining = requested - backpack;
+    if (remaining > 0) {
+        const consumed = WarehouseSystem?.consumeMaterial?.(
+            (item) => item?.category === 'gold' || item?.name === '金币',
+            remaining
+        ) || 0;
+        if (consumed !== remaining) {
+            // 同步流程中正常不会触发；保守返还已扣背包金币，避免半笔扣款。
+            if (backpack > 0) GoldManager?.depositGold?.(backpack, {
+                accounting: { ignore: true },
+            });
+            return false;
+        }
+    }
 
-    if (backpackCost > 0) GoldManager?.depositGold?.(backpackCost);
-    if (consumed > 0) WarehouseSystem?.depositItemAmount?.(createGoldItem(consumed));
-    return false;
+    EconomyFlowSystem.record('gold', -requested, options.accounting);
+    return true;
 }
 
 /** 银行产出唯一入库顺序：玩家背包 -> 主人空间仓库 -> 返回剩余量给调用方落地。 */
-export function routeProducedGold(amount) {
+export function routeProducedGold(amount, options = {}) {
     const requested = Math.max(0, Math.floor(Number(amount) || 0));
     if (requested <= 0) return { requested: 0, backpack: 0, warehouse: 0, remaining: 0 };
-    const backpack = GoldManager?.depositGold?.(requested) || 0;
+    const backpack = GoldManager?.depositGold?.(requested, { accounting: { ignore: true } }) || 0;
     const afterBackpack = Math.max(0, requested - backpack);
     const warehouse = afterBackpack > 0
         ? (WarehouseSystem?.depositItemAmount?.(createGoldItem(afterBackpack)) || 0)
         : 0;
+    // 只在路由结束后记一次，主神仓库分流不会漏计，也不会与背包入账重复。
+    EconomyFlowSystem.record('gold', backpack + warehouse, options.accounting);
     return {
         requested,
         backpack,
