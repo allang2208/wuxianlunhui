@@ -1390,7 +1390,7 @@
     "thumbnailPath": "assets/ui/building-thumbnails/jungle_temple.png",
     "displayW": 512, "displayH": 545, "footOffsetY": 270,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.759669, "widthRatio": 1, "depthRatio": 0.471455, "scaleMode": "strict" },
-    "assetCutoutHash": "DD9824667150DEC0CAA7EA963C1593B66DBFD58C672E882918B1DA6BF99F88E7",
+    "assetCutoutHash": "2935BF1331629F86377F3CBEA6B01D9B68F1F763379DA0C8401BBF8DF0C0684F",
     "perimeterTile": "road",
     "sellRefundRatio": 0.5, "allowedSceneIds": ["scene10"], "buildLimit": 3,
     "featureWorldId": "scene10", "parallelProduction": true,
