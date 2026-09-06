@@ -33,7 +33,7 @@
     "role": "ranged_ranger",
     "walkSpeed": 165,
     "runSpeed": 165,
-    "attackInterval": 2200,
+    "attackInterval": 1900,
     "attackDamage": 45,
     "attackRange": 520,
     "engageRange": 1000,

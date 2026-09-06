@@ -33,12 +33,12 @@
     "role": "ranged_scout",
     "walkSpeed": 150,
     "runSpeed": 150,
-    "attackInterval": 2500,
+    "attackInterval": 2200,
     "attackDamage": 25,
     "attackRange": 420,
     "engageRange": 900,
     "projectileSpeed": 600,
-    "attackAnimFps": 24.0,
+    "attackAnimFps": 30,
     "attackLaunchFrame": 21,
     "followOffset": 140,
     "followArriveDist": 40,
@@ -100,7 +100,7 @@
         0,
         34
       ],
-      "frameRate": 24.0,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

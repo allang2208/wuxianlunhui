@@ -1,3 +1,4 @@
+import { advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { HamsterScoutAI } from './hamster-scout-ai.js';
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
@@ -52,7 +53,8 @@ export class HamsterCatapultCrewAI extends HamsterScoutAI {
                 m._catapultFaceRight = m._lastFaceRight !== false;
                 m.setAnimationClock('attack', 0);
             } else {
-                this._shotAnimLeft = Math.max(0, this._shotAnimLeft - dt);
+                const actionDt = advanceFriendlyAttackClock(m, dt);
+                this._shotAnimLeft = Math.max(0, this._shotAnimLeft - actionDt);
                 m.setAnimationClock('attack', this._shotAnimMs - this._shotAnimLeft);
             }
             m.vx = 0; m.vy = 0; m.maxSpeed = 0; m.isMoving = false;

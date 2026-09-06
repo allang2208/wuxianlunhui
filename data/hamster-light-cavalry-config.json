@@ -27,17 +27,19 @@
     "role": "melee_light_cavalry",
     "walkSpeed": 230,
     "runSpeed": 230,
-    "attackInterval": 2000,
+    "attackInterval": 1800,
     "attackDamage": 60,
-    "attackRange": 55,
+    "attackRange": 98,
     "engageRange": 900,
-    "attackAnimFps": 24.0,
+    "attackAnimFps": 30,
     "attackDamageFrame": 17,
     "followOffset": 150,
     "followArriveDist": 40,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 110,
+    "meleeWidth": 68
   },
   "displaySize": 390,
   "spriteOffsetY": -91,
@@ -81,7 +83,7 @@
         0,
         22
       ],
-      "frameRate": 24.0,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

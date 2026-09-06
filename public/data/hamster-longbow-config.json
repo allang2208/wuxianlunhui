@@ -39,7 +39,7 @@
     "attackRange": 900,
     "engageRange": 1200,
     "projectileSpeed": 980,
-    "attackAnimFps": 12,
+    "attackAnimFps": 40,
     "attackLaunchFrame": 45,
     "appliesMarkArrow": false,
     "followOffset": 165,
@@ -90,7 +90,7 @@
       "rows": 8,
       "frameCount": 61,
       "frames": [0, 60],
-      "frameRate": 12,
+      "frameRate": 40,
       "repeat": 0
     },
     "dying": {

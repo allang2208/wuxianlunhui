@@ -36,14 +36,14 @@
     "attackRange": 650,
     "engageRange": 1000,
     "projectileSpeed": 1600,
-    "attackAnimFps": 20,
+    "attackAnimFps": 24,
     "attackLaunchFrame": 9,
     "rocketInitialDelayMs": 3000,
     "rocketCooldownMs": 10000,
     "rocketDamage": 200,
     "rocketSplashRadius": 110,
     "rocketProjectileSpeed": 780,
-    "rocketAttackAnimFps": 24,
+    "rocketAttackAnimFps": 30,
     "rocketLaunchFrame": 29,
     "rocketDiscardFrame": 45,
     "rocketAnimationIncludesDiscardedLauncher": true,
@@ -98,7 +98,7 @@
       "rows": 2,
       "frameCount": 13,
       "frames": [0, 12],
-      "frameRate": 20,
+      "frameRate": 24,
       "repeat": 0
     },
     "rocket_attack": {
@@ -109,7 +109,7 @@
       "rows": 8,
       "frameCount": 61,
       "frames": [0, 60],
-      "frameRate": 24,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

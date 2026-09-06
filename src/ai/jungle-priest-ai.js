@@ -1,3 +1,4 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { MovementSystem } from '../systems/movement-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -193,6 +194,7 @@ export class JunglePriestAI {
         this._pendingSpell = this._spellIndex++ % 3;
         this._releaseLeft = (releaseFrame - 1) / fps * 1000;
         this._castAnimLeft = frameCount / fps * 1000 + 60;
+        beginFriendlyAttackClock(this, 'spell', this._castAnimLeft, { fitInterval: false, fps });
         const cooldownMult = Math.max(0, Number(this.cfg.jungleSpellCooldownMult) || 1);
         this._cooldown = Math.max(500, (Number(this.cfg.attackInterval) || 2800) * cooldownMult);
         m.target = target;
@@ -207,6 +209,7 @@ export class JunglePriestAI {
     }
     _updateCast(dt) {
         const m = this.m;
+        dt = advanceFriendlyAttackClock(m, dt);
         const damp = Math.pow(0.85, (Number(dt) || 0) / 16.67);
         m.vx *= damp;
         m.vy *= damp;

@@ -858,12 +858,12 @@ function _unitDps(kind, levelOverrides = null) {
         : ((kind === 'bishop' || kind === 'archbishop') ? mults.holyLightCooldownMult : 1);
     const artillery = ['hamster_catapult_crew', 'hamster_field_cannon_crew',
         'industrial_artillery_crew', 'hamster_howitzer_crew'].includes(kind);
-    const interval = Math.max(300, artillery ? cfg.animations.attack.durationMs : 0,
+    const interval = Math.max(300,
         (cfg.ai.attackInterval ?? 2000) * mults.attackIntervalMult * spellCooldownMult);
     let dps = dmg * 1000 / interval;
     if (kind === 'heavy_machine_gunner' || kind === 'emplaced_machine_gun_crew') {
         const shotCount = Math.max(1, cfg.ai.attackLaunchFrames?.length || 1);
-        dps *= shotCount;
+        dps *= shotCount; // Animation now fits the same upgraded attack interval.
     }
     if (artillery) {
         dps *= 1 + Math.max(0, Number(cfg.ai.expectedExtraTargets) || 0)

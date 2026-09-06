@@ -34,12 +34,12 @@
     "role": "ranged_assault_rifle",
     "walkSpeed": 155,
     "runSpeed": 155,
-    "attackInterval": 1800,
+    "attackInterval": 1600,
     "attackDamage": 72,
     "attackRange": 720,
     "engageRange": 1050,
     "projectileSpeed": 1800,
-    "attackAnimFps": 24,
+    "attackAnimFps": 30,
     "attackLaunchFrame": 22,
     "muzzleOffsetX": 20,
     "muzzleOffsetY": 0,
@@ -93,7 +93,7 @@
       "rows": 6,
       "frameCount": 41,
       "frames": [0, 40],
-      "frameRate": 24,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

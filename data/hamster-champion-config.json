@@ -36,7 +36,7 @@
     "runSpeed": 105,
     "attackInterval": 1850,
     "attackDamage": 70,
-    "attackRange": 75,
+    "attackRange": 120,
     "engageRange": 900,
     "attackAnimFps": 82,
     "attackDamageFrame": 25,
@@ -44,7 +44,9 @@
     "followArriveDist": 40,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 132,
+    "meleeWidth": 48
   },
   "displaySize": 214.088398,
   "spriteOffsetY": -41.395999,

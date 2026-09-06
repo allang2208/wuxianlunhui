@@ -1,3 +1,5 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '../combat/friendly-melee.js';
 // ============================================================
 // HamsterWarriorAI — 仓鼠战士 AI（2026-08-16）
 // 玩家友方近战单位：在世界-122 自动寻找最近敌人攻击。
@@ -38,6 +40,9 @@ export class HamsterWarriorAI {
     }
 
     cancelForCommand() {
+        this._swing = null;
+        this._attackChainTarget = null;
+        this.m._friendlyAttackClock = null;
         this.m._animState = 'idle';
         this.m.target = null;
         this.m._tacticalTarget = null;
@@ -58,6 +63,10 @@ export class HamsterWarriorAI {
         if (m.data.hp <= 0 || m._dying) return;
 
         this._attackTimer = Math.max(0, this._attackTimer - dt);
+        if (this._swing && !m._isHamsterSamurai) {
+            this._updateAttackSwing(dt);
+            return;
+        }
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -77,6 +86,7 @@ export class HamsterWarriorAI {
             return;
         }
 
+        this._attackChainTarget = null;
         // 移动中：交给 MovementSystem 寻路推进
         MovementSystem.update(m, dt, entities);
         this._checkStuck(dt);
@@ -99,9 +109,7 @@ export class HamsterWarriorAI {
         const enemy = this._nearestEnemy(entities, m);
         if (enemy) {
             m.target = enemy;
-            const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
-            const range = this._attackRange + (enemy.groundRadius || 24);
-            if (dist <= range && canMeleeReachTarget(m, enemy)) {
+            if (canStartFriendlyMelee(m, enemy, this._attackRange)) {
                 // 进入攻击范围：站定攻击（动画由渲染层两段式播放）
                 m._tacticalTarget = null;
                 m._animState = 'attack';
@@ -177,9 +185,7 @@ export class HamsterWarriorAI {
                 return;
             }
             m.target = t;
-            const dist = Math.hypot(t.x - m.x, t.y - m.y);
-            const range = this._attackRange + (t.groundRadius || 24);
-            if (dist <= range && canMeleeReachTarget(m, t)) {
+            if (canStartFriendlyMelee(m, t, this._attackRange)) {
                 m._tacticalTarget = null;
                 m._animState = 'attack';
                 m.maxSpeed = 0;
@@ -217,17 +223,48 @@ export class HamsterWarriorAI {
         return best;
     }
 
-    /** 攻击：间隔到点且目标仍在攻击范围内 → 造成 attackDamage 伤害 */
+    /** Keep the authored intro/loop frame ranges, but damage only at the contact pose. */
     _tryAttack() {
         const m = this.m;
-        const e = m.target;
-        if (!e || !e.active || e.hp <= 0) return;
-        if (e._isEnergyNode) return;
-        const dist = Math.hypot(e.x - m.x, e.y - m.y);
-        const range = this._attackRange + (e.groundRadius || 24);
-        if (dist > range || !canMeleeReachTarget(m, e)) return;
-        if (this._attackTimer > 0) return;
+        const target = m.target;
+        if (this._swing || this._attackTimer > 0
+            || !canStartFriendlyMelee(m, target, this._attackRange)) return;
+        const animation = m.animations.attack;
+        const continuing = this._attackChainTarget === target;
+        const frames = continuing ? animation.loopFrames : animation.startFrames;
+        const first = frames?.[0] ?? 0;
+        const last = frames?.[1] ?? animation.frameCount - 1;
+        const fps = !continuing && animation.startFrames
+            ? (animation.startFrameRate ?? animation.frameRate) : animation.frameRate;
+        const durationMs = (last - first + 1) / fps * 1000 + 60;
+        const contact = Math.max(first, Math.min(last, (this.cfg.attackDamageFrame ?? 25) - 1));
+        beginFriendlyAttackClock(this, 'attack', durationMs,
+            { firstFrame: first, lastFrame: last, fps });
+        lockFriendlyMelee(this, target);
+        this._swing = { target, elapsedMs: 0, hitMs: (contact - first) / fps * 1000, durationMs, hit: false };
+        this._attackChainTarget = target;
         this._attackTimer = this._attackInterval;
+        m._attackActionSeq = (m._attackActionSeq || 0) + 1;
+        m.rotation = this._meleeSnapshot.worldAngle;
+    }
+
+    _updateAttackSwing(dt) {
+        const m = this.m;
+        const swing = this._swing;
+        m._animState = 'attack';
+        m._tacticalTarget = null;
+        m.vx = 0; m.vy = 0; m.maxSpeed = 0; m.isMoving = false;
+        swing.elapsedMs += advanceFriendlyAttackClock(m, dt);
+        if (!swing.hit && swing.elapsedMs >= swing.hitMs) {
+            swing.hit = true;
+            if (canHitFriendlyMelee(this, swing.target)) this._applySwingDamage(swing.target);
+        }
+        if (swing.elapsedMs >= swing.durationMs) this._swing = null;
+    }
+
+    _applySwingDamage(e) {
+        const m = this.m;
+        const range = this.cfg.attackImpactRange ?? this._attackRange;
         if (typeof e.takeDamage === 'function') {
             e.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, e), m, 'physical', true);
             if (m._crippleOnHitMs > 0 && typeof e.applyCripple === 'function') {

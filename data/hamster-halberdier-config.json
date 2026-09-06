@@ -31,17 +31,19 @@
     "role": "melee_halberd",
     "walkSpeed": 140,
     "runSpeed": 140,
-    "attackInterval": 2200,
+    "attackInterval": 2000,
     "attackDamage": 34,
-    "attackRange": 92,
+    "attackRange": 96,
     "engageRange": 900,
-    "attackAnimFps": 24,
+    "attackAnimFps": 32,
     "attackDamageFrame": 24,
     "followOffset": 145,
     "followArriveDist": 40,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 108,
+    "meleeWidth": 38
   },
   "displaySize": 313.664397,
   "spriteOffsetY": -58.199449,
@@ -82,7 +84,7 @@
       "rows": 5,
       "frameCount": 39,
       "frames": [0, 38],
-      "frameRate": 24,
+      "frameRate": 32,
       "repeat": 0
     },
     "dying": {

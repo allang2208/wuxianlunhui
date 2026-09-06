@@ -31,11 +31,11 @@
     "role": "melee_winged_hussar",
     "walkSpeed": 220,
     "runSpeed": 220,
-    "attackInterval": 2000,
+    "attackInterval": 1800,
     "attackDamage": 135,
-    "attackRange": 72,
+    "attackRange": 230,
     "engageRange": 900,
-    "attackAnimFps": 24,
+    "attackAnimFps": 30,
     "attackDamageFrame": 21,
     "followOffset": 160,
     "followArriveDist": 40,
@@ -59,7 +59,9 @@
       "frameRate": 24,
       "hitStartFrame": 15,
       "hitEndFrame": 27
-    }
+    },
+    "attackImpactRange": 245,
+    "meleeWidth": 40
   },
   "displaySize": 380.363636,
   "spriteOffsetY": -88.367188,
@@ -72,7 +74,7 @@
   "animations": {
     "idle": { "src": "assets/companions/hamster_winged_hussar/idle.png", "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 6, "frameCount": 48, "frames": [0, 47], "frameRate": 24, "repeat": -1 },
     "walk": { "src": "assets/companions/hamster_winged_hussar/running.png", "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3, "frameCount": 18, "frames": [0, 17], "frameRate": 24, "repeat": -1 },
-    "attack": { "src": "assets/companions/hamster_winged_hussar/attacking.png", "frameWidth": 1024, "frameHeight": 512, "cols": 8, "rows": 5, "frameCount": 39, "frames": [0, 38], "frameRate": 24, "repeat": 0 },
+    "attack": { "src": "assets/companions/hamster_winged_hussar/attacking.png", "frameWidth": 1024, "frameHeight": 512, "cols": 8, "rows": 5, "frameCount": 39, "frames": [0, 38], "frameRate": 30, "repeat": 0 },
     "charge": { "src": "assets/companions/hamster_winged_hussar/attacking.png", "frameWidth": 1024, "frameHeight": 512, "cols": 8, "rows": 5, "frameCount": 39, "frames": [0, 38], "frameRate": 24, "repeat": 0 },
     "dying": { "src": "assets/companions/hamster_winged_hussar/dying.png", "frameWidth": 896, "frameHeight": 512, "cols": 8, "rows": 5, "frameCount": 39, "frames": [0, 38], "frameRate": 24, "repeat": 0 }
   }

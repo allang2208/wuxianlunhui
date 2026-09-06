@@ -31,12 +31,12 @@
     "role": "ranged_musketeer",
     "walkSpeed": 120,
     "runSpeed": 120,
-    "attackInterval": 2500,
+    "attackInterval": 2200,
     "attackDamage": 80,
     "attackRange": 650,
     "engageRange": 900,
     "projectileSpeed": 1248,
-    "attackAnimFps": 24.0,
+    "attackAnimFps": 30,
     "attackLaunchFrame": 19,
     "followOffset": 160,
     "followArriveDist": 40,
@@ -96,7 +96,7 @@
         0,
         40
       ],
-      "frameRate": 24.0,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

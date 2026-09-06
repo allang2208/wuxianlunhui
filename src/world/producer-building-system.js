@@ -688,8 +688,7 @@ export function getMilitaryUnitProfile(kind) {
     const damage = Math.max(0, Number(patch.attackDamage ?? base.ai?.attackDamage) || 0);
     const artillery = ['hamster_catapult_crew', 'hamster_field_cannon_crew',
         'industrial_artillery_crew', 'hamster_howitzer_crew'].includes(kind);
-    const interval = Math.max(300, Number(patch.attackInterval ?? base.ai?.attackInterval) || 2000,
-        artillery ? base.animations.attack.durationMs : 0);
+    const interval = Math.max(300, Number(patch.attackInterval ?? base.ai?.attackInterval) || 2000);
     let dps = kind === 'explorer' ? 0 : damage * 1000 / interval
         * (1 + Math.max(0, Math.min(1, Number(base.passives?.doubleStrikeChance) || 0))
             * (Math.max(1, Number(base.passives?.doubleStrikeMultiplier) || 1) - 1));

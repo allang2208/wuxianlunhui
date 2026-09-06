@@ -1,3 +1,5 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { launchFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
@@ -51,6 +53,10 @@ export class HamsterMusketeerAI {
         this.m._animState = 'idle';
     }
 
+    updateProjectilesWhileControlled(dt, entities) {
+        updateFriendlyProjectiles(this, dt, entities);
+    }
+
     _effectiveAttackRange() {
         return applyElevatedRangedRange(this.m, this._attackRange);
     }
@@ -69,8 +75,9 @@ export class HamsterMusketeerAI {
     update(dt, entities, player) {
         const m = this.m;
         if (m.data.hp <= 0 || m._dying) return;
+        const actionWasActive = this._shotActive;
         this._attackTimer = Math.max(0, this._attackTimer - dt);
-        this._updateProjectile(dt, entities);
+        updateFriendlyProjectiles(this, dt, entities);
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -84,12 +91,13 @@ export class HamsterMusketeerAI {
             if (Math.abs(m.vx) < 1 && Math.abs(m.vy) < 1) { m.vx = 0; m.vy = 0; }
             m.isMoving = false; m.maxSpeed = 0;
             m._animState = 'attack';
-            this._shotTimer -= dt;
+            const actionDt = advanceFriendlyAttackClock(m, actionWasActive ? dt : 0);
+            this._shotTimer -= actionDt;
             if (this._shotTimer <= 0) {
                 this._fireProjectile();
                 this._shotTimer = Infinity;
             }
-            this._shotAnimLeft -= dt;
+            this._shotAnimLeft -= actionDt;
             if (this._shotAnimLeft <= 0) {
                 this._shotActive = false;
                 m._attackSwing = false;
@@ -184,6 +192,7 @@ export class HamsterMusketeerAI {
             this._shotActive = true;
             this._shotTimer = this._launchDelayMs;
             this._shotAnimLeft = this._shotAnimMs;
+            beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
             m._animState = 'attack';
             m._attackSwing = true;
         }
@@ -239,7 +248,7 @@ export class HamsterMusketeerAI {
             (lead.y - targetZ) - (startY - startZ),
             lead.x - startX
         );
-        m._basic = {
+        launchFriendlyProjectile(m, {
             active: true,
             x: startX,
             y: startY,
@@ -253,7 +262,7 @@ export class HamsterMusketeerAI {
             wallContext: projectileWallContext(m, null, origin),
             target: t,
             musketTracer: true,
-        };
+        });
         const sound = this._shotMoving && m.sounds?.movingAttack
             ? m.sounds.movingAttack : m.sounds?.attack;
         if (sound && SoundManager?.playGunshotAt) SoundManager.playGunshotAt(sound, m.x, m.y);

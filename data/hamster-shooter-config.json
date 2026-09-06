@@ -31,12 +31,12 @@
     "role": "ranged_guard",
     "walkSpeed": 150,
     "runSpeed": 150,
-    "attackInterval": 2000,
+    "attackInterval": 1800,
     "attackDamage": 60,
     "attackRange": 600,
     "engageRange": 900,
     "projectileSpeed": 600,
-    "attackAnimFps": 24.0,
+    "attackAnimFps": 30,
     "attackLaunchFrame": 19,
     "followOffset": 140,
     "followArriveDist": 40,
@@ -92,7 +92,7 @@
         0,
         24
       ],
-      "frameRate": 24.0,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

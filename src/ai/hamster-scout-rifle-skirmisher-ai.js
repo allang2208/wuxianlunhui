@@ -1,4 +1,6 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { HamsterMusketeerAI } from './hamster-musketeer-ai.js';
+import { updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 import { MovementSystem } from '../systems/movement-system.js';
 import {
     clearRtsSurfaceRoute,
@@ -40,7 +42,8 @@ export class HamsterScoutRifleSkirmisherAI extends HamsterMusketeerAI {
         const m = this.m;
         if (m.data.hp <= 0 || m._dying) return;
         this._attackTimer = Math.max(0, this._attackTimer - dt);
-        this._updateProjectile(dt, entities);
+        updateFriendlyProjectiles(this, dt, entities);
+        const wasShooting = this._shotActive;
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
@@ -57,12 +60,13 @@ export class HamsterScoutRifleSkirmisherAI extends HamsterMusketeerAI {
                 m._lastFaceRight = this._shotTarget.x >= m.x;
             }
             m._animState = this._shotMoving ? 'moving_attack' : 'attack';
-            this._shotTimer -= dt;
+            const shotDt = advanceFriendlyAttackClock(m, wasShooting ? dt : 0);
+            this._shotTimer -= shotDt;
             if (this._shotTimer <= 0) {
                 this._fireProjectile();
                 this._shotTimer = Infinity;
             }
-            this._shotAnimLeft -= dt;
+            this._shotAnimLeft -= shotDt;
             if (this._shotAnimLeft <= 0) {
                 this._shotActive = false;
                 this._shotTarget = null;
@@ -189,6 +193,7 @@ export class HamsterScoutRifleSkirmisherAI extends HamsterMusketeerAI {
         this._shotTarget = target;
         this._shotTimer = moving ? this._movingLaunchDelayMs : this._standingLaunchDelayMs;
         this._shotAnimLeft = moving ? this._movingShotAnimMs : this._standingShotAnimMs;
+        beginFriendlyAttackClock(this, moving ? 'moving_attack' : 'attack', this._shotAnimLeft);
         m.target = target;
         m._attackSwing = true;
         m._scoutRifleShotSeq = (Number(m._scoutRifleShotSeq) || 0) + 1;

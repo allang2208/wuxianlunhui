@@ -34,17 +34,19 @@
     "role": "melee_phalanx",
     "walkSpeed": 75,
     "runSpeed": 75,
-    "attackInterval": 2400,
+    "attackInterval": 2200,
     "attackDamage": 45,
-    "attackRange": 68,
+    "attackRange": 48,
     "engageRange": 900,
-    "attackAnimFps": 24,
+    "attackAnimFps": 30,
     "attackDamageFrame": 13,
     "followOffset": 150,
     "followArriveDist": 42,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 55,
+    "meleeWidth": 38
   },
   "displaySize": 313.664397,
   "spriteOffsetY": -58.199449,
@@ -85,7 +87,7 @@
       "rows": 6,
       "frameCount": 41,
       "frames": [0, 40],
-      "frameRate": 24,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

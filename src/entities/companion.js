@@ -142,6 +142,19 @@ export class Companion {
         this.data.mp = this.data.maxMp;
     }
 
+    /** Calibrated melee soldiers expose the same approach range to movement and attack AI. */
+    getBasicMeleeApproachConfig() {
+        const cfg = this.aiConfig;
+        // Explicitly calibrated soldiers only; ranged units and party companions retain their own movement.
+        if (!Number.isFinite(cfg?.attackImpactRange)) return null;
+        const continuousNinja = this._isHamsterNinja && !this._openingStrikeArmed;
+        return {
+            range: continuousNinja ? (cfg.continuousAttackRange ?? cfg.attackRange)
+                : (this._ai?._attackRange ?? cfg.attackRange),
+            width: cfg.meleeWidth ?? 44,
+        };
+    }
+
     /**
      * 给 Game.friendlyUnits 使用的统一碰撞配置入口。
      * 子类先保留各自现有半径/高度作为默认值，再由配置文件中的编辑器字段覆盖；

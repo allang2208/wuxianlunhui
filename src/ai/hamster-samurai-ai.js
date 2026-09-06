@@ -1,5 +1,6 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '../combat/friendly-melee.js';
 import { HamsterWarriorAI } from './hamster-warrior-ai.js';
-import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 
 /**
  * 仓鼠武士近战：沿用战士的寻敌、追击与 RTS 指令，只替换普攻时序。
@@ -23,8 +24,19 @@ export class HamsterSamuraiAI extends HamsterWarriorAI {
     }
 
     update(dt, entities, player) {
+        const wasSwinging = !!this._swing;
         super.update(dt, entities, player);
-        this._updateSwing(dt);
+        if (wasSwinging) this._updateSwing(dt);
+    }
+
+    _tick(entities, player) {
+        if (this._swing) {
+            this.m._animState = 'attack';
+            this.m._tacticalTarget = null;
+            this.m.maxSpeed = 0;
+            return;
+        }
+        super._tick(entities, player);
     }
 
     _tryAttack() {
@@ -34,6 +46,8 @@ export class HamsterSamuraiAI extends HamsterWarriorAI {
         if (!this._isReachableTarget(target)) return;
 
         this._attackTimer = this._attackInterval;
+        beginFriendlyAttackClock(this, 'attack', this._attackDurationMs);
+        lockFriendlyMelee(this, target);
         m._samuraiAttackSeq = (Number(m._samuraiAttackSeq) || 0) + 1;
         m._attackSwing = true;
         this._swing = {
@@ -46,11 +60,11 @@ export class HamsterSamuraiAI extends HamsterWarriorAI {
     _updateSwing(dt) {
         const swing = this._swing;
         if (!swing) return;
-        swing.elapsedMs += Math.max(0, Number(dt) || 0);
+        swing.elapsedMs += advanceFriendlyAttackClock(this.m, dt);
 
         if (!swing.hit && swing.elapsedMs >= this._attackContactDelayMs) {
             swing.hit = true;
-            if (this._isReachableTarget(swing.target) && typeof swing.target.takeDamage === 'function') {
+            if (canHitFriendlyMelee(this, swing.target) && typeof swing.target.takeDamage === 'function') {
                 swing.target.takeDamage(
                     this.m.getPhysicalAttackDamage(this._attackDamage, swing.target),
                     this.m,
@@ -68,10 +82,6 @@ export class HamsterSamuraiAI extends HamsterWarriorAI {
     }
 
     _isReachableTarget(target) {
-        const m = this.m;
-        if (!target || !target.active || target.hp <= 0 || target._isEnergyNode) return false;
-        const range = this._attackRange + (target.groundRadius || 24);
-        return Math.hypot(target.x - m.x, target.y - m.y) <= range
-            && canMeleeReachElevation(m, target);
+        return canStartFriendlyMelee(this.m, target, this._attackRange);
     }
 }

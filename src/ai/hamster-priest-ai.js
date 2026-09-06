@@ -1,3 +1,4 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 // ============================================================
 // HamsterPriestAI — 仓鼠牧师（世界-122）
 // - 默认在统一索敌范围内支援作战，无目标时跟随玩家，不进行普通攻击；
@@ -141,6 +142,7 @@ export class HamsterPriestAI {
 
     _updateCast(dt) {
         const m = this.m;
+        dt = advanceFriendlyAttackClock(m, dt);
         // 平滑站定：速度指数衰减（≈0.85/帧），代替瞬时清零的急停
         const damp = Math.pow(0.85, dt / 16.67);
         m.vx *= damp;
@@ -272,6 +274,7 @@ export class HamsterPriestAI {
         this._pendingPlayer = player;
         this._releaseLeft = Math.max(0, (releaseFrame - 1) / fps * 1000);
         this._castAnimLeft = frameCount / fps * 1000 + 60;
+        beginFriendlyAttackClock(this, 'spell', this._castAnimLeft, { fitInterval: false, fps });
         m.target = target;
         m._tacticalTarget = null;
         m._prayerCast = true;

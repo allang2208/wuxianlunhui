@@ -34,7 +34,7 @@
     "role": "ranged_heavy_machine_gun",
     "walkSpeed": 105,
     "runSpeed": 105,
-    "attackInterval": 3400,
+    "attackInterval": 2800,
     "attackDamage": 30,
     "attackRange": 760,
     "engageRange": 1050,
@@ -42,7 +42,7 @@
     "projectileMaxHits": 2,
     "projectilePierceDamageMultiplier": 0.6,
     "armorPenetrationPercent": 0.25,
-    "attackAnimFps": 24,
+    "attackAnimFps": 32,
     "attackLaunchFrame": 23,
     "attackLaunchFrames": [23, 31, 39],
     "burstSpreadDegrees": 1.2,
@@ -94,7 +94,7 @@
       "rows": 8,
       "frameCount": 61,
       "frames": [0, 60],
-      "frameRate": 24,
+      "frameRate": 32,
       "repeat": 0
     },
     "dying": {

@@ -1,3 +1,5 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { launchFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 // ============================================================
 // HamsterShooterAI — 仓鼠射手 AI（2026-08-16）
 // 玩家友方远程单位：在世界-122 自动寻找最近敌人射击。
@@ -72,6 +74,10 @@ export class HamsterShooterAI {
         this.m.isMoving = false;
     }
 
+    updateProjectilesWhileControlled(dt, entities) {
+        updateFriendlyProjectiles(this, dt, entities);
+    }
+
     _effectiveAttackRange() {
         return applyElevatedRangedRange(this.m, this._attackRange);
     }
@@ -90,9 +96,10 @@ export class HamsterShooterAI {
         const m = this.m;
         if (m.data.hp <= 0 || m._dying) return;
 
+        const actionWasActive = this._shotActive;
         this._attackTimer = Math.max(0, this._attackTimer - dt);
         // 飞行中投射物推进（优先于一切状态）
-        this._updateProjectile(dt);
+        updateFriendlyProjectiles(this, dt, entities);
 
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
@@ -110,12 +117,13 @@ export class HamsterShooterAI {
             m.isMoving = false;
             m.maxSpeed = 0;
             m._animState = 'attack';
-            this._shotTimer -= dt;
+            const actionDt = advanceFriendlyAttackClock(m, actionWasActive ? dt : 0);
+            this._shotTimer -= actionDt;
             if (this._shotTimer <= 0) {
                 this._fireProjectile();
                 this._shotTimer = Number.POSITIVE_INFINITY; // 只发射一次
             }
-            this._shotAnimLeft -= dt;
+            this._shotAnimLeft -= actionDt;
             if (this._shotAnimLeft <= 0) {
                 this._shotActive = false;
                 m._attackSwing = false; // 挥击结束主动清标记（防动画被打断时渲染层残留）
@@ -172,6 +180,7 @@ export class HamsterShooterAI {
                     this._shotActive = true;
                     this._shotTimer = this._launchDelayMs;
                     this._shotAnimLeft = this._shotAnimMs;
+                    beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
                     m._animState = 'attack';
                     m._attackSwing = true; // 渲染层播攻击动画
                 } else {
@@ -258,6 +267,7 @@ export class HamsterShooterAI {
                     this._shotActive = true;
                     this._shotTimer = this._launchDelayMs;
                     this._shotAnimLeft = this._shotAnimMs;
+                    beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
                     m._animState = 'attack';
                     m._attackSwing = true;
                 } else {
@@ -329,7 +339,7 @@ export class HamsterShooterAI {
         const targetDist = Math.max(1, Math.hypot(lead.x - m.x, lead.y - m.y));
         const visualAngle = Math.atan2((lead.y - targetZ) - (m.y - startZ), lead.x - m.x);
         // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染箭矢）
-        m._basic = {
+        launchFriendlyProjectile(m, {
             active: true,
             x: m.x,
             y: m.y,
@@ -341,7 +351,7 @@ export class HamsterShooterAI {
             maxDist: applyElevatedRangedRange(m, this._attackRange + 150),
             wallContext: projectileWallContext(m),
             target,
-        };
+        });
         this._playSound('attack'); // 出膛音效（2026-08-16 用户素材）
     }
 

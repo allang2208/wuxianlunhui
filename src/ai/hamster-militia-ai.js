@@ -1,3 +1,5 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '../combat/friendly-melee.js';
 // ============================================================
 // HamsterMilitiaAI — 仓鼠民兵 AI（2026-08-17）
 // 玩家友方近战单位：在世界-122 自动寻找最近敌人攻击。
@@ -10,7 +12,6 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
-import { canMeleeReachTarget } from '../combat/melee-reach.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterMilitiaAI {
@@ -77,6 +78,7 @@ export class HamsterMilitiaAI {
         const m = this.m;
         if (m.data.hp <= 0 || m._dying) return;
 
+        const actionWasActive = this._swingActive;
         this._attackTimer = Math.max(0, this._attackTimer - dt);
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
@@ -94,12 +96,13 @@ export class HamsterMilitiaAI {
             m.isMoving = false;
             m.maxSpeed = 0;
             m._animState = 'attack';
-            this._swingTimer -= dt;
+            const actionDt = advanceFriendlyAttackClock(m, actionWasActive ? dt : 0);
+            this._swingTimer -= actionDt;
             if (this._swingTimer <= 0) {
                 this._applyDamage();
                 this._swingTimer = Number.POSITIVE_INFINITY; // 每挥只出一次伤
             }
-            this._swingAnimLeft -= dt;
+            this._swingAnimLeft -= actionDt;
             if (this._swingAnimLeft <= 0) {
                 this._swingActive = false;
                 m._attackSwing = false; // 挥击结束主动清标记（防动画被打断时渲染层残留）
@@ -143,9 +146,7 @@ export class HamsterMilitiaAI {
         const enemy = this._nearestEnemy(entities, m);
         if (enemy) {
             m.target = enemy;
-            const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
-            const range = this._attackRange + (enemy.groundRadius || 24);
-            if (dist <= range && canMeleeReachTarget(m, enemy)) {
+            if (canStartFriendlyMelee(m, enemy, this._attackRange)) {
                 // 进入攻击范围：站定；挥击节奏由 attackTimer 控制
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -157,8 +158,11 @@ export class HamsterMilitiaAI {
                     this._swingActive = true;
                     this._swingTimer = this._damageDelayMs;
                     this._swingAnimLeft = this._swingAnimMs;
+                    beginFriendlyAttackClock(this, 'attack', this._swingAnimMs);
+                    lockFriendlyMelee(this, enemy);
                     m._animState = 'attack';
-                    m._attackSwing = true; // 渲染层播攻击动画
+                    m._attackSwing = true;
+                    m._attackActionSeq = (m._attackActionSeq || 0) + 1; // 渲染层播攻击动画
                 } else {
                     m._animState = 'idle'; // 间隔期待机（速度不清零，交给 MovementSystem 渐近减速）
                 }
@@ -231,9 +235,7 @@ export class HamsterMilitiaAI {
                 return;
             }
             m.target = t;
-            const dist = Math.hypot(t.x - m.x, t.y - m.y);
-            const range = this._attackRange + (t.groundRadius || 24);
-            if (dist <= range && canMeleeReachTarget(m, t)) {
+            if (canStartFriendlyMelee(m, t, this._attackRange)) {
                 // 进范围：站定 + 启动一次挥击（与索敌分支同口径）
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -244,8 +246,11 @@ export class HamsterMilitiaAI {
                     this._swingActive = true;
                     this._swingTimer = this._damageDelayMs;
                     this._swingAnimLeft = this._swingAnimMs;
+                    beginFriendlyAttackClock(this, 'attack', this._swingAnimMs);
+                    lockFriendlyMelee(this, t);
                     m._animState = 'attack';
                     m._attackSwing = true;
+                    m._attackActionSeq = (m._attackActionSeq || 0) + 1;
                 } else {
                     m._animState = 'idle'; // 间隔期待机（速度不清零，渐近减速）
                 }
@@ -284,12 +289,8 @@ export class HamsterMilitiaAI {
     /** 第 8 帧伤害判定：目标仍存活且在攻击范围内 → 造成 attackDamage 物理伤害 */
     _applyDamage() {
         const m = this.m;
-        const e = m.target;
-        if (!e || !e.active || e.hp <= 0) return;
-        if (e._isEnergyNode) return;
-        const dist = Math.hypot(e.x - m.x, e.y - m.y);
-        const range = this._attackRange + (e.groundRadius || 24);
-        if (dist > range || !canMeleeReachTarget(m, e)) return;
+        const e = this._meleeTarget;
+        if (!canHitFriendlyMelee(this, e)) return;
         if (typeof e.takeDamage === 'function') {
             e.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, e), m, 'physical', true);
             this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与战士/盾卫共用）

@@ -29,7 +29,7 @@
     "runSpeed": 210,
     "attackInterval": 2000,
     "attackDamage": 100,
-    "attackRange": 55,
+    "attackRange": 135,
     "engageRange": 900,
     "attackAnimFps": 41.3333333334,
     "attackDamageFrame": 31,
@@ -55,7 +55,9 @@
       "frameRate": 24.0,
       "hitStartFrame": 29,
       "hitEndFrame": 44
-    }
+    },
+    "attackImpactRange": 150,
+    "meleeWidth": 40
   },
   "displaySize": 393.333333,
   "spriteOffsetY": -74.5,

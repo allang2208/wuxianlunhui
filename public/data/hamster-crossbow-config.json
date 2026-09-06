@@ -37,7 +37,7 @@
     "role": "ranged_heavy_crossbow",
     "walkSpeed": 115,
     "runSpeed": 115,
-    "attackInterval": 5200,
+    "attackInterval": 3400,
     "attackDamage": 130,
     "attackRange": 680,
     "engageRange": 950,
@@ -45,7 +45,7 @@
     "projectileMaxHits": 2,
     "projectilePierceDamageMultiplier": 0.75,
     "armorPenetrationPercent": 0.25,
-    "attackAnimFps": 12,
+    "attackAnimFps": 36,
     "attackLaunchFrame": 37,
     "appliesMarkArrow": false,
     "followOffset": 165,
@@ -96,7 +96,7 @@
       "rows": 8,
       "frameCount": 61,
       "frames": [0, 60],
-      "frameRate": 12,
+      "frameRate": 36,
       "repeat": 0
     },
     "dying": {

@@ -31,17 +31,19 @@
     "role": "melee_guard",
     "walkSpeed": 100,
     "runSpeed": 100,
-    "attackInterval": 2000,
+    "attackInterval": 1800,
     "attackDamage": 30,
-    "attackRange": 55,
+    "attackRange": 52,
     "engageRange": 900,
-    "attackAnimFps": 24.0,
+    "attackAnimFps": 30,
     "attackDamageFrame": 19,
     "followOffset": 140,
     "followArriveDist": 40,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 58,
+    "meleeWidth": 60
   },
   "displaySize": 220.170455,
   "spriteOffsetY": -43.862083,
@@ -91,7 +93,7 @@
         0,
         22
       ],
-      "frameRate": 24.0,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

@@ -1,3 +1,4 @@
+import { beginFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
 import { HamsterMusketeerAI } from './hamster-musketeer-ai.js';
 import { queryNearbyEntities } from './friendly-spatial-query.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
@@ -74,6 +75,7 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
             this._shotActive = true;
             this._shotTimer = this._launchDelayMs;
             this._shotAnimLeft = this._shotAnimMs;
+            beginFriendlyAttackClock(this, 'attack', this._shotAnimMs);
             m._animState = 'attack';
             m._attackSwing = true;
             // GroundSector 在地面坐标中判定；锁定逆透视后的起手方向。

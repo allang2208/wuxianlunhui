@@ -1,3 +1,5 @@
+import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { canStartFriendlyMelee, lockFriendlyMelee, canHitFriendlyMelee } from '../combat/friendly-melee.js';
 // ============================================================
 // HamsterNinjaAI — 拔刀首击 / 连续斩 / 主动烟遁
 // ============================================================
@@ -10,7 +12,6 @@ import {
     resolveRtsMoveDestination,
     RTS_DEFAULT_ACQUIRE_RANGE,
 } from './rts-command-utils.js';
-import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterNinjaAI {
@@ -241,6 +242,10 @@ export class HamsterNinjaAI {
             : (this.cfg.continuousDamageFrame ?? 25);
         this._swingHitLeft = Math.max(0, (damageFrame - 1) / fps * 1000);
         this._swingAnimLeft = frameCount / fps * 1000 + 60;
+        beginFriendlyAttackClock(this, `attack_${this._swingVariant}`, this._swingAnimLeft, { state: 'attack' });
+        lockFriendlyMelee(this, target, this._swingVariant === 'continuous'
+            ? (this.cfg.continuousImpactRange ?? this.cfg.attackImpactRange ?? this._attackRange)
+            : (this.cfg.attackImpactRange ?? this._attackRange));
         this._swingActive = true;
         m._animState = 'attack';
         m._tacticalTarget = null;
@@ -252,6 +257,7 @@ export class HamsterNinjaAI {
 
     _updateSwing(dt) {
         const m = this.m;
+        dt = advanceFriendlyAttackClock(m, dt);
         m.vx = 0;
         m.vy = 0;
         m.isMoving = false;
@@ -283,7 +289,7 @@ export class HamsterNinjaAI {
 
     _applyDamage() {
         const target = this._swingTarget;
-        if (!this._validEnemy(target) || !this._canStrike(target)) return;
+        if (!canHitFriendlyMelee(this, target)) return;
         const multiplier = this._swingVariant === 'opening' ? this._openingDamageMul : 1;
         target.takeDamage?.(
             this.m.getPhysicalAttackDamage(this._attackDamage * multiplier, target),
@@ -337,9 +343,9 @@ export class HamsterNinjaAI {
     }
 
     _canStrike(target) {
-        if (!this._validEnemy(target) || !canMeleeReachElevation(this.m, target)) return false;
-        const radius = target.groundRadius || target.collisionRadius || 24;
-        return Math.hypot(target.x - this.m.x, target.y - this.m.y) <= this._attackRange + radius;
+        const opening = this._swingActive ? this._swingVariant === 'opening' : this.m._openingStrikeArmed;
+        const range = opening ? this._attackRange : (this.cfg.continuousAttackRange ?? this._attackRange);
+        return canStartFriendlyMelee(this.m, target, range);
     }
 
     _nearestEnemy(entities) {

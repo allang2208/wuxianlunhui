@@ -9,12 +9,29 @@ export function isFriendlyAttackTarget(entity) {
 }
 
 export function launchFriendlyProjectile(unit, projectile) {
-    // 该入口目前只用于反坦克手榴弹。其投掷间隔长于制式枪弹的最大飞行时间；
-    // 若边界帧仍残留旧弹，明确终止它，避免创建无人更新的投射物队列。
-    if (unit._basic?.active) unit._basic.active = false;
+    if (unit._basic?.active) (unit._inFlightBasics ||= []).push(unit._basic);
     projectile._renderId = unit._friendlyProjectileSerial = (unit._friendlyProjectileSerial || 0) + 1;
     projectile.allowWallTopModelHit = canUseWallTopModelException(unit);
     unit._basic = projectile;
+}
+
+/** _basic 保持兼容入口；攻速升级后尚未飞完的旧弹独立保留，不被新弹覆盖。 */
+export function updateFriendlyProjectiles(ai, dt, entities) {
+    const unit = ai.m;
+    if (unit._isHamsterHeavyMachineGunner) {
+        ai._updateProjectile(dt, entities);
+        return;
+    }
+    const projectiles = [...(unit._inFlightBasics || []), unit._basic].filter((p) => p?.active);
+    const live = [];
+    unit._inFlightBasics = [];
+    for (const projectile of projectiles) {
+        unit._basic = projectile;
+        ai._updateProjectile(dt, entities);
+        if (unit._basic?.active) live.push(unit._basic);
+    }
+    unit._basic = live.pop() || null;
+    unit._inFlightBasics = live;
 }
 
 /** 保留既有命中容差，但检查整个三维线段，而不是只检查本帧终点。 */

@@ -28,11 +28,11 @@
     "role": "melee_camel_cavalry",
     "walkSpeed": 210,
     "runSpeed": 210,
-    "attackInterval": 2000,
+    "attackInterval": 1800,
     "attackDamage": 115,
-    "attackRange": 55,
+    "attackRange": 82,
     "engageRange": 900,
-    "attackAnimFps": 24.0,
+    "attackAnimFps": 30,
     "attackDamageFrame": 17,
     "camelFrightRadius": 600,
     "camelFrightRefreshMs": 200,
@@ -41,7 +41,9 @@
     "followArriveDist": 40,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 94,
+    "meleeWidth": 64
   },
   "displaySize": 296.425121,
   "spriteOffsetY": -129.7,
@@ -89,7 +91,7 @@
         0,
         30
       ],
-      "frameRate": 24.0,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

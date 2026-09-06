@@ -1,3 +1,5 @@
+import { beginFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
+import { launchFriendlyProjectile } from '../combat/friendly-projectile-sweep.js';
 import { HamsterMusketeerAI } from './hamster-musketeer-ai.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
@@ -72,6 +74,8 @@ export class HamsterAntiVehicleAI extends HamsterMusketeerAI {
             this._rocketDiscardTimer = this._rocketDiscardDelayMs;
             this._shotTimer = this._rocketLaunchDelayMs;
             this._shotAnimLeft = this._rocketAnimMs;
+            // Rocket recovery is independent of the SMG attack interval.
+            beginFriendlyAttackClock(this, 'rocket_attack', this._rocketAnimMs, { state: 'attack', fitInterval: false });
             this.m._attackVariant = 'rocket';
         } else {
             this.m._attackVariant = 'smg';
@@ -98,7 +102,7 @@ export class HamsterAntiVehicleAI extends HamsterMusketeerAI {
         const lead = AimHelper.lead(startX, startY, t.x, t.y, t.vx || 0, t.vy || 0, this._rocketProjectileSpeed);
         const angle = Math.atan2(lead.y - startY, lead.x - startX);
         const targetDist = Math.max(1, Math.hypot(lead.x - startX, lead.y - startY));
-        m._basic = {
+        launchFriendlyProjectile(m, {
             active: true,
             antiVehicleRocket: true,
             x: startX,
@@ -111,7 +115,7 @@ export class HamsterAntiVehicleAI extends HamsterMusketeerAI {
             maxDist: applyElevatedRangedRange(m, this._attackRange + 240),
             wallContext: projectileWallContext(m, null, { x: startX, y: startY, z: startZ }),
             target: t,
-        };
+        });
         this._rocketCooldownTimer = this._rocketCooldownMs;
         this._attackTimer = Math.max(this._attackTimer, this._rocketRecoveryMs);
     }

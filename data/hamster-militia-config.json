@@ -31,17 +31,19 @@
     "role": "melee_militia",
     "walkSpeed": 150,
     "runSpeed": 150,
-    "attackInterval": 2000,
+    "attackInterval": 1800,
     "attackDamage": 20,
-    "attackRange": 55,
+    "attackRange": 68,
     "engageRange": 900,
-    "attackAnimFps": 24.0,
+    "attackAnimFps": 30,
     "attackDamageFrame": 15,
     "followOffset": 140,
     "followArriveDist": 40,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 76,
+    "meleeWidth": 38
   },
   "displaySize": 313.664397,
   "spriteOffsetY": -58.199449,
@@ -91,7 +93,7 @@
         0,
         28
       ],
-      "frameRate": 24.0,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

@@ -21,13 +21,16 @@
     "runSpeed": 185,
     "attackInterval": 1450,
     "attackDamage": 78,
-    "attackRange": 58,
+    "attackRange": 80,
     "engageRange": 950,
     "followOffset": 140,
     "followArriveDist": 40,
     "decisionMs": 90,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackDamageFrame": 14,
+    "attackImpactRange": 88,
+    "meleeWidth": 58
   },
   "crippleDurationMs": 3000,
   "displaySize": 165.952891,
@@ -71,7 +74,7 @@
       "rows": 3,
       "frameCount": 18,
       "frames": [0, 17],
-      "frameRate": 12.413793103448276,
+      "frameRate": 20,
       "repeat": -1
     },
     "dying": {

@@ -31,17 +31,19 @@
     "role": "melee_cavalry",
     "walkSpeed": 245,
     "runSpeed": 245,
-    "attackInterval": 2000,
+    "attackInterval": 1800,
     "attackDamage": 82,
-    "attackRange": 68,
+    "attackRange": 275,
     "engageRange": 900,
-    "attackAnimFps": 24,
+    "attackAnimFps": 30,
     "attackDamageFrame": 21,
     "followOffset": 155,
     "followArriveDist": 40,
     "decisionMs": 120,
     "teleportDist": 999999,
-    "teleportHardDist": 9999999
+    "teleportHardDist": 9999999,
+    "attackImpactRange": 290,
+    "meleeWidth": 40
   },
   "displaySize": 380.363636,
   "spriteOffsetY": -88.367188,
@@ -82,7 +84,7 @@
       "rows": 5,
       "frameCount": 39,
       "frames": [0, 38],
-      "frameRate": 24,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

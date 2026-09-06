@@ -47,7 +47,7 @@
     "muzzleHeight": 55,
     "attackSparkCount": 30,
     "attackEffectDurationMs": 240,
-    "attackAnimFps": 24,
+    "attackAnimFps": 30,
     "attackLaunchFrame": 17,
     "followOffset": 155,
     "followArriveDist": 42,
@@ -94,7 +94,7 @@
       "rows": 6,
       "frameCount": 41,
       "frames": [0, 40],
-      "frameRate": 24,
+      "frameRate": 30,
       "repeat": 0
     },
     "dying": {

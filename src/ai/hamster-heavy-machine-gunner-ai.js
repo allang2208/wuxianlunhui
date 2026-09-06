@@ -42,6 +42,7 @@ export class HamsterHeavyMachineGunnerAI extends HamsterMusketeerAI {
         if (!target?.active || target.hp <= 0 || !this._canShootTarget(target)) return;
         this._burstSchedule = {
             elapsedMs: 0,
+            rate: this.m._friendlyAttackClock?.rate || 1,
             nextIndex: 1,
             target,
             snapshot: {
@@ -56,21 +57,24 @@ export class HamsterHeavyMachineGunnerAI extends HamsterMusketeerAI {
     }
 
     _updateProjectile(dt, entities) {
+        const bullets = Array.isArray(this.m._machineGunProjectiles)
+            ? this.m._machineGunProjectiles
+            : (this.m._machineGunProjectiles = []);
+        // 已在途弹飞完整帧；本帧内延迟发出的子弹只飞出膛后的剩余时间。
+        for (const bullet of bullets) this._advanceBullet(bullet, dt, entities);
         const schedule = this._burstSchedule;
         if (schedule) {
-            schedule.elapsedMs += dt;
+            schedule.elapsedMs += dt * schedule.rate;
             while (schedule.nextIndex < this._burstDelaysMs.length
                 && schedule.elapsedMs >= this._burstDelaysMs[schedule.nextIndex]) {
-                this._spawnBullet(schedule.nextIndex);
+                const bullet = this._spawnBullet(schedule.nextIndex);
+                this._advanceBullet(bullet,
+                    (schedule.elapsedMs - this._burstDelaysMs[schedule.nextIndex]) / schedule.rate, entities);
                 schedule.nextIndex++;
             }
             if (schedule.nextIndex >= this._burstDelaysMs.length) this._burstSchedule = null;
         }
 
-        const bullets = Array.isArray(this.m._machineGunProjectiles)
-            ? this.m._machineGunProjectiles
-            : (this.m._machineGunProjectiles = []);
-        for (const bullet of bullets) this._advanceBullet(bullet, dt, entities);
         this.m._machineGunProjectiles = bullets.filter((bullet) => bullet.active);
     }
 
@@ -123,6 +127,7 @@ export class HamsterHeavyMachineGunnerAI extends HamsterMusketeerAI {
         if (sound && SoundManager?.playGunshotAt) SoundManager.playGunshotAt(sound, m.x, m.y);
         else if (sound && SoundManager?.playWorld) SoundManager.playWorld(sound, m.x, m.y);
         else if (sound && SoundManager?.playFile) SoundManager.playFile(sound);
+        return bullets[bullets.length - 1];
     }
 
     _advanceBullet(bullet, dt, entities) {
