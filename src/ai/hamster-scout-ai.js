@@ -396,7 +396,14 @@ export class HamsterScoutAI {
             b.hitIds.add(hit.id ?? hit);
             b.remainingHits--;
             hit.takeDamage?.(m.getPhysicalAttackDamage(damage, hit), m, 'physical', false);
-            if (hit.hp > 0 && m.aiConfig?.appliesMarkArrow !== false) tryApplyMarkArrow(hit);
+            if (hit.hp > 0 && m.aiConfig?.appliesMarkArrow !== false) {
+                tryApplyMarkArrow(hit, {
+                    chanceMultiplier: this.cfg.markChanceMultiplier,
+                    durationMs: this.cfg.markDurationMs,
+                    damageAmplify: this.cfg.markDamageAmplify,
+                    preserveStronger: this.cfg.preserveStrongerMark,
+                });
+            }
             if (b.remainingHits <= 0) { b.active = false; break; }
         }
         if (!b.active || b.dist >= b.maxDist) { b.active = false; m._basic = null; }
