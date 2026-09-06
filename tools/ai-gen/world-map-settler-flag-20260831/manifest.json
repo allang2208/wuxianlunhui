@@ -1,0 +1,20 @@
+{
+  "date": "2026-08-31",
+  "asset": "assets/ui/world-map/settler-flag.png",
+  "metadata": "data/world-map-settler-visuals.json",
+  "publicMetadata": "public/data/world-map-settler-visuals.json",
+  "runtime": true,
+  "design": "Muted blue-teal native flag with ivory home-and-two-leaves heraldry; replaces the rejected wagon",
+  "baseModel": "../_world_army_flags_v2_20260830/world-army-flags-v2.blend",
+  "baseProfile": "player",
+  "baseCameraAndPose": "../_world_army_flags_v2_20260830/manifest.json",
+  "emblemSource": "OpenAI built-in image_gen; unmodified generated emblem-source.png",
+  "emblemStyleReference": "../_world_army_flags_v2_20260830/emblems/player.png",
+  "prompt": "prompt.txt",
+  "emblemTransparency": "Raw generated PNG has an opaque neutral checkerboard; native cloth material masks warm engraving using R-B MapRange 0.008 to 0.06; source raster remains unchanged",
+  "nativeProject": "settler-flag.blend",
+  "productionScript": "build-settler-flag.py",
+  "render": "settler-flag.png; 256x256 RGBA; original native orthographic 55-degree camera, V2 cloth lean, materials and lights; Cycles 64 samples",
+  "animation": "Existing shared-clock army-flag sway; stationary remains still; arrival pulse and reduced-motion behavior preserved",
+  "acceptance": "Integrated in local development and viewed as an offline asset; user in-game visual acceptance pending; no tests, runtime validation or EXE publishing performed"
+}
