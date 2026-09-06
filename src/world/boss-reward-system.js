@@ -35,7 +35,6 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { RewardSystem } from '../ui/reward-system.js';
 import { getRarityLabel } from '../config/rarity.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
 import { EnhancementItems } from '../ui/reward-system.js';
 import { createGoldItem } from './economy-gold-routing.js';
@@ -562,7 +561,7 @@ export class RewardNodeManager {
      * @param {string|null} dungeonType - 当前地牢类型
      */
     enterRewardNode(player, onComplete, dungeonType = null) {
-        if (this._isShowingReward) return false;
+        if (this._isShowingReward || RewardSystem._isOpen) return false;
 
         this._isShowingReward = true;
 
@@ -574,10 +573,16 @@ export class RewardNodeManager {
             const opened = RewardSystem.open({
                 baseGold: getDungeonCompletionGold(dungeonType),
                 weaponRarities: getDungeonRewardProfile(dungeonType)?.weaponRarities,
+                storeOverflow: true,
+                onComplete: () => {
+                    if (!this._isShowingReward) return;
+                    this._isShowingReward = false;
+                    if (this._originalCards) RewardSystem.CARDS = this._originalCards;
+                    this._originalCards = null;
+                    onComplete?.();
+                },
             });
             if (opened === false) throw new Error('奖励面板 DOM 未就绪');
-            // 仅在面板成功打开后监听关闭，避免 open 异常把 _isShowingReward 永久卡住。
-            this._waitForRewardClose(onComplete);
             return true;
         } catch (err) {
             console.error('[BossReward] 奖励面板打开失败:', err);
@@ -594,6 +599,7 @@ export class RewardNodeManager {
 
         const rewards = getDungeonRewardProfile(dungeonType)?.completionCards;
         if (!rewards || !this._originalCards) return;
+        // 只替换本次地牢的三张卡，完成/取消时恢复；任务和其他系列不改。
         const byId = {
             card1: {
                 rewards: [{ type: 'scroll', grade: rewards.scrollGrade, count: 1 }, { type: 'dust', count: rewards.dust }],
@@ -611,33 +617,9 @@ export class RewardNodeManager {
         RewardSystem.CARDS = this._originalCards.map(card => ({ ...card, ...(byId[card.id] || {}) }));
     }
 
-    _waitForRewardClose(onComplete) {
-        this._checkInterval = TimerManager.setInterval(() => {
-            if (!RewardSystem._isOpen) {
-                TimerManager.clearInterval(this._checkInterval);
-                this._checkInterval = null;
-                this._isShowingReward = false;
-
-                // 恢复原始卡牌
-                if (this._originalCards && RewardSystem.CARDS) {
-                    RewardSystem.CARDS = this._originalCards;
-                    this._originalCards = null;
-                }
-
-                if (onComplete) onComplete();
-            }
-        }, 300);
-    }
-
-    /** 清理奖励节点状态（地牢结束/死亡路径调用）：清轮询句柄 + 复位标记，
-     * 否则 _isShowingReward 卡 true 导致下局奖励节点 enterRewardNode 直接 return（软锁），
-     * 泄漏的 interval 还可能在主神空间误触发 onComplete → _showVictory */
+    /** 清理奖励节点状态；close 只取消完成回调，不能以“面板已关闭”推断已领取。 */
     cleanup() {
-        const wasShowingReward = this._isShowingReward || !!this._checkInterval;
-        if (this._checkInterval) {
-            TimerManager.clearInterval(this._checkInterval);
-            this._checkInterval = null;
-        }
+        const wasShowingReward = this._isShowingReward;
         if (this._originalCards && RewardSystem.CARDS) {
             RewardSystem.CARDS = this._originalCards;
         }
