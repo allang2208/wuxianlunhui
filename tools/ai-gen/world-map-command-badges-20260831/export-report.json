@@ -1,0 +1,110 @@
+{
+  "generatedAt": "2026-08-31T03:44:31.238Z",
+  "runtimeRgbaBytes": 147456,
+  "assets": [
+    {
+      "key": "move",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "minAlpha": 0,
+      "crop": {
+        "left": 190,
+        "top": 99,
+        "width": 876,
+        "height": 1081
+      },
+      "output": "assets/ui/world-map/command-badges/move.png",
+      "size": [
+        96,
+        96
+      ],
+      "visibleSize": [
+        71,
+        88
+      ],
+      "bytes": 14711
+    },
+    {
+      "key": "attack",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "minAlpha": 0,
+      "crop": {
+        "left": 101,
+        "top": 94,
+        "width": 1053,
+        "height": 1059
+      },
+      "output": "assets/ui/world-map/command-badges/attack.png",
+      "size": [
+        96,
+        96
+      ],
+      "visibleSize": [
+        88,
+        88
+      ],
+      "bytes": 14071
+    },
+    {
+      "key": "enter",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "minAlpha": 0,
+      "crop": {
+        "left": 113,
+        "top": 133,
+        "width": 1029,
+        "height": 988
+      },
+      "output": "assets/ui/world-map/command-badges/enter.png",
+      "size": [
+        96,
+        96
+      ],
+      "visibleSize": [
+        88,
+        84
+      ],
+      "bytes": 17681
+    },
+    {
+      "key": "blocked",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "minAlpha": 0,
+      "crop": {
+        "left": 93,
+        "top": 74,
+        "width": 1056,
+        "height": 1066
+      },
+      "output": "assets/ui/world-map/command-badges/blocked.png",
+      "size": [
+        96,
+        96
+      ],
+      "visibleSize": [
+        87,
+        88
+      ],
+      "bytes": 15373
+    }
+  ],
+  "preview": {
+    "width": 960,
+    "height": 430,
+    "frames": 80,
+    "delayMs": 40,
+    "durationMs": 3200
+  },
+  "note": "Asset export and authored animation preview only; no game test or runtime capture."
+}

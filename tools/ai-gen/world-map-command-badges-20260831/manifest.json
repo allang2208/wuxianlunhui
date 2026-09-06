@@ -1,0 +1,37 @@
+{
+  "createdAt": "2026-08-31",
+  "generator": "Codex built-in image_gen",
+  "purpose": "大地图动作徽记；保留原48px冷钢鼠标箭头和热点",
+  "visualAcceptance": "待用户验收；按本轮生成并实施请求接入本地开发源码，不覆盖既有光标",
+  "motionConfig": "data/world-map-command-feedback.json",
+  "sources": [
+    {
+      "key": "move",
+      "generatedPath": "C:\\Users\\allan\\.codex\\generated_images\\01a055b1-1a09-75a2-8c29-610099e310b6\\exec-5b34d17f-fdd7-49ef-9cc7-d958da1cded1.png",
+      "source": "source-move.png",
+      "asset": "assets/ui/world-map/command-badges/move.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent tactical-map mouse command badge for a cold-steel strategy game. This badge will sit beside an existing mouse arrow; DO NOT draw an arrow-shaped mouse pointer. Design a crisp, very readable 3D embossed metal emblem, frontal orthographic view, broad satin silver faces, charcoal gunmetal bevels, dark separation seams, restrained brushed metal texture, neutral soft light from upper left. A compact bold silhouette that remains unmistakable at 32 CSS pixels. Genuine transparent RGBA background, clean antialiased edges, no checkerboard, no opaque background, no floor, no cast shadow, no text, no label, no UI board, no border enclosing the icon, no extra objects. Center the emblem in a square canvas with consistent generous transparent padding, symbol occupies about 72 percent of width and height. Avoid photoreal clutter, tiny rivets, ornate decoration, gold and neon glows. Symbol: two parallel broad upward-pointing chevrons, one above the other, like a tactical forward-march insignia. Satin silver faces, slim muted ice-blue inlay only in the middle of each chevron. Clear separation between the two chevrons. No shafts, no compass, no wings."
+    },
+    {
+      "key": "attack",
+      "generatedPath": "C:\\Users\\allan\\.codex\\generated_images\\01a055b1-1a09-75a2-8c29-610099e310b6\\exec-93c66683-3d5a-4370-a6d5-85d9058fa090.png",
+      "source": "source-attack.png",
+      "asset": "assets/ui/world-map/command-badges/attack.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent tactical-map mouse command badge for a cold-steel strategy game. This badge will sit beside an existing mouse arrow; DO NOT draw an arrow-shaped mouse pointer. Design a crisp, very readable 3D embossed metal emblem, frontal orthographic view, broad satin silver faces, charcoal gunmetal bevels, dark separation seams, restrained brushed metal texture, neutral soft light from upper left. A compact bold silhouette that remains unmistakable at 32 CSS pixels. Genuine transparent RGBA background, clean antialiased edges, no checkerboard, no opaque background, no floor, no cast shadow, no text, no label, no UI board, no border enclosing the icon, no extra objects. Center the emblem in a square canvas with consistent generous transparent padding, symbol occupies about 72 percent of width and height. Avoid photoreal clutter, tiny rivets, ornate decoration, gold and neon glows. Symbol: exactly two short broad straight steel swords crossed into an X, symmetrical, points toward upper left and upper right, very short dark handles at lower corners. A tiny muted burgundy inset at their intersection. Strong uncluttered X silhouette. No shield, no wreath, no skull."
+    },
+    {
+      "key": "enter",
+      "generatedPath": "C:\\Users\\allan\\.codex\\generated_images\\01a055b1-1a09-75a2-8c29-610099e310b6\\exec-cf077e30-c602-4c80-ad65-98187ed28f42.png",
+      "source": "source-enter.png",
+      "asset": "assets/ui/world-map/command-badges/enter.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent tactical-map mouse command badge for a cold-steel strategy game. This badge will sit beside an existing mouse arrow; DO NOT draw an arrow-shaped mouse pointer. Design a crisp, very readable 3D embossed metal emblem, frontal orthographic view, broad satin silver faces, charcoal gunmetal bevels, dark separation seams, restrained brushed metal texture, neutral soft light from upper left. A compact bold silhouette that remains unmistakable at 32 CSS pixels. Genuine transparent RGBA background, clean antialiased edges, no checkerboard, no opaque background, no floor, no cast shadow, no text, no label, no UI board, no border enclosing the icon, no extra objects. Center the emblem in a square canvas with consistent generous transparent padding, symbol occupies about 72 percent of width and height. Avoid photoreal clutter, tiny rivets, ornate decoration, gold and neon glows. Symbol: a compact squared fortress gateway with two short symmetrical battlements and a clearly open charcoal-dark doorway cut all the way through to transparent background. A short broad silver arrow points UP through the opening from below, with a small muted gray-green inlay. Readable outline of entering one's base. No landscape, no stone texture, no castle scene."
+    },
+    {
+      "key": "blocked",
+      "generatedPath": "C:\\Users\\allan\\.codex\\generated_images\\01a055b1-1a09-75a2-8c29-610099e310b6\\exec-f8a1402f-00ce-460c-a68d-3558b1f8f227.png",
+      "source": "source-blocked.png",
+      "asset": "assets/ui/world-map/command-badges/blocked.png",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent tactical-map mouse command badge for a cold-steel strategy game. This badge will sit beside an existing mouse arrow; DO NOT draw an arrow-shaped mouse pointer. Design a crisp, very readable 3D embossed metal emblem, frontal orthographic view, broad satin silver faces, charcoal gunmetal bevels, dark separation seams, restrained brushed metal texture, neutral soft light from upper left. A compact bold silhouette that remains unmistakable at 32 CSS pixels. Genuine transparent RGBA background, clean antialiased edges, no checkerboard, no opaque background, no floor, no cast shadow, no text, no label, no UI board, no border enclosing the icon, no extra objects. Center the emblem in a square canvas with consistent generous transparent padding, symbol occupies about 72 percent of width and height. Avoid photoreal clutter, tiny rivets, ornate decoration, gold and neon glows. Symbol: one bold circular prohibition sign with a thick diagonal slash from upper left to lower right. Matte silver bevels, charcoal metal sides and restrained muted amber inset on the slash. The circle interior is truly transparent. Simple clear no-entry silhouette. No other symbols."
+    }
+  ]
+}
