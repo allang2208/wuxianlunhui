@@ -1627,123 +1627,123 @@
   }
  },
  "redWolfKing": {
-  "entityClass": "RedWolfKing",
-  "invasion": {
-   "series": "wolf_pack",
-   "mode": "assault",
-   "enabled": true,
-   "mechanics": "transform",
-   "threatScale": 1,
-   "minDay": 1,
-   "weight": 1,
-   "assaultReady": true
-  },
-  "id": "redWolfKing",
-  "name": "红狼",
-  "hp": 750,
-  "maxHp": 750,
-  "size": 20,
-  "collisionRadius": 45,
-  "speed": 200,
-  "level": 9,
-  "color": "#8a1a1a",
-  "highlightColor": "rgba(180, 40, 40, 0.3)",
-  "str": 50,
-  "dex": 30,
-  "con": 40,
-  "int": 5,
-  "wis": 10,
-  "luck": 6,
-  "rank": "elite",
-  "type": "精英",
-  "category": "monster",
-  "family": "动物",
-  "families": [
-   "动物",
-   "自然"
-  ],
-  "attackRange": 105,
-  "aiInterval": 1000,
-  "dashDistance": 300,
-  "biteRange": 105,
-  "biteCooldown": 1000,
-  "biteHitDistance": 105,
-  "transformedBiteRange": 88,
-  "transformedBiteHitDistance": 88,
-  "pounceCooldown": 12000,
-  "pounceRange": 400,
-  "pounceHitDistance": 130,
-  "pounceDamageMultiplier": 2,
-  "pounceCrippleMs": 3000,
-  "pounceMaxDist": 1000,
-  "ai": {
-   "aggroRange": 2500,
-   "pacingRange": 200,
-   "loseTimeout": 2000
-  },
-  "attack": {
-   "type": "thrust",
-   "cooldown": 1000,
-   "dynamicRange": 105,
-   "width": 22,
-   "knockback": 25
-  },
-  "attackSkills": {
-   "howl": {
-    "comment": "红狼王二阶段嚎叫技能：3s 狼人动画，释放后场上全体敌方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
-    "duration": 3000,
-    "frames": 12,
-    "buffDuration": 30000,
-    "speedMul": 1.33,
-    "atkMul": 1.5,
-    "cooldown": 30000
+   "entityClass": "RedWolfKing",
+   "invasion": {
+     "series": "wolf_pack",
+     "mode": "assault",
+     "enabled": true,
+     "mechanics": "transform",
+     "threatScale": 1,
+     "minDay": 1,
+     "weight": 1,
+     "assaultReady": true
+   },
+   "id": "redWolfKing",
+   "name": "红狼",
+   "hp": 750,
+   "maxHp": 750,
+   "size": 20,
+   "collisionRadius": 45,
+   "speed": 200,
+   "level": 9,
+   "color": "#8a1a1a",
+   "highlightColor": "rgba(180, 40, 40, 0.3)",
+   "str": 50,
+   "dex": 30,
+   "con": 40,
+   "int": 5,
+   "wis": 10,
+   "luck": 6,
+   "rank": "elite",
+   "type": "精英",
+   "category": "monster",
+   "family": "动物",
+   "families": [
+     "动物",
+     "自然"
+   ],
+   "attackRange": 105,
+   "aiInterval": 1000,
+   "dashDistance": 300,
+   "biteRange": 105,
+   "biteCooldown": 1000,
+   "biteHitDistance": 105,
+   "transformedBiteRange": 88,
+   "transformedBiteHitDistance": 88,
+   "pounceCooldown": 12000,
+   "pounceRange": 400,
+   "pounceHitDistance": 130,
+   "pounceDamageMultiplier": 2,
+   "pounceCrippleMs": 3000,
+   "pounceMaxDist": 1000,
+   "ai": {
+     "aggroRange": 2500,
+     "pacingRange": 200,
+     "loseTimeout": 2000
+   },
+   "attack": {
+     "type": "thrust",
+     "cooldown": 1000,
+     "dynamicRange": 105,
+     "width": 22,
+     "knockback": 25
+   },
+   "attackSkills": {
+    "howl": {
+      "comment": "红狼二阶段嚎叫技能：3s 狼人动画，释放后场上全体敌方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
+       "duration": 3000,
+       "frames": 21,
+       "buffDuration": 30000,
+       "speedMul": 1.33,
+       "atkMul": 1.5,
+       "cooldown": 30000
+     }
+   },
+   "description": "以突变体-3为基础数值基准的两阶段精英：狼形撕咬并锁定目标位置飞扑，半血变身红狼人后回满生命并全面强化。",
+   "skills": [
+     {
+       "name": "血烟飞扑",
+       "desc": "蓄力后锁定目标当时的位置飞扑，造成物理攻击×2伤害并致残3秒；狼形前爪、狼人双手缠绕红色烟雾，冷却12秒。"
+     },
+     {
+       "name": "血月变身",
+       "desc": "生命值不高于50%时开始变身；变身期间受到的伤害减少90%，完成后恢复至满生命，最大生命、六维、攻防与移动属性提升50%。"
+     },
+     {
+       "name": "狼人暴击",
+       "desc": "变身后每次普通攻击有50%概率暴击，造成2.5倍伤害。"
+     },
+     {
+       "name": "猩红嚎叫",
+       "desc": "变身后嚎叫3秒，使场上全体敌方怪物的移动速度提升33%、物理攻击提升50%，持续30秒，冷却30秒。"
+     }
+   ],
+   "attackType": "撕咬与飞扑",
+   "textures": {
+     "idle": "assets/enemies/red_wolf_king/idle.png",
+     "idleFrameWidth": 474,
+     "idleFrameHeight": 272,
+     "idleFrameCount": 24,
+     "idleSheetColumns": 4
+   },
+   "sounds": {
+     "howl": "assets/sounds/enemies/red_wolf_king/howling.mp3"
+   },
+   "deathAnim": {
+    "duration": 2000,
+    "holdMs": 1000,
+    "lastFrame": 22
+   },
+   "transform": {
+     "hpThreshold": 0.5,
+     "duration": 2000,
+     "howlDuration": 2000,
+     "statMultiplier": 1.5,
+     "healToFull": true,
+     "damageReduction": 0.9,
+     "criticalChance": 0.5,
+     "criticalDamageMultiplier": 2.5
    }
-  },
-  "description": "以突变体-3为基础数值基准的两阶段精英：狼形撕咬并锁定目标位置飞扑，半血变身红狼人后回满生命并全面强化。",
-  "skills": [
-   {
-    "name": "血烟飞扑",
-    "desc": "蓄力后锁定目标当时的位置飞扑，造成物理攻击×2伤害并致残3秒；狼形前爪、狼人双手缠绕红色烟雾，冷却12秒。"
-   },
-   {
-    "name": "血月变身",
-    "desc": "生命值不高于50%时开始变身；变身期间受到的伤害减少90%，完成后恢复至满生命，最大生命、六维、攻防与移动属性提升50%。"
-   },
-   {
-    "name": "狼人暴击",
-    "desc": "变身后每次普通攻击有50%概率暴击，造成2.5倍伤害。"
-   },
-   {
-    "name": "猩红嚎叫",
-    "desc": "变身后嚎叫3秒，使场上全体敌方怪物的移动速度提升33%、物理攻击提升50%，持续30秒，冷却30秒。"
-   }
-  ],
-  "attackType": "撕咬与飞扑",
-  "textures": {
-   "idle": "assets/enemies/red_wolf_king/idle.png",
-   "idleFrameWidth": 512,
-   "idleFrameHeight": 512,
-   "idleFrameCount": 12,
-   "idleSheetColumns": 4
-  },
-  "sounds": {
-   "howl": "assets/sounds/enemies/red_wolf_king/howling.mp3"
-  },
-  "deathAnim": {
-   "duration": 2000,
-   "holdMs": 1000,
-   "lastFrame": 11
-  },
-  "transform": {
-   "hpThreshold": 0.5,
-   "duration": 2000,
-   "howlDuration": 2000,
-   "statMultiplier": 1.5,
-   "healToFull": true,
-   "damageReduction": 0.9,
-   "criticalChance": 0.5,
-   "criticalDamageMultiplier": 2.5
-  }
  },
  "fatZombie": {
   "entityClass": "FatZombie",

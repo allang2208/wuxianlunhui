@@ -153,7 +153,7 @@
    "criticalChance": 0.5,
    "criticalDamageMultiplier": 2.5,
    "werewolfVisualScale": 1.8,
-   "werewolfCollisionScale": 1.25
+   "werewolfCollisionScale": 1.8
   },
   "animation": {
    "frameLayout": {
@@ -212,134 +212,174 @@
    },
    "attackTypes": {
     "bite": {
-     "durationMs": 1200
+     "durationMs": 900,
+     "hitStartFrame": 17,
+     "hitEndFrame": 18
     },
     "pounce": {
      "prepareMs": 900,
      "chargeMs": 900,
-     "prepareFrames": 8
+     "prepareFrames": 18
     }
    },
    "frameLayouts": {
     "idle": {
-     "cols": 6,
-     "rows": 4,
+     "cols": 4,
+     "rows": 6,
      "frames": 24,
-     "frameWidth": 512,
-     "frameHeight": 512,
-     "footY": 410
+     "frameWidth": 474,
+     "frameHeight": 272,
+     "footY": 266,
+     "footX": 237
     },
     "walk": {
-     "cols": 8,
-     "rows": 4,
+     "cols": 4,
+     "rows": 8,
      "frames": 32,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 513
+     "frameWidth": 614,
+     "frameHeight": 277,
+     "footY": 267,
+     "footX": 307
     },
     "run": {
-     "cols": 8,
-     "rows": 4,
+     "cols": 4,
+     "rows": 8,
      "frames": 32,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 513
+     "frameWidth": 614,
+     "frameHeight": 277,
+     "footY": 267,
+     "footX": 307
     },
     "pacing": {
-     "cols": 8,
-     "rows": 4,
+     "cols": 4,
+     "rows": 8,
      "frames": 32,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 513
+     "frameWidth": 614,
+     "frameHeight": 277,
+     "footY": 267,
+     "footX": 307
     },
     "attack": {
-     "cols": 5,
-     "rows": 5,
+     "cols": 3,
+     "rows": 7,
      "frames": 21,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 513
+     "frameWidth": 622,
+     "frameHeight": 271,
+     "footY": 265,
+     "footX": 291,
+     "frameDurations": [
+      60,
+      60,
+      60,
+      60,
+      60,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      30,
+      70,
+      70,
+      70
+     ]
     },
     "pounce": {
-     "cols": 5,
-     "rows": 5,
-     "frames": 23,
-     "frameWidth": 960,
-     "frameHeight": 960,
-     "footY": 769
+     "cols": 4,
+     "rows": 13,
+     "frames": 49,
+     "frameWidth": 852,
+     "frameHeight": 306,
+     "footY": 301,
+     "footX": 310
     },
     "dying": {
-     "cols": 5,
-     "rows": 5,
+     "cols": 4,
+     "rows": 6,
      "frames": 23,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 513
+     "frameWidth": 522,
+     "frameHeight": 270,
+     "footY": 265,
+     "footX": 241
     },
     "howl": {
-     "cols": 5,
-     "rows": 5,
+     "cols": 4,
+     "rows": 6,
      "frames": 23,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 513
+     "frameWidth": 510,
+     "frameHeight": 313,
+     "footY": 307,
+     "footX": 255
     },
     "transform": {
-     "cols": 5,
-     "rows": 5,
+     "cols": 3,
+     "rows": 7,
      "frames": 21,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 590
+     "frameWidth": 428,
+     "frameHeight": 299,
+     "footY": 294,
+     "footX": 214
     },
     "werewolfIdle": {
-     "cols": 10,
-     "rows": 2,
+     "cols": 5,
+     "rows": 4,
      "frames": 20,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 590
+     "frameWidth": 200,
+     "frameHeight": 296,
+     "footY": 291,
+     "footX": 100
     },
     "werewolfRun": {
-     "cols": 10,
-     "rows": 2,
+     "cols": 4,
+     "rows": 5,
      "frames": 20,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 590
+     "frameWidth": 292,
+     "frameHeight": 283,
+     "footY": 278,
+     "footX": 146
     },
     "werewolfAttack": {
-     "cols": 5,
-     "rows": 5,
-     "frames": 21,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 590
+     "cols": 6,
+     "rows": 7,
+     "frames": 41,
+     "frameWidth": 488,
+     "frameHeight": 298,
+     "footY": 293,
+     "footX": 144
     },
     "werewolfPounce": {
-     "cols": 5,
-     "rows": 6,
+     "cols": 3,
+     "rows": 9,
      "frames": 27,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 590
+     "frameWidth": 554,
+     "frameHeight": 317,
+     "footY": 312,
+     "footX": 122
     },
     "werewolfHowl": {
-     "cols": 5,
-     "rows": 5,
+     "cols": 7,
+     "rows": 3,
      "frames": 21,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 590
+     "frameWidth": 206,
+     "frameHeight": 333,
+     "footY": 328,
+     "footX": 103
     },
     "werewolfDying": {
-     "cols": 5,
-     "rows": 5,
+     "cols": 3,
+     "rows": 7,
      "frames": 21,
-     "frameWidth": 640,
-     "frameHeight": 640,
-     "footY": 590
+     "frameWidth": 354,
+     "frameHeight": 303,
+     "footY": 298,
+     "footX": 177
     }
    },
    "pounceSmokeAnchors": {
@@ -811,6 +851,16 @@
        196
       ]
      ]
+    }
+   },
+   "transformedAttackTypes": {
+    "bite": {
+     "durationMs": 900
+    },
+    "pounce": {
+     "prepareMs": 900,
+     "chargeMs": 900,
+     "prepareFrames": 8
     }
    }
   },

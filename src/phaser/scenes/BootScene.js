@@ -665,19 +665,21 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_black_wolf_dying', 'assets/enemies/black_wolf_dying.png', { frameWidth: 448, frameHeight: 288, endFrame: 32 });
         // 红狼王狼形六动作 + 变身 + 狼人六动作（含二阶段飞扑），手动 setFrame 路径。
-        this.load.spritesheet('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
-        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king/running.png', { frameWidth: 640, frameHeight: 640, endFrame: 31 });
-        this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king/attack.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
-        this.load.spritesheet('enemy_red_wolf_king_pounce', 'assets/enemies/red_wolf_king/pounce.png', { frameWidth: 960, frameHeight: 960, endFrame: 22 });
-        this.load.spritesheet('enemy_red_wolf_king_dying', 'assets/enemies/red_wolf_king/dying.png', { frameWidth: 640, frameHeight: 640, endFrame: 22 });
-        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king/howl.png', { frameWidth: 640, frameHeight: 640, endFrame: 22 });
-        this.load.spritesheet('enemy_red_wolf_king_transform', 'assets/enemies/red_wolf_king/transform.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_idle', 'assets/enemies/red_wolf_king/werewolf_idle.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_run', 'assets/enemies/red_wolf_king/werewolf_running.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_attack', 'assets/enemies/red_wolf_king/werewolf_attacking.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_pounce', 'assets/enemies/red_wolf_king/werewolf_pouncing.png', { frameWidth: 640, frameHeight: 640, endFrame: 26 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_howl', 'assets/enemies/red_wolf_king/werewolf_howling.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_dying', 'assets/enemies/red_wolf_king/werewolf_dying.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
+        // 按同一份动作布局切帧，透明裁边或加密抽帧后不再遗留旧方格/帧数。
+        const redWolfAnim = animationConfigData.redWolfKing;
+        for (const [state, suffix] of [
+            ['idle', 'idle'], ['run', 'run'], ['attack', 'attack'], ['pounce', 'pounce'],
+            ['dying', 'dying'], ['howl', 'howl'], ['transform', 'transform'],
+            ['werewolfIdle', 'werewolf_idle'], ['werewolfRun', 'werewolf_run'],
+            ['werewolfAttack', 'werewolf_attack'], ['werewolfPounce', 'werewolf_pounce'],
+            ['werewolfHowl', 'werewolf_howl'], ['werewolfDying', 'werewolf_dying'],
+        ]) {
+            const layout = redWolfAnim.animation.frameLayouts[state];
+            this.load.spritesheet(`enemy_red_wolf_king_${suffix}`, redWolfAnim.sprites[state], {
+                frameWidth: layout.frameWidth, frameHeight: layout.frameHeight,
+                endFrame: layout.frames - 1,
+            });
+        }
 
         // 狼人王六动作：全部从正式配置读取帧格，飞扑保留独立 1344×640 宽格。
         const werewolfKingTextures = enemyConfigData.werewolfKing?.textures || {};
