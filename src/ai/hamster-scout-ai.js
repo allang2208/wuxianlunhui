@@ -1,5 +1,5 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
-import { launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
+import { isFriendlyAttackTarget, launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 // ============================================================
 // HamsterScoutAI — 仓鼠斥候 AI（2026-08-17）
 // 玩家友方远程单位：在世界-122 自动寻找最近敌人射击。
@@ -247,7 +247,7 @@ export class HamsterScoutAI {
         }
         if (cmd.mode === 'attack') {
             const t = cmd.target;
-            if (!t || !t.active || t.hp <= 0) {
+            if (!isFriendlyAttackTarget(t)) {
                 finishRtsCommandAtHold(m);
                 m.target = null;
                 m._animState = 'idle';
@@ -296,7 +296,7 @@ export class HamsterScoutAI {
         const attackRange = this._effectiveAttackRange();
         const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
-            if (!e || !e.active || e.hp <= 0) continue;
+            if (!isFriendlyAttackTarget(e)) continue;
             if (e._faction !== 'enemy') continue;
             if (e._isEnergyNode) continue; // 不攻击矿点（用户口径）
             const d = Math.hypot(e.x - m.x, e.y - m.y);
@@ -325,8 +325,9 @@ export class HamsterScoutAI {
     _fireProjectile() {
         const m = this.m;
         const target = m.target;
-        if (!target || !target.active || target.hp <= 0) return;
-        if (!this._canShootTarget(target)) return;
+        if (!isFriendlyAttackTarget(target)) return;
+        if (!this._canShootTarget(target)
+            || Math.hypot(target.x - m.x, target.y - m.y) > this._effectiveAttackRange()) return;
         const origin = projectileMuzzleOrigin(m, target, { height: 45 });
         const { x: startX, y: startY, z: startZ } = origin;
         const targetZ = projectileTargetZ(target);

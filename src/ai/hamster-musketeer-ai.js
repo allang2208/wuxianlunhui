@@ -1,5 +1,5 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
-import { launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
+import { isFriendlyAttackTarget, launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 import { MovementSystem } from '../systems/movement-system.js';
 import { canFinishSurfaceFollow } from './elevated-navigation-controller.js';
 import { AimHelper } from '../utils/aim-helper.js';
@@ -121,7 +121,7 @@ export class HamsterMusketeerAI {
         if (cmd && cmd.mode && cmd.mode !== 'follow') {
             if (cmd.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
             if (cmd.mode === 'attack') {
-                if (!cmd.target?.active || cmd.target.hp <= 0 || cmd.target._isEnergyNode) {
+                if (!isFriendlyAttackTarget(cmd.target)) {
                     finishRtsCommandAtHold(m);
                     m.target = null;
                     m._tacticalTarget = null;
@@ -154,7 +154,13 @@ export class HamsterMusketeerAI {
             return;
         }
         m.target = null;
-        if (!player) return;
+        if (!player) {
+            m._tacticalTarget = null;
+            m._animState = 'idle';
+            m.maxSpeed = 0;
+            m._pathManager?._clearPath?.();
+            return;
+        }
         const dest = { x: player.x - this._followOffset, y: player.y, _surfaceTarget: player };
         const d = Math.hypot(dest.x - m.x, dest.y - m.y);
         if (d > 40 || !canFinishSurfaceFollow(m, player)) {
@@ -195,6 +201,8 @@ export class HamsterMusketeerAI {
             m._animState = 'attack';
             m._attackSwing = true;
             m._attackActionSeq = (m._attackActionSeq || 0) + 1;
+        } else {
+            m._animState = 'idle';
         }
     }
 
@@ -204,7 +212,7 @@ export class HamsterMusketeerAI {
         let bestShootable = null, bestShootableD = Infinity;
         const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
-            if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
+            if (!isFriendlyAttackTarget(e)) continue;
             const d = Math.hypot(e.x - this.m.x, e.y - this.m.y);
             if (d > this._engageRange) continue;
             if (d < bestD) { best = e; bestD = d; }
@@ -224,8 +232,8 @@ export class HamsterMusketeerAI {
     _fireProjectile() {
         const m = this.m;
         const t = m.target;
-        if (!t?.active || t.hp <= 0) return;
-        if (!this._canShootTarget(t)) return;
+        if (!isFriendlyAttackTarget(t)) return;
+        if (!this._canAttackFromHere(t)) return;
         const origin = projectileMuzzleOrigin(m, t, {
             offsetX: this.cfg.muzzleOffsetX,
             offsetY: this.cfg.muzzleOffsetY,

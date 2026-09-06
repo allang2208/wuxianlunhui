@@ -1,5 +1,5 @@
 import { beginFriendlyAttackClock, advanceFriendlyAttackClock } from '../combat/friendly-attack-timing.js';
-import { launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
+import { isFriendlyAttackTarget, launchFriendlyProjectile, sweepFriendlyProjectile, updateFriendlyProjectiles } from '../combat/friendly-projectile-sweep.js';
 // ============================================================
 // HamsterShooterAI — 仓鼠射手 AI（2026-08-16）
 // 玩家友方远程单位：在世界-122 自动寻找最近敌人射击。
@@ -21,6 +21,8 @@ import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js
 import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
+    projectileMuzzleOrigin,
+    projectileTargetZ,
     projectileWallContext,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
@@ -248,7 +250,7 @@ export class HamsterShooterAI {
         }
         if (cmd.mode === 'attack') {
             const t = cmd.target;
-            if (!t || !t.active || t.hp <= 0) {
+            if (!isFriendlyAttackTarget(t)) {
                 finishRtsCommandAtHold(m);
                 m.target = null;
                 m._animState = 'idle';
@@ -297,7 +299,7 @@ export class HamsterShooterAI {
         const attackRange = this._effectiveAttackRange();
         const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
-            if (!e || !e.active || e.hp <= 0) continue;
+            if (!isFriendlyAttackTarget(e)) continue;
             if (e._faction !== 'enemy') continue;
             if (e._isEnergyNode) continue; // 不攻击矿点（用户口径）
             const d = Math.hypot(e.x - m.x, e.y - m.y);
@@ -326,31 +328,34 @@ export class HamsterShooterAI {
     _fireProjectile() {
         const m = this.m;
         const target = m.target;
-        if (!target || !target.active || target.hp <= 0) return;
-        if (!this._canShootTarget(target)) return;
-        const startZ = (Number(m.z) || 0) + 45;
-        const targetZ = target.collider?.centerZ ?? ((Number(target.z) || 0) + 24);
+        if (!isFriendlyAttackTarget(target)) return;
+        if (!this._canShootTarget(target)
+            || Math.hypot(target.x - m.x, target.y - m.y) > this._effectiveAttackRange()) return;
+        const origin = projectileMuzzleOrigin(m, target, { height: 45 });
+        const { x: startX, y: startY, z: startZ } = origin;
+        const targetZ = projectileTargetZ(target);
         const lead = AimHelper.lead(
-            m.x, m.y,
+            startX, startY,
             target.x, target.y,
             target.vx || 0, target.vy || 0,
             this._projectileSpeed
         );
-        const ang = Math.atan2(lead.y - m.y, lead.x - m.x);
-        const targetDist = Math.max(1, Math.hypot(lead.x - m.x, lead.y - m.y));
-        const visualAngle = Math.atan2((lead.y - targetZ) - (m.y - startZ), lead.x - m.x);
+        const ang = Math.atan2(lead.y - startY, lead.x - startX);
+        const targetDist = Math.max(1, Math.hypot(lead.x - startX, lead.y - startY));
+        const visualAngle = Math.atan2(
+            (lead.y - targetZ) - (startY - startZ), lead.x - startX);
         // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染箭矢）
         launchFriendlyProjectile(m, {
             active: true,
-            x: m.x,
-            y: m.y,
+            x: startX,
+            y: startY,
             z: startZ,
             vz: (targetZ - startZ) / Math.max(0.001, targetDist / this._projectileSpeed),
             angle: ang,
             visualAngle,
             dist: 0,
             maxDist: applyElevatedRangedRange(m, this._attackRange + 150),
-            wallContext: projectileWallContext(m),
+            wallContext: projectileWallContext(m, null, origin),
             target,
         });
         this._playSound('attack'); // 出膛音效（2026-08-16 用户素材）
