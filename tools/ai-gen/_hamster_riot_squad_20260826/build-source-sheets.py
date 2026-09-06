@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
 import math
@@ -55,8 +56,9 @@ SPECS = (
     ActionSpec(
         "walking",
         "hamster_riot_squad_moving_h3_v04.mp4",
-        tuple(range(0, 121, 4)),
-        6.0,
+        # One complete native stride, endpoint 96 excluded to avoid a duplicate hold.
+        tuple(range(72, 96, 2)),
+        12.0,
         -1,
         "center-body",
         "body-feet",
@@ -109,9 +111,17 @@ def save_scale_compare(cell: np.ndarray, output: Path) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--actions", nargs="+", choices=[spec.name for spec in SPECS])
+    args = parser.parse_args()
+    selected = [spec for spec in SPECS if not args.actions or spec.name in args.actions]
+    report_path = ROOT / "source-sheet-report.json"
+    previous = json.loads(report_path.read_text(encoding="utf-8")) if report_path.exists() else None
+    if args.actions and previous is None:
+        raise RuntimeError("A partial rebuild needs the existing shared scale report.")
     videos = {
         spec.name: HELPER.BASE.decode_video(ROOT / "videos" / spec.video_name)
-        for spec in SPECS
+        for spec in selected
     }
     source_dir = ROOT / "source-sheets-pre-interpolation"
     preview_dir = ROOT / "previews" / "source-sheets"
@@ -122,8 +132,8 @@ def main() -> None:
 
     model = HELPER.BASE.get_model()
     cache: dict[tuple[str, int], np.ndarray] = {}
-    removed_pixels: dict[str, dict[int, int]] = {spec.name: {} for spec in SPECS}
-    for spec in SPECS:
+    removed_pixels: dict[str, dict[int, int]] = {spec.name: {} for spec in selected}
+    for spec in selected:
         action_dir = frame_dir / spec.name
         action_dir.mkdir(parents=True, exist_ok=True)
         frames = videos[spec.name][0]
@@ -140,10 +150,14 @@ def main() -> None:
             )
             print(f"[riot-sheet] {spec.name} BiRefNet f{source_index}", flush=True)
 
-    idle_reference = cache[("idle", SPECS[0].indices[0])]
-    _, body_y0, _, body_y1 = HELPER.opened_body_bbox(idle_reference)
-    reference_body_height = body_y1 - body_y0 + 1
-    fixed_scale = TARGET_BODY_HEIGHT / reference_body_height
+    if args.actions:
+        reference_body_height = previous["referenceSourceBodyHeight"]
+        fixed_scale = previous["fixedScaleAcrossAllActions"]
+    else:
+        idle_reference = cache[("idle", SPECS[0].indices[0])]
+        _, body_y0, _, body_y1 = HELPER.opened_body_bbox(idle_reference)
+        reference_body_height = body_y1 - body_y0 + 1
+        fixed_scale = TARGET_BODY_HEIGHT / reference_body_height
 
     report: dict[str, object] = {
         "assetOnly": True,
@@ -168,9 +182,12 @@ def main() -> None:
         },
         "actions": {},
     }
+    if args.actions:
+        report = previous
+        report["smallComponentCleanup"]["removedAlphaPixelsBySourceFrame"].update(removed_pixels)
 
     action_cells: dict[str, list[np.ndarray]] = {}
-    for spec in SPECS:
+    for spec in selected:
         rgba_frames = [cache[(spec.name, index)] for index in spec.indices]
         reference_anchor = (
             None if spec.horizontal_mode == "center-body" else HELPER.body_anchor_x(rgba_frames[0])
@@ -214,8 +231,8 @@ def main() -> None:
             "validation": validation,
         }
 
-    save_scale_compare(action_cells["idle"][0], preview_dir / "body-scale-comparison.png")
-    report_path = ROOT / "source-sheet-report.json"
+    if "idle" in action_cells:
+        save_scale_compare(action_cells["idle"][0], preview_dir / "body-scale-comparison.png")
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2), flush=True)
 

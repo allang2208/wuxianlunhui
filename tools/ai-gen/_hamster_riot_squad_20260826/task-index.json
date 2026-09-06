@@ -34,7 +34,46 @@
     "runtimeEntity": "../../../src/entities/hamster-riot-squad.js",
     "runtimeAssets": "../../../assets/companions/hamster_riot_squad",
     "runtimeUnitKey": "riot_special",
-    "recruitmentGate": "Tier 3 remains intentionally gated until power_armor is implemented."
+    "recruitmentGate": "Tier 3 remains intentionally gated until power_armor is implemented.",
+    "walkingRepair": {
+      "date": "2026-08-30",
+      "sourceVideoRegenerated": false,
+      "sourceVideo": "videos/hamster_riot_squad_moving_h3_v04.mp4",
+      "nativeFrameRange": [
+        72,
+        96
+      ],
+      "nativeFrameRangeEndExclusive": true,
+      "sourceIndices": [
+        72,
+        74,
+        76,
+        78,
+        80,
+        82,
+        84,
+        86,
+        88,
+        90,
+        92,
+        94
+      ],
+      "sourceKeyFps": 12,
+      "runtimeFrameCount": 24,
+      "runtimeFrameRate": 24,
+      "runtimeCols": 8,
+      "runtimeRows": 3,
+      "runtimeRepeat": -1,
+      "pipelineVersion": "rife-v4.6-rgba-v8-exact-half-step",
+      "reason": "Use one complete interior stride; correct RIFE directory sampling to exact t=0.5 midpoints instead of progressively near-duplicate next keys.",
+      "report": "movement-loop-repair-20260830/report.json",
+      "previewGif": "movement-loop-repair-20260830/walking-fixed.gif",
+      "sourceExcerpt": "movement-loop-repair-20260830/selected-cycle-source.mp4",
+      "sourceRebuild": "build-source-sheets.py --actions walking",
+      "interpolationRebuild": "apply-rife-interpolation.py --actions walking",
+      "integration": "Copy only sheets/interpolated/walking.png to runtime; walk config uses 512x512, 8x3, 24 frames [0,23] at 24fps.",
+      "gameOrTestsRun": false
+    }
   },
   "identityLocks": [
     "large round golden hamster head and cream muzzle",
@@ -121,7 +160,9 @@
           "visualReview": "32 evenly sampled frames checked: the shield pane width, chest projection and shotgun angle remain stable through the middle of the cycle; the previous view rotation is suppressed while the legs alternate and the belly remains covered.",
           "status": "user_accepted_formalized_rife_2x"
         }
-      ]
+      ],
+      "runtimePreviewGif": "movement-loop-repair-20260830/walking-fixed.gif",
+      "runtimeRepairReport": "movement-loop-repair-20260830/report.json"
     },
     {
       "motion": "attacking",
