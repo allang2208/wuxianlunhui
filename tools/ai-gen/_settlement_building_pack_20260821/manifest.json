@@ -455,11 +455,10 @@
       "bodyDepthExclude": ["Barracks_Foundation"],
       "dimensions": {
         "foundation": [480, 392, 16],
-        "body": [270, 220, 150],
-        "flatRoof": [294, 244, 16],
-        "tower": [100, 110, 230],
-        "gatehouse": [156, 62, 178],
-        "curtainWall": [370, 34, 104]
+        "body": [340, 224, 144],
+        "flatRoof": [364, 250, 16],
+        "tower": [112, 116, 218],
+        "gatehouse": [168, 72, 166]
       }
     },
     "hamster_barracks_lv3": {

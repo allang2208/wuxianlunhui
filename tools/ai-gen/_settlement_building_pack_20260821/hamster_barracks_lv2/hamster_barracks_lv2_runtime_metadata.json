@@ -1,12 +1,12 @@
 {
-  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\dedicated_cutout\\hamster_barracks_lv2\\hamster_barracks_lv2_body.png",
-  "output": "assets\\terrain\\hamster_barracks_lv2.png",
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks_lv2\\rework_axis_symmetric_20260828\\alpha_threshold_review\\hamster_barracks_lv2_v01_t80_body.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\terrain\\hamster_barracks_lv2.png",
   "sourceMode": "RGBA",
   "background": null,
   "matteColor": [
-    47,
-    193,
-    19
+    44,
+    180,
+    33
   ],
   "matteEdgeWidth": 4.0,
   "matteTolerance": 110.0,
@@ -28,28 +28,30 @@
   "removeMatteRects": [],
   "clearMatteOutsidePolygons": [],
   "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
   "greenHueRange": null,
   "greenSaturationMin": null,
   "greenValueMin": null,
   "cropBox": [
-    194,
-    228,
-    849,
-    919
+    60,
+    187,
+    979,
+    926
   ],
   "fileSize": [
-    655,
-    691
+    919,
+    739
   ],
   "alphaBBox": [
     4,
     4,
-    651,
-    687
+    915,
+    735
   ],
   "displayW": 290,
-  "displayH": 306,
-  "footOffsetY": 151,
-  "scaleX": 0.44274809160305345,
-  "scaleY": 0.44283646888567296
+  "displayH": 233,
+  "footOffsetY": 115,
+  "scaleX": 0.31556039173014144,
+  "scaleY": 0.3152909336941813
 }

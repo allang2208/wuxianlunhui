@@ -2828,6 +2828,119 @@
     },
     {
       "algorithmVersion": 8,
+      "id": "hamster_barracks_level_2",
+      "textureKey": "hamster_barracks_lv2",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/hamster_barracks_lv2.png",
+      "sourceWidth": 919,
+      "sourceHeight": 739,
+      "displayWidth": 290,
+      "displayHeight": 233,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.7188841201716738,
+        "widthRatio": 0.8827586206896552,
+        "depthRatio": 0.5493562231759657,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 290,
+        "displayHeight": 233,
+        "scaleX": 0.3155603917301415,
+        "scaleY": 0.3152909336941813,
+        "uniformScale": 0.3155603917301415,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 115,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 459.5,
+        "sourceFootprintCenterY": 531.5,
+        "sourceFootprintFrontY": 734,
+        "sourceFootprintHalfDepth": 203,
+        "sourceFootprintWidth": 811.5,
+        "sourceFootprintDepth": 406,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 459.5,
+        "groundCenterSourceY": 531.5,
+        "groundSectionWidth": 811.5,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 459,
+        "bottomY": 733.2424892703863,
+        "sideY": 531.255364806867,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 919,
+        "frameHeight": 739
+      }
+    },
+    {
+      "algorithmVersion": 8,
       "id": "high_energy_research_laboratory",
       "textureKey": "high_energy_laboratory",
       "frameName": "__BASE",

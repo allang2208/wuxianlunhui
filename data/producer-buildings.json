@@ -240,7 +240,7 @@
         { "slot": "greatsword", "role": "双手剑士", "unitKey": "warrior", "unitName": "仓鼠战士", "profile": "中等耐久、中等抗性、中等伤害，后续包含AOE升级" },
         { "slot": "shield", "role": "盾卫", "unitKey": "guard", "unitName": "仓鼠盾卫", "profile": "低伤害、高耐久、高抗性" }
       ] },
-      { "id": "hamster_barracks_level_2", "level": 2, "name": "军营二级编制", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "hamster_barracks_lv2", "assetPath": "assets/terrain/hamster_barracks_lv2.png", "displayW": 290, "displayH": 306, "footOffsetY": 151 }, "lines": [
+      { "id": "hamster_barracks_level_2", "level": 2, "name": "军营二级编制", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "hamster_barracks_lv2", "assetPath": "assets/terrain/hamster_barracks_lv2.png", "displayW": 290, "displayH": 233, "footOffsetY": 115 }, "lines": [
         { "slot": "greatsword", "role": "双手剑士", "fromUnitName": "仓鼠战士", "unitKey": "champion", "unitName": "仓鼠冠军", "profile": "晚期中世纪精良全身板甲、封闭式头盔与长柄双手剑；中高耐久、高单次伤害、较慢攻速" },
         { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠盾卫", "unitKey": "phalanx", "unitName": "仓鼠方阵", "profile": "军团大盾与双刃斧重装步兵；高耐久、稳步推进、低机动" }
       ] },
