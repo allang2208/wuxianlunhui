@@ -25,7 +25,7 @@
   "size": 72,
   "skills": [],
   "sounds": {
-    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+    "attack": "assets/sounds/friendly/hamster_winged_hussar_attack_video.mp3"
   },
   "ai": {
     "role": "melee_winged_hussar",

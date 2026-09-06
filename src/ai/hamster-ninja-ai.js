@@ -291,7 +291,8 @@ export class HamsterNinjaAI {
             'physical',
             true
         );
-        this._playSound('attack');
+        this._playSound(this._swingVariant === 'continuous' && this.m.sounds?.attackContinuous
+            ? 'attackContinuous' : 'attack');
     }
 
     _moveSpeed() {
@@ -361,7 +362,8 @@ export class HamsterNinjaAI {
     }
 
     _playSound(key) {
-        const path = this.m.sounds?.[key];
+        const cue = this.m.sounds?.[key];
+        const path = Array.isArray(cue) ? cue[Math.floor(Math.random() * cue.length)] : cue;
         if (!path || !SoundManager) return;
         if (typeof SoundManager.playWorld === 'function') SoundManager.playWorld(path, this.m.x, this.m.y);
         else SoundManager.playFile?.(path);

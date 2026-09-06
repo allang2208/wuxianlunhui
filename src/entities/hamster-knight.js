@@ -3,6 +3,7 @@
 // 玩家友方近战单位：普攻第 16 帧结算，并复用铠甲骑士同口径的持盾冲锋。
 // ============================================================
 import { Companion } from './companion.js';
+import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js';
 import { HamsterKnightAI } from '../ai/hamster-knight-ai.js';
 import configData from '../../data/hamster-knight-config.json';
 
@@ -108,6 +109,7 @@ export class HamsterKnight extends Companion {
         }
         const game = typeof window !== 'undefined' ? window.Game : null;
         this._ai.update(dt, entities, (game && game.player && !game._observerMode) ? game.player : null);
+        updateFriendlyMovementSound(this, dt);
     }
 
     _removeFromScene() {

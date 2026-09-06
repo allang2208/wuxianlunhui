@@ -3,6 +3,7 @@
 // 无普通攻击；由 HamsterPriestAI 跟随玩家，并以圣光优先治疗受伤友军。
 // ============================================================
 import { Companion } from './companion.js';
+import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js';
 import { HamsterPriestAI } from '../ai/hamster-priest-ai.js';
 import configData from '../../data/hamster-priest-config.json';
 
@@ -113,6 +114,7 @@ export class HamsterPriest extends Companion {
         }
         const game = typeof window !== 'undefined' ? window.Game : null;
         this._ai.update(dt, entities, (game && game.player && !game._observerMode) ? game.player : null); // 观察模式：仓鼠部队不跟随不在场的玩家
+        updateFriendlyMovementSound(this, dt);
     }
 
     _removeFromScene() {

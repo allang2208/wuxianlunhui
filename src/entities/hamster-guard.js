@@ -9,6 +9,7 @@
 // - 死亡：播 dying 动画（15 帧 @12fps = 1250ms）后自动从场景移除。
 // ============================================================
 import { Companion } from './companion.js';
+import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js';
 import { HamsterGuardAI } from '../ai/hamster-guard-ai.js';
 import hamsterGuardConfig from '../../data/hamster-guard-config.json';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
@@ -136,6 +137,7 @@ export class HamsterGuard extends Companion {
         if (this._ai) {
             const game = (typeof window !== 'undefined' && window.Game) || null;
             this._ai.update(dt, entities, (game && game.player && !game._observerMode) ? game.player : null); // 观察模式：仓鼠部队不跟随不在场的玩家
+            updateFriendlyMovementSound(this, dt);
         }
     }
 

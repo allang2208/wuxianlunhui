@@ -25,7 +25,7 @@
   "size": 64,
   "skills": [],
   "sounds": {
-    "attack": "assets/companions/hamster_musketeer/fire.mp3"
+    "attack": "assets/sounds/friendly/hamster_special_forces_attack_video.mp3"
   },
   "ai": {
     "role": "shotgun_assault",

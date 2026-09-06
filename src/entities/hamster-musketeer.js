@@ -1,4 +1,5 @@
 import { Companion } from './companion.js';
+import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js';
 import { HamsterMusketeerAI } from '../ai/hamster-musketeer-ai.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
@@ -120,6 +121,7 @@ export class HamsterMusketeer extends Companion {
         }
         const game = typeof window !== 'undefined' ? window.Game : null;
         this._ai.update(dt, entities, (game && game.player && !game._observerMode) ? game.player : null); // 观察模式：仓鼠部队不跟随不在场的玩家
+        updateFriendlyMovementSound(this, dt);
     }
 
     _removeFromScene() {

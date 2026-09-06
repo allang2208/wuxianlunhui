@@ -25,7 +25,10 @@
   "size": 64,
   "skills": [],
   "sounds": {
-    "attack": "assets/sounds/friendly/hamster_anti_vehicle_attack.mp3"
+    "attack": "assets/sounds/friendly/hamster_assault_attack_video.mp3",
+    "walk": "assets/sounds/friendly/hamster_assault_walk_video.mp3",
+    "walkInterval": 410,
+    "walkVolume": 0.3
   },
   "ai": {
     "role": "ranged_assault_rifle",

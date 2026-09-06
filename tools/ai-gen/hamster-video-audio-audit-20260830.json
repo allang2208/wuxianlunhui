@@ -1,0 +1,6048 @@
+{
+  "date": "2026-08-30",
+  "scope": "仓库内现存仓鼠军事兵种视频快照；平民/工人不在本轮范围；待机/死亡逐项排除。未发现源视频的旧兵种不伪造来源。",
+  "method": "本地MIT AST AudioSet全片/2秒滑窗识别，结合响度、频谱及裁剪动作帧；未人工试听，模型分数不是无BGM保证。",
+  "model": "https://huggingface.co/MIT/ast-finetuned-audioset-10-10-0.4593",
+  "counts": {
+    "excluded_idle_death": 43,
+    "held_music_or_percussion": 19,
+    "imported": 32,
+    "held_uncertain_music": 1,
+    "silent": 1,
+    "no_audio_stream": 3,
+    "staged_no_runtime_unit": 4
+  },
+  "videoCount": 103,
+  "runtimeUnitCount": 18,
+  "runtimeClipCount": 33,
+  "stagedClipCount": 4,
+  "rows": [
+    {
+      "source": "tools/ai-gen/_hamster_anti_vehicle_20260826/h3/videos/hamster_anti_vehicle_dying_h3.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_anti_vehicle_20260826/h3/videos/hamster_anti_vehicle_idle_h3.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_anti_vehicle_20260826/h3/videos/hamster_anti_vehicle_rocket_attacking_h3_v02.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.5722
+          ],
+          [
+            "Bang",
+            0.0547
+          ],
+          [
+            "Sound effect",
+            0.053
+          ],
+          [
+            "Explosion",
+            0.0495
+          ],
+          [
+            "Single-lens reflex camera",
+            0.0487
+          ],
+          [
+            "Speech",
+            0.0347
+          ],
+          [
+            "Burst, pop",
+            0.0247
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0204
+          ]
+        ],
+        "musicMax": 0.5722,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.5742,
+          "top": [
+            "Music",
+            0.5742
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4892,
+          "top": [
+            "Music",
+            0.4892
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.5107,
+          "top": [
+            "Music",
+            0.5107
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.5442,
+          "top": [
+            "Music",
+            0.5442
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.6437,
+          "top": [
+            "Music",
+            0.6437
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_anti_vehicle_20260826/h3/videos/hamster_anti_vehicle_running_h3.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.5029
+          ],
+          [
+            "Speech",
+            0.1079
+          ],
+          [
+            "Electronic music",
+            0.1026
+          ],
+          [
+            "Dubstep",
+            0.0501
+          ],
+          [
+            "Techno",
+            0.045
+          ],
+          [
+            "Animal",
+            0.0368
+          ],
+          [
+            "Trance music",
+            0.0243
+          ],
+          [
+            "Soundtrack music",
+            0.0228
+          ]
+        ],
+        "musicMax": 0.5029,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.5138,
+          "top": [
+            "Music",
+            0.5138
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.5617,
+          "top": [
+            "Music",
+            0.5617
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.5584,
+          "top": [
+            "Music",
+            0.5584
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.5307,
+          "top": [
+            "Music",
+            0.5307
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.5258,
+          "top": [
+            "Music",
+            0.5258
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_anti_vehicle_20260826/h3/videos/hamster_anti_vehicle_smg_attacking_h3.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Machine gun",
+            0.4001
+          ],
+          [
+            "Sound effect",
+            0.3516
+          ],
+          [
+            "Gunshot, gunfire",
+            0.2615
+          ],
+          [
+            "Bang",
+            0.1122
+          ],
+          [
+            "Artillery fire",
+            0.0425
+          ],
+          [
+            "Fusillade",
+            0.03
+          ],
+          [
+            "Music",
+            0.0141
+          ],
+          [
+            "Burst, pop",
+            0.0138
+          ]
+        ],
+        "musicMax": 0.0141,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0286,
+          "top": [
+            "Gunshot, gunfire",
+            0.2474
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.033,
+          "top": [
+            "Machine gun",
+            0.392
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.2321,
+          "top": [
+            "Bang",
+            0.361
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0087,
+          "top": [
+            "Bang",
+            0.1901
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0616,
+          "top": [
+            "Silence",
+            0.1322
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_anti_vehicle",
+          "window": [
+            2.47,
+            3.7
+          ],
+          "output": "assets/sounds/friendly/hamster_anti_vehicle_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/videos/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/videos/idle-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/videos/moving-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.1174
+          ],
+          [
+            "Chop",
+            0.0781
+          ],
+          [
+            "Tap",
+            0.0371
+          ],
+          [
+            "Clapping",
+            0.0362
+          ],
+          [
+            "Whack, thwack",
+            0.0284
+          ],
+          [
+            "Shuffle",
+            0.0244
+          ],
+          [
+            "Trickle, dribble",
+            0.023
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0227
+          ]
+        ],
+        "musicMax": 0.0051,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0055,
+          "top": [
+            "Whip",
+            0.0947
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0058,
+          "top": [
+            "Chop",
+            0.1708
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0049,
+          "top": [
+            "Sound effect",
+            0.1365
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0082,
+          "top": [
+            "Sound effect",
+            0.1195
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0076,
+          "top": [
+            "Sound effect",
+            0.0852
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_archbishop",
+          "window": [
+            0.56,
+            0.85
+          ],
+          "output": "assets/sounds/friendly/hamster_archbishop_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_archbishop_doubao_20260828/videos/spellcast-doubao-v01.mp4",
+      "disposition": "held_uncertain_music",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.4374
+          ],
+          [
+            "Humming",
+            0.0998
+          ],
+          [
+            "Whale vocalization",
+            0.0497
+          ],
+          [
+            "Inside, small room",
+            0.0416
+          ],
+          [
+            "Lullaby",
+            0.04
+          ],
+          [
+            "Howl",
+            0.0393
+          ],
+          [
+            "Singing",
+            0.029
+          ],
+          [
+            "Speech",
+            0.0215
+          ]
+        ],
+        "musicMax": 0.4374,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.2,
+          "top": [
+            "Howl",
+            0.2179
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4256,
+          "top": [
+            "Music",
+            0.4256
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.4344,
+          "top": [
+            "Music",
+            0.4344
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.5116,
+          "top": [
+            "Music",
+            0.5116
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.4209,
+          "top": [
+            "Music",
+            0.4209
+          ]
+        }
+      ],
+      "reason": "持续和声/吟唱，不能确认不是配乐；保留原圣光声",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_assault_20260827/videos/attacking-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Bang",
+            0.3678
+          ],
+          [
+            "Sound effect",
+            0.3317
+          ],
+          [
+            "Burst, pop",
+            0.0452
+          ],
+          [
+            "Explosion",
+            0.037
+          ],
+          [
+            "Crackle",
+            0.0302
+          ],
+          [
+            "Gunshot, gunfire",
+            0.0294
+          ],
+          [
+            "Music",
+            0.0144
+          ],
+          [
+            "Speech",
+            0.0138
+          ]
+        ],
+        "musicMax": 0.0144,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0135,
+          "top": [
+            "Single-lens reflex camera",
+            0.085
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0075,
+          "top": [
+            "Single-lens reflex camera",
+            0.1798
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0051,
+          "top": [
+            "Bang",
+            0.5746
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0058,
+          "top": [
+            "Bang",
+            0.5639
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0077,
+          "top": [
+            "Crackle",
+            0.0713
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_assault",
+          "window": [
+            3.06,
+            4.05
+          ],
+          "output": "assets/sounds/friendly/hamster_assault_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_assault_20260827/videos/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_assault_20260827/videos/idle-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_assault_20260827/videos/running-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.2729
+          ],
+          [
+            "Heart murmur",
+            0.0689
+          ],
+          [
+            "Heart sounds, heartbeat",
+            0.0497
+          ],
+          [
+            "Music",
+            0.0451
+          ],
+          [
+            "Walk, footsteps",
+            0.0269
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0229
+          ],
+          [
+            "Drum",
+            0.0149
+          ],
+          [
+            "Whack, thwack",
+            0.0137
+          ]
+        ],
+        "musicMax": 0.0451,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0275,
+          "top": [
+            "Sound effect",
+            0.2447
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0701,
+          "top": [
+            "Sound effect",
+            0.3258
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0405,
+          "top": [
+            "Sound effect",
+            0.3382
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.1456,
+          "top": [
+            "Sound effect",
+            0.3049
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0684,
+          "top": [
+            "Sound effect",
+            0.3268
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_assault",
+          "window": [
+            0.37,
+            0.75
+          ],
+          "output": "assets/sounds/friendly/hamster_assault_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/attack-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Door",
+            0.1145
+          ],
+          [
+            "Slam",
+            0.0699
+          ],
+          [
+            "Sound effect",
+            0.0663
+          ],
+          [
+            "Explosion",
+            0.0649
+          ],
+          [
+            "Burst, pop",
+            0.0444
+          ],
+          [
+            "Scrape",
+            0.0378
+          ],
+          [
+            "Bang",
+            0.0331
+          ],
+          [
+            "Whack, thwack",
+            0.0232
+          ]
+        ],
+        "musicMax": 0.0156,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0183,
+          "top": [
+            "Sound effect",
+            0.1601
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0339,
+          "top": [
+            "Bang",
+            0.1284
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0677,
+          "top": [
+            "Burst, pop",
+            0.1722
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0096,
+          "top": [
+            "Speech",
+            0.0442
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0158,
+          "top": [
+            "Speech",
+            0.0963
+          ]
+        }
+      ],
+      "reason": "现用v02音轨近乎静音；只借用同兵种v01发射声，不更换动画。",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_catapult_crew",
+          "window": [
+            1.85,
+            3.24
+          ],
+          "output": "assets/sounds/friendly/hamster_catapult_crew_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/attack-v02.mp4",
+      "disposition": "silent",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Silence",
+            0.5069
+          ],
+          [
+            "Music",
+            0.0998
+          ],
+          [
+            "Sound effect",
+            0.0384
+          ],
+          [
+            "Speech",
+            0.0202
+          ],
+          [
+            "Vehicle",
+            0.0135
+          ],
+          [
+            "Ringtone",
+            0.0118
+          ],
+          [
+            "Slap, smack",
+            0.0105
+          ],
+          [
+            "Static",
+            0.0089
+          ]
+        ],
+        "musicMax": 0.0998,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0929,
+          "top": [
+            "Silence",
+            0.2565
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0929,
+          "top": [
+            "Silence",
+            0.2565
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0929,
+          "top": [
+            "Silence",
+            0.2565
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0929,
+          "top": [
+            "Silence",
+            0.2565
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0684,
+          "top": [
+            "Silence",
+            0.1512
+          ]
+        }
+      ],
+      "reason": "全片约-97dBFS，近乎静音；借用同兵种v01发射声",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/die-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/idle-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/run-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.2479
+          ],
+          [
+            "Walk, footsteps",
+            0.076
+          ],
+          [
+            "Thunk",
+            0.0351
+          ],
+          [
+            "Crunch",
+            0.0164
+          ],
+          [
+            "Grunt",
+            0.0161
+          ],
+          [
+            "Thump, thud",
+            0.0133
+          ],
+          [
+            "Slam",
+            0.0129
+          ],
+          [
+            "Whack, thwack",
+            0.0111
+          ]
+        ],
+        "musicMax": 0.0082,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0049,
+          "top": [
+            "Sound effect",
+            0.1012
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.004,
+          "top": [
+            "Sound effect",
+            0.0894
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0101,
+          "top": [
+            "Sound effect",
+            0.1166
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0082,
+          "top": [
+            "Sound effect",
+            0.2342
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0024,
+          "top": [
+            "Sound effect",
+            0.091
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_catapult_crew",
+          "window": [
+            0.26,
+            0.76
+          ],
+          "output": "assets/sounds/friendly/hamster_catapult_crew_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/cavalry/attacking-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.4695
+          ],
+          [
+            "Sound effect",
+            0.0268
+          ],
+          [
+            "Zipper (clothing)",
+            0.021
+          ],
+          [
+            "Scratch",
+            0.0114
+          ],
+          [
+            "Music",
+            0.0084
+          ],
+          [
+            "Plop",
+            0.0083
+          ],
+          [
+            "Whip",
+            0.0076
+          ],
+          [
+            "Inside, small room",
+            0.0075
+          ]
+        ],
+        "musicMax": 0.0084,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.029,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.0892
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0167,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.4447
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0106,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.2296
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0107,
+          "top": [
+            "Knock",
+            0.0478
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0133,
+          "top": [
+            "Tap",
+            0.0747
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_cavalry",
+          "window": [
+            2.29,
+            2.97
+          ],
+          "output": "assets/sounds/friendly/hamster_cavalry_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/cavalry/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/cavalry/idle-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/cavalry/running-doubao-v01.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.484
+          ],
+          [
+            "Clip-clop",
+            0.1402
+          ],
+          [
+            "Horse",
+            0.0843
+          ],
+          [
+            "Animal",
+            0.0832
+          ],
+          [
+            "Speech",
+            0.0778
+          ],
+          [
+            "Theme music",
+            0.0257
+          ],
+          [
+            "Run",
+            0.0174
+          ],
+          [
+            "Neigh, whinny",
+            0.015
+          ]
+        ],
+        "musicMax": 0.484,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.5067,
+          "top": [
+            "Music",
+            0.5067
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4817,
+          "top": [
+            "Music",
+            0.4817
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.5272,
+          "top": [
+            "Music",
+            0.5272
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.4677,
+          "top": [
+            "Music",
+            0.4677
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.472,
+          "top": [
+            "Music",
+            0.472
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/winged_hussar/attacking-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.4308
+          ],
+          [
+            "Whip",
+            0.1845
+          ],
+          [
+            "Sound effect",
+            0.0441
+          ],
+          [
+            "Arrow",
+            0.0317
+          ],
+          [
+            "Heart sounds, heartbeat",
+            0.0246
+          ],
+          [
+            "Bang",
+            0.0216
+          ],
+          [
+            "Slap, smack",
+            0.018
+          ],
+          [
+            "Slam",
+            0.0125
+          ]
+        ],
+        "musicMax": 0.0073,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0157,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.3204
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.028,
+          "top": [
+            "Bang",
+            0.1053
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0311,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.0749
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0108,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.0642
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0097,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.0306
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_winged_hussar",
+          "window": [
+            1.13,
+            1.92
+          ],
+          "output": "assets/sounds/friendly/hamster_winged_hussar_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/winged_hussar/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/winged_hussar/idle-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/videos/winged_hussar/running-doubao-v01.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.6924
+          ],
+          [
+            "Clip-clop",
+            0.251
+          ],
+          [
+            "Horse",
+            0.2013
+          ],
+          [
+            "Animal",
+            0.046
+          ],
+          [
+            "Sound effect",
+            0.044
+          ],
+          [
+            "Neigh, whinny",
+            0.0369
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0207
+          ],
+          [
+            "Speech",
+            0.0194
+          ]
+        ],
+        "musicMax": 0.6924,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.6238,
+          "top": [
+            "Music",
+            0.6238
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.5327,
+          "top": [
+            "Music",
+            0.5327
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.5472,
+          "top": [
+            "Music",
+            0.5472
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.4088,
+          "top": [
+            "Music",
+            0.4088
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.3966,
+          "top": [
+            "Music",
+            0.3966
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_champion_20260826/videos/attacking-doubao-v02.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.3383
+          ],
+          [
+            "Clang",
+            0.1767
+          ],
+          [
+            "Ding",
+            0.1022
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0623
+          ],
+          [
+            "Bang",
+            0.0422
+          ],
+          [
+            "Whack, thwack",
+            0.0318
+          ],
+          [
+            "Sound effect",
+            0.0194
+          ],
+          [
+            "Ping",
+            0.0155
+          ]
+        ],
+        "musicMax": 0.3383,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.5541,
+          "top": [
+            "Music",
+            0.5541
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.2202,
+          "top": [
+            "Music",
+            0.2202
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.2541,
+          "top": [
+            "Music",
+            0.2541
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.4965,
+          "top": [
+            "Music",
+            0.4965
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.527,
+          "top": [
+            "Music",
+            0.527
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_champion_20260826/videos/attacking-doubao-v03.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Clang",
+            0.6564
+          ],
+          [
+            "Ding",
+            0.2824
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0442
+          ],
+          [
+            "Sound effect",
+            0.0218
+          ],
+          [
+            "Whack, thwack",
+            0.0137
+          ],
+          [
+            "Ping",
+            0.0131
+          ],
+          [
+            "Dishes, pots, and pans",
+            0.0073
+          ],
+          [
+            "Chink, clink",
+            0.0067
+          ]
+        ],
+        "musicMax": 0.0018,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0136,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.6511
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0022,
+          "top": [
+            "Clang",
+            0.5806
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0018,
+          "top": [
+            "Clang",
+            0.7143
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0019,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.2123
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0017,
+          "top": [
+            "Clang",
+            0.2378
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_champion",
+          "window": [
+            1.91,
+            2.66
+          ],
+          "output": "assets/sounds/friendly/hamster_champion_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_champion_20260826/videos/attacking-doubao.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.4504
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.2249
+          ],
+          [
+            "Zipper (clothing)",
+            0.0813
+          ],
+          [
+            "Ding",
+            0.0623
+          ],
+          [
+            "Sound effect",
+            0.0405
+          ],
+          [
+            "Clang",
+            0.025
+          ],
+          [
+            "Bang",
+            0.0221
+          ],
+          [
+            "Whack, thwack",
+            0.0197
+          ]
+        ],
+        "musicMax": 0.4504,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.5129,
+          "top": [
+            "Music",
+            0.5129
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4346,
+          "top": [
+            "Music",
+            0.4346
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.5063,
+          "top": [
+            "Music",
+            0.5063
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.4014,
+          "top": [
+            "Music",
+            0.4014
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.4605,
+          "top": [
+            "Music",
+            0.4605
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_champion_20260826/videos/dying-doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_champion_20260826/videos/idle-doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_champion_20260826/videos/running-doubao-v02.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.3167
+          ],
+          [
+            "Music",
+            0.1367
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.1167
+          ],
+          [
+            "Drum",
+            0.0615
+          ],
+          [
+            "Heart sounds, heartbeat",
+            0.0437
+          ],
+          [
+            "Heart murmur",
+            0.0286
+          ],
+          [
+            "Bass drum",
+            0.026
+          ],
+          [
+            "Drum kit",
+            0.0176
+          ]
+        ],
+        "musicMax": 0.1367,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0602,
+          "top": [
+            "Sound effect",
+            0.2622
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.1587,
+          "top": [
+            "Sound effect",
+            0.268
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.3579,
+          "top": [
+            "Music",
+            0.3579
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.35,
+          "top": [
+            "Music",
+            0.35
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.2165,
+          "top": [
+            "Sound effect",
+            0.247
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_champion",
+          "window": [
+            0.67,
+            1.06
+          ],
+          "output": "assets/sounds/friendly/hamster_champion_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_champion_20260826/videos/running-doubao.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Drum",
+            0.6037
+          ],
+          [
+            "Drum kit",
+            0.5339
+          ],
+          [
+            "Bass drum",
+            0.5091
+          ],
+          [
+            "Snare drum",
+            0.465
+          ],
+          [
+            "Music",
+            0.4214
+          ],
+          [
+            "Drum roll",
+            0.2919
+          ],
+          [
+            "Percussion",
+            0.2891
+          ],
+          [
+            "Rimshot",
+            0.2092
+          ]
+        ],
+        "musicMax": 0.4214,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.3513,
+          "top": [
+            "Drum",
+            0.5298
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.3874,
+          "top": [
+            "Drum",
+            0.4452
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.3507,
+          "top": [
+            "Drum",
+            0.4238
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.3706,
+          "top": [
+            "Drum",
+            0.442
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.3678,
+          "top": [
+            "Drum",
+            0.3932
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/attacking-doubao-v01.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.36
+          ],
+          [
+            "Gunshot, gunfire",
+            0.1421
+          ],
+          [
+            "Bang",
+            0.0689
+          ],
+          [
+            "Sound effect",
+            0.0423
+          ],
+          [
+            "Machine gun",
+            0.0419
+          ],
+          [
+            "Scary music",
+            0.0387
+          ],
+          [
+            "Breaking",
+            0.028
+          ],
+          [
+            "Whip",
+            0.0185
+          ]
+        ],
+        "musicMax": 0.36,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.399,
+          "top": [
+            "Music",
+            0.399
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4492,
+          "top": [
+            "Music",
+            0.4492
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.4113,
+          "top": [
+            "Music",
+            0.4113
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.3784,
+          "top": [
+            "Music",
+            0.3784
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.4602,
+          "top": [
+            "Music",
+            0.4602
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/idle-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/idle-doubao-v02-loop.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/idle-doubao-v02.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/moving-doubao-v01-loop.mp4",
+      "disposition": "no_audio_stream",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "派生视频无音轨；同动作原始视频另行审核",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/moving-doubao-v01-restricted-fix.mp4",
+      "disposition": "no_audio_stream",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "派生视频无音轨；同动作原始视频另行审核",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/moving-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Heart sounds, heartbeat",
+            0.7476
+          ],
+          [
+            "Heart murmur",
+            0.5126
+          ],
+          [
+            "Throbbing",
+            0.065
+          ],
+          [
+            "Hum",
+            0.0365
+          ],
+          [
+            "Sound effect",
+            0.0296
+          ],
+          [
+            "Music",
+            0.0169
+          ],
+          [
+            "Inside, small room",
+            0.0047
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0041
+          ]
+        ],
+        "musicMax": 0.0169,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0129,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.3057
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0132,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.4235
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0255,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.37
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0231,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.3881
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0259,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.254
+          ]
+        }
+      ],
+      "reason": "现用loop视频无音轨，回溯同一动作原始v01。",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_crossbow",
+          "window": [
+            0.11,
+            0.56
+          ],
+          "output": "assets/sounds/friendly/hamster_crossbow_walk_1_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/moving-doubao-v02-restricted-fix.mp4",
+      "disposition": "no_audio_stream",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "派生视频无音轨；同动作原始视频另行审核",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_crossbow_20260827/videos/moving-doubao-v02.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.3129
+          ],
+          [
+            "Walk, footsteps",
+            0.1612
+          ],
+          [
+            "Flap",
+            0.0352
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0315
+          ],
+          [
+            "Whack, thwack",
+            0.021
+          ],
+          [
+            "Thump, thud",
+            0.0201
+          ],
+          [
+            "Chop",
+            0.0159
+          ],
+          [
+            "Crackle",
+            0.0141
+          ]
+        ],
+        "musicMax": 0.0054,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0077,
+          "top": [
+            "Sound effect",
+            0.1322
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0075,
+          "top": [
+            "Sound effect",
+            0.198
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0141,
+          "top": [
+            "Sound effect",
+            0.2746
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0121,
+          "top": [
+            "Sound effect",
+            0.2103
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0079,
+          "top": [
+            "Sound effect",
+            0.1323
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_crossbow",
+          "window": [
+            0.56,
+            1.02
+          ],
+          "output": "assets/sounds/friendly/hamster_crossbow_walk_2_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/attack-v01.mp4",
+      "disposition": "staged_no_runtime_unit",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Explosion",
+            0.1669
+          ],
+          [
+            "Sound effect",
+            0.1062
+          ],
+          [
+            "Bang",
+            0.0947
+          ],
+          [
+            "Burst, pop",
+            0.0833
+          ],
+          [
+            "Gunshot, gunfire",
+            0.0725
+          ],
+          [
+            "Fusillade",
+            0.0288
+          ],
+          [
+            "Machine gun",
+            0.022
+          ],
+          [
+            "Artillery fire",
+            0.0142
+          ]
+        ],
+        "musicMax": 0.0083,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0929,
+          "top": [
+            "Silence",
+            0.2565
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0139,
+          "top": [
+            "Explosion",
+            0.6739
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0162,
+          "top": [
+            "Bang",
+            0.4932
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0365,
+          "top": [
+            "Sound effect",
+            0.1869
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0152,
+          "top": [
+            "Computer keyboard",
+            0.3993
+          ]
+        }
+      ],
+      "reason": "仅素材阶段，不新增运行时兵种",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_field_cannon_crew",
+          "window": [
+            2.28,
+            5.17
+          ],
+          "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_field_cannon_crew_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/die-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/idle-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/run-v01.mp4",
+      "disposition": "staged_no_runtime_unit",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Computer keyboard",
+            0.8467
+          ],
+          [
+            "Typing",
+            0.7964
+          ],
+          [
+            "Typewriter",
+            0.0392
+          ],
+          [
+            "Sound effect",
+            0.026
+          ],
+          [
+            "Rattle",
+            0.0063
+          ],
+          [
+            "Speech",
+            0.0041
+          ],
+          [
+            "Clatter",
+            0.003
+          ],
+          [
+            "Inside, small room",
+            0.0025
+          ]
+        ],
+        "musicMax": 0.0013,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0019,
+          "top": [
+            "Computer keyboard",
+            0.7679
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0101,
+          "top": [
+            "Computer keyboard",
+            0.7058
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0107,
+          "top": [
+            "Computer keyboard",
+            0.7691
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0025,
+          "top": [
+            "Computer keyboard",
+            0.7779
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0026,
+          "top": [
+            "Computer keyboard",
+            0.7278
+          ]
+        }
+      ],
+      "reason": "仅素材阶段，不新增运行时兵种",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_field_cannon_crew",
+          "window": [
+            0.14,
+            1.3
+          ],
+          "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_field_cannon_crew_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_halberd_20260825/videos/attacking-doubao.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Clang",
+            0.3939
+          ],
+          [
+            "Ding",
+            0.2792
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0442
+          ],
+          [
+            "Whack, thwack",
+            0.0313
+          ],
+          [
+            "Sound effect",
+            0.0281
+          ],
+          [
+            "Ping",
+            0.0105
+          ],
+          [
+            "Smash, crash",
+            0.0094
+          ],
+          [
+            "Chink, clink",
+            0.0062
+          ]
+        ],
+        "musicMax": 0.0034,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0264,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.3235
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0044,
+          "top": [
+            "Clang",
+            0.0883
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0054,
+          "top": [
+            "Clang",
+            0.3464
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0126,
+          "top": [
+            "Clang",
+            0.4963
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0143,
+          "top": [
+            "Sound effect",
+            0.133
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_halberdier",
+          "window": [
+            2.57,
+            3.53
+          ],
+          "output": "assets/sounds/friendly/hamster_halberdier_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_halberd_20260825/videos/dying-doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_halberd_20260825/videos/idle-doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_halberd_20260825/videos/running-doubao.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.8199
+          ],
+          [
+            "Single-lens reflex camera",
+            0.2905
+          ],
+          [
+            "Camera",
+            0.0255
+          ],
+          [
+            "Speech",
+            0.0175
+          ],
+          [
+            "Sound effect",
+            0.0147
+          ],
+          [
+            "Squeak",
+            0.0126
+          ],
+          [
+            "Ping",
+            0.0123
+          ],
+          [
+            "Electronic music",
+            0.0097
+          ]
+        ],
+        "musicMax": 0.8199,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.6229,
+          "top": [
+            "Music",
+            0.6229
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.5967,
+          "top": [
+            "Music",
+            0.5967
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.6049,
+          "top": [
+            "Music",
+            0.6049
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.6379,
+          "top": [
+            "Music",
+            0.6379
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.6414,
+          "top": [
+            "Music",
+            0.6414
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_heavy_machine_gunner_20260827/videos/attacking-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Machine gun",
+            0.6284
+          ],
+          [
+            "Gunshot, gunfire",
+            0.2414
+          ],
+          [
+            "Sound effect",
+            0.1975
+          ],
+          [
+            "Fusillade",
+            0.0247
+          ],
+          [
+            "Clatter",
+            0.008
+          ],
+          [
+            "Bang",
+            0.0078
+          ],
+          [
+            "Artillery fire",
+            0.0049
+          ],
+          [
+            "Crackle",
+            0.0049
+          ]
+        ],
+        "musicMax": 0.0022,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0062,
+          "top": [
+            "Machine gun",
+            0.1835
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0027,
+          "top": [
+            "Machine gun",
+            0.5547
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0041,
+          "top": [
+            "Machine gun",
+            0.4833
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0076,
+          "top": [
+            "Gunshot, gunfire",
+            0.2477
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0023,
+          "top": [
+            "Computer keyboard",
+            0.0847
+          ]
+        }
+      ],
+      "reason": "连发最后一发，保留尾音；每颗子弹只播一次。",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_heavy_machine_gunner",
+          "window": [
+            3.23,
+            3.96
+          ],
+          "output": "assets/sounds/friendly/hamster_heavy_machine_gunner_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_heavy_machine_gunner_20260827/videos/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_heavy_machine_gunner_20260827/videos/idle-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_heavy_machine_gunner_20260827/videos/running-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.4719
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0373
+          ],
+          [
+            "Walk, footsteps",
+            0.0228
+          ],
+          [
+            "Whack, thwack",
+            0.0209
+          ],
+          [
+            "Heart sounds, heartbeat",
+            0.0207
+          ],
+          [
+            "Heart murmur",
+            0.0204
+          ],
+          [
+            "Knock",
+            0.0174
+          ],
+          [
+            "Music",
+            0.0156
+          ]
+        ],
+        "musicMax": 0.0156,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0212,
+          "top": [
+            "Sound effect",
+            0.2971
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0196,
+          "top": [
+            "Sound effect",
+            0.3124
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0169,
+          "top": [
+            "Sound effect",
+            0.3696
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0164,
+          "top": [
+            "Sound effect",
+            0.4308
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0083,
+          "top": [
+            "Sound effect",
+            0.2895
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_heavy_machine_gunner",
+          "window": [
+            0.79,
+            1.04
+          ],
+          "output": "assets/sounds/friendly/hamster_heavy_machine_gunner_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/attack-v01.mp4",
+      "disposition": "staged_no_runtime_unit",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Explosion",
+            0.3899
+          ],
+          [
+            "Burst, pop",
+            0.1673
+          ],
+          [
+            "Bang",
+            0.1021
+          ],
+          [
+            "Slam",
+            0.0346
+          ],
+          [
+            "Speech",
+            0.0313
+          ],
+          [
+            "Sound effect",
+            0.0278
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0268
+          ],
+          [
+            "Music",
+            0.0236
+          ]
+        ],
+        "musicMax": 0.0236,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0042,
+          "top": [
+            "Gasp",
+            0.1645
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0363,
+          "top": [
+            "Explosion",
+            0.5079
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0212,
+          "top": [
+            "Explosion",
+            0.4623
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0497,
+          "top": [
+            "Explosion",
+            0.2777
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0534,
+          "top": [
+            "Explosion",
+            0.2789
+          ]
+        }
+      ],
+      "reason": "仅素材阶段，不新增运行时兵种",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_howitzer_crew",
+          "window": [
+            2.62,
+            5.17
+          ],
+          "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_howitzer_crew_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/die-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/run-v01.mp4",
+      "disposition": "staged_no_runtime_unit",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Vehicle",
+            0.3464
+          ],
+          [
+            "Bicycle",
+            0.1222
+          ],
+          [
+            "Lawn mower",
+            0.0921
+          ],
+          [
+            "Car",
+            0.0602
+          ],
+          [
+            "Engine",
+            0.0538
+          ],
+          [
+            "Idling",
+            0.0514
+          ],
+          [
+            "Medium engine (mid frequency)",
+            0.0469
+          ],
+          [
+            "Vibration",
+            0.0419
+          ]
+        ],
+        "musicMax": 0.0039,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0094,
+          "top": [
+            "Vehicle",
+            0.4712
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0246,
+          "top": [
+            "Vehicle",
+            0.3182
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0198,
+          "top": [
+            "Vehicle",
+            0.3345
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0263,
+          "top": [
+            "Vehicle",
+            0.3673
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0183,
+          "top": [
+            "Vehicle",
+            0.288
+          ]
+        }
+      ],
+      "reason": "仅素材阶段，不新增运行时兵种",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_howitzer_crew",
+          "window": [
+            0.3,
+            4.75
+          ],
+          "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_howitzer_crew_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_longbow_20260827/videos/attacking-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Door",
+            0.0679
+          ],
+          [
+            "Sound effect",
+            0.0633
+          ],
+          [
+            "Creak",
+            0.0302
+          ],
+          [
+            "Sliding door",
+            0.0253
+          ],
+          [
+            "Thunk",
+            0.0251
+          ],
+          [
+            "Crackle",
+            0.0248
+          ],
+          [
+            "Mechanisms",
+            0.0181
+          ],
+          [
+            "Drawer open or close",
+            0.0121
+          ]
+        ],
+        "musicMax": 0.0034,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0077,
+          "top": [
+            "Single-lens reflex camera",
+            0.3118
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0043,
+          "top": [
+            "Sound effect",
+            0.0752
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0073,
+          "top": [
+            "Crack",
+            0.1231
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0032,
+          "top": [
+            "Sound effect",
+            0.0585
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0126,
+          "top": [
+            "Snort",
+            0.1065
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_longbow",
+          "window": [
+            3.6,
+            4.16
+          ],
+          "output": "assets/sounds/friendly/hamster_longbow_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_longbow_20260827/videos/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_longbow_20260827/videos/idle-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_longbow_20260827/videos/moving-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Heart sounds, heartbeat",
+            0.5221
+          ],
+          [
+            "Heart murmur",
+            0.2332
+          ],
+          [
+            "Throbbing",
+            0.1756
+          ],
+          [
+            "Music",
+            0.1415
+          ],
+          [
+            "Hum",
+            0.0596
+          ],
+          [
+            "Sound effect",
+            0.0467
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0214
+          ],
+          [
+            "Speech",
+            0.0062
+          ]
+        ],
+        "musicMax": 0.1415,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0524,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.4381
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.2555,
+          "top": [
+            "Music",
+            0.2555
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.2871,
+          "top": [
+            "Music",
+            0.2871
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.1604,
+          "top": [
+            "Music",
+            0.1604
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0485,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.1374
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_longbow",
+          "window": [
+            0.2,
+            0.88
+          ],
+          "output": "assets/sounds/friendly/hamster_longbow_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/attacking-doubao-v03-wide.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.3659
+          ],
+          [
+            "Sound effect",
+            0.071
+          ],
+          [
+            "Ding",
+            0.0326
+          ],
+          [
+            "Clang",
+            0.028
+          ],
+          [
+            "Zipper (clothing)",
+            0.0244
+          ],
+          [
+            "Sigh",
+            0.0192
+          ],
+          [
+            "Whack, thwack",
+            0.015
+          ],
+          [
+            "Plop",
+            0.0144
+          ]
+        ],
+        "musicMax": 0.0101,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0081,
+          "top": [
+            "Single-lens reflex camera",
+            0.2745
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0209,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.4357
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0184,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.3238
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0071,
+          "top": [
+            "Sound effect",
+            0.1637
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0306,
+          "top": [
+            "Ding",
+            0.2238
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attackContinuous",
+          "unit": "hamster_ninja",
+          "window": [
+            3.42,
+            4.17
+          ],
+          "output": "assets/sounds/friendly/hamster_ninja_attack_continuous_2_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/attacking-doubao-v04-ultrawide.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.6149
+          ],
+          [
+            "Chink, clink",
+            0.0948
+          ],
+          [
+            "Breaking",
+            0.0608
+          ],
+          [
+            "Smash, crash",
+            0.0393
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0374
+          ],
+          [
+            "Speech",
+            0.0194
+          ],
+          [
+            "Ping",
+            0.0186
+          ],
+          [
+            "Bang",
+            0.0163
+          ]
+        ],
+        "musicMax": 0.6149,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.5178,
+          "top": [
+            "Music",
+            0.5178
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4884,
+          "top": [
+            "Music",
+            0.4884
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.5348,
+          "top": [
+            "Music",
+            0.5348
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.5153,
+          "top": [
+            "Music",
+            0.5153
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.592,
+          "top": [
+            "Music",
+            0.592
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/attacking-doubao-v05-centered.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.0912
+          ],
+          [
+            "Ding",
+            0.0763
+          ],
+          [
+            "Clang",
+            0.0657
+          ],
+          [
+            "Chink, clink",
+            0.0248
+          ],
+          [
+            "Sound effect",
+            0.0206
+          ],
+          [
+            "Whack, thwack",
+            0.0169
+          ],
+          [
+            "Ping",
+            0.0095
+          ],
+          [
+            "Plop",
+            0.0069
+          ]
+        ],
+        "musicMax": 0.0016,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0019,
+          "top": [
+            "Ding",
+            0.0798
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0047,
+          "top": [
+            "Clang",
+            0.0518
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0102,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.4577
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0364,
+          "top": [
+            "Silence",
+            0.1166
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0676,
+          "top": [
+            "Silence",
+            0.1646
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_ninja",
+          "window": [
+            0.92,
+            1.98
+          ],
+          "output": "assets/sounds/friendly/hamster_ninja_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/attacking-doubao.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Clang",
+            0.1447
+          ],
+          [
+            "Ding",
+            0.0757
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.063
+          ],
+          [
+            "Sound effect",
+            0.0324
+          ],
+          [
+            "Ping",
+            0.0172
+          ],
+          [
+            "Chink, clink",
+            0.0134
+          ],
+          [
+            "Whack, thwack",
+            0.012
+          ],
+          [
+            "Scrape",
+            0.0073
+          ]
+        ],
+        "musicMax": 0.0019,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0023,
+          "top": [
+            "Sound effect",
+            0.0586
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0052,
+          "top": [
+            "Clang",
+            0.089
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0094,
+          "top": [
+            "Ding",
+            0.2089
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0167,
+          "top": [
+            "Single-lens reflex camera",
+            0.426
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0072,
+          "top": [
+            "Single-lens reflex camera",
+            0.1455
+          ]
+        }
+      ],
+      "reason": "同兵种旧版干净刀击；现用连击视频含持续低频鼓点。",
+      "clips": [
+        {
+          "key": "attackContinuous",
+          "unit": "hamster_ninja",
+          "window": [
+            2.19,
+            2.88
+          ],
+          "output": "assets/sounds/friendly/hamster_ninja_attack_continuous_1_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/continuous-attacking-doubao-v04-centered.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Ding",
+            0.3021
+          ],
+          [
+            "Clang",
+            0.3012
+          ],
+          [
+            "Music",
+            0.1623
+          ],
+          [
+            "Ping",
+            0.0384
+          ],
+          [
+            "Sound effect",
+            0.0264
+          ],
+          [
+            "Musical instrument",
+            0.0121
+          ],
+          [
+            "Chink, clink",
+            0.0093
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0082
+          ]
+        ],
+        "musicMax": 0.1623,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.4824,
+          "top": [
+            "Music",
+            0.4824
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.1498,
+          "top": [
+            "Clang",
+            0.2481
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.1358,
+          "top": [
+            "Clang",
+            0.2265
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.5889,
+          "top": [
+            "Music",
+            0.5889
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.6213,
+          "top": [
+            "Music",
+            0.6213
+          ]
+        }
+      ],
+      "reason": "刀击叠有低频鼓点；连击改用同兵种干净旧版刀声",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/continuous-attacking-doubao.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.25
+          ],
+          [
+            "Music",
+            0.2379
+          ],
+          [
+            "Ding",
+            0.0528
+          ],
+          [
+            "Clang",
+            0.0488
+          ],
+          [
+            "Whack, thwack",
+            0.0369
+          ],
+          [
+            "Ping",
+            0.0219
+          ],
+          [
+            "Smash, crash",
+            0.021
+          ],
+          [
+            "Sound effect",
+            0.0207
+          ]
+        ],
+        "musicMax": 0.2379,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.7459,
+          "top": [
+            "Music",
+            0.7459
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.3733,
+          "top": [
+            "Music",
+            0.3733
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0832,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.3172
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.2627,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.2868
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.2155,
+          "top": [
+            "Music",
+            0.2155
+          ]
+        }
+      ],
+      "reason": "刀击叠有低频鼓点；连击改用同兵种干净旧版刀声",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/dying-doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/idle-doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/running-doubao.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.794
+          ],
+          [
+            "Single-lens reflex camera",
+            0.1156
+          ],
+          [
+            "Cash register",
+            0.0539
+          ],
+          [
+            "Beep, bleep",
+            0.0367
+          ],
+          [
+            "Ringtone",
+            0.0341
+          ],
+          [
+            "Speech",
+            0.0301
+          ],
+          [
+            "Sound effect",
+            0.0202
+          ],
+          [
+            "Microwave oven",
+            0.0193
+          ]
+        ],
+        "musicMax": 0.794,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.6786,
+          "top": [
+            "Music",
+            0.6786
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.5393,
+          "top": [
+            "Music",
+            0.5393
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.527,
+          "top": [
+            "Music",
+            0.527
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.5304,
+          "top": [
+            "Music",
+            0.5304
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.5532,
+          "top": [
+            "Music",
+            0.5532
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/smoke-bomb-doubao-v02.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Inside, small room",
+            0.0947
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0417
+          ],
+          [
+            "Plop",
+            0.0382
+          ],
+          [
+            "Sound effect",
+            0.0318
+          ],
+          [
+            "Drip",
+            0.0257
+          ],
+          [
+            "Silence",
+            0.0231
+          ],
+          [
+            "Knock",
+            0.0208
+          ],
+          [
+            "Ping",
+            0.0204
+          ]
+        ],
+        "musicMax": 0.0062,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0118,
+          "top": [
+            "Speech",
+            0.0431
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0104,
+          "top": [
+            "Knock",
+            0.5304
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0242,
+          "top": [
+            "Sigh",
+            0.1505
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0254,
+          "top": [
+            "Sigh",
+            0.061
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0353,
+          "top": [
+            "Bang",
+            0.2245
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "stealth",
+          "unit": "hamster_ninja",
+          "window": [
+            2.72,
+            3.24
+          ],
+          "output": "assets/sounds/friendly/hamster_ninja_stealth_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ninja_20260826/videos/smoke-bomb-doubao.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.5724
+          ],
+          [
+            "Knock",
+            0.1055
+          ],
+          [
+            "Inside, small room",
+            0.0256
+          ],
+          [
+            "Animal",
+            0.0245
+          ],
+          [
+            "Speech",
+            0.0196
+          ],
+          [
+            "Musical instrument",
+            0.0152
+          ],
+          [
+            "Tap",
+            0.013
+          ],
+          [
+            "Walk, footsteps",
+            0.0127
+          ]
+        ],
+        "musicMax": 0.5724,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.5417,
+          "top": [
+            "Music",
+            0.5417
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.5134,
+          "top": [
+            "Music",
+            0.5134
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.4965,
+          "top": [
+            "Music",
+            0.4965
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.5155,
+          "top": [
+            "Music",
+            0.5155
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.6954,
+          "top": [
+            "Music",
+            0.6954
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_phalanx_20260826/videos/hamster_phalanx_attacking_h3.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.2314
+          ],
+          [
+            "Sound effect",
+            0.1378
+          ],
+          [
+            "Slam",
+            0.0433
+          ],
+          [
+            "Door",
+            0.0388
+          ],
+          [
+            "Music",
+            0.0306
+          ],
+          [
+            "Thump, thud",
+            0.0283
+          ],
+          [
+            "Sigh",
+            0.0274
+          ],
+          [
+            "Sliding door",
+            0.0263
+          ]
+        ],
+        "musicMax": 0.0306,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0157,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.2039
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0288,
+          "top": [
+            "Sound effect",
+            0.2474
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0418,
+          "top": [
+            "Door",
+            0.3408
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.033,
+          "top": [
+            "Door",
+            0.4998
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0652,
+          "top": [
+            "Sound effect",
+            0.3526
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_phalanx",
+          "window": [
+            1.05,
+            1.7
+          ],
+          "output": "assets/sounds/friendly/hamster_phalanx_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_phalanx_20260826/videos/hamster_phalanx_dying_h3.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_phalanx_20260826/videos/hamster_phalanx_idle_h3.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_phalanx_20260826/videos/hamster_phalanx_walking_h3_v02.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Crunch",
+            0.1367
+          ],
+          [
+            "Walk, footsteps",
+            0.0986
+          ],
+          [
+            "Sound effect",
+            0.0792
+          ],
+          [
+            "Scrape",
+            0.0603
+          ],
+          [
+            "Crackle",
+            0.0498
+          ],
+          [
+            "Tearing",
+            0.0326
+          ],
+          [
+            "Crumpling, crinkling",
+            0.0272
+          ],
+          [
+            "Inside, small room",
+            0.0237
+          ]
+        ],
+        "musicMax": 0.0061,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.019,
+          "top": [
+            "Scrape",
+            0.0928
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0121,
+          "top": [
+            "Crunch",
+            0.0917
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0052,
+          "top": [
+            "Crunch",
+            0.1523
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0039,
+          "top": [
+            "Crunch",
+            0.1562
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0067,
+          "top": [
+            "Scrape",
+            0.0614
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_phalanx",
+          "window": [
+            0.84,
+            1.6
+          ],
+          "output": "assets/sounds/friendly/hamster_phalanx_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_powered_eod_explosive_lancer_20260827/videos/charge-attacking-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.4081
+          ],
+          [
+            "Explosion",
+            0.1796
+          ],
+          [
+            "Bang",
+            0.1472
+          ],
+          [
+            "Burst, pop",
+            0.097
+          ],
+          [
+            "Sound effect",
+            0.0805
+          ],
+          [
+            "Music",
+            0.0371
+          ],
+          [
+            "Thump, thud",
+            0.0125
+          ],
+          [
+            "Slam",
+            0.0121
+          ]
+        ],
+        "musicMax": 0.0371,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0103,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.3002
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0252,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.3382
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0703,
+          "top": [
+            "Explosion",
+            0.5971
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0635,
+          "top": [
+            "Explosion",
+            0.5266
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0229,
+          "top": [
+            "Bang",
+            0.5022
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "chargeStart",
+          "unit": "hamster_powered_eod_explosive_lancer",
+          "window": [
+            1.96,
+            2.78
+          ],
+          "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_charge_start_video.mp3"
+        },
+        {
+          "key": "chargeImpact",
+          "unit": "hamster_powered_eod_explosive_lancer",
+          "window": [
+            2.97,
+            4.8
+          ],
+          "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_charge_impact_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_powered_eod_explosive_lancer_20260827/videos/dying-doubao-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_powered_eod_explosive_lancer_20260827/videos/idle-h3-v02.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_powered_eod_explosive_lancer_20260827/videos/lance-attacking-doubao-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Whoosh, swoosh, swish",
+            0.5907
+          ],
+          [
+            "Sound effect",
+            0.0684
+          ],
+          [
+            "Music",
+            0.0281
+          ],
+          [
+            "Zipper (clothing)",
+            0.0157
+          ],
+          [
+            "Bang",
+            0.0155
+          ],
+          [
+            "Flap",
+            0.013
+          ],
+          [
+            "Scrape",
+            0.0075
+          ],
+          [
+            "Whack, thwack",
+            0.0056
+          ]
+        ],
+        "musicMax": 0.0281,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0492,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.2063
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0228,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.5424
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0294,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.2223
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0955,
+          "top": [
+            "Music",
+            0.0955
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0621,
+          "top": [
+            "Music",
+            0.0621
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_powered_eod_explosive_lancer",
+          "window": [
+            2.04,
+            2.82
+          ],
+          "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_powered_eod_explosive_lancer_20260827/videos/running-h3-v01.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.1863
+          ],
+          [
+            "Cat",
+            0.0871
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0633
+          ],
+          [
+            "Music",
+            0.056
+          ],
+          [
+            "Animal",
+            0.0499
+          ],
+          [
+            "Domestic animals, pets",
+            0.0288
+          ],
+          [
+            "Slam",
+            0.0283
+          ],
+          [
+            "Squeak",
+            0.0274
+          ]
+        ],
+        "musicMax": 0.056,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0304,
+          "top": [
+            "Sound effect",
+            0.0841
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0281,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.0614
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0219,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.345
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0197,
+          "top": [
+            "Animal",
+            0.0878
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.015,
+          "top": [
+            "Sound effect",
+            0.0721
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_powered_eod_explosive_lancer",
+          "window": [
+            3.51,
+            3.72
+          ],
+          "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ranger_20260826/videos/dying-h3.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ranger_20260826/videos/idle-h3.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_ranger_20260826/videos/running-h3-v02.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.8268
+          ],
+          [
+            "Theme music",
+            0.0871
+          ],
+          [
+            "Video game music",
+            0.0144
+          ],
+          [
+            "Bang",
+            0.0113
+          ],
+          [
+            "Soundtrack music",
+            0.011
+          ],
+          [
+            "Crack",
+            0.0104
+          ],
+          [
+            "Crackle",
+            0.0091
+          ],
+          [
+            "Tap",
+            0.0087
+          ]
+        ],
+        "musicMax": 0.8268,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.7713,
+          "top": [
+            "Music",
+            0.7713
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4362,
+          "top": [
+            "Music",
+            0.4362
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.4928,
+          "top": [
+            "Music",
+            0.4928
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.619,
+          "top": [
+            "Music",
+            0.619
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.5508,
+          "top": [
+            "Music",
+            0.5508
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_riot_squad_20260826/videos/hamster_riot_squad_attacking_h3_v01.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Bang",
+            0.5452
+          ],
+          [
+            "Sound effect",
+            0.4288
+          ],
+          [
+            "Gunshot, gunfire",
+            0.069
+          ],
+          [
+            "Crack",
+            0.0504
+          ],
+          [
+            "Fusillade",
+            0.042
+          ],
+          [
+            "Explosion",
+            0.0261
+          ],
+          [
+            "Burst, pop",
+            0.0226
+          ],
+          [
+            "Crackle",
+            0.0184
+          ]
+        ],
+        "musicMax": 0.0067,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0096,
+          "top": [
+            "Crunch",
+            0.2036
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0062,
+          "top": [
+            "Bang",
+            0.7667
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0065,
+          "top": [
+            "Bang",
+            0.5303
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0044,
+          "top": [
+            "Bang",
+            0.1611
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0183,
+          "top": [
+            "Sound effect",
+            0.133
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_riot_squad",
+          "window": [
+            1.93,
+            2.74
+          ],
+          "output": "assets/sounds/friendly/hamster_riot_squad_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_riot_squad_20260826/videos/hamster_riot_squad_dying_h3_v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_riot_squad_20260826/videos/hamster_riot_squad_idle_h3_v02.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_riot_squad_20260826/videos/hamster_riot_squad_moving_h3_v04.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.1706
+          ],
+          [
+            "Music",
+            0.1238
+          ],
+          [
+            "Heart sounds, heartbeat",
+            0.0786
+          ],
+          [
+            "Drum",
+            0.0523
+          ],
+          [
+            "Heart murmur",
+            0.0457
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0227
+          ],
+          [
+            "Knock",
+            0.0226
+          ],
+          [
+            "Bass drum",
+            0.0208
+          ]
+        ],
+        "musicMax": 0.1238,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0214,
+          "top": [
+            "Sound effect",
+            0.2013
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0278,
+          "top": [
+            "Sound effect",
+            0.2441
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0594,
+          "top": [
+            "Sound effect",
+            0.187
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0606,
+          "top": [
+            "Sound effect",
+            0.163
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.017,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.2138
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "walk",
+          "unit": "hamster_riot_squad",
+          "window": [
+            0.17,
+            0.45
+          ],
+          "output": "assets/sounds/friendly/hamster_riot_squad_walk_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_scout_rifle_skirmisher_20260827/videos/attacking-doubao-v01.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.5557
+          ],
+          [
+            "Gunshot, gunfire",
+            0.161
+          ],
+          [
+            "Bang",
+            0.1393
+          ],
+          [
+            "Explosion",
+            0.054
+          ],
+          [
+            "Burst, pop",
+            0.0437
+          ],
+          [
+            "Machine gun",
+            0.0399
+          ],
+          [
+            "Firecracker",
+            0.0358
+          ],
+          [
+            "Fireworks",
+            0.035
+          ]
+        ],
+        "musicMax": 0.5557,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.495,
+          "top": [
+            "Music",
+            0.495
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4788,
+          "top": [
+            "Music",
+            0.4788
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.3315,
+          "top": [
+            "Gunshot, gunfire",
+            0.4259
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.4941,
+          "top": [
+            "Music",
+            0.4941
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.5597,
+          "top": [
+            "Music",
+            0.5597
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_scout_rifle_skirmisher_20260827/videos/dying-h3-v01.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_scout_rifle_skirmisher_20260827/videos/idle-user-1.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_scout_rifle_skirmisher_20260827/videos/moving-attacking-h3-v02.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Heart sounds, heartbeat",
+            0.2182
+          ],
+          [
+            "Gunshot, gunfire",
+            0.0723
+          ],
+          [
+            "Music",
+            0.0408
+          ],
+          [
+            "Sound effect",
+            0.0349
+          ],
+          [
+            "Throbbing",
+            0.0302
+          ],
+          [
+            "Hum",
+            0.0277
+          ],
+          [
+            "Explosion",
+            0.0259
+          ],
+          [
+            "Bang",
+            0.0256
+          ]
+        ],
+        "musicMax": 0.0408,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0244,
+          "top": [
+            "Slam",
+            0.123
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0361,
+          "top": [
+            "Bang",
+            0.1015
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0544,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.126
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0885,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.2789
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.1184,
+          "top": [
+            "Heart sounds, heartbeat",
+            0.152
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "movingAttack",
+          "unit": "hamster_scout_rifle_skirmisher",
+          "window": [
+            1.89,
+            2.56
+          ],
+          "output": "assets/sounds/friendly/hamster_scout_rifle_skirmisher_moving_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_scout_rifle_skirmisher_20260827/videos/moving-doubao-v01.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.4316
+          ],
+          [
+            "Whip",
+            0.0866
+          ],
+          [
+            "Clapping",
+            0.0333
+          ],
+          [
+            "Slap, smack",
+            0.0297
+          ],
+          [
+            "Sound effect",
+            0.0197
+          ],
+          [
+            "Run",
+            0.0131
+          ],
+          [
+            "Finger snapping",
+            0.0131
+          ],
+          [
+            "Speech",
+            0.0104
+          ]
+        ],
+        "musicMax": 0.4316,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.4568,
+          "top": [
+            "Music",
+            0.4568
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.4274,
+          "top": [
+            "Music",
+            0.4274
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.4788,
+          "top": [
+            "Music",
+            0.4788
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.4579,
+          "top": [
+            "Music",
+            0.4579
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.5455,
+          "top": [
+            "Music",
+            0.5455
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_scout_rifle_skirmisher_20260827/videos/standing-attacking-h3-v03.mp4",
+      "disposition": "imported",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Bang",
+            0.3232
+          ],
+          [
+            "Sound effect",
+            0.2769
+          ],
+          [
+            "Gunshot, gunfire",
+            0.12
+          ],
+          [
+            "Whoosh, swoosh, swish",
+            0.0531
+          ],
+          [
+            "Machine gun",
+            0.0204
+          ],
+          [
+            "Whack, thwack",
+            0.0178
+          ],
+          [
+            "Artillery fire",
+            0.0135
+          ],
+          [
+            "Whip",
+            0.0119
+          ]
+        ],
+        "musicMax": 0.0036,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0034,
+          "top": [
+            "Bang",
+            0.2843
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0043,
+          "top": [
+            "Bang",
+            0.3799
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0043,
+          "top": [
+            "Bang",
+            0.3316
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0138,
+          "top": [
+            "Slap, smack",
+            0.0676
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.0684,
+          "top": [
+            "Silence",
+            0.1512
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_scout_rifle_skirmisher",
+          "window": [
+            2.41,
+            3.23
+          ],
+          "output": "assets/sounds/friendly/hamster_scout_rifle_skirmisher_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_sniper_20260826/videos/attacking-doubao.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.2608
+          ],
+          [
+            "Bang",
+            0.0805
+          ],
+          [
+            "Crackle",
+            0.0438
+          ],
+          [
+            "Explosion",
+            0.0413
+          ],
+          [
+            "Fireworks",
+            0.0386
+          ],
+          [
+            "Burst, pop",
+            0.0257
+          ],
+          [
+            "Music",
+            0.0199
+          ],
+          [
+            "Firecracker",
+            0.0171
+          ]
+        ],
+        "musicMax": 0.0199,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0255,
+          "top": [
+            "Whoosh, swoosh, swish",
+            0.0651
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.012,
+          "top": [
+            "Bang",
+            0.3057
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0218,
+          "top": [
+            "Sound effect",
+            0.2516
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0062,
+          "top": [
+            "Sound effect",
+            0.0825
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0035,
+          "top": [
+            "Single-lens reflex camera",
+            0.1195
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_sniper",
+          "window": [
+            2.45,
+            3.25
+          ],
+          "output": "assets/sounds/friendly/hamster_sniper_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_sniper_20260826/videos/dying-doubao-v07.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_sniper_20260826/videos/idle-doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_sniper_20260826/videos/running-h3-v02.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.1841,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.8601
+          ],
+          [
+            "Television",
+            0.208
+          ],
+          [
+            "Theme music",
+            0.1943
+          ],
+          [
+            "Soundtrack music",
+            0.0599
+          ],
+          [
+            "Bang",
+            0.0482
+          ],
+          [
+            "Background music",
+            0.0264
+          ],
+          [
+            "Video game music",
+            0.026
+          ],
+          [
+            "Sound effect",
+            0.0224
+          ]
+        ],
+        "musicMax": 0.8601,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.7346,
+          "top": [
+            "Music",
+            0.7346
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.5759,
+          "top": [
+            "Music",
+            0.5759
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.6755,
+          "top": [
+            "Music",
+            0.6755
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.7516,
+          "top": [
+            "Music",
+            0.7516
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.1841,
+          "musicMax": 0.7807,
+          "top": [
+            "Music",
+            0.7807
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_special_forces_20260826/videos/hamster_special_forces_attacking_doubao_v02.mp4",
+      "disposition": "imported",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Sound effect",
+            0.3762
+          ],
+          [
+            "Bang",
+            0.2081
+          ],
+          [
+            "Explosion",
+            0.0909
+          ],
+          [
+            "Gunshot, gunfire",
+            0.06
+          ],
+          [
+            "Burst, pop",
+            0.0514
+          ],
+          [
+            "Crackle",
+            0.0287
+          ],
+          [
+            "Machine gun",
+            0.0246
+          ],
+          [
+            "Flap",
+            0.0159
+          ]
+        ],
+        "musicMax": 0.0042,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.0054,
+          "top": [
+            "Explosion",
+            0.5973
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.0024,
+          "top": [
+            "Bang",
+            0.5346
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.0069,
+          "top": [
+            "Sound effect",
+            0.4245
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.0071,
+          "top": [
+            "Single-lens reflex camera",
+            0.1874
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.0035,
+          "top": [
+            "Sound effect",
+            0.0434
+          ]
+        }
+      ],
+      "reason": "动作声按现用事件接线",
+      "clips": [
+        {
+          "key": "attack",
+          "unit": "hamster_special_forces",
+          "window": [
+            1.64,
+            2.73
+          ],
+          "output": "assets/sounds/friendly/hamster_special_forces_attack_video.mp3"
+        }
+      ]
+    },
+    {
+      "source": "tools/ai-gen/_hamster_special_forces_20260826/videos/hamster_special_forces_dying_doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_special_forces_20260826/videos/hamster_special_forces_idle_doubao.mp4",
+      "disposition": "excluded_idle_death",
+      "duration": null,
+      "full": null,
+      "windows": [],
+      "reason": "用户明确不导入待机/死亡",
+      "clips": []
+    },
+    {
+      "source": "tools/ai-gen/_hamster_special_forces_20260826/videos/hamster_special_forces_running_doubao_v02.mp4",
+      "disposition": "held_music_or_percussion",
+      "duration": 5.062,
+      "full": {
+        "top": [
+          [
+            "Music",
+            0.8583
+          ],
+          [
+            "Funny music",
+            0.1875
+          ],
+          [
+            "Soundtrack music",
+            0.0456
+          ],
+          [
+            "Swing music",
+            0.0393
+          ],
+          [
+            "Video game music",
+            0.0323
+          ],
+          [
+            "Television",
+            0.0295
+          ],
+          [
+            "Jingle (music)",
+            0.0228
+          ],
+          [
+            "Exciting music",
+            0.02
+          ]
+        ],
+        "musicMax": 0.8583,
+        "musicLabel": "Music"
+      },
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "musicMax": 0.8111,
+          "top": [
+            "Music",
+            0.8111
+          ]
+        },
+        {
+          "start": 1,
+          "end": 3,
+          "musicMax": 0.592,
+          "top": [
+            "Music",
+            0.592
+          ]
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "musicMax": 0.5704,
+          "top": [
+            "Music",
+            0.5704
+          ]
+        },
+        {
+          "start": 3,
+          "end": 5,
+          "musicMax": 0.6011,
+          "top": [
+            "Music",
+            0.6011
+          ]
+        },
+        {
+          "start": 4,
+          "end": 5.062,
+          "musicMax": 0.5851,
+          "top": [
+            "Music",
+            0.5851
+          ]
+        }
+      ],
+      "reason": "音乐/节奏床与动作重叠；不直接导入混音",
+      "clips": []
+    }
+  ]
+}

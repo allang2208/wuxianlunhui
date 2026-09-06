@@ -9,6 +9,7 @@
 // - 死亡：播 dying 动画（14 帧 @12fps = 1167ms）后自动从场景移除。
 // ============================================================
 import { Companion } from './companion.js';
+import { updateFriendlyMovementSound } from '../utils/friendly-movement-sound.js';
 import { HamsterMilitiaAI } from '../ai/hamster-militia-ai.js';
 import hamsterMilitiaConfig from '../../data/hamster-militia-config.json';
 
@@ -126,6 +127,7 @@ export class HamsterMilitia extends Companion {
         if (this._ai) {
             const game = (typeof window !== 'undefined' && window.Game) || null;
             this._ai.update(dt, entities, (game && game.player && !game._observerMode) ? game.player : null); // 观察模式：仓鼠部队不跟随不在场的玩家
+            updateFriendlyMovementSound(this, dt);
         }
     }
 

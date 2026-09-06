@@ -25,8 +25,12 @@
   "size": 72,
   "skills": [],
   "sounds": {
-    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3",
-    "chargeImpact": "assets/sounds/skills/fireball_hit.mp3"
+    "attack": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_attack_video.mp3",
+    "chargeImpact": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_charge_impact_video.mp3",
+    "chargeStart": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_charge_start_video.mp3",
+    "walk": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_walk_video.mp3",
+    "walkInterval": 240,
+    "walkVolume": 0.3
   },
   "ai": {
     "role": "melee_powered_explosive_lancer",

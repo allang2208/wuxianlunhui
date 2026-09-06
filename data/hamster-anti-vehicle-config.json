@@ -25,7 +25,7 @@
   "size": 64,
   "skills": [],
   "sounds": {
-    "attack": "assets/sounds/friendly/hamster_anti_vehicle_attack.mp3"
+    "attack": "assets/sounds/friendly/hamster_anti_vehicle_attack_video.mp3"
   },
   "ai": {
     "role": "anti_vehicle_assault",

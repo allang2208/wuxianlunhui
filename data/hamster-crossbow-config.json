@@ -25,7 +25,13 @@
   "size": 64,
   "skills": [],
   "sounds": {
-    "attack": "assets/sounds/friendly/hamster_shooter_attack.mp3"
+    "attack": "assets/sounds/friendly/hamster_shooter_attack.mp3",
+    "walk": [
+      "assets/sounds/friendly/hamster_crossbow_walk_1_video.mp3",
+      "assets/sounds/friendly/hamster_crossbow_walk_2_video.mp3"
+    ],
+    "walkInterval": 580,
+    "walkVolume": 0.3
   },
   "ai": {
     "role": "ranged_heavy_crossbow",

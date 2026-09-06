@@ -1,0 +1,443 @@
+[
+  {
+    "unit": "hamster_heavy_machine_gunner",
+    "key": "attack",
+    "source": "_hamster_heavy_machine_gunner_20260827/videos/attacking-doubao-v01.mp4",
+    "window": [
+      3.23,
+      3.96
+    ],
+    "gunshot": true,
+    "note": "连发最后一发，保留尾音；每颗子弹只播一次。",
+    "output": "assets/sounds/friendly/hamster_heavy_machine_gunner_attack_video.mp3",
+    "duration": 0.73
+  },
+  {
+    "unit": "hamster_anti_vehicle",
+    "key": "attack",
+    "source": "_hamster_anti_vehicle_20260826/h3/videos/hamster_anti_vehicle_smg_attacking_h3.mp4",
+    "window": [
+      2.47,
+      3.7
+    ],
+    "gunshot": true,
+    "output": "assets/sounds/friendly/hamster_anti_vehicle_attack_video.mp3",
+    "duration": 1.23
+  },
+  {
+    "unit": "hamster_ninja",
+    "key": "attack",
+    "source": "_hamster_ninja_20260826/videos/attacking-doubao-v05-centered.mp4",
+    "window": [
+      0.92,
+      1.98
+    ],
+    "output": "assets/sounds/friendly/hamster_ninja_attack_video.mp3",
+    "duration": 1.06
+  },
+  {
+    "unit": "hamster_ninja",
+    "key": "stealth",
+    "source": "_hamster_ninja_20260826/videos/smoke-bomb-doubao-v02.mp4",
+    "window": [
+      2.72,
+      3.24
+    ],
+    "output": "assets/sounds/friendly/hamster_ninja_stealth_video.mp3",
+    "duration": 0.52
+  },
+  {
+    "unit": "hamster_sniper",
+    "key": "attack",
+    "source": "_hamster_sniper_20260826/videos/attacking-doubao.mp4",
+    "window": [
+      2.45,
+      3.25
+    ],
+    "gunshot": true,
+    "output": "assets/sounds/friendly/hamster_sniper_attack_video.mp3",
+    "duration": 0.8
+  },
+  {
+    "unit": "hamster_assault",
+    "key": "attack",
+    "source": "_hamster_assault_20260827/videos/attacking-doubao-v01.mp4",
+    "window": [
+      3.06,
+      4.05
+    ],
+    "gunshot": true,
+    "output": "assets/sounds/friendly/hamster_assault_attack_video.mp3",
+    "duration": 0.99
+  },
+  {
+    "unit": "hamster_special_forces",
+    "key": "attack",
+    "source": "_hamster_special_forces_20260826/videos/hamster_special_forces_attacking_doubao_v02.mp4",
+    "window": [
+      1.64,
+      2.73
+    ],
+    "gunshot": true,
+    "output": "assets/sounds/friendly/hamster_special_forces_attack_video.mp3",
+    "duration": 1.09
+  },
+  {
+    "unit": "hamster_riot_squad",
+    "key": "attack",
+    "source": "_hamster_riot_squad_20260826/videos/hamster_riot_squad_attacking_h3_v01.mp4",
+    "window": [
+      1.93,
+      2.74
+    ],
+    "gunshot": true,
+    "output": "assets/sounds/friendly/hamster_riot_squad_attack_video.mp3",
+    "duration": 0.81
+  },
+  {
+    "unit": "hamster_scout_rifle_skirmisher",
+    "key": "attack",
+    "source": "_hamster_scout_rifle_skirmisher_20260827/videos/standing-attacking-h3-v03.mp4",
+    "window": [
+      2.41,
+      3.23
+    ],
+    "gunshot": true,
+    "output": "assets/sounds/friendly/hamster_scout_rifle_skirmisher_attack_video.mp3",
+    "duration": 0.82
+  },
+  {
+    "unit": "hamster_scout_rifle_skirmisher",
+    "key": "movingAttack",
+    "source": "_hamster_scout_rifle_skirmisher_20260827/videos/moving-attacking-h3-v02.mp4",
+    "window": [
+      1.89,
+      2.56
+    ],
+    "gunshot": true,
+    "output": "assets/sounds/friendly/hamster_scout_rifle_skirmisher_moving_attack_video.mp3",
+    "duration": 0.67
+  },
+  {
+    "unit": "hamster_champion",
+    "key": "attack",
+    "source": "_hamster_champion_20260826/videos/attacking-doubao-v03.mp4",
+    "window": [
+      1.91,
+      2.66
+    ],
+    "output": "assets/sounds/friendly/hamster_champion_attack_video.mp3",
+    "duration": 0.75
+  },
+  {
+    "unit": "hamster_halberdier",
+    "key": "attack",
+    "source": "_hamster_halberd_20260825/videos/attacking-doubao.mp4",
+    "window": [
+      2.57,
+      3.53
+    ],
+    "output": "assets/sounds/friendly/hamster_halberdier_attack_video.mp3",
+    "duration": 0.96
+  },
+  {
+    "unit": "hamster_phalanx",
+    "key": "attack",
+    "source": "_hamster_phalanx_20260826/videos/hamster_phalanx_attacking_h3.mp4",
+    "window": [
+      1.05,
+      1.7
+    ],
+    "output": "assets/sounds/friendly/hamster_phalanx_attack_video.mp3",
+    "duration": 0.65
+  },
+  {
+    "unit": "hamster_cavalry",
+    "key": "attack",
+    "source": "_hamster_cavalry_pair_20260827/videos/cavalry/attacking-doubao-v01.mp4",
+    "window": [
+      2.29,
+      2.97
+    ],
+    "output": "assets/sounds/friendly/hamster_cavalry_attack_video.mp3",
+    "duration": 0.68
+  },
+  {
+    "unit": "hamster_winged_hussar",
+    "key": "attack",
+    "source": "_hamster_cavalry_pair_20260827/videos/winged_hussar/attacking-doubao-v01.mp4",
+    "window": [
+      1.13,
+      1.92
+    ],
+    "output": "assets/sounds/friendly/hamster_winged_hussar_attack_video.mp3",
+    "duration": 0.79
+  },
+  {
+    "unit": "hamster_longbow",
+    "key": "attack",
+    "source": "_hamster_longbow_20260827/videos/attacking-doubao-v01.mp4",
+    "window": [
+      3.6,
+      4.16
+    ],
+    "output": "assets/sounds/friendly/hamster_longbow_attack_video.mp3",
+    "duration": 0.56
+  },
+  {
+    "unit": "hamster_powered_eod_explosive_lancer",
+    "key": "attack",
+    "source": "_hamster_powered_eod_explosive_lancer_20260827/videos/lance-attacking-doubao-v01.mp4",
+    "window": [
+      2.04,
+      2.82
+    ],
+    "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_attack_video.mp3",
+    "duration": 0.78
+  },
+  {
+    "unit": "hamster_powered_eod_explosive_lancer",
+    "key": "chargeStart",
+    "source": "_hamster_powered_eod_explosive_lancer_20260827/videos/charge-attacking-doubao-v01.mp4",
+    "window": [
+      1.96,
+      2.78
+    ],
+    "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_charge_start_video.mp3",
+    "duration": 0.82
+  },
+  {
+    "unit": "hamster_powered_eod_explosive_lancer",
+    "key": "chargeImpact",
+    "source": "_hamster_powered_eod_explosive_lancer_20260827/videos/charge-attacking-doubao-v01.mp4",
+    "window": [
+      2.97,
+      4.8
+    ],
+    "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_charge_impact_video.mp3",
+    "duration": 1.83
+  },
+  {
+    "unit": "hamster_catapult_crew",
+    "key": "attack",
+    "source": "_hamster_catapult_animations_20260830/videos/attack-v01.mp4",
+    "window": [
+      1.85,
+      3.24
+    ],
+    "sourceAvailable": false,
+    "note": "现用v02音轨近乎静音；只借用同兵种v01发射声，不更换动画。v01源视频已不在当前归档中，保留裁剪窗口与成品音效。",
+    "output": "assets/sounds/friendly/hamster_catapult_crew_attack_video.mp3",
+    "duration": 1.39
+  },
+  {
+    "unit": "hamster_ninja",
+    "key": "attackContinuous",
+    "variant": 1,
+    "source": "_hamster_ninja_20260826/videos/attacking-doubao.mp4",
+    "window": [
+      2.19,
+      2.88
+    ],
+    "note": "同兵种旧版干净刀击；现用连击视频含持续低频鼓点。",
+    "output": "assets/sounds/friendly/hamster_ninja_attack_continuous_1_video.mp3",
+    "duration": 0.69
+  },
+  {
+    "unit": "hamster_ninja",
+    "key": "attackContinuous",
+    "variant": 2,
+    "source": "_hamster_ninja_20260826/videos/attacking-doubao-v03-wide.mp4",
+    "window": [
+      3.42,
+      4.17
+    ],
+    "output": "assets/sounds/friendly/hamster_ninja_attack_continuous_2_video.mp3",
+    "duration": 0.75
+  },
+  {
+    "unit": "hamster_archbishop",
+    "key": "walk",
+    "source": "_hamster_archbishop_doubao_20260828/videos/moving-doubao-v01.mp4",
+    "window": [
+      0.56,
+      0.85
+    ],
+    "intervalMs": 500,
+    "output": "assets/sounds/friendly/hamster_archbishop_walk_video.mp3",
+    "duration": 0.29
+  },
+  {
+    "unit": "hamster_assault",
+    "key": "walk",
+    "source": "_hamster_assault_20260827/videos/running-doubao-v01.mp4",
+    "window": [
+      0.37,
+      0.75
+    ],
+    "intervalMs": 410,
+    "output": "assets/sounds/friendly/hamster_assault_walk_video.mp3",
+    "duration": 0.38
+  },
+  {
+    "unit": "hamster_catapult_crew",
+    "key": "walk",
+    "source": "_hamster_catapult_animations_20260830/videos/run-v01.mp4",
+    "window": [
+      0.26,
+      0.76
+    ],
+    "intervalMs": 600,
+    "output": "assets/sounds/friendly/hamster_catapult_crew_walk_video.mp3",
+    "duration": 0.5
+  },
+  {
+    "unit": "hamster_champion",
+    "key": "walk",
+    "source": "_hamster_champion_20260826/videos/running-doubao-v02.mp4",
+    "window": [
+      0.67,
+      1.06
+    ],
+    "intervalMs": 420,
+    "output": "assets/sounds/friendly/hamster_champion_walk_video.mp3",
+    "duration": 0.39
+  },
+  {
+    "unit": "hamster_crossbow",
+    "key": "walk",
+    "variant": 1,
+    "source": "_hamster_crossbow_20260827/videos/moving-doubao-v01.mp4",
+    "window": [
+      0.11,
+      0.56
+    ],
+    "intervalMs": 580,
+    "note": "现用loop视频无音轨，回溯同一动作原始v01。",
+    "output": "assets/sounds/friendly/hamster_crossbow_walk_1_video.mp3",
+    "duration": 0.45
+  },
+  {
+    "unit": "hamster_crossbow",
+    "key": "walk",
+    "variant": 2,
+    "source": "_hamster_crossbow_20260827/videos/moving-doubao-v02.mp4",
+    "window": [
+      0.56,
+      1.02
+    ],
+    "intervalMs": 580,
+    "output": "assets/sounds/friendly/hamster_crossbow_walk_2_video.mp3",
+    "duration": 0.46
+  },
+  {
+    "unit": "hamster_heavy_machine_gunner",
+    "key": "walk",
+    "source": "_hamster_heavy_machine_gunner_20260827/videos/running-doubao-v01.mp4",
+    "window": [
+      0.79,
+      1.04
+    ],
+    "intervalMs": 300,
+    "output": "assets/sounds/friendly/hamster_heavy_machine_gunner_walk_video.mp3",
+    "duration": 0.25
+  },
+  {
+    "unit": "hamster_longbow",
+    "key": "walk",
+    "source": "_hamster_longbow_20260827/videos/moving-doubao-v01.mp4",
+    "window": [
+      0.2,
+      0.88
+    ],
+    "intervalMs": 700,
+    "output": "assets/sounds/friendly/hamster_longbow_walk_video.mp3",
+    "duration": 0.68
+  },
+  {
+    "unit": "hamster_phalanx",
+    "key": "walk",
+    "source": "_hamster_phalanx_20260826/videos/hamster_phalanx_walking_h3_v02.mp4",
+    "window": [
+      0.84,
+      1.6
+    ],
+    "intervalMs": 830,
+    "output": "assets/sounds/friendly/hamster_phalanx_walk_video.mp3",
+    "duration": 0.76
+  },
+  {
+    "unit": "hamster_riot_squad",
+    "key": "walk",
+    "source": "_hamster_riot_squad_20260826/videos/hamster_riot_squad_moving_h3_v04.mp4",
+    "window": [
+      0.17,
+      0.45
+    ],
+    "intervalMs": 500,
+    "output": "assets/sounds/friendly/hamster_riot_squad_walk_video.mp3",
+    "duration": 0.28
+  },
+  {
+    "unit": "hamster_powered_eod_explosive_lancer",
+    "key": "walk",
+    "source": "_hamster_powered_eod_explosive_lancer_20260827/videos/running-h3-v01.mp4",
+    "window": [
+      3.51,
+      3.72
+    ],
+    "intervalMs": 240,
+    "output": "assets/sounds/friendly/hamster_powered_eod_explosive_lancer_walk_video.mp3",
+    "duration": 0.21
+  },
+  {
+    "unit": "hamster_field_cannon_crew",
+    "key": "attack",
+    "source": "_hamster_field_cannon_animations_20260830/videos/attack-v01.mp4",
+    "window": [
+      2.28,
+      5.17
+    ],
+    "staged": true,
+    "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_field_cannon_crew_attack_video.mp3",
+    "duration": 2.89
+  },
+  {
+    "unit": "hamster_field_cannon_crew",
+    "key": "walk",
+    "source": "_hamster_field_cannon_animations_20260830/videos/run-v01.mp4",
+    "window": [
+      0.14,
+      1.3
+    ],
+    "staged": true,
+    "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_field_cannon_crew_walk_video.mp3",
+    "duration": 1.16
+  },
+  {
+    "unit": "hamster_howitzer_crew",
+    "key": "attack",
+    "source": "_hamster_howitzer_animations_20260830/videos/attack-v01.mp4",
+    "window": [
+      2.62,
+      5.17
+    ],
+    "staged": true,
+    "sourceAvailable": false,
+    "note": "v01源视频已不在当前归档中，保留裁剪窗口与暂存成品音效。",
+    "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_howitzer_crew_attack_video.mp3",
+    "duration": 2.55
+  },
+  {
+    "unit": "hamster_howitzer_crew",
+    "key": "walk",
+    "source": "_hamster_howitzer_animations_20260830/videos/run-v01.mp4",
+    "window": [
+      0.3,
+      4.75
+    ],
+    "staged": true,
+    "output": "tools/ai-gen/_hamster_audio_staged_20260830/hamster_howitzer_crew_walk_video.mp3",
+    "duration": 4.45
+  }
+]

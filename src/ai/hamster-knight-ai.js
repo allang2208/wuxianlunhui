@@ -288,6 +288,7 @@ export class HamsterKnightAI {
         m._parryImmune = true;
         m._chargeStart = true;
         m._animState = 'charge';
+        this._playSound('chargeStart');
         m._attackAnimTimer = cfg.maxDuration ?? 4500;
         if (target?.active) {
             m.rotation = Math.atan2(target.y - m.y, target.x - m.x);

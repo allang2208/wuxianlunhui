@@ -25,7 +25,8 @@
   "size": 72,
   "skills": [],
   "sounds": {
-    "attack": "assets/companions/hamster_musketeer/fire.mp3"
+    "attack": "assets/sounds/friendly/hamster_scout_rifle_skirmisher_attack_video.mp3",
+    "movingAttack": "assets/sounds/friendly/hamster_scout_rifle_skirmisher_moving_attack_video.mp3"
   },
   "ai": {
     "role": "mobile_scout_rifle",

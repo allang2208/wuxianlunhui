@@ -25,7 +25,10 @@
   "size": 64,
   "skills": [],
   "sounds": {
-    "attack": "assets/companions/hamster_musketeer/fire.mp3"
+    "attack": "assets/sounds/friendly/hamster_riot_squad_attack_video.mp3",
+    "walk": "assets/sounds/friendly/hamster_riot_squad_walk_video.mp3",
+    "walkInterval": 500,
+    "walkVolume": 0.3
   },
   "ai": {
     "role": "riot_cone_suppressor",

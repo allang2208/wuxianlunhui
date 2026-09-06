@@ -18,8 +18,12 @@
   "size": 64,
   "skills": [],
   "sounds": {
-    "attack": "assets/sounds/friendly/hamster_ninja_attack.mp3",
-    "stealth": "assets/sounds/friendly/hamster_ninja_stealth.mp3"
+    "attack": "assets/sounds/friendly/hamster_ninja_attack_video.mp3",
+    "stealth": "assets/sounds/friendly/hamster_ninja_stealth_video.mp3",
+    "attackContinuous": [
+      "assets/sounds/friendly/hamster_ninja_attack_continuous_1_video.mp3",
+      "assets/sounds/friendly/hamster_ninja_attack_continuous_2_video.mp3"
+    ]
   },
   "ai": {
     "role": "melee_ninja",
